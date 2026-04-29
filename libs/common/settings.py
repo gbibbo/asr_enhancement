@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     # Provider
     asr_provider: str = "fake"
     assemblyai_api_key: Optional[str] = None
+    # Fake adapter fixture text (optional; empty string treated as unset)
+    fake_transcript: Optional[str] = None
 
     # Database
     database_url: str

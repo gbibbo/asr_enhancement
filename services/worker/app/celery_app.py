@@ -8,6 +8,7 @@ celery_app = Celery(
     "asr_worker",
     broker=settings.redis_url,
     backend=settings.redis_url,
+    include=["services.worker.app.tasks"],
 )
 
 celery_app.conf.update(

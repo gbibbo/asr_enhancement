@@ -128,6 +128,20 @@ def test_runtime_root_parsed_as_path(monkeypatch):
 
 # --- get_settings caching ---
 
+# --- fake_transcript ---
+
+def test_fake_transcript_defaults_to_none(monkeypatch):
+    s = make(monkeypatch, drop=["FAKE_TRANSCRIPT"])
+    assert s.fake_transcript is None
+
+
+def test_fake_transcript_from_env(monkeypatch):
+    s = make(monkeypatch, extra={"FAKE_TRANSCRIPT": "custom text"})
+    assert s.fake_transcript == "custom text"
+
+
+# --- get_settings caching ---
+
 def test_get_settings_caching(monkeypatch):
     for k, v in REQUIRED.items():
         monkeypatch.setenv(k, v)

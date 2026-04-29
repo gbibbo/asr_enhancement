@@ -36,3 +36,15 @@ def test_ping_task_returns_pong(celery_module):
     result = celery_module.ping.run()
     assert result["pong"] is True
     assert result["worker"]
+
+
+@pytest.fixture
+def tasks_module(celery_module):
+    sys.modules.pop("services.worker.app.tasks", None)
+    module = importlib.import_module("services.worker.app.tasks")
+    yield module
+    sys.modules.pop("services.worker.app.tasks", None)
+
+
+def test_transcribe_job_registered(tasks_module, celery_module):
+    assert "worker.transcribe_job" in celery_module.celery_app.tasks
