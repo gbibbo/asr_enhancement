@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 3
-current_task: "3.3"
-last_completed_task: "3.2"
+current_task: "3.4"
+last_completed_task: "3.3"
 blocked: true
-blocker: "External Docker/Compose verification pending — datamove1 has no Docker. Gabriel must run the external verification commands from plan-task-3-3 on his local WSL checkout and confirm."
+blocker: "Task 3.4 implemented and login-node tests pass (115/115); blocked pending external Docker verification by Gabriel"
 repo_state: partial
 git_state: initialized
 remote_state: remote_missing
@@ -22,8 +22,8 @@ tasks:
   "2.3": done
   "3.1": done
   "3.2": done
-  "3.3": blocked
-  "3.4": pending
+  "3.3": done
+  "3.4": blocked
   "3.5": pending
   "3.6": pending
   "3.7": pending
