@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
-current_phase: 2
-current_task: "2.3"
-last_completed_task: "2.2"
-blocked: true
-blocker: "External Docker verification required: /ready endpoint needs running Postgres, Redis, MinIO with bucket absent and present"
+current_phase: 3
+current_task: "3.1"
+last_completed_task: "2.3"
+blocked: false
+blocker: null
 repo_state: partial
 git_state: initialized
 remote_state: remote_missing
@@ -19,7 +19,7 @@ tasks:
   "1.6": done
   "2.1": done
   "2.2": done
-  "2.3": blocked
+  "2.3": done
   "3.1": pending
   "3.2": pending
   "3.3": pending
