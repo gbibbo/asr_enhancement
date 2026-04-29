@@ -1,0 +1,84 @@
+x-app-environment: &app-environment
+  ASR_PROVIDER: fake
+  DATABASE_URL: postgresql+psycopg://asr:asr@postgres:5432/asr
+  REDIS_URL: redis://redis:6379/0
+  MINIO_ENDPOINT: minio:9000
+  MINIO_ACCESS_KEY: minioadmin
+  MINIO_SECRET_KEY: minioadmin
+  MINIO_BUCKET: asr-platform
+  MINIO_SECURE: "false"
+
+x-backend-build: &backend-build
+  context: ../..
+  dockerfile: infra/compose/Dockerfile.backend
+
+services:
+  api:
+    build: *backend-build
+    environment: *app-environment
+    command: uvicorn services.api.app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  worker:
+    build: *backend-build
+    environment: *app-environment
+    command: celery -A services.worker.app.celery_app:celery_app worker --loglevel=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: asr
+      POSTGRES_PASSWORD: asr
+      POSTGRES_DB: asr
+    volumes:
+      - asr_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asr -d asr"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - asr_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  minio:
+    image: minio/minio:latest
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - asr_minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  asr_postgres_data:
+  asr_redis_data:
+  asr_minio_data:

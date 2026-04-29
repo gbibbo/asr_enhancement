@@ -1,0 +1,48 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+
+# Virtual environments
+.venv
+.venv/
+venv/
+env/
+ENV/
+
+# Node
+node_modules/
+.next/
+out/
+
+# MinIO local data
+data/minio/
+.minio/
+
+# HPC scratch paths (runtime, artifacts, cache)
+/mnt/fast/nobackup/scratch4weeks/
+
+# Logs and temp
+*.log
+*.tmp
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+htmlcov/
+.coverage
+.coverage.*
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
