@@ -1,10 +1,15 @@
 current_cut: backend_vertical_slice
-current_phase: 1
+current_phase: 2
 current_task: "2.1"
 last_completed_task: "1.6"
-blocked: false
-blocker: null
-repo_state: fresh
+blocked: true
+blocker: >
+  Task 2.1 implementation exists. External Docker verification attempted but failed:
+  (1) pytest not found in image — Dockerfile installed only runtime deps, not dev extras;
+  (2) alembic upgrade head failed — alembic.ini and alembic/ not copied into image.
+  Fixed: Dockerfile.backend now copies alembic.ini, alembic/, tests/ and installs .[dev].
+  Awaiting rerun of external verification sequence.
+repo_state: partial
 git_state: initialized
 remote_state: remote_missing
 tasks:
@@ -17,7 +22,7 @@ tasks:
   "1.4": done
   "1.5": done
   "1.6": done
-  "2.1": pending
+  "2.1": blocked
   "2.2": pending
   "2.3": pending
   "3.1": pending
