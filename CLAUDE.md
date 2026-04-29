@@ -201,6 +201,57 @@ https://github.com/gbibbo/asr_enhancement.git
 
 Do not change remotes or force push without explicit instruction.
 
+## 8a. Git synchronization for external local verification
+
+When a task is implemented on datamove1 but cannot be fully verified there because Docker, Docker Compose, or another local-only dependency is unavailable, and the remaining verification must be run by Gabriel on his local WSL/Docker checkout, follow this policy:
+
+**Tracker state while blocked:**
+
+1. Keep the task blocked, not done.
+2. Update both progress trackers to record:
+   - `current_task` remains the current task
+   - `last_completed_task` remains the previous completed task
+   - `blocked: true`
+   - `blocker` describes the missing external verification
+   - the current task status is `blocked` or `in_progress`, not `done`
+
+**Before committing:**
+
+3. Run and report all of the following:
+
+   ```bash
+   git status
+   git remote -v
+   git branch --show-current
+   git config user.name
+   git config user.email
+   git diff --stat
+   ```
+
+4. Verify:
+   - the remote is `https://github.com/gbibbo/asr_enhancement` or `git@github.com:gbibbo/asr_enhancement.git`
+   - `git user.name` is `Gabriel Bibbó`
+   - `git user.email` is present
+5. If `git user.email` is missing, stop and report. Do not invent an email.
+6. If unrelated uncommitted changes are present, stop and report them instead of committing.
+
+**Committing and pushing:**
+
+7. Commit the implementation plus the blocked tracker state together.
+8. Use a plain project-focused commit message. Do not add AI authorship trailers, assistant metadata, or bot signatures.
+9. Push only to the current branch.
+10. After pushing, report:
+    - commit hash
+    - branch pushed
+    - files included
+    - tracker state
+    - exact external verification commands Gabriel must run locally
+
+**After Gabriel reports external verification passed:**
+
+11. Update both trackers: set the task to `done`, advance `current_task` and `last_completed_task`, set `blocked: false`, set `blocker: null`.
+12. Do not implement the next task unless explicitly asked to plan or execute it.
+
 ## 9. Language and docs
 
 User-facing product material must be in English: UI text, status messages, validation messages, API examples, shared code comments, dashboard titles, alerts, screenshots, and demo output.

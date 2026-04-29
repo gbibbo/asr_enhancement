@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 2
-current_task: "2.2"
-last_completed_task: "2.1"
+current_task: "2.3"
+last_completed_task: "2.2"
 blocked: true
-blocker: "Task 2.2 implementation exists, but MinIO integration tests and Compose regression verification could not be verified on the HPC login node because Docker is unavailable."
+blocker: "External Docker verification required: /ready endpoint needs running Postgres, Redis, MinIO with bucket absent and present"
 repo_state: partial
 git_state: initialized
 remote_state: remote_missing
@@ -18,8 +18,8 @@ tasks:
   "1.5": done
   "1.6": done
   "2.1": done
-  "2.2": blocked
-  "2.3": pending
+  "2.2": done
+  "2.3": blocked
   "3.1": pending
   "3.2": pending
   "3.3": pending
