@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 1
-current_task: "1.6"
-last_completed_task: "1.5"
-blocked: true
-blocker: "Docker Compose unavailable on datamove1; Task 1.6 external Docker Compose verification is still pending."
+current_task: "2.1"
+last_completed_task: "1.6"
+blocked: false
+blocker: null
 repo_state: fresh
 git_state: initialized
 remote_state: remote_missing
@@ -16,7 +16,7 @@ tasks:
   "1.3": done
   "1.4": done
   "1.5": done
-  "1.6": pending
+  "1.6": done
   "2.1": pending
   "2.2": pending
   "2.3": pending
