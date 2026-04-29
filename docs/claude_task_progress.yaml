@@ -1,14 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 2
-current_task: "2.1"
-last_completed_task: "1.6"
+current_task: "2.2"
+last_completed_task: "2.1"
 blocked: true
-blocker: >
-  Task 2.1 implementation exists. External Docker verification attempted but failed:
-  (1) pytest not found in image — Dockerfile installed only runtime deps, not dev extras;
-  (2) alembic upgrade head failed — alembic.ini and alembic/ not copied into image.
-  Fixed: Dockerfile.backend now copies alembic.ini, alembic/, tests/ and installs .[dev].
-  Awaiting rerun of external verification sequence.
+blocker: "Task 2.2 implementation exists, but MinIO integration tests and Compose regression verification could not be verified on the HPC login node because Docker is unavailable."
 repo_state: partial
 git_state: initialized
 remote_state: remote_missing
@@ -22,8 +17,8 @@ tasks:
   "1.4": done
   "1.5": done
   "1.6": done
-  "2.1": blocked
-  "2.2": pending
+  "2.1": done
+  "2.2": blocked
   "2.3": pending
   "3.1": pending
   "3.2": pending
