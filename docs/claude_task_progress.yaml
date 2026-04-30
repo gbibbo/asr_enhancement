@@ -3,7 +3,7 @@ current_phase: 6
 current_task: "6.3"
 last_completed_task: "6.2"
 blocked: true
-blocker: "Login-node unit tests pass (336/336). Collector trace verification requires Docker + OTel collector in WSL."
+blocker: "WSL verification on commit a674f90 failed (no asr-api resource span); root cause: lifespan-time FastAPIInstrumentor was too late. Fix applied: instrumentation moved to module level. Login-node now 338/338 (336 baseline + 2 new regression tests). WSL Docker verification must be rerun."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present

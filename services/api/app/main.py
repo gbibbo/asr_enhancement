@@ -41,13 +41,19 @@ from services.api.app.upload_validation import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging("api")
-    configure_tracing("asr-api")
-    if not getattr(app, "_is_instrumented_by_opentelemetry", False):
-        FastAPIInstrumentor().instrument_app(app)
     yield
 
 
 app = FastAPI(title="ASR Enhancement Platform", version="0.1.0", lifespan=lifespan)
+
+# Tracing must be configured and FastAPI must be instrumented BEFORE the middleware
+# stack is built. Starlette builds middleware_stack lazily on the first ASGI call —
+# which is the lifespan event itself — and caches it.  Lifespan-time instrumentation
+# would patch build_middleware_stack too late, so the cached stack would be missing
+# the OTel wrapper and HTTP requests would produce no spans.
+configure_tracing("asr-api")
+if not getattr(app, "_is_instrumented_by_opentelemetry", False):
+    FastAPIInstrumentor().instrument_app(app)
 
 logger = logging.getLogger(__name__)
 
