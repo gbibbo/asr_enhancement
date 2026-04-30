@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 7
 current_task: "7.2"
 last_completed_task: "7.1"
-blocked: false
-blocker: null
+blocked: true
+blocker: "Task 7.2 implementation pushed; awaiting WSL Node + Docker verification (npm install / npm run lint / npm run typecheck / npm run build, then manual browser checks A-D against the backend on localhost:8000)."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -38,7 +38,7 @@ tasks:
   "6.3": done
   "6.4": done
   "7.1": done
-  "7.2": pending
+  "7.2": blocked
   "7.3": pending
   "8.1": pending
   "8.2": pending

@@ -1,18 +1,31 @@
 # ASR demo frontend
 
-Minimal Next.js 14 (App Router, TypeScript) scaffold for the public demo. Task 7.1 only.
+Minimal Next.js 14 (App Router, TypeScript) scaffold for the public demo.
 
-## Scope
+## Scope (Tasks 7.1 + 7.2)
+
+Implemented:
 
 - Single page at `/`.
 - Upload form with file input, mode selector, preset selector, and submit button.
+- Polling of `GET /v1/jobs/{job_id}` after submit.
+- Status display (queued / running / completed / failed / polling timed out).
+- Selected mode and preset display.
+- Transcript display (sourced from `GET /v1/jobs/{job_id}/result` after completion,
+  with fallback to the snapshot's `transcript_text`).
+- Audio artifact availability for original and enhanced audio.
+- Audio players appear only when the artifact URL is browser-playable
+  (`http://`, `https://`, `data:`, `blob:`, or `/`-prefixed). Current backend
+  artifact URIs use the `s3://` scheme, so the UI shows availability text and
+  no `<audio>` element until a browser-playable URL is available.
+- Simple timing summary (Created / Started / Completed plus non-negative derived
+  durations) when timestamps are present.
 - All UI text English.
-- Submits to the backend through a same-origin Next.js route handler proxy at
+- Submits and polls through a same-origin Next.js route handler proxy at
   `services/frontend/app/api/[...path]/route.ts` so no backend CORS is needed.
 
 Deferred to later tasks:
 
-- Polling, status display, transcript view, audio players, timing summary (Task 7.2).
 - File size, extension, and rate limits (Task 7.3).
 - Frontend Docker Compose service and Dockerfile (later demo task).
 
