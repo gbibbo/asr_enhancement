@@ -1365,3 +1365,11 @@ Tracker state on closure:
 `current_task` is `null` because Task 8.3 is the final task in `plan.md`. `plan.md` §14 ends at Phase 8 / Task 8.3, and `plan.md` §16 lists post-MVP work that is explicitly out of scope until Gabriel invites it. The `null` sentinel is supported by the tracker schema in `plan.md` §15 (which uses the same sentinel for `last_completed_task`).
 
 Task 8.3 is closed. **Phase 8 / Cut C is complete.** No later task was started.
+
+## Post-MVP documentation refresh — 2026-04-30
+
+This is **documentation only**, not a new task. No `plan.md` task was added; the YAML tracker at `docs/claude_task_progress.yaml` is unchanged. Phase 8 / Cut C remains the final phase of the MVP, and `current_task` remains `null`.
+
+File changed: `README.md` (full rewrite to reflect the shipped MVP).
+
+Reason: the previous README still described the project as "Bootstrapping — Cut A in progress". The refresh replaces that with an MVP-state summary (status, capabilities, architecture overview, quick start against the fake provider, AssemblyAI opt-in gating, CI summary, persistent-data note, known limitations, post-MVP exclusions, repository layout) and links the existing detailed docs at `docs/smoke_tests.md` and `docs/deployment.md`. No code, CI, Compose, frontend, dependency, migration, or backend behavior changed. No tracker state was advanced.
