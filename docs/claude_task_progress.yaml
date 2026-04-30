@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
-current_phase: 7
-current_task: "7.3"
-last_completed_task: "7.2"
-blocked: true
-blocker: "Frontend tsc/lint/build and end-to-end browser flow require Gabriel's local WSL+Docker; datamove1 has no npm/Docker."
+current_phase: 8
+current_task: "8.1"
+last_completed_task: "7.3"
+blocked: false
+blocker: null
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -39,7 +39,7 @@ tasks:
   "6.4": done
   "7.1": done
   "7.2": done
-  "7.3": blocked
+  "7.3": done
   "8.1": pending
   "8.2": pending
   "8.3": pending
