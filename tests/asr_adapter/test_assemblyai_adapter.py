@@ -200,7 +200,7 @@ def test_submit_post_called_with_correct_json_body_and_audio_url(tmp_path):
     _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
     submit_call = client.post.call_args_list[1]
     assert submit_call.args[0] == f"{_BASE_URL}/v2/transcript"
-    assert submit_call.kwargs["json"] == {"audio_url": _UPLOAD_URL}
+    assert submit_call.kwargs["json"] == {"audio_url": _UPLOAD_URL, "speech_models": ["universal"]}
 
 
 def test_poll_get_called_with_correct_endpoint_and_auth_header(tmp_path):
@@ -299,7 +299,32 @@ def test_poll_timeout_raises_transcription_error(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# 24. Key safety
+# 24–26. speech_models
+# ---------------------------------------------------------------------------
+
+def test_submit_default_speech_models_is_universal(tmp_path):
+    client = _make_mock_client()
+    _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
+    submit_call = client.post.call_args_list[1]
+    assert submit_call.kwargs["json"]["speech_models"] == ["universal"]
+
+
+def test_submit_custom_speech_models_honored(tmp_path):
+    client = _make_mock_client()
+    _adapter(client, speech_models=["nano"]).transcribe(_audio(tmp_path), _JOB_ID)
+    submit_call = client.post.call_args_list[1]
+    assert submit_call.kwargs["json"]["speech_models"] == ["nano"]
+
+
+def test_submit_multiple_custom_speech_models(tmp_path):
+    client = _make_mock_client()
+    _adapter(client, speech_models=["universal", "nano"]).transcribe(_audio(tmp_path), _JOB_ID)
+    submit_call = client.post.call_args_list[1]
+    assert submit_call.kwargs["json"]["speech_models"] == ["universal", "nano"]
+
+
+# ---------------------------------------------------------------------------
+# 27–28. Key safety
 # ---------------------------------------------------------------------------
 
 def test_api_key_not_in_any_raised_error_message(tmp_path):
@@ -307,6 +332,16 @@ def test_api_key_not_in_any_raised_error_message(tmp_path):
         "401", request=MagicMock(), response=MagicMock(status_code=401)
     )
     client = _make_mock_client(upload_raises=http_err)
+    with pytest.raises(AdapterTranscriptionError) as exc_info:
+        _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
+    assert _API_KEY not in str(exc_info.value)
+
+
+def test_api_key_not_in_submit_error_message(tmp_path):
+    http_err = httpx.HTTPStatusError(
+        "400", request=MagicMock(), response=MagicMock(status_code=400)
+    )
+    client = _make_mock_client(submit_raises=http_err)
     with pytest.raises(AdapterTranscriptionError) as exc_info:
         _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
     assert _API_KEY not in str(exc_info.value)
