@@ -909,3 +909,79 @@ Run in this order so the happy path runs against a fresh limiter, then the 429 c
 - `docs/claude_task_progress.yaml`: set `tasks."7.3": done`, `last_completed_task: "7.3"`, `current_task: "8.1"`, `blocked: false`, `blocker: null`.
 - `docs/claude_task_progress.md`: append a follow-up `done` row for 7.3 citing WSL Node version, `npm run typecheck/lint/build` outcomes, and pass/fail for each of the five Step 9 manual checks (Check 4 must record the literal English 429 message verified).
 - Do **not** start Task 8.1 until closure has been recorded.
+
+## Task 8.1 — Add CI baseline (blocked, awaiting external verification)
+
+Status: **blocked** on datamove1; awaiting GitHub Actions CI verification on `master` after push, plus Gabriel's WSL Docker build and Node frontend checks.
+
+### Files added
+
+- `.github/workflows/ci.yml` — single workflow with three jobs (`backend`, `frontend`, `docker-image`).
+
+### Files modified (configuration)
+
+- `pyproject.toml` — added `[project.optional-dependencies] lint` group with exact pins `ruff==0.6.9` and `mypy==1.11.2`; added `[tool.ruff]` (`target-version = "py311"`, `line-length = 100`, `extend-exclude = ["alembic/versions", "services/frontend", ".venv", "build", "dist"]`); added `[tool.ruff.lint]` (`select = ["E", "F", "W", "I"]`, `ignore = ["E501"]`); added `[tool.mypy]` (`python_version = "3.11"`, `ignore_missing_imports = true`, `warn_unused_ignores = true`, `namespace_packages = true`, `explicit_package_bases = true`).
+- `docs/claude_task_progress.yaml` — set `tasks."8.1": blocked`, `blocked: true`, blocker description.
+- `docs/claude_task_progress.md` — this entry.
+
+### Files modified (minimal source fixes for ruff and mypy)
+
+These changes were strictly required for `ruff check .` and `mypy libs services/api services/worker` to pass under the configuration above. No behavior change.
+
+- **`libs/common/settings.py`** (mypy): `from typing import Any, Optional` (was: `Optional`); `validate_upload_limit(cls, v: Any) -> int` and `validate_rate_limit(cls, v: Any) -> int` (was: `v: object`, which mypy could not narrow for the `int(v)` overload); `return Settings()  # type: ignore[call-arg]` in `get_settings()` (pydantic-settings reads required fields from environment at runtime; mypy without the pydantic plugin reports them as missing kwargs).
+- **`libs/observability/metrics.py`** (autofix correction): re-added `CONTENT_TYPE_LATEST` to the `prometheus_client` import block with `# noqa: F401  (re-exported for libs.observability and services.api)`. Required because `libs/observability/__init__.py` and `services/api/app/main.py` import `CONTENT_TYPE_LATEST` from this module; the initial ruff autofix had removed it, breaking the re-export.
+- **`libs/observability/tracing.py`** (mypy `warn_unused_ignores`): removed two obsolete `# type: ignore[attr-defined]` comments on `_t._TRACER_PROVIDER` and `_t._TRACER_PROVIDER_SET_ONCE`. Under `ignore_missing_imports = true`, the OpenTelemetry attribute access is no longer flagged, so the ignores are now reported as unused.
+- **`tests/observability/test_tracing.py`** (ruff F841): removed unused `as child_span` binding in `test_propagation_links_child_span` — the variable was never read; the test logic uses `parent_span` and the exporter, not the child span.
+
+### Files modified by `ruff check . --fix --no-unsafe-fixes`
+
+The ruff autofixer was run with the safe-fix flag only. Two rule categories were applied automatically; both are mechanical and behavior-preserving (mypy still passes after the fixes):
+
+- **I001** (import block sort) on: `alembic/env.py`, `libs/observability/tracing.py`, `services/api/app/main.py`, `services/worker/app/celery_app.py`, `tests/api/test_metrics_endpoint.py`, `tests/asr_adapter/test_fake_adapter.py`, `tests/audio_pipeline/test_pipeline.py`, `tests/observability/test_json_formatter.py`, `tests/observability/test_tracing.py`, `tests/worker/test_celery_app.py`, `tests/worker/test_worker_tracing.py`.
+- **F401** (unused-import removal) on: `libs/asr_adapter/schema.py`, `services/api/app/main.py`, `services/worker/app/tasks.py`, `tests/api/test_enhance_and_transcribe.py`, `tests/api/test_tracing.py`, `tests/api/test_transcribe.py`, `tests/api/test_upload_validation.py`, `tests/asr_adapter/test_assemblyai_adapter.py`, `tests/observability/test_queue_backlog_metric.py`, `tests/observability/test_tracing.py`, `tests/storage/test_storage_unit.py`, `tests/worker/test_transcribe_task.py`, `tests/worker/test_worker_tracing.py`.
+
+### `E501` line-length rule
+
+Project-level `lint.ignore = ["E501"]` was added to `[tool.ruff.lint]`, justified per the approved plan §11.2 procedure: 37 occurrences across 10 files (`libs/asr_adapter/assemblyai.py`, `libs/audio_pipeline/presets.py`, `services/api/app/main.py`, `services/worker/app/tasks.py`, `tests/audio_pipeline/test_pipeline.py`, `tests/observability/test_tracing.py`, `tests/worker/test_enhance_task.py`, `tests/worker/test_transcribe_task.py`, `tests/worker/test_worker_metrics.py`, `tests/worker/test_worker_tracing.py`). Reformatting all 37 lines was outside Task 8.1's minimal-fix constraint; explicit ignore in `pyproject.toml` is clearer than 37 per-line `# noqa` comments. All other E-, F-, W-, and I- rules remain enforced.
+
+### Datamove1 checks run
+
+- `git status`, `git remote -v`, `git branch --show-current`, `git config user.name`, `git config user.email`, `git diff --stat`: clean (only `.codex` untracked, untouched); remote `git@github.com:gbibbo/asr_enhancement.git`; branch `master`; identity `Gabriel Bibbó <gabobibbo@gmail.com>`.
+- `.venv/bin/python -m pip install -e ".[dev,lint]"` → installed `ruff==0.6.9` and `mypy==1.11.2` (exact pins).
+- `.venv/bin/ruff check .` → `All checks passed!`.
+- `.venv/bin/mypy libs services/api services/worker` → `Success: no issues found in 27 source files`.
+- `.venv/bin/pytest --collect-only -q | tee /tmp/asr_81_pytest_collect.txt` → `378 tests collected`.
+- `grep -F 'tests/smoke/test_cut_a_smoke.py::test_cut_a_full_flow' /tmp/asr_81_pytest_collect.txt` → present.
+- `! grep -F 'tests/integration/test_live_assemblyai.py' /tmp/asr_81_pytest_collect.txt` → absent (correctly excluded by `norecursedirs`).
+- Workflow YAML parses; jobs `["backend", "frontend", "docker-image"]`; backend job step list includes both `Run unit and integration tests (fake adapter)` (`pytest -q`) and `Run fake-adapter smoke test (explicit gate)` (`pytest -q tests/smoke/test_cut_a_smoke.py`).
+
+### External verification required (Gabriel)
+
+#### WSL local mirror (early signal)
+
+```bash
+cd ~/code/asr_enhancement
+git pull
+
+docker compose -f infra/compose/docker-compose.yml build api
+
+cd services/frontend
+npm ci
+npm run lint
+npm run typecheck
+npm run build
+```
+
+#### GitHub Actions (authoritative)
+
+Open https://github.com/gbibbo/asr_enhancement/actions on the pushed `master` commit and confirm **all three** jobs are green:
+
+- `backend` — ruff, mypy, MinIO readiness, bucket creation, `alembic upgrade head`, `pytest -q`, and the explicit `pytest -q tests/smoke/test_cut_a_smoke.py` smoke gate.
+- `frontend` — `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`.
+- `docker-image` — `docker buildx` of `infra/compose/Dockerfile.backend`.
+
+### Closure (after all external verification passes)
+
+- `docs/claude_task_progress.yaml`: set `tasks."8.1": done`, `last_completed_task: "8.1"`, `current_task: "8.2"`, `blocked: false`, `blocker: null`.
+- `docs/claude_task_progress.md`: append a follow-up `done` row for 8.1 citing the GitHub Actions run URL/commit and per-job outcome.
+- Do **not** start Task 8.2 until Gabriel explicitly asks.

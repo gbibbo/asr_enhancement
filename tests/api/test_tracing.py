@@ -9,7 +9,6 @@ from fastapi.testclient import TestClient
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
 from libs.observability.tracing import _reset_tracing_for_tests, configure_tracing
@@ -206,7 +205,6 @@ def test_route_captures_traceparent_outside_threadpool(otel_exporter, monkeypatc
     /v1/transcribe span's trace_id — directly into _enqueue_transcribe, with no
     reliance on contextvars propagation through asyncio.to_thread.
     """
-    import importlib
 
     from libs.common.settings import get_settings
     from services.api.app import main as main_mod

@@ -8,7 +8,6 @@ import pytest
 
 from libs.observability import JSONFormatter, configure_logging
 
-
 # ---------------------------------------------------------------------------
 # Autouse fixture: remove ASR-tagged handlers before/after every test
 # ---------------------------------------------------------------------------

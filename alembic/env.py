@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from logging.config import fileConfig
 
-from alembic import context
-from sqlalchemy import pool, create_engine
+from sqlalchemy import create_engine, pool
 
 # Import all models so Base.metadata is fully populated
 import libs.common.models  # noqa: F401
+from alembic import context
 from libs.common.db import Base
 
 config = context.config

@@ -33,6 +33,10 @@ dev = [
     "pytest>=8",
     "PyYAML>=6",
 ]
+lint = [
+    "ruff==0.6.9",
+    "mypy==1.11.2",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
@@ -41,6 +45,28 @@ norecursedirs = ["integration"]
 markers = [
     "live_provider: requires RUN_LIVE_ASSEMBLYAI_TEST=1 and ASSEMBLYAI_API_KEY; never runs in CI",
 ]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = [
+    "alembic/versions",
+    "services/frontend",
+    ".venv",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_ignores = true
+namespace_packages = true
+explicit_package_bases = true
 
 [tool.setuptools.packages.find]
 where = ["."]

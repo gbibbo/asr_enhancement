@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from prometheus_client import (
-    CONTENT_TYPE_LATEST,
+    CONTENT_TYPE_LATEST,  # noqa: F401  (re-exported for libs.observability and services.api)
     CollectorRegistry,
     Counter,
     Gauge,

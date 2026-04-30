@@ -6,7 +6,6 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from libs.common.settings import get_settings
-from libs.observability.metrics import get_metrics_output
 from services.api.app.main import app
 
 _REQUIRED_ENVS = {
@@ -177,6 +176,7 @@ async def test_unhandled_error_handler_increments_api_errors(client):
     # exceptions from asyncio.to_thread can escape the middleware call_next
     # boundary before ExceptionMiddleware catches them.
     from unittest.mock import MagicMock
+
     from services.api.app.main import _unhandled_exception_handler
 
     mock_request = MagicMock()

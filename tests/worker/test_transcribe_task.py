@@ -4,7 +4,6 @@ import importlib
 import json
 import sys
 import uuid
-from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest

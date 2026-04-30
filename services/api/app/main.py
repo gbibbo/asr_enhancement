@@ -12,7 +12,9 @@ from typing import Any, Optional, Union
 
 import redis as redis_lib
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from opentelemetry import propagate
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from sqlalchemy import text
 
 from libs.audio_pipeline.errors import UnknownPresetError
@@ -21,9 +23,6 @@ from libs.common.db import make_engine, make_session_factory
 from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import Settings, get_settings
 from libs.common.storage import StorageClient
-from fastapi.responses import Response
-from opentelemetry import propagate
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from libs.observability import configure_logging, configure_tracing
 from libs.observability.metrics import (
     API_ERRORS,
@@ -267,7 +266,9 @@ def _enqueue_transcribe(job_id: str, traceparent: Optional[str] = None) -> None:
     The optional default exists only for legacy unit tests that exercise this
     function directly while a span is already active in the test thread.
     """
-    from services.worker.app.celery_app import celery_app  # lazy — avoids module-level settings init
+    from services.worker.app.celery_app import (
+        celery_app,  # lazy — avoids module-level settings init
+    )
     if traceparent is None:
         traceparent = _current_traceparent()
     # Safe diagnostic — only trace metadata, no secrets or payload content.

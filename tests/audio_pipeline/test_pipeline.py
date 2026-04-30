@@ -9,7 +9,6 @@ import soundfile as sf
 from libs.audio_pipeline.errors import UnknownPresetError
 from libs.audio_pipeline.pipeline import EnhancementResult, apply_preset
 
-
 # ---------------------------------------------------------------------------
 # Fixture helper
 # ---------------------------------------------------------------------------

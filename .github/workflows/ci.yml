@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (lint, type, tests)
+    runs-on: ubuntu-22.04
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: asr
+          POSTGRES_PASSWORD: asr
+          POSTGRES_DB: asr
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U asr"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      ASR_PROVIDER: fake
+      DATABASE_URL: postgresql+psycopg://asr:asr@127.0.0.1:5432/asr
+      REDIS_URL: redis://127.0.0.1:6379/0
+      MINIO_ENDPOINT: 127.0.0.1:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: asr-platform
+      MINIO_SECURE: "false"
+      RATE_LIMIT_PER_MINUTE: "0"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package and CI tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,lint]"
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Type check (mypy)
+        run: mypy libs services/api services/worker
+
+      - name: Start MinIO
+        run: |
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            quay.io/minio/minio:RELEASE.2024-10-13T13-34-11Z \
+            server /data --console-address ":9001"
+
+      - name: Wait for MinIO readiness
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fs http://127.0.0.1:9000/minio/health/live >/dev/null 2>&1; then
+              echo "MinIO ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "MinIO did not become ready in 60s" >&2
+          docker logs minio || true
+          exit 1
+
+      - name: Create MinIO bucket
+        run: |
+          python - <<'PY'
+          import os
+          from minio import Minio
+          client = Minio(
+              os.environ["MINIO_ENDPOINT"],
+              access_key=os.environ["MINIO_ACCESS_KEY"],
+              secret_key=os.environ["MINIO_SECRET_KEY"],
+              secure=os.environ["MINIO_SECURE"].lower() == "true",
+          )
+          bucket = os.environ["MINIO_BUCKET"]
+          if not client.bucket_exists(bucket):
+              client.make_bucket(bucket)
+          print(f"bucket ready: {bucket}")
+          PY
+
+      - name: Apply database migrations
+        run: alembic upgrade head
+
+      - name: Run unit and integration tests (fake adapter)
+        run: pytest -q
+
+      - name: Run fake-adapter smoke test (explicit gate)
+        run: pytest -q tests/smoke/test_cut_a_smoke.py
+
+  frontend:
+    name: Frontend (lint, type, build)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: services/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: services/frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: services/frontend
+        run: npm run lint
+
+      - name: Type check
+        working-directory: services/frontend
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: services/frontend
+        run: npm run build
+
+  docker-image:
+    name: Docker image build (backend)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/compose/Dockerfile.backend
+          push: false
+          load: false
+          tags: asr-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 import uuid
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from libs.common.settings import get_settings
 from services.api.app.main import (
-    _upload_raw_audio,
     app,
 )
 from services.api.app.rate_limit import RateLimiter

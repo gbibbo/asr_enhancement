@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 8
 current_task: "8.1"
 last_completed_task: "7.3"
-blocked: false
-blocker: null
+blocked: true
+blocker: "Awaiting GitHub Actions CI verification of jobs `backend`, `frontend`, `docker-image` on master after push, plus Gabriel's WSL Docker build and Node frontend checks."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -40,6 +40,6 @@ tasks:
   "7.1": done
   "7.2": done
   "7.3": done
-  "8.1": pending
+  "8.1": blocked
   "8.2": pending
   "8.3": pending

@@ -6,7 +6,7 @@ import pytest
 
 from libs.asr_adapter.base import ASRAdapter
 from libs.asr_adapter.errors import InputFileNotFoundError
-from libs.asr_adapter.fake import FakeASRAdapter, _DEFAULT_TRANSCRIPT
+from libs.asr_adapter.fake import _DEFAULT_TRANSCRIPT, FakeASRAdapter
 from libs.asr_adapter.schema import ASRResult
 
 _JOB_ID = "test-job-id"

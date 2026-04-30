@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from libs.observability.metrics import QUEUE_BACKLOG, get_metrics_output
-from services.worker.app import celery_app as celery_app_module
 from services.worker.app.celery_app import (
     _poll_queue_backlog_once,
     _resolve_default_queue_name,

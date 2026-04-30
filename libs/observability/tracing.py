@@ -4,7 +4,7 @@ import os
 from typing import Optional
 
 from opentelemetry import trace
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, SimpleSpanProcessor, SpanExporter
 
@@ -49,5 +49,5 @@ def _reset_tracing_for_tests() -> None:
     _TRACING_PROVIDER = None
     import opentelemetry.trace as _t
     from opentelemetry.util._once import Once
-    _t._TRACER_PROVIDER = None                  # type: ignore[attr-defined]
-    _t._TRACER_PROVIDER_SET_ONCE = Once()       # type: ignore[attr-defined]
+    _t._TRACER_PROVIDER = None
+    _t._TRACER_PROVIDER_SET_ONCE = Once()

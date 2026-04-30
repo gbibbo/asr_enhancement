@@ -6,8 +6,6 @@ import pytest
 from starlette.datastructures import Headers, UploadFile
 
 from services.api.app.upload_validation import (
-    ALLOWED_CONTENT_TYPES,
-    ALLOWED_EXTENSIONS,
     UploadValidationError,
     ValidatedUpload,
     validate_and_buffer_upload,

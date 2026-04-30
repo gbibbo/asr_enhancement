@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import os
 import pytest
-
 from opentelemetry import propagate, trace
 from opentelemetry.sdk.resources import SERVICE_NAME
 from opentelemetry.sdk.trace import TracerProvider
@@ -12,7 +10,6 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 from libs.observability.tracing import (
     _reset_tracing_for_tests,
     configure_tracing,
-    _TRACING_CONFIGURED,
 )
 
 
@@ -148,7 +145,7 @@ def test_propagation_links_child_span():
         propagate.inject(carrier)
         ctx = propagate.extract(carrier)
 
-    with tracer.start_as_current_span("child", context=ctx) as child_span:
+    with tracer.start_as_current_span("child", context=ctx):
         pass
 
     child = exporter.get_finished_spans()[1]  # parent finishes first, child second

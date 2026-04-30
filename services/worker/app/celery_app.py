@@ -2,7 +2,9 @@ import logging
 import socket
 import threading
 import time
+
 from celery import Celery
+
 from libs.common.settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,7 @@ def ping() -> dict:
 
 
 from celery.signals import worker_process_init  # noqa: E402
+
 from libs.observability import configure_logging  # noqa: E402
 from libs.observability.metrics import (  # noqa: E402
     QUEUE_BACKLOG,

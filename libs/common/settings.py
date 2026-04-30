@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
 
     @field_validator("upload_limit_bytes", mode="before")
     @classmethod
-    def validate_upload_limit(cls, v: object) -> int:
+    def validate_upload_limit(cls, v: Any) -> int:
         value = int(v)
         if value <= 0:
             raise ValueError("upload_limit_bytes must be greater than 0")
@@ -70,7 +70,7 @@ class Settings(BaseSettings):
 
     @field_validator("rate_limit_per_minute", mode="before")
     @classmethod
-    def validate_rate_limit(cls, v: object) -> int:
+    def validate_rate_limit(cls, v: Any) -> int:
         value = int(v)
         if value < 0:
             raise ValueError("rate_limit_per_minute must be >= 0")
@@ -84,4 +84,4 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    return Settings()
+    return Settings()  # type: ignore[call-arg]
