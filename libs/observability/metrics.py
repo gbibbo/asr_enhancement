@@ -38,6 +38,12 @@ WORKER_HEARTBEAT = Gauge(
     registry=REGISTRY,
 )
 
+QUEUE_BACKLOG = Gauge(
+    "asr_queue_backlog_jobs",
+    "Number of jobs waiting in the Celery default queue",
+    registry=REGISTRY,
+)
+
 
 def get_metrics_output() -> bytes:
     """Return Prometheus text format for the ASR registry."""

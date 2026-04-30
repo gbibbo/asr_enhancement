@@ -1,0 +1,34 @@
+groups:
+  - name: asr_basic_alerts
+    interval: 30s
+    rules:
+      - alert: ASRApiErrorRateHigh
+        expr: |
+          sum(rate(asr_api_requests_total{status_code=~"5.."}[5m]))
+            /
+          clamp_min(sum(rate(asr_api_requests_total[5m])), 1e-9)
+            > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ASR API 5xx error rate above 5% for 5m"
+
+      - alert: ASRQueueBacklogHigh
+        expr: asr_queue_backlog_jobs > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ASR Celery queue backlog above 50 jobs for 5m"
+
+      - alert: ASRWorkerHeartbeatMissing
+        expr: |
+          (time() - asr_worker_heartbeat_timestamp_seconds) > 90
+            or
+          absent(asr_worker_heartbeat_timestamp_seconds)
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ASR worker heartbeat older than 90s or metric absent"

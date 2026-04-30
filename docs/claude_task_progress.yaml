@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 6
 current_task: "6.4"
 last_completed_task: "6.3"
-blocked: false
-blocker: null
+blocked: true
+blocker: "WSL Docker verification of Grafana dashboard, Prometheus alert rules, and queue backlog metric pending"
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -36,7 +36,7 @@ tasks:
   "6.1": done
   "6.2": done
   "6.3": done
-  "6.4": pending
+  "6.4": blocked
   "7.1": pending
   "7.2": pending
   "7.3": pending

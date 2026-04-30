@@ -31,6 +31,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
+    "PyYAML>=6",
 ]
 
 [tool.pytest.ini_options]
