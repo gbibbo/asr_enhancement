@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 6
-current_task: "6.3"
-last_completed_task: "6.2"
-blocked: true
-blocker: "WSL verification on commit 658c0d2 failed again (API and worker trace IDs still differ); the in-process tests pass but cannot reproduce the production failure because Celery's send_task always uses the broker (task_always_eager has no effect on send_task). Diagnostic structured logs added in API (api.task_enqueued with traceparent_trace_id) and worker (worker.job_received with received_trace_id, worker.span_started with span_trace_id); WSL script extended to dump these logs so the next run will pinpoint which link drops the traceparent. Stronger Celery Task.apply() test added — it passes, proving the worker code is correct when handed traceparent via Celery's dispatcher. Login-node now 340/340 (339 baseline + 1 new test). WSL Docker verification must be rerun on the new commit."
+current_task: "6.4"
+last_completed_task: "6.3"
+blocked: false
+blocker: null
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -35,7 +35,7 @@ tasks:
   "5.3": done
   "6.1": done
   "6.2": done
-  "6.3": blocked
+  "6.3": done
   "6.4": pending
   "7.1": pending
   "7.2": pending
