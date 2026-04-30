@@ -28,6 +28,10 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+norecursedirs = ["integration"]
+markers = [
+    "live_provider: requires RUN_LIVE_ASSEMBLYAI_TEST=1 and ASSEMBLYAI_API_KEY; never runs in CI",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
