@@ -1,7 +1,7 @@
 current_cut: backend_vertical_slice
-current_phase: 4
-current_task: "5.1"
-last_completed_task: "4.2"
+current_phase: 5
+current_task: "5.2"
+last_completed_task: "5.1"
 blocked: false
 blocker: null
 repo_state: partial
@@ -30,7 +30,7 @@ tasks:
   "3.7": done
   "4.1": done
   "4.2": done
-  "5.1": pending
+  "5.1": done
   "5.2": pending
   "5.3": pending
   "6.1": pending
