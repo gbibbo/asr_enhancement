@@ -1072,3 +1072,110 @@ Tracker state on closure:
 - `blocker`: `null`
 
 Task 8.1 is closed. Task 8.2 is the next task per `plan.md` §14 (Add smoke test documentation). Task 8.2 has **not** been started.
+
+## Task 8.2 — in progress (blocked on external WSL/Docker walk-through)
+
+Status: **in_progress / blocked**.
+
+Scope per `plan.md` §14 (Phase 8, Task 8.2):
+
+> Actions: document how to start the stack; document how to run Cut A smoke test; document how to run enhancement flow; document how to run AssemblyAI live smoke test; document how to inspect logs and result endpoints.
+> Done when: setup can be followed from a clean checkout; fake path works without secrets; real provider path has explicit environment gating.
+
+### Files changed in this commit
+
+- `docs/smoke_tests.md` — new English smoke-test guide covering all five plan.md actions: Overview, Prerequisites, Where artifacts go, Start the stack, One-time stack setup (Alembic + MinIO bucket), Wait for readiness, Cut A smoke test, Enhance-and-transcribe flow, AssemblyAI live smoke test (gated by `RUN_LIVE_ASSEMBLYAI_TEST=1` and `ASSEMBLYAI_API_KEY`, opt-in, never required for closure), Inspect logs, Inspect job state via API, Stop the stack, CI parity reference.
+- `docs/claude_task_progress.yaml` — `tasks."8.2": blocked`, `blocked: true`, `blocker` describes the external WSL/Docker walk-through still required.
+- `docs/claude_task_progress.md` — this entry.
+
+No application code, no test code, no Compose, no CI workflow, and no project-config changes in this commit. README, plan.md, and CLAUDE.md were not touched. `.codex` remains untracked and unstaged.
+
+### Decisions encoded in the doc
+
+- Pip extras are quoted in every command: `python3 -m pip install -e ".[dev]"`.
+- The Cut A smoke runs **inside a one-shot `api` container** (`docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api pytest -q tests/smoke/test_cut_a_smoke.py`) because `tests/smoke/test_cut_a_smoke.py` uses `ASGITransport(app=app)` in-process and Postgres / Redis are intentionally compose-internal.
+- One-time setup commands are explicit: `alembic upgrade head` and a deterministic MinIO bucket-create snippet using the `minio` Python client, both via `docker compose ... run --rm --no-deps api …`. Without these, `/ready` returns 503 (`/ready` calls `sc.ensure_bucket(create_if_missing=False)`).
+- API readiness wait: `until curl -fsS http://localhost:8000/ready >/dev/null; do sleep 2; done`.
+- Worker readiness wait: `celery -A services.worker.app.celery_app:celery_app inspect ping -t 2`, mirroring CI.
+- Live AssemblyAI test is opt-in and requires **both** `RUN_LIVE_ASSEMBLYAI_TEST=1` and `ASSEMBLYAI_API_KEY=<your-key>`. CI does not set the gate. The doc never prints a real key value.
+
+### Datamove1 checks run for Task 8.2
+
+Run with `set -euo pipefail` from `/mnt/fast/nobackup/users/gb0048/asr_enhancement_platform`:
+
+- `test -s docs/smoke_tests.md`.
+- All required commands present in `docs/smoke_tests.md`: `docker compose -f infra/compose/docker-compose.yml up -d --build`, `... run --rm --no-deps api alembic upgrade head`, `... run --rm --no-deps api python -c`, `pytest -q tests/smoke/test_cut_a_smoke.py`, `pytest -v tests/api/test_enhance_and_transcribe.py`, `tests/integration/test_live_assemblyai.py`, `RUN_LIVE_ASSEMBLYAI_TEST=1`, `ASSEMBLYAI_API_KEY`, `celery -A services.worker.app.celery_app:celery_app inspect ping`, `curl -fsS http://localhost:8000/ready`, `/v1/jobs/`, `/health`, `... logs`, `... down`.
+- Artifact-location guidance present (`raw_audio/{job_id}/input`, `transcripts/{job_id}/transcript.json`).
+- No unquoted `pip install -e .[dev]` form anywhere; quoted form `python3 -m pip install -e ".[dev]"` present.
+- No real `ASSEMBLYAI_API_KEY` value (only the placeholder `<your-key>`).
+- Even number of fenced code blocks (balanced).
+- No AI-authorship trailers in any new or edited file (case-insensitive grep against the standard list of forbidden markers returned no matches).
+- `docs/claude_task_progress.yaml` parsed and verified: `tasks."8.1": done`, `tasks."8.2": blocked`, `current_task: "8.2"`, `last_completed_task: "8.1"`, `blocked: true`, `blocker` non-empty.
+- `docs/claude_task_progress.md` includes a `Task 8.2` heading.
+- `git status` + diff scope check: only the three planned paths are changed (`docs/smoke_tests.md`, `docs/claude_task_progress.md`, `docs/claude_task_progress.yaml`); `.codex` remains untracked and unstaged.
+
+### External verification still required (Gabriel, on WSL/Docker)
+
+The plan.md done-criterion *"setup can be followed from a clean checkout"* can only be proved by walking the doc on a host that has Docker. Datamove1 has no Docker. Gabriel runs the following commands from a clean WSL checkout of `master` after this commit lands:
+
+```bash
+git fetch origin && git checkout master && git pull
+cp .env.example .env
+
+docker compose -f infra/compose/docker-compose.yml up -d --build
+
+# one-time setup
+docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api alembic upgrade head
+docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api python -c '
+import os
+from minio import Minio
+c = Minio(
+    os.environ["MINIO_ENDPOINT"],
+    access_key=os.environ["MINIO_ACCESS_KEY"],
+    secret_key=os.environ["MINIO_SECRET_KEY"],
+    secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
+)
+b = os.environ["MINIO_BUCKET"]
+if not c.bucket_exists(b):
+    c.make_bucket(b)
+print("bucket ready:", b)
+'
+
+# wait for readiness
+until curl -fsS http://localhost:8000/ready >/dev/null; do sleep 2; done
+until docker compose -f infra/compose/docker-compose.yml exec -T worker \
+        celery -A services.worker.app.celery_app:celery_app inspect ping -t 2 >/dev/null 2>&1; do
+  sleep 2
+done
+
+# fake-path verification (must both exit 0)
+docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api \
+  pytest -q tests/smoke/test_cut_a_smoke.py
+docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api \
+  pytest -v tests/api/test_enhance_and_transcribe.py
+
+# spot-check logs (just to confirm doc command works)
+docker compose -f infra/compose/docker-compose.yml logs api    | head -n 20
+docker compose -f infra/compose/docker-compose.yml logs worker | head -n 20
+
+# tear down
+docker compose -f infra/compose/docker-compose.yml down
+```
+
+Pass criteria:
+
+- the smoke test (`tests/smoke/test_cut_a_smoke.py`) exits 0 and pytest reports a passing test run.
+- the enhance-and-transcribe suite (`tests/api/test_enhance_and_transcribe.py`) exits 0 and pytest reports a passing test run.
+- the documented commands match exactly what was run (no improvisation).
+
+The live AssemblyAI test is **not required** to close Task 8.2 — it is opt-in and costs money. Gabriel runs it only if he wants to sanity-check provider gating.
+
+Task 8.2 is **not closed yet**. Tracker state on this commit:
+
+- `tasks."8.2"`: `blocked`
+- `current_task`: `"8.2"`
+- `last_completed_task`: `"8.1"`
+- `blocked`: `true`
+- `blocker`: `"Awaiting WSL/Docker walk-through of docs/smoke_tests.md (compose up + alembic + bucket-create + pytest tests/smoke + pytest tests/api/test_enhance_and_transcribe.py)."`
+
+Task 8.3 has **not** been started.

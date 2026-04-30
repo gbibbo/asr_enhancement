@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 8
 current_task: "8.2"
 last_completed_task: "8.1"
-blocked: false
-blocker: null
+blocked: true
+blocker: "Awaiting WSL/Docker walk-through of docs/smoke_tests.md (compose up + alembic + bucket-create + pytest tests/smoke + pytest tests/api/test_enhance_and_transcribe.py)."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -41,5 +41,5 @@ tasks:
   "7.2": done
   "7.3": done
   "8.1": done
-  "8.2": pending
+  "8.2": blocked
   "8.3": pending
