@@ -31,6 +31,7 @@ def _make_snapshot(**overrides) -> JobStatusSnapshot:
         provider="fake",
         preset="bypass",
         raw_audio_uri=None,
+        enhanced_audio_uri=None,
         transcript_uri=None,
         transcript_text=None,
         error_message=None,
@@ -246,3 +247,34 @@ async def test_get_job_status_and_mode_as_plain_strings(monkeypatch, job_status_
     data = response.json()
     assert data["status"] == "completed"
     assert data["mode"] == "transcribe_only"
+
+
+# ---------------------------------------------------------------------------
+# enhanced_audio_uri field in status response
+# ---------------------------------------------------------------------------
+
+@pytest.mark.anyio
+async def test_job_status_includes_enhanced_audio_uri_when_present(monkeypatch, job_status_client):
+    uri = f"s3://asr-platform/enhanced_audio/{FAKE_JOB_ID}/output.wav"
+    snap = _make_snapshot(
+        status=JobStatus.completed,
+        mode=JobMode.enhance_and_transcribe,
+        preset="light_clean",
+        enhanced_audio_uri=uri,
+    )
+    monkeypatch.setattr("services.api.app.main._load_job", lambda db_url, jid: snap)
+    response = await job_status_client.get(f"/v1/jobs/{FAKE_JOB_ID}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["enhanced_audio_uri"] == uri
+    assert data["mode"] == "enhance_and_transcribe"
+    assert data["preset"] == "light_clean"
+
+
+@pytest.mark.anyio
+async def test_job_status_enhanced_audio_uri_null_when_absent(monkeypatch, job_status_client):
+    snap = _make_snapshot(enhanced_audio_uri=None)
+    monkeypatch.setattr("services.api.app.main._load_job", lambda db_url, jid: snap)
+    response = await job_status_client.get(f"/v1/jobs/{FAKE_JOB_ID}")
+    assert response.status_code == 200
+    assert response.json()["enhanced_audio_uri"] is None

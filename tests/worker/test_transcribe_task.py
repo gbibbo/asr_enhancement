@@ -465,7 +465,7 @@ def test_worker_fake_path_unchanged_after_factory_refactor(tasks_mod, monkeypatc
     monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: None)
     monkeypatch.setattr(
         tasks_mod, "_mark_job_completed",
-        lambda db, jid, text, uri, payload_uri=None: completed_calls.append(
+        lambda db, jid, text, uri, payload_uri=None, enhanced_uri=None: completed_calls.append(
             (jid, text, uri, payload_uri)
         ),
     )
@@ -501,7 +501,7 @@ def test_worker_assemblyai_success_stores_transcript_and_provider_payload_uri(ta
     monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: None)
     monkeypatch.setattr(
         tasks_mod, "_mark_job_completed",
-        lambda db, jid, text, uri, payload_uri=None: completed_calls.append(
+        lambda db, jid, text, uri, payload_uri=None, enhanced_uri=None: completed_calls.append(
             (jid, text, uri, payload_uri)
         ),
     )

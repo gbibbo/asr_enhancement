@@ -10,8 +10,10 @@ from pathlib import Path
 from typing import Optional
 
 from libs.asr_adapter.factory import make_asr_adapter
+from libs.audio_pipeline.errors import UnknownPresetError
+from libs.audio_pipeline.pipeline import apply_preset
 from libs.common.db import make_engine, make_session_factory
-from libs.common.models import Job, JobStatus
+from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import get_settings
 from libs.common.storage import StorageClient
 from services.worker.app.celery_app import celery_app
@@ -19,11 +21,17 @@ from services.worker.app.celery_app import celery_app
 logger = logging.getLogger(__name__)
 
 
+def _enum_or_str(value: object) -> str:
+    return value.value if hasattr(value, "value") else str(value)
+
+
 @dataclasses.dataclass(frozen=True)
 class JobSnapshot:
     id: uuid.UUID
     status: JobStatus
     raw_audio_uri: Optional[str]
+    mode: str = "transcribe_only"
+    preset: str = "bypass"
 
 
 # ---------------------------------------------------------------------------
@@ -42,6 +50,8 @@ def _load_job(database_url: str, job_id: uuid.UUID) -> Optional[JobSnapshot]:
                 id=job.id,
                 status=job.status,
                 raw_audio_uri=job.raw_audio_uri,
+                mode=_enum_or_str(job.mode or JobMode.transcribe_only),
+                preset=job.preset or "bypass",
             )
     finally:
         engine.dispose()
@@ -67,6 +77,7 @@ def _mark_job_completed(
     transcript_text: str,
     transcript_uri: str,
     provider_payload_uri: Optional[str] = None,
+    enhanced_audio_uri: Optional[str] = None,
 ) -> None:
     engine = make_engine(database_url)
     try:
@@ -78,6 +89,7 @@ def _mark_job_completed(
                 job.transcript_text = transcript_text
                 job.transcript_uri = transcript_uri
                 job.provider_payload_uri = provider_payload_uri
+                job.enhanced_audio_uri = enhanced_audio_uri
                 job.completed_at = datetime.now(timezone.utc)
                 session.commit()
     finally:
@@ -161,20 +173,45 @@ def transcribe_job(job_id: str) -> None:
             storage = StorageClient.from_settings(settings)
             storage.get_to_file(audio_key, audio_path)
 
-            # 4c: call ASR adapter (provider determined by settings)
-            adapter = make_asr_adapter(settings)
-            result = adapter.transcribe(audio_path, job_id)
+            # 4c: enhancement (enhance_and_transcribe mode only)
+            asr_input_path = audio_path
+            enhanced_audio_uri = None
+            enhancement_meta: dict = {}
 
-            # 4d: persist transcript JSON to object storage
+            if job.mode == "enhance_and_transcribe":
+                output_dir = Path(tmp_dir) / "enhanced"
+                enh = apply_preset(job.preset, audio_path, output_dir)
+
+                if enh.enhanced and not enh.enhancement_fallback:
+                    enhanced_key = f"enhanced_audio/{job_id}/output.wav"
+                    enhanced_audio_uri = storage.put(
+                        enhanced_key, enh.output_path, content_type="audio/wav"
+                    )
+                    asr_input_path = enh.output_path
+
+                enhancement_meta = {
+                    "enhancement_preset": enh.preset_applied,
+                    "enhancement_applied": enh.enhanced,
+                    "enhancement_fallback": enh.enhancement_fallback,
+                    "enhancement_diagnostic": enh.diagnostic,
+                }
+
+            # 4d: call ASR adapter (provider determined by settings)
+            adapter = make_asr_adapter(settings)
+            result = adapter.transcribe(asr_input_path, job_id)
+
+            # 4e: persist transcript JSON to object storage
             transcript_key = f"transcripts/{job_id}/transcript.json"
-            payload = json.dumps(dataclasses.asdict(result)).encode("utf-8")
+            transcript_data = dataclasses.asdict(result)
+            transcript_data.update(enhancement_meta)
+            payload = json.dumps(transcript_data).encode("utf-8")
             transcript_uri = storage.put(
                 transcript_key,
                 payload,
                 content_type="application/json",
             )
 
-            # 4d2: persist raw provider payload when present (non-empty)
+            # 4e2: persist raw provider payload when present (non-empty)
             provider_payload_uri = None
             if result.raw_payload:
                 payload_key = f"provider_payloads/{job_id}/provider_response.json"
@@ -185,16 +222,16 @@ def transcribe_job(job_id: str) -> None:
                     content_type="application/json",
                 )
 
-            # 4e: artifact existence check
+            # 4f: artifact existence check
             if not storage.exists(transcript_key):
                 raise RuntimeError(
                     f"Transcript artifact missing after upload: {transcript_key!r}"
                 )
 
-            # 4f: persist to PostgreSQL and mark completed
+            # 4g: persist to PostgreSQL and mark completed
             _mark_job_completed(
                 settings.database_url, job_id_uuid, result.text, transcript_uri,
-                provider_payload_uri,
+                provider_payload_uri, enhanced_audio_uri,
             )
             logger.info("transcribe_job completed job_id=%s", job_id)
 

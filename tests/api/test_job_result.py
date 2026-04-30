@@ -31,6 +31,7 @@ def _make_snapshot(**overrides) -> JobStatusSnapshot:
         provider="fake",
         preset="bypass",
         raw_audio_uri="s3://asr-platform/raw_audio/aaaabbbb-.../input.wav",
+        enhanced_audio_uri=None,
         transcript_uri="s3://asr-platform/transcripts/aaaabbbb-.../result.json",
         transcript_text="This is a deterministic fake transcript for local testing.",
         error_message=None,

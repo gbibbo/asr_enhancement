@@ -9,10 +9,12 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 import redis as redis_lib
-from fastapi import FastAPI, File, Request, UploadFile
+from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
+from libs.audio_pipeline.errors import UnknownPresetError
+from libs.audio_pipeline.presets import resolve_preset
 from libs.common.db import make_engine, make_session_factory
 from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import Settings, get_settings
@@ -41,6 +43,7 @@ class JobStatusSnapshot:
     provider: str
     preset: str
     raw_audio_uri: Optional[str]
+    enhanced_audio_uri: Optional[str]
     transcript_uri: Optional[str]
     transcript_text: Optional[str]
     error_message: Optional[str]
@@ -89,10 +92,12 @@ def _check_storage(settings: Settings) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Transcribe helpers  (each creates/disposes its own engine — monkeypatchable)
+# Shared helpers  (each creates/disposes its own engine — monkeypatchable)
 # ---------------------------------------------------------------------------
 
-def _create_job(database_url: str, mode: JobMode, provider: str) -> uuid.UUID:
+def _create_job(
+    database_url: str, mode: JobMode, provider: str, preset: str = "bypass"
+) -> uuid.UUID:
     job_id = uuid.uuid4()
     engine = make_engine(database_url)
     try:
@@ -103,7 +108,7 @@ def _create_job(database_url: str, mode: JobMode, provider: str) -> uuid.UUID:
                 status=JobStatus.queued,
                 mode=mode,
                 provider=provider,
-                preset="bypass",
+                preset=preset,
             )
             session.add(job)
             session.commit()
@@ -178,6 +183,7 @@ def _load_job(database_url: str, job_id: uuid.UUID) -> Optional[JobStatusSnapsho
                 provider=job.provider,
                 preset=job.preset,
                 raw_audio_uri=job.raw_audio_uri,
+                enhanced_audio_uri=job.enhanced_audio_uri,
                 transcript_uri=job.transcript_uri,
                 transcript_text=job.transcript_text,
                 error_message=job.error_message,
@@ -365,6 +371,135 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
         await file.close()
 
 
+@app.post("/v1/enhance-and-transcribe")
+async def enhance_and_transcribe(
+    file: UploadFile = File(...),
+    preset: Optional[str] = Form(None),
+) -> JSONResponse:
+    settings = get_settings()
+
+    tmp_dir: Optional[Path] = None
+    if settings.asr_runtime_root is not None:
+        tmp_dir = settings.asr_runtime_root / "uploads"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        # Step 1: validate upload
+        validated = await validate_and_buffer_upload(
+            file,
+            settings.upload_limit_bytes,
+            tmp_dir=tmp_dir,
+        )
+
+        try:
+            # Step 2: validate preset before job creation
+            try:
+                resolved_preset = resolve_preset(preset)
+            except UnknownPresetError as exc:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "unknown_preset", "detail": str(exc)},
+                )
+
+            # Step 3: create job row
+            try:
+                job_id = await asyncio.to_thread(
+                    _create_job,
+                    settings.database_url,
+                    JobMode.enhance_and_transcribe,
+                    settings.asr_provider,
+                    resolved_preset,
+                )
+            except Exception as exc:
+                logger.error("Job creation failed: %s", exc)
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "error": "internal_server_error",
+                        "detail": "Failed to create job",
+                    },
+                )
+
+            # Step 4: upload raw audio to MinIO
+            try:
+                raw_audio_uri = await asyncio.to_thread(
+                    _upload_raw_audio,
+                    settings,
+                    job_id,
+                    validated.path,
+                    validated.extension,
+                    validated.content_type,
+                )
+            except Exception as exc:
+                logger.error("Raw audio upload failed for job %s: %s", job_id, exc)
+                await asyncio.to_thread(
+                    _mark_job_failed,
+                    settings.database_url,
+                    job_id,
+                    f"Raw audio upload failed: {exc}",
+                )
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "error": "internal_server_error",
+                        "detail": "Failed to persist audio",
+                    },
+                )
+
+            # Step 4b: persist raw_audio_uri in DB
+            try:
+                await asyncio.to_thread(
+                    _set_raw_audio_uri, settings.database_url, job_id, raw_audio_uri
+                )
+            except Exception as exc:
+                logger.error(
+                    "Failed to update raw_audio_uri for job %s: %s", job_id, exc
+                )
+                await asyncio.to_thread(
+                    _mark_job_failed,
+                    settings.database_url,
+                    job_id,
+                    f"Failed to record audio URI: {exc}",
+                )
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "error": "internal_server_error",
+                        "detail": "Failed to persist audio",
+                    },
+                )
+
+            # Step 5: enqueue Celery task (same task name — worker reads mode from DB)
+            try:
+                await asyncio.to_thread(_enqueue_transcribe, str(job_id))
+            except Exception as exc:
+                logger.error("Task enqueue failed for job %s: %s", job_id, exc)
+                await asyncio.to_thread(
+                    _mark_job_failed,
+                    settings.database_url,
+                    job_id,
+                    f"Task enqueue failed: {exc}",
+                )
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "error": "internal_server_error",
+                        "detail": "Failed to queue enhancement task",
+                    },
+                )
+
+            return JSONResponse(
+                status_code=202,
+                content={"job_id": str(job_id), "status": "queued"},
+            )
+
+        finally:
+            validated.path.unlink(missing_ok=True)
+
+    finally:
+        await file.close()
+
+
 def _enum_or_str(value: object) -> str:
     return value.value if hasattr(value, "value") else str(value)
 
@@ -446,6 +581,7 @@ async def get_job(job_id: uuid.UUID) -> JSONResponse:
             "provider": snap.provider,
             "preset": snap.preset,
             "raw_audio_uri": snap.raw_audio_uri,
+            "enhanced_audio_uri": snap.enhanced_audio_uri,
             "transcript_uri": snap.transcript_uri,
             "transcript_text": snap.transcript_text,
             "error_message": snap.error_message,
