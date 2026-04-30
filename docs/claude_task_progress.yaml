@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
-current_phase: 6
-current_task: "6.4"
-last_completed_task: "6.3"
-blocked: true
-blocker: "WSL Docker verification failed because infra config files were missing from the api Docker image; fix pushed, repeat WSL verification pending"
+current_phase: 7
+current_task: "7.1"
+last_completed_task: "6.4"
+blocked: false
+blocker: null
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -36,7 +36,7 @@ tasks:
   "6.1": done
   "6.2": done
   "6.3": done
-  "6.4": blocked
+  "6.4": done
   "7.1": pending
   "7.2": pending
   "7.3": pending
