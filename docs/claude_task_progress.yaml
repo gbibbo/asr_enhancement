@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 3
 current_task: "3.7"
 last_completed_task: "3.6"
-blocked: false
-blocker: null
+blocked: true
+blocker: "external Docker smoke test pending for Task 3.7 (Cut A gate)"
 repo_state: partial
 git_state: initialized
 remote_state: remote_missing
@@ -26,7 +26,7 @@ tasks:
   "3.4": done
   "3.5": done
   "3.6": done
-  "3.7": pending
+  "3.7": blocked
   "4.1": pending
   "4.2": pending
   "5.1": pending
