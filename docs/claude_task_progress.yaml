@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 6
 current_task: "6.2"
 last_completed_task: "6.1"
-blocked: false
-blocker: null
+blocked: true
+blocker: "Docker/Prometheus scrape verification requires Gabriel's WSL"
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -34,7 +34,7 @@ tasks:
   "5.2": done
   "5.3": done
   "6.1": done
-  "6.2": pending
+  "6.2": in_progress
   "6.3": pending
   "6.4": pending
   "7.1": pending

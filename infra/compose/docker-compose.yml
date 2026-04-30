@@ -30,7 +30,9 @@ services:
   worker:
     build: *backend-build
     environment: *app-environment
-    command: celery -A services.worker.app.celery_app:celery_app worker --loglevel=info
+    command: celery -A services.worker.app.celery_app:celery_app worker --loglevel=info --concurrency=1
+    ports:
+      - "9091:9091"
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,6 +79,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+      - worker
 
 volumes:
   asr_postgres_data:

@@ -16,6 +16,7 @@ from libs.common.db import make_engine, make_session_factory
 from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import get_settings
 from libs.common.storage import StorageClient
+from libs.observability.metrics import JOB_COUNTER
 from services.worker.app.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
@@ -159,6 +160,7 @@ def transcribe_job(job_id: str) -> None:
 
     # Step 3: mark running
     _mark_job_running(settings.database_url, job_id_uuid)
+    JOB_COUNTER.labels(status="running", mode=job.mode).inc()
     logger.info("worker.job_running", extra={"job_id": job_id, "mode": job.mode, "preset": job.preset})
 
     # Steps 4a–4f: processing — any exception marks the job failed
@@ -235,9 +237,11 @@ def transcribe_job(job_id: str) -> None:
                 settings.database_url, job_id_uuid, result.text, transcript_uri,
                 provider_payload_uri, enhanced_audio_uri,
             )
+            JOB_COUNTER.labels(status="completed", mode=job.mode).inc()
             logger.info("worker.job_completed", extra={"job_id": job_id, "mode": job.mode, "preset": job.preset})
 
     except Exception as exc:
+        JOB_COUNTER.labels(status="failed", mode=job.mode).inc()
         logger.exception("worker.job_failed", extra={"job_id": job_id})
         try:
             _mark_job_failed(settings.database_url, job_id_uuid, str(exc))

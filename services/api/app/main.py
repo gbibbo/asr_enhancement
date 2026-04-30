@@ -21,7 +21,15 @@ from libs.common.db import make_engine, make_session_factory
 from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import Settings, get_settings
 from libs.common.storage import StorageClient
+from fastapi.responses import Response
 from libs.observability import configure_logging
+from libs.observability.metrics import (
+    API_ERRORS,
+    API_REQUESTS,
+    CONTENT_TYPE_LATEST,
+    JOB_COUNTER,
+    get_metrics_output,
+)
 from services.api.app.upload_validation import (
     UploadValidationError,
     validate_and_buffer_upload,
@@ -46,6 +54,11 @@ async def _request_logger(request: Request, call_next):
     start = time.monotonic()
     response = await call_next(request)
     duration_ms = round((time.monotonic() - start) * 1000, 1)
+    API_REQUESTS.labels(
+        method=request.method,
+        path=request.url.path,
+        status_code=str(response.status_code),
+    ).inc()
     logger.info(
         "api.request",
         extra={
@@ -239,6 +252,7 @@ async def _upload_validation_error_handler(
 
 @app.exception_handler(Exception)
 async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    API_ERRORS.labels(path=request.url.path).inc()
     logger.exception("api.unhandled_exception", extra={"path": request.url.path})
     return JSONResponse(
         status_code=500,
@@ -282,6 +296,11 @@ async def ready() -> JSONResponse:
     )
 
 
+@app.get("/metrics")
+async def metrics() -> Response:
+    return Response(content=get_metrics_output(), media_type=CONTENT_TYPE_LATEST)
+
+
 @app.post("/v1/transcribe")
 async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
     settings = get_settings()
@@ -319,6 +338,7 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
                     },
                 )
             logger.info("api.job_created", extra={"job_id": str(job_id), "mode": "transcribe_only", "preset": "bypass"})
+            JOB_COUNTER.labels(status="queued", mode="transcribe_only").inc()
 
             # Step 3: upload raw audio to MinIO
             try:
@@ -451,6 +471,7 @@ async def enhance_and_transcribe(
                     },
                 )
             logger.info("api.job_created", extra={"job_id": str(job_id), "mode": "enhance_and_transcribe", "preset": resolved_preset})
+            JOB_COUNTER.labels(status="queued", mode="enhance_and_transcribe").inc()
 
             # Step 4: upload raw audio to MinIO
             try:
