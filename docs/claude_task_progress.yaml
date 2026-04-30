@@ -3,7 +3,7 @@ current_phase: 6
 current_task: "6.3"
 last_completed_task: "6.2"
 blocked: true
-blocker: "WSL verification on commit 0db0a8b failed (API and worker trace IDs differ); root cause: _enqueue_transcribe injected traceparent inside asyncio.to_thread, contextvars propagation across the threadpool boundary did not preserve the active span under uvicorn in production. Fix applied: route captures traceparent in async context via _current_traceparent() and passes it explicitly to _enqueue_transcribe. Login-node now 339/339 (338 baseline + 1 new regression test). WSL Docker verification must be rerun."
+blocker: "WSL verification on commit 658c0d2 failed again (API and worker trace IDs still differ); the in-process tests pass but cannot reproduce the production failure because Celery's send_task always uses the broker (task_always_eager has no effect on send_task). Diagnostic structured logs added in API (api.task_enqueued with traceparent_trace_id) and worker (worker.job_received with received_trace_id, worker.span_started with span_trace_id); WSL script extended to dump these logs so the next run will pinpoint which link drops the traceparent. Stronger Celery Task.apply() test added — it passes, proving the worker code is correct when handed traceparent via Celery's dispatcher. Login-node now 340/340 (339 baseline + 1 new test). WSL Docker verification must be rerun on the new commit."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present

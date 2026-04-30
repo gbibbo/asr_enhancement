@@ -239,6 +239,15 @@ def _enqueue_transcribe(job_id: str, traceparent: Optional[str] = None) -> None:
     from services.worker.app.celery_app import celery_app  # lazy — avoids module-level settings init
     if traceparent is None:
         traceparent = _current_traceparent()
+    # Safe diagnostic — only trace metadata, no secrets or payload content.
+    logger.info(
+        "api.task_enqueued",
+        extra={
+            "job_id": job_id,
+            "traceparent_present": traceparent is not None,
+            "traceparent_trace_id": traceparent.split("-")[1] if traceparent else None,
+        },
+    )
     celery_app.send_task("worker.transcribe_job", args=[job_id, traceparent])
 
 

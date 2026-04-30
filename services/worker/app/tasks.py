@@ -141,7 +141,15 @@ def transcribe_job(job_id: str, traceparent: Optional[str] = None) -> None:
         logger.error("transcribe_job: malformed job_id=%r; skipping", job_id, extra={"job_id": job_id})
         return
 
-    logger.info("worker.job_received", extra={"job_id": job_id})
+    # Safe diagnostic — only trace metadata, no secrets or payload content.
+    logger.info(
+        "worker.job_received",
+        extra={
+            "job_id": job_id,
+            "traceparent_present": traceparent is not None,
+            "received_trace_id": traceparent.split("-")[1] if traceparent else None,
+        },
+    )
 
     # Tracer retrieved inside the function body so it picks up the current global provider
     # (configure_tracing runs in worker_process_init, after module import).
@@ -154,6 +162,16 @@ def transcribe_job(job_id: str, traceparent: Optional[str] = None) -> None:
         context=ctx,
         attributes={"job.id": job_id},
     ) as span:
+        # Safe diagnostic — log the actual trace_id of the worker span so a WSL
+        # operator can compare it with the API's traceparent_trace_id without
+        # parsing collector output.
+        logger.info(
+            "worker.span_started",
+            extra={
+                "job_id": job_id,
+                "span_trace_id": format(span.get_span_context().trace_id, "032x"),
+            },
+        )
         settings = get_settings()
 
         # Step 1: load job

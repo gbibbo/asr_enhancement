@@ -251,3 +251,79 @@ def test_enqueue_traceparent_is_none_outside_span(otel_exporter, monkeypatch):
     assert len(sent_args) == 2
     assert sent_args[0] == FAKE_JOB_ID_STR
     assert sent_args[1] is None
+
+
+def test_celery_apply_with_kwargs_propagates_traceparent_to_worker_span(otel_exporter, monkeypatch):
+    """End-to-end Celery dispatch test using task.apply().
+
+    Note: Celery's task_always_eager has no effect on celery_app.send_task() — only
+    on Task.apply_async() / Task.delay(). The path send_task → broker → worker pulls
+    → worker calls task is impossible to exercise without real Redis.  task.apply()
+    uses the exact same downstream dispatcher (Signature -> apply -> task-call) that
+    the worker process uses after pulling a message from Redis, so it covers the
+    serialisation-equivalent argument passing and the worker's traceparent handling.
+
+    This test verifies:
+      1. The worker task receives the second positional arg (traceparent).
+      2. The worker's propagate.extract(carrier) recognises the traceparent.
+      3. The resulting context becomes the worker span's parent (same trace_id).
+
+    A failure here would prove the bug is in our worker code, not in Celery transport.
+    """
+    for k, v in _REQUIRED_ENVS.items():
+        monkeypatch.setenv(k, v)
+    get_settings.cache_clear()
+
+    sys.modules.pop("services.worker.app.tasks", None)
+    sys.modules.pop("services.worker.app.celery_app", None)
+
+    importlib.import_module("services.worker.app.celery_app")
+    tasks_module = importlib.import_module("services.worker.app.tasks")
+
+    # Stub all worker side-effects so transcribe_job runs to completion
+    fake_snapshot = tasks_module.JobSnapshot(
+        id=FAKE_JOB_ID,
+        status=JobStatus.queued,
+        raw_audio_uri=FAKE_RAW_AUDIO_URI,
+    )
+    monkeypatch.setattr(tasks_module, "_load_job", lambda db, jid: fake_snapshot)
+    monkeypatch.setattr(tasks_module, "_mark_job_running", lambda db, jid: None)
+    monkeypatch.setattr(tasks_module, "_mark_job_completed", lambda *a, **kw: None)
+    monkeypatch.setattr(tasks_module, "_mark_job_failed", lambda *a, **kw: None)
+
+    mock_storage = MagicMock()
+    mock_storage.get_to_file.return_value = None
+    mock_storage.put.return_value = FAKE_TRANSCRIPT_URI
+    mock_storage.exists.return_value = True
+    monkeypatch.setattr(tasks_module.StorageClient, "from_settings", lambda s: mock_storage)
+
+    mock_adapter = MagicMock()
+    mock_adapter.transcribe.return_value = FAKE_RESULT
+    monkeypatch.setattr(tasks_module, "make_asr_adapter", lambda s: mock_adapter)
+
+    # Dispatch from inside an active parent span (the API server-span analogue).
+    tracer = trace.get_tracer("test-api")
+    with tracer.start_as_current_span("api-server-span") as parent_span:
+        parent_trace_id_hex = format(parent_span.get_span_context().trace_id, "032x")
+        carrier: dict = {}
+        propagate.inject(carrier)
+        traceparent = carrier["traceparent"]
+
+        # Task.apply() — synchronous dispatch through Celery's task pipeline.
+        tasks_module.transcribe_job.apply(args=[FAKE_JOB_ID_STR, traceparent])
+
+    spans = otel_exporter.get_finished_spans()
+    worker_spans = [s for s in spans if s.name == "worker.transcribe_job"]
+    assert worker_spans, (
+        f"No worker.transcribe_job span emitted. All spans: {[s.name for s in spans]!r}"
+    )
+    worker_trace_id_hex = format(worker_spans[0].context.trace_id, "032x")
+    assert worker_trace_id_hex == parent_trace_id_hex, (
+        f"Trace IDs differ — parent={parent_trace_id_hex}, worker={worker_trace_id_hex}. "
+        "The worker is not extracting/applying the traceparent as parent context."
+    )
+
+    # cleanup so subsequent tests get a fresh celery_app / tasks
+    sys.modules.pop("services.worker.app.tasks", None)
+    sys.modules.pop("services.worker.app.celery_app", None)
+    get_settings.cache_clear()
