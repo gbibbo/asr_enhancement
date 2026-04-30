@@ -1050,3 +1050,25 @@ Open https://github.com/gbibbo/asr_enhancement/actions on the new pushed `master
 - `docker-image` — `docker buildx` of `infra/compose/Dockerfile.backend`.
 
 Task 8.1 stays `blocked` and Task 8.2 stays unstarted until that re-run is green.
+
+## Task 8.1 — done
+
+Status: **done**.
+
+External verification on commit `df5548788511760e4633ed528a1e9ba5e73aa21b` passed on GitHub Actions:
+
+- `backend` — passed, including the new CI-only Celery worker startup/readiness/smoke gate (`Start Celery worker in background`, `Wait for Celery worker readiness`, `Run fake-adapter smoke test (explicit gate)`, and the `if: always()` `Stop Celery worker and dump log` cleanup).
+- `frontend` — passed (`npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`).
+- `docker-image` — passed (`docker buildx` build of `infra/compose/Dockerfile.backend`).
+
+WSL Docker/Node mirror checks had already passed on the previous Task 8.1 implementation commit (`34ae648`) and were not repeated, because the follow-up commit `df55487` changed only `.github/workflows/ci.yml` and the trackers — no application, test, or Docker/Compose code was touched.
+
+Tracker state on closure:
+
+- `tasks."8.1"`: `done`
+- `last_completed_task`: `"8.1"`
+- `current_task`: `"8.2"`
+- `blocked`: `false`
+- `blocker`: `null`
+
+Task 8.1 is closed. Task 8.2 is the next task per `plan.md` §14 (Add smoke test documentation). Task 8.2 has **not** been started.

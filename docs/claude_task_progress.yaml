@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 8
-current_task: "8.1"
-last_completed_task: "7.3"
-blocked: true
-blocker: "First GitHub Actions run on commit 34ae648 failed: backend job step `Run unit and integration tests (fake adapter)` failed because the fake-adapter smoke test (tests/smoke/test_cut_a_smoke.py::test_cut_a_full_flow) had no Celery worker consuming the queued task and timed out at status `queued`. CI-only fix pushed: split smoke from the rest of the suite, start a Celery worker in the backend job, wait for `celery inspect ping`, then run the smoke gate, with `if: always()` cleanup. Awaiting re-run of GitHub Actions on master with all three jobs (backend, frontend, docker-image) green."
+current_task: "8.2"
+last_completed_task: "8.1"
+blocked: false
+blocker: null
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -40,6 +40,6 @@ tasks:
   "7.1": done
   "7.2": done
   "7.3": done
-  "8.1": blocked
+  "8.1": done
   "8.2": pending
   "8.3": pending
