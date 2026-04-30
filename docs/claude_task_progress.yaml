@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 3
 current_task: "3.6"
 last_completed_task: "3.5"
-blocked: false
-blocker: null
+blocked: true
+blocker: "external Docker verification pending for Task 3.6"
 repo_state: partial
 git_state: initialized
 remote_state: remote_missing
@@ -25,7 +25,7 @@ tasks:
   "3.3": done
   "3.4": done
   "3.5": done
-  "3.6": pending
+  "3.6": in_progress
   "3.7": pending
   "4.1": pending
   "4.2": pending

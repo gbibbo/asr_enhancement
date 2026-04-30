@@ -369,6 +369,65 @@ def _enum_or_str(value: object) -> str:
     return value.value if hasattr(value, "value") else str(value)
 
 
+@app.get("/v1/jobs/{job_id}/result")
+async def get_job_result(job_id: uuid.UUID) -> JSONResponse:
+    settings = get_settings()
+    snap = await asyncio.to_thread(_load_job, settings.database_url, job_id)
+
+    if snap is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "not_found", "detail": f"Job {job_id} not found"},
+        )
+
+    status_str = _enum_or_str(snap.status)
+
+    if status_str in ("queued", "running"):
+        return JSONResponse(
+            status_code=202,
+            content={
+                "job_id": str(snap.id),
+                "status": status_str,
+                "detail": "Job is not yet complete.",
+            },
+        )
+
+    if status_str == "failed":
+        return JSONResponse(
+            status_code=200,
+            content={
+                "job_id": str(snap.id),
+                "status": status_str,
+                "error_message": snap.error_message,
+            },
+        )
+
+    # status == "completed"
+    if not snap.transcript_text or not snap.transcript_uri:
+        err = "Completed job is missing required transcript data."
+        try:
+            await asyncio.to_thread(
+                _mark_job_failed, settings.database_url, job_id, err
+            )
+        except Exception as exc:
+            logger.error("Failed to mark job %s failed: %s", job_id, exc)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "transcript_missing", "detail": err},
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "job_id": str(snap.id),
+            "status": status_str,
+            "transcript_text": snap.transcript_text,
+            "transcript_uri": snap.transcript_uri,
+            "completed_at": snap.completed_at.isoformat() if snap.completed_at else None,
+        },
+    )
+
+
 @app.get("/v1/jobs/{job_id}")
 async def get_job(job_id: uuid.UUID) -> JSONResponse:
     settings = get_settings()
