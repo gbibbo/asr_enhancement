@@ -3,7 +3,7 @@ current_phase: 8
 current_task: "8.1"
 last_completed_task: "7.3"
 blocked: true
-blocker: "Awaiting GitHub Actions CI verification of jobs `backend`, `frontend`, `docker-image` on master after push, plus Gabriel's WSL Docker build and Node frontend checks."
+blocker: "First GitHub Actions run on commit 34ae648 failed: backend job step `Run unit and integration tests (fake adapter)` failed because the fake-adapter smoke test (tests/smoke/test_cut_a_smoke.py::test_cut_a_full_flow) had no Celery worker consuming the queued task and timed out at status `queued`. CI-only fix pushed: split smoke from the rest of the suite, start a Celery worker in the backend job, wait for `celery inspect ping`, then run the smoke gate, with `if: always()` cleanup. Awaiting re-run of GitHub Actions on master with all three jobs (backend, frontend, docker-image) green."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present

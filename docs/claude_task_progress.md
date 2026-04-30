@@ -985,3 +985,68 @@ Open https://github.com/gbibbo/asr_enhancement/actions on the pushed `master` co
 - `docs/claude_task_progress.yaml`: set `tasks."8.1": done`, `last_completed_task: "8.1"`, `current_task: "8.2"`, `blocked: false`, `blocker: null`.
 - `docs/claude_task_progress.md`: append a follow-up `done` row for 8.1 citing the GitHub Actions run URL/commit and per-job outcome.
 - Do **not** start Task 8.2 until Gabriel explicitly asks.
+
+## Task 8.1 — CI smoke worker startup fix (still blocked)
+
+Status: still **blocked**. First GitHub Actions run on commit `34ae648` failed; a CI-only fix has been pushed and the workflow needs to be re-run.
+
+### Failed run observation
+
+- WSL local checks on commit `34ae648` passed:
+  - `docker compose -f infra/compose/docker-compose.yml build api` — green.
+  - `cd services/frontend && npm ci && npm run lint && npm run typecheck && npm run build` — green.
+- GitHub Actions on commit `34ae648`:
+  - `frontend` — passed.
+  - `docker-image` — passed.
+  - `backend` — **failed** at step `Run unit and integration tests (fake adapter)`. Specifically `tests/smoke/test_cut_a_smoke.py::test_cut_a_full_flow` timed out: the job stayed at status `queued` for the full 30-second poll window. Cause: `pytest -q` runs the in-process FastAPI app and `POST /v1/transcribe` enqueues a Celery task, but no Celery worker process was running in the CI job to consume it.
+
+### CI fix in this commit
+
+CI-only change to `.github/workflows/ci.yml` backend job (no application code, no test code, no other CI jobs touched):
+
+1. **Split the smoke test from the rest of the suite.** Step `Run unit and integration tests (fake adapter)` now runs `pytest -q --ignore=tests/smoke` so the unit and adapter integration tests still execute even if the worker isn't ready yet.
+2. **Start a Celery worker in the background** before the smoke gate, using the existing project entrypoint and a deterministic CI shape (no fork pool, no gossip, no mingle, no heartbeat):
+   ```bash
+   celery -A services.worker.app.celery_app:celery_app worker \
+     --loglevel=info \
+     --concurrency=1 \
+     --pool=solo \
+     --without-gossip \
+     --without-mingle \
+     --without-heartbeat \
+     > /tmp/asr_celery_worker.log 2>&1 &
+   echo $! > /tmp/asr_celery_worker.pid
+   ```
+3. **Wait for worker readiness** by polling `celery inspect ping -t 2` for up to 60 s; on failure the step prints the worker log and exits non-zero so the CI surfaces the cause without masking it.
+4. **Run the smoke gate** with `pytest -q tests/smoke/test_cut_a_smoke.py` only after the worker has answered `pong`.
+5. **Cleanup** — an `if: always()` step kills the recorded worker PID (best-effort, no `set -e` masking) and prints the worker log tail. This step always runs, including after step failure, so the worker log is visible in the CI output without overriding the actual failure status.
+
+The worker inherits the same job-level env (`ASR_PROVIDER=fake`, `DATABASE_URL`, `REDIS_URL`, `MINIO_*`, `RATE_LIMIT_PER_MINUTE=0`), so it talks to the same Postgres service container, Redis service container, and the explicit MinIO container started earlier in the job. No application or adapter behavior is changed.
+
+### Files changed in this follow-up
+
+- `.github/workflows/ci.yml` — backend job: split smoke from `pytest -q`, start Celery worker, wait for readiness, run smoke gate, `if: always()` cleanup.
+- `docs/claude_task_progress.yaml` — blocker text updated; `tasks."8.1"` remains `blocked`.
+- `docs/claude_task_progress.md` — this entry.
+
+No application code, no test code, no other workflow jobs, and no `pyproject.toml` changes in this commit.
+
+### Datamove1 checks run for the follow-up
+
+- `git status`, `git remote -v`, `git branch --show-current`, `git config user.name`, `git config user.email`, `git diff --stat`: clean (only `.codex` untracked, untouched); remote `git@github.com:gbibbo/asr_enhancement.git`; branch `master`; identity `Gabriel Bibbó <gabobibbo@gmail.com>`.
+- `.venv/bin/ruff check .` → `All checks passed!`
+- `.venv/bin/mypy libs services/api services/worker` → `Success: no issues found in 27 source files`.
+- `.venv/bin/pytest --collect-only -q | tee /tmp/asr_81_pytest_collect_after_fix.txt` → 378 tests collected.
+- `grep -F 'tests/smoke/test_cut_a_smoke.py::test_cut_a_full_flow' /tmp/asr_81_pytest_collect_after_fix.txt` → present.
+- `! grep -F 'tests/integration/test_live_assemblyai.py' /tmp/asr_81_pytest_collect_after_fix.txt` → absent.
+- Workflow YAML parses; backend job step list now includes `Run unit and integration tests (fake adapter, excluding smoke)`, `Start Celery worker in background`, `Wait for Celery worker readiness`, `Run fake-adapter smoke test (explicit gate)`, `Stop Celery worker and dump log` (`if: always()`).
+
+### External verification still required (Gabriel)
+
+Open https://github.com/gbibbo/asr_enhancement/actions on the new pushed `master` commit and confirm **all three** jobs are green:
+
+- `backend` — ruff, mypy, MinIO readiness, bucket creation, `alembic upgrade head`, `pytest -q --ignore=tests/smoke`, Celery worker startup + readiness, the explicit `pytest -q tests/smoke/test_cut_a_smoke.py` smoke gate, and the `if: always()` cleanup.
+- `frontend` — `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`.
+- `docker-image` — `docker buildx` of `infra/compose/Dockerfile.backend`.
+
+Task 8.1 stays `blocked` and Task 8.2 stays unstarted until that re-run is green.

@@ -116,11 +116,47 @@ jobs:
       - name: Apply database migrations
         run: alembic upgrade head
 
-      - name: Run unit and integration tests (fake adapter)
-        run: pytest -q
+      - name: Run unit and integration tests (fake adapter, excluding smoke)
+        run: pytest -q --ignore=tests/smoke
+
+      - name: Start Celery worker in background
+        run: |
+          celery -A services.worker.app.celery_app:celery_app worker \
+            --loglevel=info \
+            --concurrency=1 \
+            --pool=solo \
+            --without-gossip \
+            --without-mingle \
+            --without-heartbeat \
+            > /tmp/asr_celery_worker.log 2>&1 &
+          echo $! > /tmp/asr_celery_worker.pid
+          echo "Celery worker started: PID $(cat /tmp/asr_celery_worker.pid)"
+
+      - name: Wait for Celery worker readiness
+        run: |
+          for i in $(seq 1 60); do
+            if celery -A services.worker.app.celery_app:celery_app inspect ping -t 2 >/dev/null 2>&1; then
+              echo "Celery worker ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Celery worker did not respond to inspect ping in 60s" >&2
+          echo "--- /tmp/asr_celery_worker.log ---" >&2
+          cat /tmp/asr_celery_worker.log >&2 || true
+          exit 1
 
       - name: Run fake-adapter smoke test (explicit gate)
         run: pytest -q tests/smoke/test_cut_a_smoke.py
+
+      - name: Stop Celery worker and dump log
+        if: always()
+        run: |
+          if [ -f /tmp/asr_celery_worker.pid ]; then
+            kill "$(cat /tmp/asr_celery_worker.pid)" 2>/dev/null || true
+          fi
+          echo "--- /tmp/asr_celery_worker.log ---"
+          cat /tmp/asr_celery_worker.log 2>/dev/null || echo "(no worker log captured)"
 
   frontend:
     name: Frontend (lint, type, build)
