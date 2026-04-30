@@ -39,6 +39,7 @@
 | 6.4  | done        | 2026-04-30 | **Task 6.4 closed.** External WSL Docker verification PASSED on commit 28fc948 after the Dockerfile fix. Gabriel pulled master and reran the deterministic WSL verification script. Results: Grafana health check passed; Prometheus targets check passed (asr_api and asr_worker both up); Grafana dashboard provisioning check passed for `uid: asr-operational`; Prometheus alert rules check passed for all three alerts (ASRApiErrorRateHigh, ASRQueueBacklogHigh, ASRWorkerHeartbeatMissing); worker `/metrics` exposed `asr_queue_backlog_jobs`; Docker pytest `docker compose -f infra/compose/docker-compose.yml run --rm api python3 -m pytest tests/ --ignore=tests/integration --ignore=tests/db/test_models_integration.py --ignore=tests/storage/test_storage_integration.py --ignore=tests/smoke -v` finished with `============================= 356 passed in 9.05s ==============================`; final script line `TASK 6.4 WSL VERIFICATION OK` printed. No secrets were printed or committed. Task 7.1 (frontend scaffolding) was NOT started. Next task: 7.1. |
 | 6.4* | blocked     | 2026-04-30 | **WSL verification on commit 0f05dfb FAILED at the Docker pytest step; fix applied, awaiting re-verification.** WSL failure summary: stack came up, infra services started, migrations + bucket setup ok, prometheus/grafana endpoints ready; Docker pytest produced `======================== 9 failed, 347 passed in 8.99s =========================`. All 9 failures were `FileNotFoundError` from the new Grafana/Prometheus config tests inside the `api` container (e.g. `/app/infra/grafana/provisioning/datasources/prometheus.yml not found`, `/app/infra/grafana/provisioning/dashboards/dashboards.yml not found`, `/app/infra/grafana/dashboards/asr_operational.json not found`, `/app/infra/prometheus/alerts.yml not found`, `/app/infra/compose/docker-compose.yml not found`). Root cause: `infra/` was not copied into the backend Docker image — `infra/compose/Dockerfile.backend` only copied `pyproject.toml`, `README.md`, `libs`, `services`, `alembic.ini`, `alembic`, and `tests`. The new tests under `tests/observability/test_grafana_provisioning.py` and `tests/observability/test_prometheus_alerts.py` use `Path(__file__).resolve().parents[2]` (= `/app` inside the container) and read config files under `infra/`, so they raised `FileNotFoundError` against the missing tree. Fix applied: `infra/compose/Dockerfile.backend` now also runs `COPY infra ./infra`. The whole `infra/` tree is 36K of pure config (8 files: otel collector config, Dockerfile.backend itself, docker-compose.yml, prometheus.yml, alerts.yml, asr_operational.json, two grafana provisioning YAMLs). No runtime data, no secrets, no `.env`, no heavy artifacts; no `.dockerignore` exists. Files changed: infra/compose/Dockerfile.backend (one line: `COPY infra ./infra`), docs/claude_task_progress.yaml (blocker reason updated), docs/claude_task_progress.md (this row). No test files modified — the config-file tests are correct; the bug was in the image build. Login-node after fix: `python3 -m pytest -q tests/observability/test_metrics.py tests/observability/test_queue_backlog_metric.py tests/observability/test_grafana_provisioning.py tests/observability/test_prometheus_alerts.py` → `29 passed in 0.27s`. Tracker stays blocked with `blocker: "WSL Docker verification failed because infra config files were missing from the api Docker image; fix pushed, repeat WSL verification pending"`. WSL Docker verification must be rerun against the new commit; the script in "Task 6.4 WSL verification commands" is unchanged. |
 | 6.4  | blocked     | 2026-04-30 | **Task 6.4 implementation complete on datamove1; blocked pending WSL Docker verification.** Files created: infra/grafana/provisioning/datasources/prometheus.yml (uid: prometheus, url http://prometheus:9090, isDefault, editable=false), infra/grafana/provisioning/dashboards/dashboards.yml (file provider, path /var/lib/grafana/dashboards, folder ASR), infra/grafana/dashboards/asr_operational.json (uid asr-operational, 6 panels: API request rate by status_code, API error ratio (5m), Jobs by status (5m), Jobs by mode (5m), Worker heartbeat freshness with 60s/90s thresholds, Queue backlog; every panel target uses datasource {type:prometheus, uid:prometheus}), infra/prometheus/alerts.yml (3 alerts: ASRApiErrorRateHigh expr `sum(rate(asr_api_requests_total{status_code=~"5.."}[5m]))/clamp_min(sum(rate(asr_api_requests_total[5m])),1e-9)>0.05` for 5m severity warning; ASRQueueBacklogHigh expr `asr_queue_backlog_jobs > 50` for 5m severity warning; ASRWorkerHeartbeatMissing expr `(time()-asr_worker_heartbeat_timestamp_seconds)>90 or absent(asr_worker_heartbeat_timestamp_seconds)` for 2m severity critical), tests/observability/test_queue_backlog_metric.py (7 tests: gauge importable, output contains def, value after set, _resolve_default_queue_name uses celery_app.conf.task_default_queue, _resolve_default_queue_name falls back to "celery", _poll_queue_backlog_once sets gauge from llen, _poll_queue_backlog_once propagates redis errors), tests/observability/test_grafana_provisioning.py (3 tests: datasource yaml uid==prometheus, dashboards provider yaml, dashboard json uid==asr-operational + every panel target datasource uid==prometheus + no forbidden panel titles WER/CER/preset ranking/experiment/quality/business), tests/observability/test_prometheus_alerts.py (6 tests: alerts yaml parses with exactly one group of three rules, alert names present, api error rate uses asr_api_requests_total, queue backlog uses asr_queue_backlog_jobs, heartbeat alert covers stale AND absent(, compose mounts alert rules + grafana service exists with port 3000:3000 and depends on prometheus). Files modified: pyproject.toml (added PyYAML>=6 to dev optional-dependencies for new file-validation tests), libs/observability/metrics.py (added QUEUE_BACKLOG Gauge for asr_queue_backlog_jobs), services/worker/app/celery_app.py (added _resolve_default_queue_name, _poll_queue_backlog_once, _start_queue_backlog_thread; thread polls Redis LLEN of celery_app.conf.task_default_queue or "celery" every 5s and sets gauge; thread loop catches all exceptions so transient Redis outages just log a warning and retry; thread is started from worker_process_init alongside the existing heartbeat thread), infra/compose/prometheus.yml (added rule_files: [/etc/prometheus/alerts.yml]), infra/compose/docker-compose.yml (added grafana service grafana/grafana:10.4.2 on port 3000 with admin/admin demo creds and anonymous Viewer, mounting infra/grafana/provisioning ro and infra/grafana/dashboards ro plus asr_grafana_data named volume, depends_on prometheus; mounted infra/prometheus/alerts.yml into prometheus container; **removed prometheus.depends_on [api, worker]** so the WSL script can start prometheus after migrations and bucket setup without it implicitly starting api/worker first — Prometheus tolerates targets coming up later). Login-node: 356/356 non-integration non-smoke tests passed (340 baseline + 16 new); summary line `356 passed in 3.99s` from .venv pytest. Config parse check via PyYAML+json across all six new/modified files printed `CONFIG OK`. Decision rationale: alerts defined as Prometheus rule files (not Grafana unified alerts) — alerts only need to be "defined as configuration"; Prometheus evaluates them natively at the existing scrape cadence, no Alertmanager added. Datasource uid hard-coded to "prometheus" so dashboard JSON datasource references are deterministic. Heartbeat alert covers both stale series and absent metric (worker never came up) — required because subtraction yields no samples when gauge is absent. New metric asr_queue_backlog_jobs is the smallest deterministic option to make the queue backlog alert evaluable: same /metrics endpoint, no new exporter service. Blocked: WSL Docker verification of Grafana dashboard provisioning, Prometheus alert rules, and queue backlog metric requires Docker which is unavailable on datamove1 — see "Task 6.4 WSL verification commands" section below for the exact deterministic script Gabriel must run locally. |
+| 7.1  | blocked     | 2026-04-30 | **Task 7.1 implementation complete on datamove1; blocked pending WSL Node verification.** Files created: services/frontend/package.json (next 14.2.15, react 18.3.1, react-dom 18.3.1, typescript 5.5.4, @types/node 20.14.10, @types/react 18.3.3, @types/react-dom 18.3.0, eslint 8.57.0, eslint-config-next 14.2.15; scripts dev/build/start/lint/typecheck; engines.node ">=18.18.0"), services/frontend/tsconfig.json (Next 14 strict App Router config, noEmit true, paths {"@/*":["./*"]}), services/frontend/next.config.mjs ({reactStrictMode:true} only — no rewrites; route-handler proxy is in app/api/[...path]/route.ts), services/frontend/next-env.d.ts (canonical Next reference shim), services/frontend/.eslintrc.json ({"extends":"next/core-web-vitals"}), services/frontend/.gitignore (/.next/, /node_modules/, /out/, /.env.local), services/frontend/.env.example (BACKEND_API_BASE_URL=http://localhost:8000), services/frontend/README.md (env var, dev commands, scope note: polling/result view deferred to 7.2, demo limits deferred to 7.3, frontend Compose deferred), services/frontend/app/layout.tsx (server component, <html lang="en">, metadata={title:"ASR Demo"}, imports ./globals.css), services/frontend/app/page.tsx ("use client", upload form with file input/mode selector/preset selector/submit button; default mode=transcribe_only, default preset=bypass; preset disabled and forced to bypass when mode=transcribe_only via useEffect; submit button disabled while submitting or when no file; submit handler routes to /api/v1/transcribe or /api/v1/enhance-and-transcribe with FormData {file, optional preset}; on !res.ok parses JSON detail — if status===503 and detail===UNREACHABLE_MSG shows the canonical English error, else shows backend detail, else shows "Backend returned ${status}"; on browser fetch throw shows UNREACHABLE_MSG; success renders queued job_id only — no polling, no transcript, no audio player, no timing summary, no admin UI), services/frontend/app/globals.css (minimal styles), services/frontend/app/api/[...path]/route.ts (frontend-only Next.js route-handler proxy; exports GET=POST=proxy and dynamic="force-dynamic"; reads BACKEND_API_BASE_URL server-side only with default http://localhost:8000; forwards content-type and request body server-side; on backend fetch failure returns NextResponse.json({detail: "Cannot reach backend API. Check that the backend is running and BACKEND_API_BASE_URL is correct."}, {status:503}); otherwise passes through upstream status and content-type with arrayBuffer body). Files modified: docs/claude_task_progress.md (this row), docs/claude_task_progress.yaml (blocked: true, blocker text, tasks."7.1": blocked). No backend code, libs, infra/compose, root pyproject.toml, observability, Grafana, Prometheus, OTel, DB, storage, ASR adapter, or enhancement code modified. No backend CORS added. No next.config.mjs rewrites used. No tests added. No secrets. datamove1 verification: file presence OK for all twelve files; package.json/tsconfig.json/.eslintrc.json JSON parse OK; next.config.mjs has no `rewrites`; route handler shape lint OK (BACKEND_API_BASE_URL, "Cannot reach backend API", `export const dynamic = "force-dynamic"`, `export const POST`, `export const GET`, `status: 503`); page.tsx shape lint OK ("use client", /api/v1/transcribe, /api/v1/enhance-and-transcribe, transcribe_only, enhance_and_transcribe, bypass, denoise_dereverb, "Cannot reach backend API", "Backend returned"); `grep -ri admin services/frontend/app/` returns nothing; layout.tsx has `lang="en"`; .env.example has exact line `BACKEND_API_BASE_URL=http://localhost:8000`. Backend pytest baseline: `env $(grep -v '^#' .env.example | xargs) .venv/bin/pytest tests/ --ignore=tests/integration --ignore=tests/db/test_models_integration.py --ignore=tests/storage/test_storage_integration.py --ignore=tests/smoke -q` → `356 passed in 3.54s` (matches 6.4 baseline; backend untouched). Tracker stays blocked with `blocker: "Task 7.1 implementation pushed; awaiting WSL Node verification (Node >=18.18, npm install must generate services/frontend/package-lock.json, npm run lint/typecheck/build/dev) and the eleven manual browser checks against the backend on localhost:8000. package-lock.json must be committed before closure."` `services/frontend/package-lock.json` is **not** yet committed and **must be committed before Task 7.1 is closed** (datamove1 has no npm so the lockfile cannot be generated on the login node). Task 7.2 was NOT started. WSL verification (backend startup, frontend verification, eleven manual browser checks) recorded in the "Task 7.1 WSL verification commands" section below. |
 | 6.3*** | blocked   | 2026-04-30 | **WSL verification on commit 658c0d2 FAILED again — diagnostic logging + stronger test added; production still cannot be reproduced in tests.** WSL failure summary: stack came up healthy; POST /v1/transcribe returned JOB_ID=aa809beb-0ad3-4b6e-a6e2-d473b224cc81; job polled to status=completed; collector logs contained both API and worker spans; job.id key and JOB_ID value were present; but trace IDs still differ — parser-picked API trace_id=e2edc764d8c0a269d6ac9b3ab92b5759, worker trace_id=fb4d17964289b8fe040d12ee104115dd. The span list also included "POST /v1/transcribe" exact server span with a third trace_id 578c45429dc7a65d1f369f056a48fa96 — even the exact server span did not match the worker's trace, confirming the propagation chain is still broken end-to-end. Diagnosis to date: every in-process test we can write passes — `test_route_captures_traceparent_outside_threadpool` proves the route hands [job_id, traceparent] to `_enqueue_transcribe` with the right trace_id; `test_celery_apply_with_kwargs_propagates_traceparent_to_worker_span` proves Celery's task dispatch (Signature → apply → task-call) preserves the second positional arg and the worker's `propagate.extract` correctly applies it as parent context. Important finding while writing the eager test: Celery's `task_always_eager` config has NO effect on `celery_app.send_task()` — Celery emits `AlwaysEagerIgnored: task_always_eager has no effect on send_task` and tries to reach the broker. The send_task → broker → worker-pulls-message → worker calls task path therefore CANNOT be exercised in unit tests without real Redis; the apply() test is the closest in-process equivalent. Files changed: services/api/app/main.py (`_enqueue_transcribe` now emits a safe `api.task_enqueued` structured log with `job_id`, `traceparent_present` bool, and `traceparent_trace_id` extracted from the W3C traceparent — no secrets); services/worker/app/tasks.py (`worker.job_received` log extended with `traceparent_present` and `received_trace_id`; new `worker.span_started` log emits the actual `span_trace_id` of the worker.transcribe_job span — these three structured fields, compared between API and worker containers, will identify exactly which link in the chain drops the traceparent in the next WSL run); tests/worker/test_worker_tracing.py (+1 test `test_celery_apply_with_kwargs_propagates_traceparent_to_worker_span` exercising Task.apply() through Celery's full dispatcher — passes, proving the worker code correctly extracts and applies traceparent when handed to it via the same dispatcher Celery uses after pulling a message); docs/claude_task_progress.md (WSL script switched to `docker compose build --no-cache api worker` to guarantee no stale image layers; added a diagnostic-log dump section that runs `docker compose logs api/worker` and greps the three structured events so the operator can compare API `traceparent_trace_id`, worker `received_trace_id`, and worker `span_trace_id` directly without re-parsing collector output). Login-node after this iteration: 340/340 non-integration non-smoke tests passed (339 baseline + 1 new Celery-apply test); summary line `============================= 340 passed in 4.08s ==============================` recorded in /tmp/task63_login_pytest_after_second_propagation_fix.log. Still blocked: WSL Docker verification must be rerun on the new commit. The diagnostic logs from that run will conclusively identify whether the API is capturing a non-empty traceparent, whether Celery is delivering it to the worker, and whether the worker is creating its span with the right context. |
 
 ## Task 6.2 WSL verification commands
@@ -442,3 +443,134 @@ After this script prints `TASK 6.4 WSL VERIFICATION OK`, report:
 - which alerts H3 listed as provisioned
 
 On success, the trackers will be updated to: `tasks."6.4": done`, `last_completed_task: "6.4"`, `current_task: "7.1"`, `blocked: false`, `blocker: null`.
+
+## Task 7.1 WSL verification commands
+
+Task 7.1 is implemented and pushed but blocked: datamove1 has no Node, npm, or Docker. The lockfile (`services/frontend/package-lock.json`) and end-to-end browser flow can only be verified on Gabriel's WSL machine. Closure requires the lockfile to be committed.
+
+### Files included in this commit
+
+```text
+services/frontend/.env.example
+services/frontend/.eslintrc.json
+services/frontend/.gitignore
+services/frontend/README.md
+services/frontend/app/api/[...path]/route.ts
+services/frontend/app/globals.css
+services/frontend/app/layout.tsx
+services/frontend/app/page.tsx
+services/frontend/next-env.d.ts
+services/frontend/next.config.mjs
+services/frontend/package.json
+services/frontend/tsconfig.json
+docs/claude_task_progress.md
+docs/claude_task_progress.yaml
+```
+
+`services/frontend/package-lock.json` is **NOT** in this commit. It will be generated by `npm install` on WSL and committed in the closure commit. Task 7.1 stays blocked until then.
+
+### Step 1 — WSL backend startup (deterministic)
+
+Run from the WSL Docker checkout. The script must be run as a single block; any failure leaves Task 7.1 blocked.
+
+```bash
+cd ~/code/asr_enhancement
+git pull --ff-only
+
+docker compose -f infra/compose/docker-compose.yml down -v
+docker compose -f infra/compose/docker-compose.yml build api worker
+docker compose -f infra/compose/docker-compose.yml up -d postgres redis minio
+docker compose -f infra/compose/docker-compose.yml run --rm api alembic upgrade head
+docker compose -f infra/compose/docker-compose.yml run --rm api python3 - <<'PY'
+from libs.common.settings import get_settings
+from libs.common.storage import StorageClient
+
+StorageClient.from_settings(get_settings()).ensure_bucket(create_if_missing=True)
+print("bucket ready")
+PY
+docker compose -f infra/compose/docker-compose.yml up -d api worker
+
+ok=0
+for i in $(seq 1 60); do
+  if curl -fsS -o /dev/null -w "%{http_code}" http://localhost:8000/ready | grep -q '^200$'; then
+    ok=1; break
+  fi
+  sleep 2
+done
+if [ "$ok" != "1" ]; then
+  echo "ERROR: backend /ready did not reach 200 within 120s" >&2
+  docker compose -f infra/compose/docker-compose.yml logs --tail=200 api worker postgres redis minio
+  exit 1
+fi
+echo "backend ready"
+```
+
+### Step 2 — WSL frontend verification (deterministic)
+
+After backend `/ready` is 200, run from `services/frontend/`:
+
+```bash
+cd ~/code/asr_enhancement/services/frontend
+
+node_version=$(node --version | sed 's/^v//')
+node_major=${node_version%%.*}
+node_minor=$(echo "$node_version" | cut -d. -f2)
+if [ "$node_major" -lt 18 ] || { [ "$node_major" -eq 18 ] && [ "$node_minor" -lt 18 ]; }; then
+  echo "ERROR: Node $node_version < 18.18; install Node >= 18.18 and rerun." >&2
+  exit 1
+fi
+npm --version
+
+npm install
+git status --short          # must list "?? services/frontend/package-lock.json"
+test -f package-lock.json   # hard fail if missing — Task 7.1 stays blocked
+
+npm run lint
+npm run typecheck
+npm run build
+npm run dev                 # serves on http://localhost:3000 in this terminal
+```
+
+If any of these steps fails, stop and keep Task 7.1 blocked.
+
+### Step 3 — Eleven manual browser checks (closure evidence)
+
+While `npm run dev` is running and the backend is up:
+
+1. Page loads at `http://localhost:3000` (HTTP 200, no Next error overlay).
+2. Every visible string is English (header, labels, buttons, error text, button states).
+3. Mode selector default value is `transcribe_only`.
+4. Preset selector default value is `bypass` and the selector is disabled while mode is `transcribe_only`.
+5. Switching mode to `enhance_and_transcribe` enables the preset selector.
+6. Selecting `denoise` from the preset selector works and persists in the field.
+7. Submitting a small WAV in `enhance_and_transcribe` mode returns a `job_id` (rendered in the queued-job line; no error region shown).
+8. Switching back to `transcribe_only` resets preset to `bypass` and disables the preset selector.
+9. Submitting a small WAV in `transcribe_only` mode returns a second `job_id`.
+10. Run `docker compose -f infra/compose/docker-compose.yml down` (Next.js dev server must stay running). Submit again. The error region must show **the exact text**: `Cannot reach backend API. Check that the backend is running and BACKEND_API_BASE_URL is correct.` Any other text — including `Backend returned 500`, `Backend returned 502`, `Backend returned 503`, `Backend returned 504`, an empty error, or a Next error overlay — is a **fail** and Task 7.1 stays blocked.
+11. No `/admin` route or admin text exists: `grep -ri admin services/frontend/app` returns nothing, and `curl -o /dev/null -w "%{http_code}\n" http://localhost:3000/admin` returns `404`.
+
+Check 10 is the headline regression criterion for the route-handler proxy.
+
+### Step 4 — Closure commit (after all checks pass)
+
+```bash
+cd ~/code/asr_enhancement
+git status --short          # expect untracked services/frontend/package-lock.json
+git config user.name        # "Gabriel Bibbó"
+git config user.email       # must be present
+git remote -v               # git@github.com:gbibbo/asr_enhancement.git or https form
+
+git add services/frontend/package-lock.json
+git add docs/claude_task_progress.md docs/claude_task_progress.yaml
+git diff --cached --stat    # expect exactly 3 files
+
+git commit -m "Close Task 7.1: Next.js frontend scaffold lockfile and tracker"
+git push origin "$(git branch --show-current)"
+```
+
+Tracker closure content (after WSL pass and lockfile commit):
+
+- `docs/claude_task_progress.yaml`: `tasks."7.1": done`, `last_completed_task: "7.1"`, `current_task: "7.2"`, `blocked: false`, `blocker: null`.
+- `docs/claude_task_progress.md`: append a `done` row for 7.1 citing WSL Node version, lockfile commit hash, lint/typecheck/build results, and pass/fail for each of the eleven manual checks. Check 10 must record the literal English message verified.
+
+Do **not** start Task 7.2 until closure has been recorded.
