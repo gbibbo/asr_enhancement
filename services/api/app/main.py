@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -25,6 +27,27 @@ app = FastAPI(title="ASR Enhancement Platform", version="0.1.0")
 logger = logging.getLogger(__name__)
 
 _READINESS_TIMEOUT = 5.0
+
+
+# ---------------------------------------------------------------------------
+# Job status snapshot (immutable; serialized by route, never a detached ORM obj)
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class JobStatusSnapshot:
+    id: uuid.UUID
+    status: JobStatus
+    mode: JobMode
+    provider: str
+    preset: str
+    raw_audio_uri: Optional[str]
+    transcript_uri: Optional[str]
+    transcript_text: Optional[str]
+    error_message: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    started_at: Optional[datetime]
+    completed_at: Optional[datetime]
 
 
 # ---------------------------------------------------------------------------
@@ -138,6 +161,33 @@ def _upload_raw_audio(
 def _enqueue_transcribe(job_id: str) -> None:
     from services.worker.app.celery_app import celery_app  # lazy — avoids module-level settings init
     celery_app.send_task("worker.transcribe_job", args=[job_id])
+
+
+def _load_job(database_url: str, job_id: uuid.UUID) -> Optional[JobStatusSnapshot]:
+    engine = make_engine(database_url)
+    try:
+        Session = make_session_factory(engine)
+        with Session() as session:
+            job = session.get(Job, job_id)
+            if job is None:
+                return None
+            return JobStatusSnapshot(
+                id=job.id,
+                status=job.status,
+                mode=job.mode,
+                provider=job.provider,
+                preset=job.preset,
+                raw_audio_uri=job.raw_audio_uri,
+                transcript_uri=job.transcript_uri,
+                transcript_text=job.transcript_text,
+                error_message=job.error_message,
+                created_at=job.created_at,
+                updated_at=job.updated_at,
+                started_at=job.started_at,
+                completed_at=job.completed_at,
+            )
+    finally:
+        engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -313,3 +363,32 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
 
     finally:
         await file.close()
+
+
+@app.get("/v1/jobs/{job_id}")
+async def get_job(job_id: uuid.UUID) -> JSONResponse:
+    settings = get_settings()
+    snap = await asyncio.to_thread(_load_job, settings.database_url, job_id)
+    if snap is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "not_found", "detail": f"Job {job_id} not found"},
+        )
+    return JSONResponse(
+        status_code=200,
+        content={
+            "job_id": str(snap.id),
+            "status": snap.status.value,
+            "mode": snap.mode.value,
+            "provider": snap.provider,
+            "preset": snap.preset,
+            "raw_audio_uri": snap.raw_audio_uri,
+            "transcript_uri": snap.transcript_uri,
+            "transcript_text": snap.transcript_text,
+            "error_message": snap.error_message,
+            "created_at": snap.created_at.isoformat() if snap.created_at else None,
+            "updated_at": snap.updated_at.isoformat() if snap.updated_at else None,
+            "started_at": snap.started_at.isoformat() if snap.started_at else None,
+            "completed_at": snap.completed_at.isoformat() if snap.completed_at else None,
+        },
+    )

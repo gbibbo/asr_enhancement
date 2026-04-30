@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 3
-current_task: "3.4"
-last_completed_task: "3.3"
+current_task: "3.5"
+last_completed_task: "3.4"
 blocked: true
-blocker: "Task 3.4 implemented and login-node tests pass (115/115); blocked pending external Docker verification by Gabriel"
+blocker: "Task 3.5 implementation complete and login-node tests pass (9/9, 124/124 total). External Docker verification pending: Gabriel must run docker compose build api worker, run pytest tests/api/test_job_status.py, and verify 404/422/200 curl responses on local WSL."
 repo_state: partial
 git_state: initialized
 remote_state: remote_missing
@@ -23,8 +23,8 @@ tasks:
   "3.1": done
   "3.2": done
   "3.3": done
-  "3.4": blocked
-  "3.5": pending
+  "3.4": done
+  "3.5": blocked
   "3.6": pending
   "3.7": pending
   "4.1": pending
