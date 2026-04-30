@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 7
-current_task: "7.1"
-last_completed_task: "6.4"
-blocked: true
-blocker: "Task 7.1 implementation pushed; awaiting WSL Node verification (Node >=18.18, npm install must generate services/frontend/package-lock.json, npm run lint/typecheck/build/dev) and the eleven manual browser checks against the backend on localhost:8000. package-lock.json must be committed before closure."
+current_task: "7.2"
+last_completed_task: "7.1"
+blocked: false
+blocker: null
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -37,7 +37,7 @@ tasks:
   "6.2": done
   "6.3": done
   "6.4": done
-  "7.1": blocked
+  "7.1": done
   "7.2": pending
   "7.3": pending
   "8.1": pending
