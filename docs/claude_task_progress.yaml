@@ -3,7 +3,7 @@ current_phase: 6
 current_task: "6.4"
 last_completed_task: "6.3"
 blocked: true
-blocker: "WSL Docker verification of Grafana dashboard, Prometheus alert rules, and queue backlog metric pending"
+blocker: "WSL Docker verification failed because infra config files were missing from the api Docker image; fix pushed, repeat WSL verification pending"
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
