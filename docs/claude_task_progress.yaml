@@ -29,7 +29,7 @@ tasks:
   "3.6": done
   "3.7": done
   "4.1": done
-  "4.2": blocked
+  "4.2": in_progress
   "5.1": pending
   "5.2": pending
   "5.3": pending
