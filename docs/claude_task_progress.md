@@ -30,4 +30,84 @@
 | 5.2  | done    | 2026-04-30 | Files created: libs/audio_pipeline/pipeline.py (EnhancementResult frozen dataclass, apply_preset(), _apply_dsp(), _normalize_gain(), _highpass(), _validate_output(); bypass returns input_path unchanged without creating output_dir; non-bypass presets call output_dir.mkdir(parents=True, exist_ok=True) before I/O; light_clean applies gain normalization to 0.95 peak; denoise/denoise_dereverb apply 4th-order Butterworth high-pass at 80 Hz + gain normalization; dereverb records diagnostic={"dereverb_applied": False}; DSP failures return enhancement_fallback=True + fallback_reason without raising), tests/audio_pipeline/test_pipeline.py (35 tests). Files modified: libs/audio_pipeline/__init__.py (added EnhancementResult, apply_preset, UnknownPresetError exports), pyproject.toml (added soundfile>=0.12, scipy>=1.11, numpy>=1.24 to dependencies). soundfile/scipy/numpy were already installed in .venv; added to pyproject.toml for reproducibility. No API, worker, DB, storage, or ASR adapter changes. Login-node: 35/35 new tests passed; 57/57 audio_pipeline suite passed; 231/231 full non-integration suite passed. No Docker, MinIO, Redis, or Postgres required. Not blocked. Commit: 7c35458. Next task: 5.3. |
 | 5.3  | done    | 2026-04-30 | Files created: services/api/app/main.py (POST /v1/enhance-and-transcribe route; Form preset param; resolve_preset validation before job creation; UnknownPresetError → HTTP 400 {"error":"unknown_preset"}; _create_job extended with preset="bypass" 4th param; enhanced_audio_uri added to JobStatusSnapshot, _load_job, and GET /v1/jobs/{job_id} response; Form+File imports), services/worker/app/tasks.py (_enum_or_str helper; apply_preset+UnknownPresetError+JobMode imports; JobSnapshot.mode/preset with defaults; _load_job populates mode/preset via _enum_or_str; _mark_job_completed extended with enhanced_audio_uri=None; enhancement branch in transcribe_job: apply_preset → upload enhanced_audio/{job_id}/output.wav when enhanced=True; fallback uses raw audio; enhancement_meta merged into transcript JSON), tests/api/test_enhance_and_transcribe.py (13 tests), tests/api/test_job_status.py (2 new tests for enhanced_audio_uri), tests/worker/test_enhance_task.py (10 tests). Files modified: tests/api/test_job_result.py (_make_snapshot gets enhanced_audio_uri=None default), tests/worker/test_transcribe_task.py (2 lambda signatures updated for 6th arg). No DB migration needed (schema already has enhanced_audio_uri and enhance_and_transcribe mode). Login-node: 256/256 non-integration tests passed (231 baseline + 25 new). Commit: 5933dc9. External WSL Docker verification passed (commit 5933dc9): docker compose build api worker; clean stack (down -v / up -d); alembic upgrade head from zero (496c2c194ab1); bucket created; pytest tests/api/test_enhance_and_transcribe.py tests/worker/test_enhance_task.py — 23 passed; full non-integration Docker suite — 256 passed; pytest tests/smoke/test_cut_a_smoke.py — 1 passed (Cut A regression ok); manual E2E: unknown preset → {"error":"unknown_preset"} HTTP 400; light_clean job reached completed with mode=enhance_and_transcribe, preset=light_clean, enhanced_audio_uri non-null, transcript_text=deterministic fake text; ALL ASSERTIONS PASSED. No secrets printed or committed. Next task: 6.1. |
 | 6.1  | done    | 2026-04-30 | Files created: libs/observability/__init__.py, libs/observability/logging.py (JSONFormatter + configure_logging; remove-then-add handler design; defensive redaction for key/secret/token/authorization/auth_header field names), tests/observability/__init__.py, tests/observability/test_json_formatter.py (15 tests: 7 formatter + 5 redaction + 3 configure_logging), tests/api/test_logging.py (7 tests: request middleware + job_created/enqueued log events), tests/worker/test_worker_logging.py (6 tests: malformed/not-found/received/running/completed/failed). Files modified: services/api/app/main.py (asynccontextmanager lifespan with configure_logging("api"); @app.middleware("http") request logger emitting api.request with method/path/status_code/duration_ms; unhandled exception handler now logs api.unhandled_exception; all job-related logger calls gain extra={"job_id": ...}; new api.job_created and api.job_enqueued info logs after create/enqueue steps in both routes), services/worker/app/tasks.py (worker.job_received log after UUID parse; worker.job_running log after mark-running; worker.job_completed replaces old completion log; worker.job_failed replaces old exception log; all existing logger calls gain extra={"job_id": ...}), services/worker/app/celery_app.py (worker_process_init signal → configure_logging("worker"); signal fires only in live worker process, never in pytest). No new dependencies; pyproject.toml unchanged. Login-node: 284/284 non-integration non-smoke tests passed (256 baseline + 28 new). No Docker required. JSON smoke check: two valid JSON lines with all required fields. Not blocked. Next task: 6.2. |
-| 6.2  | in_progress | 2026-04-30 | Implementation complete on datamove1; Docker/Prometheus scrape verification pending Gabriel's WSL. Files created: libs/observability/metrics.py (isolated CollectorRegistry; API_REQUESTS/API_ERRORS/JOB_COUNTER/WORKER_HEARTBEAT metrics; get_metrics_output()/start_worker_metrics_server() helpers), infra/compose/prometheus.yml (scrape asr_api:8000 + asr_worker:9091), tests/observability/test_metrics.py (13 tests), tests/api/test_metrics_endpoint.py (10 tests), tests/worker/test_worker_metrics.py (4 tests). Files modified: pyproject.toml (prometheus-client>=0.20), libs/observability/__init__.py (metrics exports), services/api/app/main.py (GET /metrics route; API_REQUESTS increment in middleware; API_ERRORS in exception handler; JOB_COUNTER queued in both POST routes), services/worker/app/celery_app.py (start_worker_metrics_server(9091) + heartbeat thread on worker_process_init), services/worker/app/tasks.py (JOB_COUNTER running/completed/failed at state transitions), infra/compose/docker-compose.yml (Prometheus service; --concurrency=1 on worker; port 9091). Login-node: 311/311 non-integration non-smoke tests passed (284 baseline + 27 new). Blocked pending WSL Docker/Prometheus scrape. |
+| 6.2  | in_progress | 2026-04-30 | Implementation complete on datamove1; Docker/Prometheus scrape verification pending Gabriel's WSL. Files created: libs/observability/metrics.py (isolated CollectorRegistry; API_REQUESTS/API_ERRORS/JOB_COUNTER/WORKER_HEARTBEAT metrics; get_metrics_output()/start_worker_metrics_server() helpers), infra/compose/prometheus.yml (scrape asr_api:8000 + asr_worker:9091), tests/observability/test_metrics.py (13 tests), tests/api/test_metrics_endpoint.py (10 tests), tests/worker/test_worker_metrics.py (4 tests). Files modified: pyproject.toml (prometheus-client>=0.20), libs/observability/__init__.py (metrics exports), services/api/app/main.py (GET /metrics route; API_REQUESTS increment in middleware; API_ERRORS in exception handler; JOB_COUNTER queued in both POST routes), services/worker/app/celery_app.py (start_worker_metrics_server(9091) + heartbeat thread on worker_process_init), services/worker/app/tasks.py (JOB_COUNTER running/completed/failed at state transitions), infra/compose/docker-compose.yml (Prometheus service; --concurrency=1 on worker; port 9091). Login-node: 311/311 non-integration non-smoke tests passed (284 baseline + 27 new). Blocked pending WSL Docker/Prometheus scrape. See WSL verification commands below. |
+
+## Task 6.2 WSL verification commands
+
+Run these commands from the WSL Docker checkout to complete verification.
+
+```bash
+cd ~/code/asr_enhancement
+git pull --ff-only
+cd infra/compose
+
+docker compose build api worker
+docker compose down -v
+docker compose up -d postgres redis minio
+
+docker compose run --rm api alembic upgrade head
+
+docker compose run --rm api python - <<'PY'
+from libs.common.settings import get_settings
+from libs.common.storage import StorageClient
+StorageClient.from_settings(get_settings()).ensure_bucket(create_if_missing=True)
+print("bucket ready")
+PY
+
+docker compose up -d api worker prometheus
+
+python3 - <<'PY'
+import wave
+from pathlib import Path
+
+p = Path("/tmp/asr_metrics_test.wav")
+with wave.open(str(p), "wb") as w:
+    w.setnchannels(1)
+    w.setsampwidth(2)
+    w.setframerate(16000)
+    w.writeframes(b"\x00\x00" * 1600)
+print(p)
+PY
+
+for i in $(seq 1 12); do
+    status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/metrics)
+    [ "$status" = "200" ] && echo "API metrics ready" && break
+    echo "Waiting for API metrics... ($i)"
+    sleep 5
+done
+
+curl -s http://localhost:8000/metrics | grep "asr_api_requests_total"
+curl -s http://localhost:8000/metrics | grep "asr_jobs_total"
+
+for i in $(seq 1 18); do
+    body=$(curl -s http://localhost:9091/metrics 2>/dev/null)
+    echo "$body" | grep -q "asr_worker_heartbeat_timestamp_seconds" \
+        && echo "Worker heartbeat metric found" && break
+    echo "Waiting for worker heartbeat... ($i)"
+    sleep 5
+done
+
+curl -s -X POST http://localhost:8000/v1/transcribe \
+    -F "file=@/tmp/asr_metrics_test.wav;type=audio/wav;filename=test.wav" \
+    --max-time 5 | python3 -c "import json,sys; d=json.load(sys.stdin); print(d); assert 'job_id' in d"
+
+curl -s http://localhost:8000/metrics | grep 'asr_jobs_total{.*status="queued"'
+
+for i in $(seq 1 18); do
+    targets=$(curl -s http://localhost:9090/api/v1/targets 2>/dev/null)
+    result=$(echo "$targets" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+active = data.get('data', {}).get('activeTargets', [])
+required = {'asr_api', 'asr_worker'}
+up = {t.get('labels', {}).get('job') for t in active if t.get('health') == 'up'}
+missing = required - up
+print('OK' if not missing else 'MISSING: ' + ', '.join(sorted(missing)))
+" 2>/dev/null || echo "ERROR")
+    [ "$result" = "OK" ] && echo "Both Prometheus targets UP (asr_api, asr_worker)" && break
+    echo "Waiting for Prometheus targets ($result)... ($i)"
+    sleep 5
+done
+
+docker compose down
+```
