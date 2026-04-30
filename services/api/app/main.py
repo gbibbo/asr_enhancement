@@ -6,7 +6,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import redis as redis_lib
 from fastapi import FastAPI, File, Request, UploadFile
@@ -36,8 +36,8 @@ _READINESS_TIMEOUT = 5.0
 @dataclass(frozen=True)
 class JobStatusSnapshot:
     id: uuid.UUID
-    status: JobStatus
-    mode: JobMode
+    status: Union[JobStatus, str]
+    mode: Union[JobMode, str]
     provider: str
     preset: str
     raw_audio_uri: Optional[str]
@@ -365,6 +365,10 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
         await file.close()
 
 
+def _enum_or_str(value: object) -> str:
+    return value.value if hasattr(value, "value") else str(value)
+
+
 @app.get("/v1/jobs/{job_id}")
 async def get_job(job_id: uuid.UUID) -> JSONResponse:
     settings = get_settings()
@@ -378,8 +382,8 @@ async def get_job(job_id: uuid.UUID) -> JSONResponse:
         status_code=200,
         content={
             "job_id": str(snap.id),
-            "status": snap.status.value,
-            "mode": snap.mode.value,
+            "status": _enum_or_str(snap.status),
+            "mode": _enum_or_str(snap.mode),
             "provider": snap.provider,
             "preset": snap.preset,
             "raw_audio_uri": snap.raw_audio_uri,

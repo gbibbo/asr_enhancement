@@ -3,7 +3,7 @@ current_phase: 3
 current_task: "3.5"
 last_completed_task: "3.4"
 blocked: true
-blocker: "Task 3.5 implementation complete and login-node tests pass (9/9, 124/124 total). External Docker verification pending: Gabriel must run docker compose build api worker, run pytest tests/api/test_job_status.py, and verify 404/422/200 curl responses on local WSL."
+blocker: "Task 3.5 bugfix applied: _enum_or_str helper added; status/mode now handled as Union[Enum, str]. Login-node: 10/10 job status tests passed; 125/125 full non-integration suite passed. External Docker re-verification pending: Gabriel must git pull, docker compose build api worker, rerun pytest tests/api/test_job_status.py, rerun full suite, and rerun GET /v1/jobs/<real_job_id> to confirm HTTP 200."
 repo_state: partial
 git_state: initialized
 remote_state: remote_missing

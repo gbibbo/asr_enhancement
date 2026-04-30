@@ -221,3 +221,28 @@ async def test_get_job_null_optional_fields(monkeypatch, job_status_client):
         "error_message", "created_at", "updated_at", "started_at", "completed_at",
     ):
         assert data[field] is None
+
+
+# ---------------------------------------------------------------------------
+# Regression: PostgreSQL may return plain strings for enum columns, not Enum
+# instances. Ensure the endpoint does not crash and returns the string as-is.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.anyio
+async def test_get_job_status_and_mode_as_plain_strings(monkeypatch, job_status_client):
+    snap = _make_snapshot(
+        status="completed",
+        mode="transcribe_only",
+        transcript_text="This is a deterministic fake transcript for local testing.",
+        transcript_uri="s3://asr-platform/transcripts/12345678-.../transcript.json",
+        raw_audio_uri="s3://asr-platform/raw_audio/12345678-.../input.wav",
+    )
+    monkeypatch.setattr(
+        "services.api.app.main._load_job",
+        lambda db_url, jid: snap,
+    )
+    response = await job_status_client.get(f"/v1/jobs/{FAKE_JOB_ID}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "completed"
+    assert data["mode"] == "transcribe_only"
