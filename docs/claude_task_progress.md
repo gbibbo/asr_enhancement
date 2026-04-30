@@ -116,10 +116,12 @@ docker compose down
 
 ## Task 6.3 WSL verification commands
 
-Run these commands from the WSL Docker checkout to complete verification. The goal is to confirm that traces from the API and worker appear in the OTel collector logs with matching trace IDs.
+Run these commands from the WSL Docker checkout to complete verification. The goal is to confirm that traces from the API and worker appear in the OTel collector logs with matching trace IDs and that the Docker pytest suite passes.
 
 ```bash
+#!/usr/bin/env bash
 set -euo pipefail
+
 cd ~/code/asr_enhancement
 git pull --ff-only
 cd infra/compose
@@ -128,9 +130,19 @@ docker compose build api worker
 docker compose down -v
 docker compose up -d postgres redis minio otel-collector
 
+# Wait for OTel collector to be ready (exits non-zero on timeout)
+collector_ready=0
+for i in $(seq 1 12); do
+    status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4318/ 2>/dev/null || echo "000")
+    [ "$status" != "000" ] && collector_ready=1 && echo "OTel collector ready" && break
+    echo "Waiting for OTel collector... ($i/12)"
+    sleep 5
+done
+[ "$collector_ready" = "1" ] || { echo "ERROR: OTel collector never became ready"; exit 1; }
+
 docker compose run --rm api alembic upgrade head
 
-docker compose run --rm api python - <<'PY'
+docker compose run --rm api python3 - <<'PY'
 from libs.common.settings import get_settings
 from libs.common.storage import StorageClient
 StorageClient.from_settings(get_settings()).ensure_bucket(create_if_missing=True)
@@ -139,24 +151,17 @@ PY
 
 docker compose up -d api worker
 
-# Wait for OTel collector to be ready
-collector_ready=0
-for i in $(seq 1 12); do
-    status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4318/ 2>/dev/null || echo "000")
-    [ "$status" != "000" ] && collector_ready=1 && echo "OTel collector ready" && break
-    echo "Waiting for OTel collector... ($i)"
-    sleep 5
-done
-[ "$collector_ready" = "1" ] || exit 1
-
-# Wait for API to be ready
+# Wait for API /health to return 200 (exits non-zero on timeout)
+api_ready=0
 for i in $(seq 1 12); do
     status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health 2>/dev/null || echo "000")
-    [ "$status" = "200" ] && echo "API ready" && break
-    echo "Waiting for API... ($i)"
+    [ "$status" = "200" ] && api_ready=1 && echo "API ready" && break
+    echo "Waiting for API... ($i/12)"
     sleep 5
 done
+[ "$api_ready" = "1" ] || { echo "ERROR: API never became ready"; exit 1; }
 
+# Generate test WAV
 python3 - <<'PY'
 import wave
 from pathlib import Path
@@ -164,45 +169,83 @@ p = Path("/tmp/asr_task63_test.wav")
 with wave.open(str(p), "wb") as w:
     w.setnchannels(1); w.setsampwidth(2); w.setframerate(16000)
     w.writeframes(b"\x00\x00" * 1600)
-print(p)
+print("WAV written:", p)
 PY
 
-curl -s -X POST http://localhost:8000/v1/transcribe \
+# Submit job and capture JOB_ID
+JOB_ID=$(curl -s -X POST http://localhost:8000/v1/transcribe \
     -F "file=@/tmp/asr_task63_test.wav;type=audio/wav;filename=test.wav" \
-    | python3 -c "import json,sys; d=json.load(sys.stdin); print(d); assert 'job_id' in d"
+    | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['job_id'])")
+echo "Submitted job_id: $JOB_ID"
 
-# Wait for job to complete and collector to flush
+# Poll until completed, fail on failed or timeout
+job_done=0
+for i in $(seq 1 24); do
+    job_status=$(curl -s "http://localhost:8000/v1/jobs/${JOB_ID}" \
+        | python3 -c "import json,sys; print(json.load(sys.stdin)['status'])")
+    echo "Poll $i: status=$job_status"
+    [ "$job_status" = "completed" ] && job_done=1 && echo "Job completed" && break
+    [ "$job_status" = "failed" ] && { echo "ERROR: job failed"; exit 1; }
+    sleep 5
+done
+[ "$job_done" = "1" ] || { echo "ERROR: job did not complete within timeout"; exit 1; }
+
+# Wait for BatchSpanProcessor to flush to collector
 sleep 10
 
-# Parse OTel collector debug output and verify trace propagation
-docker compose logs otel-collector 2>/dev/null | python3 - <<'PY'
-import sys, re, json
+# Save collector logs to file for deterministic parsing
+docker compose logs otel-collector > /tmp/otel-collector.log 2>&1
+echo "Collector log saved to /tmp/otel-collector.log ($(wc -l < /tmp/otel-collector.log) lines)"
 
-text = sys.stdin.read()
-# Extract (span_name, trace_id) pairs from debug exporter output
+# Parse and assert trace propagation
+python3 - /tmp/otel-collector.log "$JOB_ID" <<'PYEOF'
+import sys, re
+
+log_path = sys.argv[1]
+job_id   = sys.argv[2]
+
+with open(log_path) as f:
+    text = f.read()
+
+# Extract (span_name, trace_id) pairs from OTel debug exporter blocks
 spans = []
 for block in text.split("Trace ID"):
     trace_m = re.search(r":\s+([0-9a-f]{32})", block)
-    name_m = re.search(r"Name\s*:\s+(.+)", block)
+    name_m  = re.search(r"Name\s*:\s+(.+)", block)
     if trace_m and name_m:
         spans.append((name_m.group(1).strip(), trace_m.group(1).strip()))
 
-print(f"Collected {len(spans)} span(s): {spans}")
+print(f"Spans found: {len(spans)}")
+for n, t in spans:
+    print(f"  {t}  {n}")
 
-api_spans = [(n, t) for n, t in spans if "GET /v1" in n or "POST /v1" in n or "http" in n.lower()]
+api_spans    = [(n, t) for n, t in spans if "/v1/transcribe" in n or "POST" in n]
 worker_spans = [(n, t) for n, t in spans if "worker.transcribe_job" in n]
 
-assert api_spans, "No API span found in collector output"
-assert worker_spans, f"No worker span found. All spans: {spans}"
+assert api_spans,    f"FAIL: no API span containing /v1/transcribe. All: {spans}"
+assert worker_spans, f"FAIL: no worker.transcribe_job span. All: {spans}"
 
-api_trace_id = api_spans[0][1]
+api_trace_id    = api_spans[0][1]
 worker_trace_id = worker_spans[0][1]
 assert api_trace_id == worker_trace_id, (
-    f"Trace IDs do not match: API={api_trace_id}, worker={worker_trace_id}"
+    f"FAIL: trace_id mismatch — API={api_trace_id}, worker={worker_trace_id}"
 )
 
-print("PASS: API and worker spans share the same trace_id:", api_trace_id)
-PY
+assert "job.id" in text, "FAIL: 'job.id' key not found in collector logs"
+assert job_id in text,   f"FAIL: submitted job_id {job_id!r} not found in collector logs"
+
+print(f"PASS: API and worker share trace_id {api_trace_id}")
+print(f"PASS: job.id={job_id} present in collector logs")
+PYEOF
+
+# Run Docker pytest suite
+docker compose run --rm api pytest tests/ \
+    --ignore=tests/integration \
+    --ignore=tests/db/test_models_integration.py \
+    --ignore=tests/storage/test_storage_integration.py \
+    --ignore=tests/smoke \
+    -v 2>&1 | tee /tmp/task63_docker_pytest.log
+tail -5 /tmp/task63_docker_pytest.log
 
 docker compose down
 ```
