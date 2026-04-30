@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from libs.asr_adapter.fake import FakeASRAdapter
+from libs.asr_adapter.factory import make_asr_adapter
 from libs.common.db import make_engine, make_session_factory
 from libs.common.models import Job, JobStatus
 from libs.common.settings import get_settings
@@ -66,6 +66,7 @@ def _mark_job_completed(
     job_id: uuid.UUID,
     transcript_text: str,
     transcript_uri: str,
+    provider_payload_uri: Optional[str] = None,
 ) -> None:
     engine = make_engine(database_url)
     try:
@@ -76,6 +77,7 @@ def _mark_job_completed(
                 job.status = JobStatus.completed
                 job.transcript_text = transcript_text
                 job.transcript_uri = transcript_uri
+                job.provider_payload_uri = provider_payload_uri
                 job.completed_at = datetime.now(timezone.utc)
                 session.commit()
     finally:
@@ -159,8 +161,8 @@ def transcribe_job(job_id: str) -> None:
             storage = StorageClient.from_settings(settings)
             storage.get_to_file(audio_key, audio_path)
 
-            # 4c: call fake ASR adapter
-            adapter = FakeASRAdapter(fake_transcript=settings.fake_transcript)
+            # 4c: call ASR adapter (provider determined by settings)
+            adapter = make_asr_adapter(settings)
             result = adapter.transcribe(audio_path, job_id)
 
             # 4d: persist transcript JSON to object storage
@@ -172,6 +174,17 @@ def transcribe_job(job_id: str) -> None:
                 content_type="application/json",
             )
 
+            # 4d2: persist raw provider payload when present (non-empty)
+            provider_payload_uri = None
+            if result.raw_payload:
+                payload_key = f"provider_payloads/{job_id}/provider_response.json"
+                provider_payload_data = json.dumps(result.raw_payload).encode("utf-8")
+                provider_payload_uri = storage.put(
+                    payload_key,
+                    provider_payload_data,
+                    content_type="application/json",
+                )
+
             # 4e: artifact existence check
             if not storage.exists(transcript_key):
                 raise RuntimeError(
@@ -180,7 +193,8 @@ def transcribe_job(job_id: str) -> None:
 
             # 4f: persist to PostgreSQL and mark completed
             _mark_job_completed(
-                settings.database_url, job_id_uuid, result.text, transcript_uri
+                settings.database_url, job_id_uuid, result.text, transcript_uri,
+                provider_payload_uri,
             )
             logger.info("transcribe_job completed job_id=%s", job_id)
 

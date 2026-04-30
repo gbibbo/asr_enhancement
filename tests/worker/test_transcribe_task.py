@@ -100,7 +100,7 @@ def test_happy_path(tasks_mod, monkeypatch):
     monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: running_calls.append(jid))
     monkeypatch.setattr(
         tasks_mod, "_mark_job_completed",
-        lambda db, jid, text, uri: completed_calls.append((jid, text, uri)),
+        lambda db, jid, text, uri, *_: completed_calls.append((jid, text, uri)),
     )
     monkeypatch.setattr(
         tasks_mod, "_mark_job_failed",
@@ -112,7 +112,7 @@ def test_happy_path(tasks_mod, monkeypatch):
 
     mock_adapter = MagicMock()
     mock_adapter.transcribe.return_value = FAKE_RESULT
-    monkeypatch.setattr(tasks_mod, "FakeASRAdapter", lambda fake_transcript=None: mock_adapter)
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
 
     tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
 
@@ -125,7 +125,7 @@ def test_happy_path(tasks_mod, monkeypatch):
     assert get_call is not None
     assert get_call.args[0] == expected_audio_key
 
-    # storage.put called with transcript key
+    # storage.put called with transcript key (fake raw_payload={} means no provider payload)
     put_call = mock_storage.put.call_args
     assert put_call is not None
     assert put_call.args[0] == FAKE_TRANSCRIPT_KEY
@@ -331,7 +331,7 @@ def test_asr_adapter_fails_marks_job_failed(tasks_mod, monkeypatch):
 
     mock_adapter = MagicMock()
     mock_adapter.transcribe.side_effect = AdapterTranscriptionError("ASR failed")
-    monkeypatch.setattr(tasks_mod, "FakeASRAdapter", lambda fake_transcript=None: mock_adapter)
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
 
     tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
 
@@ -366,7 +366,7 @@ def test_transcript_upload_fails_marks_job_failed(tasks_mod, monkeypatch):
 
     mock_adapter = MagicMock()
     mock_adapter.transcribe.return_value = FAKE_RESULT
-    monkeypatch.setattr(tasks_mod, "FakeASRAdapter", lambda fake_transcript=None: mock_adapter)
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
 
     tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
 
@@ -399,7 +399,7 @@ def test_artifact_check_fails_marks_job_failed(tasks_mod, monkeypatch):
 
     mock_adapter = MagicMock()
     mock_adapter.transcribe.return_value = FAKE_RESULT
-    monkeypatch.setattr(tasks_mod, "FakeASRAdapter", lambda fake_transcript=None: mock_adapter)
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
 
     tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
 
@@ -419,7 +419,7 @@ def test_mark_completed_fails_marks_job_failed(tasks_mod, monkeypatch):
     monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: None)
     monkeypatch.setattr(
         tasks_mod, "_mark_job_completed",
-        lambda db, jid, text, uri: (_ for _ in ()).throw(RuntimeError("DB write failed")),
+        lambda db, jid, text, uri, *_: (_ for _ in ()).throw(RuntimeError("DB write failed")),
     )
     monkeypatch.setattr(
         tasks_mod, "_mark_job_failed",
@@ -431,7 +431,7 @@ def test_mark_completed_fails_marks_job_failed(tasks_mod, monkeypatch):
 
     mock_adapter = MagicMock()
     mock_adapter.transcribe.return_value = FAKE_RESULT
-    monkeypatch.setattr(tasks_mod, "FakeASRAdapter", lambda fake_transcript=None: mock_adapter)
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
 
     tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
 
@@ -450,3 +450,181 @@ def test_uri_to_key_parses_correctly(tasks_mod):
 def test_uri_to_key_rejects_wrong_bucket(tasks_mod):
     with pytest.raises(ValueError):
         tasks_mod._uri_to_key("s3://other-bucket/a/b/c", "bucket")
+
+
+# ---------------------------------------------------------------------------
+# Tests 15–19: factory wiring and provider payload persistence
+# ---------------------------------------------------------------------------
+
+def test_worker_fake_path_unchanged_after_factory_refactor(tasks_mod, monkeypatch):
+    """ASR_PROVIDER=fake: job completes; no provider_payload_uri written."""
+    completed_calls: list = []
+    failed_calls: list = []
+
+    monkeypatch.setattr(tasks_mod, "_load_job", lambda db, jid: _make_snapshot(tasks_mod))
+    monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: None)
+    monkeypatch.setattr(
+        tasks_mod, "_mark_job_completed",
+        lambda db, jid, text, uri, payload_uri=None: completed_calls.append(
+            (jid, text, uri, payload_uri)
+        ),
+    )
+    monkeypatch.setattr(
+        tasks_mod, "_mark_job_failed",
+        lambda db, jid, msg: failed_calls.append((jid, msg)),
+    )
+
+    mock_storage = _make_mock_storage()
+    monkeypatch.setattr(tasks_mod.StorageClient, "from_settings", lambda s: mock_storage)
+
+    # Fake result has empty raw_payload — provider payload upload must not happen
+    mock_adapter = MagicMock()
+    mock_adapter.transcribe.return_value = FAKE_RESULT
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
+
+    tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
+
+    assert failed_calls == []
+    assert len(completed_calls) == 1
+    jid, text, uri, payload_uri = completed_calls[0]
+    assert jid == FAKE_JOB_ID
+    assert text == FAKE_TRANSCRIPT_TEXT
+    assert uri == FAKE_TRANSCRIPT_URI
+    assert payload_uri is None
+
+
+def test_worker_assemblyai_success_stores_transcript_and_provider_payload_uri(tasks_mod, monkeypatch):
+    """Adapter returning non-empty raw_payload causes provider_payload_uri to be persisted."""
+    completed_calls: list = []
+
+    monkeypatch.setattr(tasks_mod, "_load_job", lambda db, jid: _make_snapshot(tasks_mod))
+    monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: None)
+    monkeypatch.setattr(
+        tasks_mod, "_mark_job_completed",
+        lambda db, jid, text, uri, payload_uri=None: completed_calls.append(
+            (jid, text, uri, payload_uri)
+        ),
+    )
+    monkeypatch.setattr(tasks_mod, "_mark_job_failed", lambda db, jid, msg: None)
+
+    FAKE_PAYLOAD_URI = f"s3://{FAKE_BUCKET}/provider_payloads/{FAKE_JOB_ID}/provider_response.json"
+    FAKE_PAYLOAD_KEY = f"provider_payloads/{FAKE_JOB_ID}/provider_response.json"
+
+    mock_storage = MagicMock()
+    mock_storage.get_to_file.return_value = None
+    mock_storage.put.side_effect = [FAKE_TRANSCRIPT_URI, FAKE_PAYLOAD_URI]
+    mock_storage.exists.return_value = True
+    monkeypatch.setattr(tasks_mod.StorageClient, "from_settings", lambda s: mock_storage)
+
+    assemblyai_result = ASRResult(
+        text="Hello from AssemblyAI",
+        language="en",
+        duration_seconds=5.0,
+        segments=[],
+        words=[{"text": "Hello"}],
+        provider="assemblyai",
+        provider_job_id="t_abc",
+        raw_payload={"id": "t_abc", "status": "completed", "text": "Hello from AssemblyAI"},
+    )
+    mock_adapter = MagicMock()
+    mock_adapter.transcribe.return_value = assemblyai_result
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
+
+    tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
+
+    assert len(completed_calls) == 1
+    jid, text, uri, payload_uri = completed_calls[0]
+    assert text == "Hello from AssemblyAI"
+    assert uri == FAKE_TRANSCRIPT_URI
+    assert payload_uri == FAKE_PAYLOAD_URI
+
+    # Second put call must target provider_payloads/ key
+    put_calls = mock_storage.put.call_args_list
+    assert len(put_calls) == 2
+    assert put_calls[1].args[0] == FAKE_PAYLOAD_KEY
+
+
+def test_worker_missing_assemblyai_key_marks_job_failed(tasks_mod, monkeypatch):
+    """`make_asr_adapter` raising AdapterTranscriptionError marks the job failed."""
+    failed_calls: list = []
+    completed_calls: list = []
+
+    monkeypatch.setattr(tasks_mod, "_load_job", lambda db, jid: _make_snapshot(tasks_mod))
+    monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: None)
+    monkeypatch.setattr(
+        tasks_mod, "_mark_job_completed",
+        lambda db, jid, text, uri, *_: completed_calls.append(jid),
+    )
+    monkeypatch.setattr(
+        tasks_mod, "_mark_job_failed",
+        lambda db, jid, msg: failed_calls.append((jid, msg)),
+    )
+
+    mock_storage = _make_mock_storage()
+    monkeypatch.setattr(tasks_mod.StorageClient, "from_settings", lambda s: mock_storage)
+
+    def _factory_no_key(settings):
+        raise AdapterTranscriptionError(
+            "AssemblyAI provider selected but ASSEMBLYAI_API_KEY is not set"
+        )
+
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", _factory_no_key)
+
+    tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
+
+    assert completed_calls == []
+    assert len(failed_calls) == 1
+    assert failed_calls[0][0] == FAKE_JOB_ID
+    assert "ASSEMBLYAI_API_KEY" in failed_calls[0][1]
+
+
+def test_worker_provider_transcription_failure_marks_job_failed(tasks_mod, monkeypatch):
+    """adapter.transcribe() raising AdapterTranscriptionError marks the job failed."""
+    failed_calls: list = []
+
+    monkeypatch.setattr(tasks_mod, "_load_job", lambda db, jid: _make_snapshot(tasks_mod))
+    monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: None)
+    monkeypatch.setattr(
+        tasks_mod, "_mark_job_completed",
+        lambda db, jid, text, uri, *_: None,
+    )
+    monkeypatch.setattr(
+        tasks_mod, "_mark_job_failed",
+        lambda db, jid, msg: failed_calls.append((jid, msg)),
+    )
+
+    mock_storage = _make_mock_storage()
+    monkeypatch.setattr(tasks_mod.StorageClient, "from_settings", lambda s: mock_storage)
+
+    mock_adapter = MagicMock()
+    mock_adapter.transcribe.side_effect = AdapterTranscriptionError("Provider error: audio corrupt")
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
+
+    tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
+
+    assert len(failed_calls) == 1
+    assert failed_calls[0][0] == FAKE_JOB_ID
+
+
+def test_worker_fake_empty_raw_payload_does_not_upload_provider_payload(tasks_mod, monkeypatch):
+    """Fake adapter returns raw_payload={} — storage.put called only once (transcript)."""
+    monkeypatch.setattr(tasks_mod, "_load_job", lambda db, jid: _make_snapshot(tasks_mod))
+    monkeypatch.setattr(tasks_mod, "_mark_job_running", lambda db, jid: None)
+    monkeypatch.setattr(
+        tasks_mod, "_mark_job_completed",
+        lambda db, jid, text, uri, *_: None,
+    )
+    monkeypatch.setattr(tasks_mod, "_mark_job_failed", lambda db, jid, msg: None)
+
+    mock_storage = _make_mock_storage()
+    monkeypatch.setattr(tasks_mod.StorageClient, "from_settings", lambda s: mock_storage)
+
+    mock_adapter = MagicMock()
+    mock_adapter.transcribe.return_value = FAKE_RESULT  # raw_payload={}
+    monkeypatch.setattr(tasks_mod, "make_asr_adapter", lambda settings: mock_adapter)
+
+    tasks_mod.transcribe_job.run(FAKE_JOB_ID_STR)
+
+    # Only the transcript put; no provider_payloads/ put
+    assert mock_storage.put.call_count == 1
+    assert mock_storage.put.call_args.args[0] == FAKE_TRANSCRIPT_KEY

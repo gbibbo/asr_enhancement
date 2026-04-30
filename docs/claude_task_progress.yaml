@@ -1,12 +1,13 @@
 current_cut: backend_vertical_slice
 current_phase: 4
-current_task: "4.1"
-last_completed_task: "3.7"
+current_task: "4.2"
+last_completed_task: "4.1"
 blocked: false
 blocker: null
 repo_state: partial
 git_state: initialized
-remote_state: remote_missing
+remote_state: remote_present
+checkout_path: /mnt/fast/nobackup/users/gb0048/asr_enhancement_platform
 tasks:
   "0.1": done
   "0.2": done
@@ -27,7 +28,7 @@ tasks:
   "3.5": done
   "3.6": done
   "3.7": done
-  "4.1": pending
+  "4.1": done
   "4.2": pending
   "5.1": pending
   "5.2": pending
