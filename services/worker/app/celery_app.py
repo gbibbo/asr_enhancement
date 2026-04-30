@@ -23,3 +23,12 @@ celery_app.conf.update(
 @celery_app.task(name="debug.ping")
 def ping() -> dict:
     return {"pong": True, "worker": socket.gethostname()}
+
+
+from celery.signals import worker_process_init  # noqa: E402
+from libs.observability import configure_logging  # noqa: E402
+
+
+@worker_process_init.connect
+def _configure_worker_logging(**kwargs):
+    configure_logging("worker")

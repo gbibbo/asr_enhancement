@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 import uuid
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -19,16 +21,41 @@ from libs.common.db import make_engine, make_session_factory
 from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import Settings, get_settings
 from libs.common.storage import StorageClient
+from libs.observability import configure_logging
 from services.api.app.upload_validation import (
     UploadValidationError,
     validate_and_buffer_upload,
 )
 
-app = FastAPI(title="ASR Enhancement Platform", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    configure_logging("api")
+    yield
+
+
+app = FastAPI(title="ASR Enhancement Platform", version="0.1.0", lifespan=lifespan)
 
 logger = logging.getLogger(__name__)
 
 _READINESS_TIMEOUT = 5.0
+
+
+@app.middleware("http")
+async def _request_logger(request: Request, call_next):
+    start = time.monotonic()
+    response = await call_next(request)
+    duration_ms = round((time.monotonic() - start) * 1000, 1)
+    logger.info(
+        "api.request",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "duration_ms": duration_ms,
+        },
+    )
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -212,6 +239,7 @@ async def _upload_validation_error_handler(
 
 @app.exception_handler(Exception)
 async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.exception("api.unhandled_exception", extra={"path": request.url.path})
     return JSONResponse(
         status_code=500,
         content={"error": "internal_server_error", "detail": "Internal server error"},
@@ -290,6 +318,7 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
                         "detail": "Failed to create job",
                     },
                 )
+            logger.info("api.job_created", extra={"job_id": str(job_id), "mode": "transcribe_only", "preset": "bypass"})
 
             # Step 3: upload raw audio to MinIO
             try:
@@ -302,7 +331,7 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
                     validated.content_type,
                 )
             except Exception as exc:
-                logger.error("Raw audio upload failed for job %s: %s", job_id, exc)
+                logger.error("Raw audio upload failed for job %s: %s", job_id, exc, extra={"job_id": str(job_id)})
                 await asyncio.to_thread(
                     _mark_job_failed,
                     settings.database_url,
@@ -324,7 +353,8 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
                 )
             except Exception as exc:
                 logger.error(
-                    "Failed to update raw_audio_uri for job %s: %s", job_id, exc
+                    "Failed to update raw_audio_uri for job %s: %s", job_id, exc,
+                    extra={"job_id": str(job_id)},
                 )
                 await asyncio.to_thread(
                     _mark_job_failed,
@@ -344,7 +374,7 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
             try:
                 await asyncio.to_thread(_enqueue_transcribe, str(job_id))
             except Exception as exc:
-                logger.error("Task enqueue failed for job %s: %s", job_id, exc)
+                logger.error("Task enqueue failed for job %s: %s", job_id, exc, extra={"job_id": str(job_id)})
                 await asyncio.to_thread(
                     _mark_job_failed,
                     settings.database_url,
@@ -358,6 +388,7 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
                         "detail": "Failed to queue transcription task",
                     },
                 )
+            logger.info("api.job_enqueued", extra={"job_id": str(job_id)})
 
             return JSONResponse(
                 status_code=202,
@@ -419,6 +450,7 @@ async def enhance_and_transcribe(
                         "detail": "Failed to create job",
                     },
                 )
+            logger.info("api.job_created", extra={"job_id": str(job_id), "mode": "enhance_and_transcribe", "preset": resolved_preset})
 
             # Step 4: upload raw audio to MinIO
             try:
@@ -431,7 +463,7 @@ async def enhance_and_transcribe(
                     validated.content_type,
                 )
             except Exception as exc:
-                logger.error("Raw audio upload failed for job %s: %s", job_id, exc)
+                logger.error("Raw audio upload failed for job %s: %s", job_id, exc, extra={"job_id": str(job_id)})
                 await asyncio.to_thread(
                     _mark_job_failed,
                     settings.database_url,
@@ -453,7 +485,8 @@ async def enhance_and_transcribe(
                 )
             except Exception as exc:
                 logger.error(
-                    "Failed to update raw_audio_uri for job %s: %s", job_id, exc
+                    "Failed to update raw_audio_uri for job %s: %s", job_id, exc,
+                    extra={"job_id": str(job_id)},
                 )
                 await asyncio.to_thread(
                     _mark_job_failed,
@@ -473,7 +506,7 @@ async def enhance_and_transcribe(
             try:
                 await asyncio.to_thread(_enqueue_transcribe, str(job_id))
             except Exception as exc:
-                logger.error("Task enqueue failed for job %s: %s", job_id, exc)
+                logger.error("Task enqueue failed for job %s: %s", job_id, exc, extra={"job_id": str(job_id)})
                 await asyncio.to_thread(
                     _mark_job_failed,
                     settings.database_url,
@@ -487,6 +520,7 @@ async def enhance_and_transcribe(
                         "detail": "Failed to queue enhancement task",
                     },
                 )
+            logger.info("api.job_enqueued", extra={"job_id": str(job_id)})
 
             return JSONResponse(
                 status_code=202,
@@ -545,7 +579,7 @@ async def get_job_result(job_id: uuid.UUID) -> JSONResponse:
                 _mark_job_failed, settings.database_url, job_id, err
             )
         except Exception as exc:
-            logger.error("Failed to mark job %s failed: %s", job_id, exc)
+            logger.error("Failed to mark job %s failed: %s", job_id, exc, extra={"job_id": str(job_id)})
         return JSONResponse(
             status_code=500,
             content={"error": "transcript_missing", "detail": err},

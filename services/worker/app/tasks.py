@@ -134,30 +134,32 @@ def transcribe_job(job_id: str) -> None:
     try:
         job_id_uuid = uuid.UUID(job_id)
     except ValueError:
-        logger.error("transcribe_job: malformed job_id=%r; skipping", job_id)
+        logger.error("transcribe_job: malformed job_id=%r; skipping", job_id, extra={"job_id": job_id})
         return
 
+    logger.info("worker.job_received", extra={"job_id": job_id})
     settings = get_settings()
 
     # Step 1: load job
     job = _load_job(settings.database_url, job_id_uuid)
     if job is None:
-        logger.error("transcribe_job: job_id=%s not found; skipping", job_id)
+        logger.error("transcribe_job: job_id=%s not found; skipping", job_id, extra={"job_id": job_id})
         return
 
     # Step 2: idempotency / status guard
     if job.status == JobStatus.completed:
-        logger.info("transcribe_job: job_id=%s already completed; skipping", job_id)
+        logger.info("transcribe_job: job_id=%s already completed; skipping", job_id, extra={"job_id": job_id})
         return
     if job.status == JobStatus.failed:
-        logger.info("transcribe_job: job_id=%s already failed; skipping", job_id)
+        logger.info("transcribe_job: job_id=%s already failed; skipping", job_id, extra={"job_id": job_id})
         return
     if job.status == JobStatus.running:
-        logger.warning("transcribe_job: job_id=%s already running; skipping", job_id)
+        logger.warning("transcribe_job: job_id=%s already running; skipping", job_id, extra={"job_id": job_id})
         return
 
     # Step 3: mark running
     _mark_job_running(settings.database_url, job_id_uuid)
+    logger.info("worker.job_running", extra={"job_id": job_id, "mode": job.mode, "preset": job.preset})
 
     # Steps 4a–4f: processing — any exception marks the job failed
     try:
@@ -233,13 +235,14 @@ def transcribe_job(job_id: str) -> None:
                 settings.database_url, job_id_uuid, result.text, transcript_uri,
                 provider_payload_uri, enhanced_audio_uri,
             )
-            logger.info("transcribe_job completed job_id=%s", job_id)
+            logger.info("worker.job_completed", extra={"job_id": job_id, "mode": job.mode, "preset": job.preset})
 
     except Exception as exc:
-        logger.exception("transcribe_job failed job_id=%s: %s", job_id, exc)
+        logger.exception("worker.job_failed", extra={"job_id": job_id})
         try:
             _mark_job_failed(settings.database_url, job_id_uuid, str(exc))
         except Exception as fail_exc:
             logger.error(
-                "transcribe_job: could not mark job %s failed: %s", job_id, fail_exc
+                "transcribe_job: could not mark job %s failed: %s", job_id, fail_exc,
+                extra={"job_id": job_id},
             )
