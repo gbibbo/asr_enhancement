@@ -1179,3 +1179,35 @@ Task 8.2 is **not closed yet**. Tracker state on this commit:
 - `blocker`: `"Awaiting WSL/Docker walk-through of docs/smoke_tests.md (compose up + alembic + bucket-create + pytest tests/smoke + pytest tests/api/test_enhance_and_transcribe.py)."`
 
 Task 8.3 has **not** been started.
+
+## Task 8.2 — done
+
+Status: **done**.
+
+External WSL/Docker walk-through passed on commit `bb77a1a43aee5ff96e382ee03765e625993f71ca`. Gabriel ran the documented commands from `docs/smoke_tests.md` against a clean WSL checkout of `master` and reported:
+
+- `docker compose -f infra/compose/docker-compose.yml up -d --build` completed successfully.
+- `docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api alembic upgrade head` completed successfully.
+- MinIO bucket creation snippet completed successfully and printed `bucket ready: asr-platform`.
+- `docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api pytest -q tests/smoke/test_cut_a_smoke.py` exited 0 and reported `1 passed`.
+- `docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api pytest -v tests/api/test_enhance_and_transcribe.py` exited 0 and reported `13 passed`.
+- `docker compose -f infra/compose/docker-compose.yml logs api` and `... logs worker` produced readable output.
+- `docker compose -f infra/compose/docker-compose.yml down` completed successfully.
+
+The live AssemblyAI test was not run, by design — it is opt-in and not required for Task 8.2 closure.
+
+The plan.md done-criteria for Task 8.2 are satisfied:
+
+- *setup can be followed from a clean checkout* — confirmed end-to-end on WSL.
+- *fake path works without secrets* — Cut A smoke and Cut B enhance-and-transcribe suites both passed with `ASR_PROVIDER=fake`.
+- *real provider path has explicit environment gating* — documented as gated by both `RUN_LIVE_ASSEMBLYAI_TEST=1` and `ASSEMBLYAI_API_KEY=<your-key>`; CI does not set the gate; no real key value appears in any committed file.
+
+Tracker state on closure:
+
+- `tasks."8.2"`: `done`
+- `last_completed_task`: `"8.2"`
+- `current_task`: `"8.3"`
+- `blocked`: `false`
+- `blocker`: `null`
+
+Task 8.2 is closed. Task 8.3 (Add deployment path documentation, `plan.md` §14 Phase 8) is next per `plan.md`. Task 8.3 has **not** been started.
