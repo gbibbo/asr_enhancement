@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     # Upload limit (bytes); default 100 MB
     upload_limit_bytes: int = 104_857_600
 
+    # Demo rate limit (requests per minute per client IP, applied only to
+    # POST /v1/transcribe and POST /v1/enhance-and-transcribe). 0 disables.
+    rate_limit_per_minute: int = 30
+
     # HPC / runtime paths (optional; not required at startup)
     asr_repo_root: Optional[Path] = None
     asr_runtime_root: Optional[Path] = None
@@ -62,6 +66,14 @@ class Settings(BaseSettings):
         value = int(v)
         if value <= 0:
             raise ValueError("upload_limit_bytes must be greater than 0")
+        return value
+
+    @field_validator("rate_limit_per_minute", mode="before")
+    @classmethod
+    def validate_rate_limit(cls, v: object) -> int:
+        value = int(v)
+        if value < 0:
+            raise ValueError("rate_limit_per_minute must be >= 0")
         return value
 
     @property

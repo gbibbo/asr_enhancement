@@ -114,6 +114,28 @@ def test_upload_limit_zero_raises(monkeypatch):
         make(monkeypatch, extra={"UPLOAD_LIMIT_BYTES": "0"})
 
 
+# --- rate_limit_per_minute ---
+
+def test_rate_limit_default(monkeypatch):
+    s = make(monkeypatch, drop=["RATE_LIMIT_PER_MINUTE"])
+    assert s.rate_limit_per_minute == 30
+
+
+def test_rate_limit_custom_positive(monkeypatch):
+    s = make(monkeypatch, extra={"RATE_LIMIT_PER_MINUTE": "5"})
+    assert s.rate_limit_per_minute == 5
+
+
+def test_rate_limit_zero_accepted(monkeypatch):
+    s = make(monkeypatch, extra={"RATE_LIMIT_PER_MINUTE": "0"})
+    assert s.rate_limit_per_minute == 0
+
+
+def test_rate_limit_negative_raises(monkeypatch):
+    with pytest.raises(ValidationError):
+        make(monkeypatch, extra={"RATE_LIMIT_PER_MINUTE": "-1"})
+
+
 # --- optional path roots ---
 
 def test_runtime_root_defaults_to_none(monkeypatch):

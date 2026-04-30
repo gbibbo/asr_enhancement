@@ -32,10 +32,16 @@ from libs.observability.metrics import (
     JOB_COUNTER,
     get_metrics_output,
 )
+from services.api.app.rate_limit import RateLimiter
 from services.api.app.upload_validation import (
     UploadValidationError,
     validate_and_buffer_upload,
 )
+
+_RATE_LIMITED_PATHS: frozenset[str] = frozenset({
+    "/v1/transcribe",
+    "/v1/enhance-and-transcribe",
+})
 
 
 @asynccontextmanager
@@ -45,6 +51,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="ASR Enhancement Platform", version="0.1.0", lifespan=lifespan)
+app.state.rate_limiter = RateLimiter(get_settings().rate_limit_per_minute)
 
 # Tracing must be configured and FastAPI must be instrumented BEFORE the middleware
 # stack is built. Starlette builds middleware_stack lazily on the first ASGI call —
@@ -80,6 +87,30 @@ async def _request_logger(request: Request, call_next):
         },
     )
     return response
+
+
+# Starlette wraps middlewares in reverse-add order, so the last added is the
+# outermost. Adding _rate_limit_middleware AFTER _request_logger keeps the
+# logger as the outermost wrapper, so 429 responses are still counted in
+# API_REQUESTS and api.request logs.
+@app.middleware("http")
+async def _rate_limit_middleware(request: Request, call_next):
+    if request.method != "POST" or request.url.path not in _RATE_LIMITED_PATHS:
+        return await call_next(request)
+
+    client_key = request.client.host if request.client else "unknown"
+    allowed, retry_after = await request.app.state.rate_limiter.is_allowed(client_key)
+    if allowed:
+        return await call_next(request)
+
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "rate_limited",
+            "detail": "Too many requests. Please try again in a moment.",
+        },
+        headers={"Retry-After": str(retry_after)},
+    )
 
 
 # ---------------------------------------------------------------------------

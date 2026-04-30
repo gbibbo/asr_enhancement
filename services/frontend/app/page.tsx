@@ -40,6 +40,17 @@ const PRESETS: Preset[] = ["bypass", "light_clean", "denoise", "denoise_dereverb
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_ATTEMPTS = 60;
 
+const ALLOWED_EXTENSIONS = [".wav", ".mp3", ".m4a", ".flac"];
+
+function resolveMaxUploadBytes(): number {
+  const raw = process.env.NEXT_PUBLIC_MAX_UPLOAD_BYTES;
+  const parsed = raw === undefined ? NaN : Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 104_857_600;
+}
+
+const MAX_UPLOAD_BYTES = resolveMaxUploadBytes();
+const MAX_UPLOAD_MB = Math.floor(MAX_UPLOAD_BYTES / (1024 * 1024));
+
 function isPlayableUrl(uri: string | null | undefined): boolean {
   if (!uri) return false;
   return (
@@ -292,6 +303,22 @@ export default function Home() {
     }
     setError(null);
     setJobId(null);
+
+    const lowerName = file.name.toLowerCase();
+    const hasAllowedExt = ALLOWED_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
+    if (!hasAllowedExt) {
+      setError(
+        "File type not allowed. Allowed types: .wav, .mp3, .m4a, .flac.",
+      );
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setError(
+        "File is too large. Maximum allowed size is " + MAX_UPLOAD_MB + " MB.",
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
       const url =
@@ -368,10 +395,10 @@ export default function Home() {
       <h1>ASR Demo</h1>
       <form onSubmit={onSubmit}>
         <label>
-          Audio file
+          {"Audio file (max " + MAX_UPLOAD_MB + " MB; .wav, .mp3, .m4a, .flac)"}
           <input
             type="file"
-            accept="audio/*"
+            accept=".wav,.mp3,.m4a,.flac,audio/*"
             required
             onChange={onFileChange}
           />

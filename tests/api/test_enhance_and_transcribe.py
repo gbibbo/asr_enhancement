@@ -12,6 +12,7 @@ from services.api.app.main import (
     _upload_raw_audio,
     app,
 )
+from services.api.app.rate_limit import RateLimiter
 from services.api.app.upload_validation import ValidatedUpload
 
 _REQUIRED_ENVS = {
@@ -35,6 +36,7 @@ async def enhance_client(monkeypatch):
     for k, v in _REQUIRED_ENVS.items():
         monkeypatch.setenv(k, v)
     get_settings.cache_clear()
+    app.state.rate_limiter = RateLimiter(0)
 
     created_jobs: list[tuple] = []
 
