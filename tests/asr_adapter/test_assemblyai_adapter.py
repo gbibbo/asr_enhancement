@@ -200,7 +200,11 @@ def test_submit_post_called_with_correct_json_body_and_audio_url(tmp_path):
     _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
     submit_call = client.post.call_args_list[1]
     assert submit_call.args[0] == f"{_BASE_URL}/v2/transcript"
-    assert submit_call.kwargs["json"] == {"audio_url": _UPLOAD_URL, "speech_models": ["universal"]}
+    assert submit_call.kwargs["json"] == {
+        "audio_url": _UPLOAD_URL,
+        "speech_models": ["universal"],
+        "language_code": "en",
+    }
 
 
 def test_poll_get_called_with_correct_endpoint_and_auth_header(tmp_path):
@@ -299,7 +303,7 @@ def test_poll_timeout_raises_transcription_error(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# 24–26. speech_models
+# 24–26. speech_models and language_code
 # ---------------------------------------------------------------------------
 
 def test_submit_default_speech_models_is_universal(tmp_path):
@@ -323,8 +327,29 @@ def test_submit_multiple_custom_speech_models(tmp_path):
     assert submit_call.kwargs["json"]["speech_models"] == ["universal", "nano"]
 
 
+def test_submit_default_language_code_is_en(tmp_path):
+    client = _make_mock_client()
+    _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
+    submit_call = client.post.call_args_list[1]
+    assert submit_call.kwargs["json"]["language_code"] == "en"
+
+
+def test_submit_custom_language_code_honored(tmp_path):
+    client = _make_mock_client()
+    _adapter(client, language_code="fr").transcribe(_audio(tmp_path), _JOB_ID)
+    submit_call = client.post.call_args_list[1]
+    assert submit_call.kwargs["json"]["language_code"] == "fr"
+
+
+def test_submit_none_language_code_omits_field(tmp_path):
+    client = _make_mock_client()
+    _adapter(client, language_code=None).transcribe(_audio(tmp_path), _JOB_ID)
+    submit_call = client.post.call_args_list[1]
+    assert "language_code" not in submit_call.kwargs["json"]
+
+
 # ---------------------------------------------------------------------------
-# 27–28. Key safety
+# 30–31. Key safety
 # ---------------------------------------------------------------------------
 
 def test_api_key_not_in_any_raised_error_message(tmp_path):

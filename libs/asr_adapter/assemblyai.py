@@ -22,6 +22,10 @@ class AssemblyAIAdapter(ASRAdapter):
         base_url: API base URL; override in tests if needed.
         speech_models: Model list sent in the transcript submit body.
             Defaults to ["universal"].
+        language_code: BCP-47 language code included in the submit body to
+            skip automatic language detection. Defaults to "en". Pass None
+            to let AssemblyAI detect the language automatically (not
+            recommended for short or silent audio).
         poll_interval_seconds: Seconds to wait between poll requests.
         max_wait_seconds: Total polling budget; raises on timeout.
         upload_timeout_seconds: httpx timeout for the audio upload POST.
@@ -37,6 +41,7 @@ class AssemblyAIAdapter(ASRAdapter):
         *,
         base_url: str = "https://api.assemblyai.com",
         speech_models: Optional[list[str]] = None,
+        language_code: Optional[str] = "en",
         poll_interval_seconds: float = 3.0,
         max_wait_seconds: float = 600.0,
         upload_timeout_seconds: float = 120.0,
@@ -48,6 +53,7 @@ class AssemblyAIAdapter(ASRAdapter):
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
         self._speech_models: list[str] = speech_models if speech_models is not None else ["universal"]
+        self._language_code = language_code
         self._poll_interval = poll_interval_seconds
         self._max_wait = max_wait_seconds
         self._upload_timeout = upload_timeout_seconds
@@ -94,11 +100,17 @@ class AssemblyAIAdapter(ASRAdapter):
         return resp.json()["upload_url"]
 
     def _submit(self, upload_url: str) -> str:
+        body: dict[str, Any] = {
+            "audio_url": upload_url,
+            "speech_models": self._speech_models,
+        }
+        if self._language_code is not None:
+            body["language_code"] = self._language_code
         try:
             resp = self._client.post(
                 f"{self._base_url}/v2/transcript",
                 headers={"Authorization": self._api_key, "Content-Type": "application/json"},
-                json={"audio_url": upload_url, "speech_models": self._speech_models},
+                json=body,
                 timeout=self._submit_timeout,
             )
             resp.raise_for_status()

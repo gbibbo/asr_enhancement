@@ -3,7 +3,7 @@ current_phase: 4
 current_task: "4.2"
 last_completed_task: "4.1"
 blocked: true
-blocker: "live AssemblyAI verification failed with HTTP 400 on transcript submit; adapter updated to include speech_models and avoid API-key leakage in tracebacks; Gabriel must rerun with a newly generated ASSEMBLYAI_API_KEY"
+blocker: "live AssemblyAI verification failed during polling because silent audio triggered language detection error; adapter updated to send language_code='en' by default; Gabriel must rerun with a valid ASSEMBLYAI_API_KEY"
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
