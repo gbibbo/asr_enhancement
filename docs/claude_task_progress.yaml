@@ -1,9 +1,9 @@
 current_cut: backend_vertical_slice
 current_phase: 5
-current_task: "5.3"
-last_completed_task: "5.2"
-blocked: true
-blocker: "Docker/Compose unavailable on datamove1; Gabriel must run external WSL verification (see docs/claude_task_progress.md task 5.3 notes)"
+current_task: "6.1"
+last_completed_task: "5.3"
+blocked: false
+blocker: null
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -32,7 +32,7 @@ tasks:
   "4.2": done
   "5.1": done
   "5.2": done
-  "5.3": in_progress
+  "5.3": done
   "6.1": pending
   "6.2": pending
   "6.3": pending
