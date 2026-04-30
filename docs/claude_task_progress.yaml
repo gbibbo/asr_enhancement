@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 8
 current_task: "8.3"
 last_completed_task: "8.2"
-blocked: false
-blocker: null
+blocked: true
+blocker: "Awaiting external WSL/Docker walk-through of docs/deployment.md (compose up + alembic + bucket-create + readiness wait + post-deploy smoke pytest)."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -42,4 +42,4 @@ tasks:
   "7.3": done
   "8.1": done
   "8.2": done
-  "8.3": pending
+  "8.3": blocked

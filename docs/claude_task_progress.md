@@ -1211,3 +1211,118 @@ Tracker state on closure:
 - `blocker`: `null`
 
 Task 8.2 is closed. Task 8.3 (Add deployment path documentation, `plan.md` §14 Phase 8) is next per `plan.md`. Task 8.3 has **not** been started.
+
+## Task 8.3 — implemented (blocked)
+
+Status: **blocked**, awaiting external WSL/Docker walk-through.
+
+### Scope summary
+
+Per `plan.md` §14 Phase 8 Task 8.3 ("Add deployment path documentation"), this task adds a single new file, `docs/deployment.md`, that documents the single-VPS Docker Compose deployment path: clone + `.env`, `docker compose up`, one-time Alembic migration and MinIO bucket-create, readiness waits for `/ready` and Celery, post-deploy smoke against the fake provider, and tear-down.
+
+The doc is backend-only by design. The Next.js frontend at `services/frontend/` is **not yet integrated** into `infra/compose/docker-compose.yml`; its README defers Compose integration to a later demo task. The deployment guide records this gap in a `## Known limitations` section. The guide does not add host-side `npm` production-run instructions, does not add a frontend Compose service, and does not add reverse-proxy frontend routing.
+
+The reverse-proxy section documents Caddy as **operator-managed on the VPS host, outside the Compose stack**. The Caddyfile snippet uses `reverse_proxy 127.0.0.1:8000` (the host-published API port). The doc explicitly does not claim Caddy is on the Compose network and does not use the compose-internal hostname `api`.
+
+Object storage covers two variants: local MinIO on the VPS (with a backup warning for `asr_minio_data`) and managed S3-compatible storage (overriding `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_SECURE`). All secrets appear only as placeholders (`<minio-access-key>`, `<minio-secret-key>`, `<assemblyai-api-key>`); no real key values are printed.
+
+### Files changed in this commit
+
+Only the three allowlisted files:
+
+- `docs/deployment.md` — new file, backend VPS deployment runbook.
+- `docs/claude_task_progress.md` — this section, appended.
+- `docs/claude_task_progress.yaml` — tracker flipped to `tasks."8.3": blocked`, `blocked: true`, with a `blocker` describing the missing external verification.
+
+`.codex` remains untracked and unstaged. No other path is modified.
+
+### Datamove1 checks run for Task 8.3
+
+Run with `set -euo pipefail` from `/mnt/fast/nobackup/users/gb0048/asr_enhancement_platform`:
+
+- `test -s docs/deployment.md`.
+- All required headings present in `docs/deployment.md`: `# Deployment guide`, `## Single VPS with Docker Compose`, `## Required environment variables`, `## Secrets handling`, `## Reverse proxy`, `## Post-deploy smoke test`, `## Object storage and backups`, `## Known limitations`.
+- All required commands present: `docker compose -f infra/compose/docker-compose.yml up -d --build`, `... run --rm --no-deps api alembic upgrade head`, `... run --rm --no-deps api python -c`, `pytest -q tests/smoke/test_cut_a_smoke.py`, `pytest -v tests/api/test_enhance_and_transcribe.py`, `celery -A services.worker.app.celery_app:celery_app inspect ping`, `curl -fsS http://localhost:8000/ready`, `docker compose -f infra/compose/docker-compose.yml down`.
+- All required env-var names present: `ASR_PROVIDER`, `DATABASE_URL`, `REDIS_URL`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_SECURE`, `ASSEMBLYAI_API_KEY`, `UPLOAD_LIMIT_BYTES`, `RATE_LIMIT_PER_MINUTE`.
+- Decision-rule coverage strings present: `server IP`, `Caddy`, `127.0.0.1:8000`, `backup`, `S3-compatible`.
+- Caddy/Compose consistency: no `reverse_proxy api:8000`, no phrasing claiming Caddy is on the Compose network or inside Compose.
+- No real-looking secret values: no `ASSEMBLYAI_API_KEY=[A-Za-z0-9]{16,}`; only placeholder or `minioadmin` values appear after `MINIO_SECRET_KEY=`.
+- Narrow no-AI-authorship grep across the three changed files: zero matches against the standard provenance-marker regex defined in the approved Task 8.3 plan (covers assistant co-author trailers, generation-provenance phrases, and vendor product names; bare common words excluded to avoid false positives).
+- Even, non-zero count of fenced code blocks in `docs/deployment.md`.
+- `docs/claude_task_progress.yaml` parsed and verified: `current_phase: 8`, `current_task: "8.3"`, `last_completed_task: "8.2"`, `tasks."8.3": blocked`, `blocked: true`, `blocker` non-empty.
+- `docs/claude_task_progress.md` includes the heading `## Task 8.3 — implemented (blocked)`.
+- Exact changed-file allowlist: tracked + staged + untracked-non-`.codex` set equals exactly `docs/claude_task_progress.md`, `docs/claude_task_progress.yaml`, `docs/deployment.md`.
+- `.codex` remains untracked and is not staged.
+
+### External verification still required (Gabriel, on WSL/Docker)
+
+The `plan.md` done-criteria *"demo deployment path is reproducible"* and *"smoke test passes after deploy"* require a host with Docker. Datamove1 has no Docker. Gabriel runs the following commands from a clean WSL checkout. The walk-through uses a fresh, isolated directory (`~/tmp/asr_83_deployment_walkthrough`) so unrelated edits in any other working copy cannot influence the result, and starts with a destructive `down -v` preflight to drop any old volumes from previous walkthroughs.
+
+```bash
+mkdir -p ~/tmp
+rm -rf ~/tmp/asr_83_deployment_walkthrough
+cd ~/tmp
+git clone https://github.com/gbibbo/asr_enhancement.git asr_83_deployment_walkthrough
+cd asr_83_deployment_walkthrough
+git checkout master
+git pull
+
+# DESTRUCTIVE preflight — drop any old volumes from previous walkthroughs.
+# This is for the verification walkthrough only. Do NOT run on a real
+# deployment you want to preserve.
+docker compose -f infra/compose/docker-compose.yml down -v
+
+cp .env.example .env
+
+docker compose -f infra/compose/docker-compose.yml up -d --build
+
+docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api alembic upgrade head
+docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api python -c '
+import os
+from minio import Minio
+c = Minio(
+    os.environ["MINIO_ENDPOINT"],
+    access_key=os.environ["MINIO_ACCESS_KEY"],
+    secret_key=os.environ["MINIO_SECRET_KEY"],
+    secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
+)
+b = os.environ["MINIO_BUCKET"]
+if not c.bucket_exists(b):
+    c.make_bucket(b)
+print("bucket ready:", b)
+'
+
+until curl -fsS http://localhost:8000/ready >/dev/null; do sleep 2; done
+until docker compose -f infra/compose/docker-compose.yml exec -T worker \
+        celery -A services.worker.app.celery_app:celery_app inspect ping -t 2 >/dev/null 2>&1; do
+  sleep 2
+done
+
+docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api \
+  pytest -q tests/smoke/test_cut_a_smoke.py
+docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api \
+  pytest -v tests/api/test_enhance_and_transcribe.py
+
+docker compose -f infra/compose/docker-compose.yml logs api    | head -n 20
+docker compose -f infra/compose/docker-compose.yml logs worker | head -n 20
+
+# DESTRUCTIVE tear-down for the verification walkthrough only.
+docker compose -f infra/compose/docker-compose.yml down -v
+```
+
+### Pass criteria for the WSL walk-through
+
+- `pytest -q tests/smoke/test_cut_a_smoke.py` exits 0 and pytest reports a passing test run.
+- `pytest -v tests/api/test_enhance_and_transcribe.py` exits 0 and pytest reports a passing test run.
+- The documented commands match exactly what was run (no improvisation, no env-var fix-ups outside `.env`).
+- No real `ASSEMBLYAI_API_KEY` was used or printed; the live AssemblyAI test is **not required** to close Task 8.3.
+
+### Tracker state on this commit
+
+- `tasks."8.3"`: `blocked`
+- `current_task`: `"8.3"`
+- `last_completed_task`: `"8.2"`
+- `blocked`: `true`
+- `blocker`: `"Awaiting external WSL/Docker walk-through of docs/deployment.md (compose up + alembic + bucket-create + readiness wait + post-deploy smoke pytest)."`
+
+Task 8.3 is **not closed yet**. No later task has been started.
