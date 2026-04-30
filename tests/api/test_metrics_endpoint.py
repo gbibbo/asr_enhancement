@@ -68,7 +68,7 @@ async def api_client(monkeypatch):
     )
     monkeypatch.setattr(
         "services.api.app.main._enqueue_transcribe",
-        lambda job_id: None,
+        lambda job_id, traceparent=None: None,
     )
 
     transport = ASGITransport(app=app)

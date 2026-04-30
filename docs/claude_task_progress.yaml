@@ -3,7 +3,7 @@ current_phase: 6
 current_task: "6.3"
 last_completed_task: "6.2"
 blocked: true
-blocker: "WSL verification on commit a674f90 failed (no asr-api resource span); root cause: lifespan-time FastAPIInstrumentor was too late. Fix applied: instrumentation moved to module level. Login-node now 338/338 (336 baseline + 2 new regression tests). WSL Docker verification must be rerun."
+blocker: "WSL verification on commit 0db0a8b failed (API and worker trace IDs differ); root cause: _enqueue_transcribe injected traceparent inside asyncio.to_thread, contextvars propagation across the threadpool boundary did not preserve the active span under uvicorn in production. Fix applied: route captures traceparent in async context via _current_traceparent() and passes it explicitly to _enqueue_transcribe. Login-node now 339/339 (338 baseline + 1 new regression test). WSL Docker verification must be rerun."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present

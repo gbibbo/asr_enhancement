@@ -186,3 +186,92 @@ def test_post_v1_transcribe_during_request_sends_traceparent_to_celery(
     assert api_trace_id_hex == traceparent_trace_id, (
         f"trace_id mismatch — API span={api_trace_id_hex}, traceparent={traceparent_trace_id}"
     )
+
+
+def test_route_captures_traceparent_outside_threadpool(otel_exporter, monkeypatch, tmp_path):
+    """Regression for the WSL Docker failure on commit 0db0a8b.
+
+    A previous implementation injected traceparent INSIDE _enqueue_transcribe,
+    which runs via asyncio.to_thread.  In production under uvicorn, the active
+    OTel server span's contextvars did not propagate reliably into the threadpool
+    worker, so propagate.inject(carrier) returned an empty carrier and the worker
+    received traceparent=None — creating a fresh root span with a different
+    trace_id.
+
+    The fix captures traceparent in the async route context (where the
+    FastAPIInstrumentor server span is guaranteed active) and passes it to
+    _enqueue_transcribe as an explicit positional argument.
+
+    This test verifies the route hands a non-None traceparent — matching the
+    /v1/transcribe span's trace_id — directly into _enqueue_transcribe, with no
+    reliance on contextvars propagation through asyncio.to_thread.
+    """
+    import importlib
+
+    from libs.common.settings import get_settings
+    from services.api.app import main as main_mod
+
+    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://x:x@localhost/x")
+    monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
+    monkeypatch.setenv("MINIO_ENDPOINT", "localhost:9000")
+    monkeypatch.setenv("MINIO_ACCESS_KEY", "k")
+    monkeypatch.setenv("MINIO_SECRET_KEY", "s")
+    monkeypatch.setenv("MINIO_BUCKET", "asr-platform")
+    get_settings.cache_clear()
+
+    # Capture _enqueue_transcribe's actual call args. If the route did not pass
+    # traceparent as the second positional, this test will fail.
+    captured: list = []
+
+    def capturing_enqueue(*args, **kwargs):
+        captured.append({"args": args, "kwargs": kwargs})
+
+    monkeypatch.setattr(main_mod, "_enqueue_transcribe", capturing_enqueue)
+
+    import uuid as _uuid
+    fake_job_id = _uuid.uuid4()
+    monkeypatch.setattr(main_mod, "_create_job", lambda *a, **kw: fake_job_id)
+    monkeypatch.setattr(main_mod, "_upload_raw_audio", lambda *a, **kw: f"s3://bucket/raw_audio/{fake_job_id}/input.wav")
+    monkeypatch.setattr(main_mod, "_set_raw_audio_uri", lambda *a, **kw: None)
+    monkeypatch.setattr(main_mod, "_mark_job_failed", lambda *a, **kw: None)
+
+    import wave
+    wav_path = tmp_path / "tiny.wav"
+    with wave.open(str(wav_path), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes(b"\x00\x00" * 1600)
+
+    with TestClient(app) as client:
+        with wav_path.open("rb") as f:
+            resp = client.post(
+                "/v1/transcribe",
+                files={"file": ("tiny.wav", f, "audio/wav")},
+            )
+    assert resp.status_code == 202, resp.text
+
+    # Exactly one _enqueue_transcribe call with both job_id AND traceparent.
+    assert len(captured) == 1, f"Expected 1 _enqueue_transcribe call, got {len(captured)}"
+    args = captured[0]["args"]
+    assert len(args) == 2, (
+        f"Route must pass traceparent as second positional. Got args={args!r}. "
+        "Capturing inside asyncio.to_thread is the bug this test guards against."
+    )
+    job_id_arg, traceparent = args
+    assert job_id_arg == str(fake_job_id)
+    assert traceparent is not None, (
+        "traceparent is None — route did not capture it in async context."
+    )
+    assert traceparent.startswith("00-"), f"Bad W3C traceparent: {traceparent!r}"
+
+    # And the captured traceparent must reference the /v1/transcribe span.
+    spans = otel_exporter.get_finished_spans()
+    transcribe_spans = [s for s in spans if "/v1/transcribe" in s.name]
+    assert transcribe_spans, f"No /v1/transcribe span. Spans: {[s.name for s in spans]}"
+    api_trace_id_hex = format(transcribe_spans[0].context.trace_id, "032x")
+    traceparent_trace_id = traceparent.split("-")[1]
+    assert api_trace_id_hex == traceparent_trace_id, (
+        f"Captured traceparent's trace_id ({traceparent_trace_id}) does not match "
+        f"the API span's trace_id ({api_trace_id_hex})."
+    )

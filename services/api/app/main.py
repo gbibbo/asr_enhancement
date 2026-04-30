@@ -214,11 +214,31 @@ def _upload_raw_audio(
     return sc.put(key, tmp_path, content_type=content_type or "application/octet-stream")
 
 
-def _enqueue_transcribe(job_id: str) -> None:
-    from services.worker.app.celery_app import celery_app  # lazy — avoids module-level settings init
+def _current_traceparent() -> Optional[str]:
+    """Inject the W3C traceparent for the currently-active OTel context.
+
+    Must be called from the async request context where the FastAPIInstrumentor
+    server span is active. Calling this from inside asyncio.to_thread relies on
+    contextvars propagation through the threadpool, which was empirically observed
+    to drop the active span context under uvicorn in production (Docker WSL),
+    yielding traceparent=None and breaking API→worker trace propagation.
+    """
     carrier: dict = {}
     propagate.inject(carrier)
-    traceparent = carrier.get("traceparent")
+    return carrier.get("traceparent")
+
+
+def _enqueue_transcribe(job_id: str, traceparent: Optional[str] = None) -> None:
+    """Send the worker.transcribe_job Celery task with the W3C traceparent.
+
+    The caller (an async route handler) MUST capture traceparent in its own
+    async context via _current_traceparent() and pass it explicitly here.
+    The optional default exists only for legacy unit tests that exercise this
+    function directly while a span is already active in the test thread.
+    """
+    from services.worker.app.celery_app import celery_app  # lazy — avoids module-level settings init
+    if traceparent is None:
+        traceparent = _current_traceparent()
     celery_app.send_task("worker.transcribe_job", args=[job_id, traceparent])
 
 
@@ -404,9 +424,11 @@ async def transcribe(file: UploadFile = File(...)) -> JSONResponse:
                     },
                 )
 
-            # Step 4: enqueue Celery task
+            # Step 4: enqueue Celery task — capture traceparent in this async
+            # context so it is not lost across the asyncio.to_thread boundary.
+            traceparent = _current_traceparent()
             try:
-                await asyncio.to_thread(_enqueue_transcribe, str(job_id))
+                await asyncio.to_thread(_enqueue_transcribe, str(job_id), traceparent)
             except Exception as exc:
                 logger.error("Task enqueue failed for job %s: %s", job_id, exc, extra={"job_id": str(job_id)})
                 await asyncio.to_thread(
@@ -537,9 +559,12 @@ async def enhance_and_transcribe(
                     },
                 )
 
-            # Step 5: enqueue Celery task (same task name — worker reads mode from DB)
+            # Step 5: enqueue Celery task (same task name — worker reads mode from DB).
+            # Capture traceparent in this async context so it is not lost across
+            # the asyncio.to_thread boundary.
+            traceparent = _current_traceparent()
             try:
-                await asyncio.to_thread(_enqueue_transcribe, str(job_id))
+                await asyncio.to_thread(_enqueue_transcribe, str(job_id), traceparent)
             except Exception as exc:
                 logger.error("Task enqueue failed for job %s: %s", job_id, exc, extra={"job_id": str(job_id)})
                 await asyncio.to_thread(
