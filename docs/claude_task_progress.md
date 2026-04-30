@@ -1326,3 +1326,42 @@ docker compose -f infra/compose/docker-compose.yml down -v
 - `blocker`: `"Awaiting external WSL/Docker walk-through of docs/deployment.md (compose up + alembic + bucket-create + readiness wait + post-deploy smoke pytest)."`
 
 Task 8.3 is **not closed yet**. No later task has been started.
+
+## Task 8.3 — done
+
+Status: **done**.
+
+External WSL/Docker walk-through passed for implementation commit `38fe84db35bf366f5e2272af1c2f4445278c2daa`. Gabriel ran the documented walk-through from a clean clone in `~/tmp/asr_83_deployment_walkthrough` and reported:
+
+- `git clone https://github.com/gbibbo/asr_enhancement.git asr_83_deployment_walkthrough` — clean clone passed.
+- `docker compose -f infra/compose/docker-compose.yml down -v` — destructive verification preflight passed (dropped any volumes from previous walkthroughs).
+- `cp .env.example .env` — passed.
+- `docker compose -f infra/compose/docker-compose.yml up -d --build` — passed.
+- `docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api alembic upgrade head` — passed.
+- MinIO bucket creation snippet — passed and printed `bucket ready: asr-platform`.
+- `until curl -fsS http://localhost:8000/ready >/dev/null; do sleep 2; done` — `/ready` returned HTTP 200.
+- Celery worker readiness via `celery -A services.worker.app.celery_app:celery_app inspect ping -t 2` — passed.
+- `docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api pytest -q tests/smoke/test_cut_a_smoke.py` — exited 0 and reported `1 passed`.
+- `docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api pytest -v tests/api/test_enhance_and_transcribe.py` — exited 0 and reported `13 passed`.
+- `docker compose -f infra/compose/docker-compose.yml logs api` and `... logs worker` — produced readable output.
+- Final `docker compose -f infra/compose/docker-compose.yml down -v` — completed successfully and removed containers, network, and named volumes.
+
+No real `ASSEMBLYAI_API_KEY` was used or printed. The live AssemblyAI test was not run because it is opt-in and not required for Task 8.3 closure.
+
+The `plan.md` §14 Task 8.3 done-criteria are satisfied:
+
+- *demo deployment path is reproducible* — confirmed end-to-end on WSL/Docker from a clean clone.
+- *smoke test passes after deploy* — both `tests/smoke/test_cut_a_smoke.py` and `tests/api/test_enhance_and_transcribe.py` exited 0 in the deployed stack.
+- *no hidden manual steps are required beyond documented secrets* — the walk-through used only the documented commands and the `.env.example` defaults; no improvisation was needed.
+
+Tracker state on closure:
+
+- `tasks."8.3"`: `done`
+- `last_completed_task`: `"8.3"`
+- `current_task`: `null`
+- `blocked`: `false`
+- `blocker`: `null`
+
+`current_task` is `null` because Task 8.3 is the final task in `plan.md`. `plan.md` §14 ends at Phase 8 / Task 8.3, and `plan.md` §16 lists post-MVP work that is explicitly out of scope until Gabriel invites it. The `null` sentinel is supported by the tracker schema in `plan.md` §15 (which uses the same sentinel for `last_completed_task`).
+
+Task 8.3 is closed. **Phase 8 / Cut C is complete.** No later task was started.
