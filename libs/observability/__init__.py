@@ -8,6 +8,7 @@ from .metrics import (
     get_metrics_output,
     start_worker_metrics_server,
 )
+from .tracing import configure_tracing
 
 __all__ = [
     "JSONFormatter",
@@ -19,4 +20,5 @@ __all__ = [
     "get_metrics_output",
     "start_worker_metrics_server",
     "CONTENT_TYPE_LATEST",
+    "configure_tracing",
 ]

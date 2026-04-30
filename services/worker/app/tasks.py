@@ -9,6 +9,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from opentelemetry import propagate, trace
+from opentelemetry.trace import StatusCode
+
 from libs.asr_adapter.factory import make_asr_adapter
 from libs.audio_pipeline.errors import UnknownPresetError
 from libs.audio_pipeline.pipeline import apply_preset
@@ -130,7 +133,7 @@ def _uri_to_key(uri: str, bucket: str) -> str:
 # ---------------------------------------------------------------------------
 
 @celery_app.task(name="worker.transcribe_job")
-def transcribe_job(job_id: str) -> None:
+def transcribe_job(job_id: str, traceparent: Optional[str] = None) -> None:
     # Step 0: parse job_id — malformed strings exit silently
     try:
         job_id_uuid = uuid.UUID(job_id)
@@ -139,114 +142,132 @@ def transcribe_job(job_id: str) -> None:
         return
 
     logger.info("worker.job_received", extra={"job_id": job_id})
-    settings = get_settings()
 
-    # Step 1: load job
-    job = _load_job(settings.database_url, job_id_uuid)
-    if job is None:
-        logger.error("transcribe_job: job_id=%s not found; skipping", job_id, extra={"job_id": job_id})
-        return
+    # Tracer retrieved inside the function body so it picks up the current global provider
+    # (configure_tracing runs in worker_process_init, after module import).
+    tracer = trace.get_tracer(__name__)
+    carrier = {"traceparent": traceparent} if traceparent else {}
+    ctx = propagate.extract(carrier)
 
-    # Step 2: idempotency / status guard
-    if job.status == JobStatus.completed:
-        logger.info("transcribe_job: job_id=%s already completed; skipping", job_id, extra={"job_id": job_id})
-        return
-    if job.status == JobStatus.failed:
-        logger.info("transcribe_job: job_id=%s already failed; skipping", job_id, extra={"job_id": job_id})
-        return
-    if job.status == JobStatus.running:
-        logger.warning("transcribe_job: job_id=%s already running; skipping", job_id, extra={"job_id": job_id})
-        return
+    with tracer.start_as_current_span(
+        "worker.transcribe_job",
+        context=ctx,
+        attributes={"job.id": job_id},
+    ) as span:
+        settings = get_settings()
 
-    # Step 3: mark running
-    _mark_job_running(settings.database_url, job_id_uuid)
-    JOB_COUNTER.labels(status="running", mode=job.mode).inc()
-    logger.info("worker.job_running", extra={"job_id": job_id, "mode": job.mode, "preset": job.preset})
+        # Step 1: load job
+        job = _load_job(settings.database_url, job_id_uuid)
+        if job is None:
+            logger.error("transcribe_job: job_id=%s not found; skipping", job_id, extra={"job_id": job_id})
+            return
 
-    # Steps 4a–4f: processing — any exception marks the job failed
-    try:
-        # 4a: validate raw_audio_uri
-        if not job.raw_audio_uri:
-            raise RuntimeError(f"Job {job_id_uuid} has no raw_audio_uri")
+        span.set_attribute("job.mode", job.mode)
+        span.set_attribute("job.preset", job.preset)
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            audio_path = Path(tmp_dir) / "input_audio"
+        # Step 2: idempotency / status guard
+        if job.status == JobStatus.completed:
+            logger.info("transcribe_job: job_id=%s already completed; skipping", job_id, extra={"job_id": job_id})
+            return
+        if job.status == JobStatus.failed:
+            logger.info("transcribe_job: job_id=%s already failed; skipping", job_id, extra={"job_id": job_id})
+            return
+        if job.status == JobStatus.running:
+            logger.warning("transcribe_job: job_id=%s already running; skipping", job_id, extra={"job_id": job_id})
+            return
 
-            # 4b: download raw audio
-            audio_key = _uri_to_key(job.raw_audio_uri, settings.minio_bucket)
-            storage = StorageClient.from_settings(settings)
-            storage.get_to_file(audio_key, audio_path)
+        # Steps 3–4g: all processing from mark_running onwards — any exception marks the job failed
+        try:
+            # Step 3: mark running
+            _mark_job_running(settings.database_url, job_id_uuid)
+            JOB_COUNTER.labels(status="running", mode=job.mode).inc()
+            logger.info("worker.job_running", extra={"job_id": job_id, "mode": job.mode, "preset": job.preset})
 
-            # 4c: enhancement (enhance_and_transcribe mode only)
-            asr_input_path = audio_path
-            enhanced_audio_uri = None
-            enhancement_meta: dict = {}
+            # Steps 4a–4f: processing
+            # 4a: validate raw_audio_uri
+            if not job.raw_audio_uri:
+                raise RuntimeError(f"Job {job_id_uuid} has no raw_audio_uri")
 
-            if job.mode == "enhance_and_transcribe":
-                output_dir = Path(tmp_dir) / "enhanced"
-                enh = apply_preset(job.preset, audio_path, output_dir)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                audio_path = Path(tmp_dir) / "input_audio"
 
-                if enh.enhanced and not enh.enhancement_fallback:
-                    enhanced_key = f"enhanced_audio/{job_id}/output.wav"
-                    enhanced_audio_uri = storage.put(
-                        enhanced_key, enh.output_path, content_type="audio/wav"
-                    )
-                    asr_input_path = enh.output_path
+                # 4b: download raw audio
+                audio_key = _uri_to_key(job.raw_audio_uri, settings.minio_bucket)
+                storage = StorageClient.from_settings(settings)
+                storage.get_to_file(audio_key, audio_path)
 
-                enhancement_meta = {
-                    "enhancement_preset": enh.preset_applied,
-                    "enhancement_applied": enh.enhanced,
-                    "enhancement_fallback": enh.enhancement_fallback,
-                    "enhancement_diagnostic": enh.diagnostic,
-                }
+                # 4c: enhancement (enhance_and_transcribe mode only)
+                asr_input_path = audio_path
+                enhanced_audio_uri = None
+                enhancement_meta: dict = {}
 
-            # 4d: call ASR adapter (provider determined by settings)
-            adapter = make_asr_adapter(settings)
-            result = adapter.transcribe(asr_input_path, job_id)
+                if job.mode == "enhance_and_transcribe":
+                    output_dir = Path(tmp_dir) / "enhanced"
+                    enh = apply_preset(job.preset, audio_path, output_dir)
 
-            # 4e: persist transcript JSON to object storage
-            transcript_key = f"transcripts/{job_id}/transcript.json"
-            transcript_data = dataclasses.asdict(result)
-            transcript_data.update(enhancement_meta)
-            payload = json.dumps(transcript_data).encode("utf-8")
-            transcript_uri = storage.put(
-                transcript_key,
-                payload,
-                content_type="application/json",
-            )
+                    if enh.enhanced and not enh.enhancement_fallback:
+                        enhanced_key = f"enhanced_audio/{job_id}/output.wav"
+                        enhanced_audio_uri = storage.put(
+                            enhanced_key, enh.output_path, content_type="audio/wav"
+                        )
+                        asr_input_path = enh.output_path
 
-            # 4e2: persist raw provider payload when present (non-empty)
-            provider_payload_uri = None
-            if result.raw_payload:
-                payload_key = f"provider_payloads/{job_id}/provider_response.json"
-                provider_payload_data = json.dumps(result.raw_payload).encode("utf-8")
-                provider_payload_uri = storage.put(
-                    payload_key,
-                    provider_payload_data,
+                    enhancement_meta = {
+                        "enhancement_preset": enh.preset_applied,
+                        "enhancement_applied": enh.enhanced,
+                        "enhancement_fallback": enh.enhancement_fallback,
+                        "enhancement_diagnostic": enh.diagnostic,
+                    }
+
+                # 4d: call ASR adapter (provider determined by settings)
+                adapter = make_asr_adapter(settings)
+                result = adapter.transcribe(asr_input_path, job_id)
+
+                # 4e: persist transcript JSON to object storage
+                transcript_key = f"transcripts/{job_id}/transcript.json"
+                transcript_data = dataclasses.asdict(result)
+                transcript_data.update(enhancement_meta)
+                payload = json.dumps(transcript_data).encode("utf-8")
+                transcript_uri = storage.put(
+                    transcript_key,
+                    payload,
                     content_type="application/json",
                 )
 
-            # 4f: artifact existence check
-            if not storage.exists(transcript_key):
-                raise RuntimeError(
-                    f"Transcript artifact missing after upload: {transcript_key!r}"
+                # 4e2: persist raw provider payload when present (non-empty)
+                provider_payload_uri = None
+                if result.raw_payload:
+                    payload_key = f"provider_payloads/{job_id}/provider_response.json"
+                    provider_payload_data = json.dumps(result.raw_payload).encode("utf-8")
+                    provider_payload_uri = storage.put(
+                        payload_key,
+                        provider_payload_data,
+                        content_type="application/json",
+                    )
+
+                # 4f: artifact existence check
+                if not storage.exists(transcript_key):
+                    raise RuntimeError(
+                        f"Transcript artifact missing after upload: {transcript_key!r}"
+                    )
+
+                # 4g: persist to PostgreSQL and mark completed
+                _mark_job_completed(
+                    settings.database_url, job_id_uuid, result.text, transcript_uri,
+                    provider_payload_uri, enhanced_audio_uri,
                 )
+                JOB_COUNTER.labels(status="completed", mode=job.mode).inc()
+                logger.info("worker.job_completed", extra={"job_id": job_id, "mode": job.mode, "preset": job.preset})
 
-            # 4g: persist to PostgreSQL and mark completed
-            _mark_job_completed(
-                settings.database_url, job_id_uuid, result.text, transcript_uri,
-                provider_payload_uri, enhanced_audio_uri,
-            )
-            JOB_COUNTER.labels(status="completed", mode=job.mode).inc()
-            logger.info("worker.job_completed", extra={"job_id": job_id, "mode": job.mode, "preset": job.preset})
-
-    except Exception as exc:
-        JOB_COUNTER.labels(status="failed", mode=job.mode).inc()
-        logger.exception("worker.job_failed", extra={"job_id": job_id})
-        try:
-            _mark_job_failed(settings.database_url, job_id_uuid, str(exc))
-        except Exception as fail_exc:
-            logger.error(
-                "transcribe_job: could not mark job %s failed: %s", job_id, fail_exc,
-                extra={"job_id": job_id},
-            )
+        except Exception as exc:
+            JOB_COUNTER.labels(status="failed", mode=job.mode).inc()
+            logger.exception("worker.job_failed", extra={"job_id": job_id})
+            span.record_exception(exc)
+            span.set_status(StatusCode.ERROR, str(exc))
+            try:
+                _mark_job_failed(settings.database_url, job_id_uuid, str(exc))
+            except Exception as fail_exc:
+                logger.error(
+                    "transcribe_job: could not mark job %s failed: %s", job_id, fail_exc,
+                    extra={"job_id": job_id},
+                )

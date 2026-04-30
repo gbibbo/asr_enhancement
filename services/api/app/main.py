@@ -22,7 +22,9 @@ from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import Settings, get_settings
 from libs.common.storage import StorageClient
 from fastapi.responses import Response
-from libs.observability import configure_logging
+from opentelemetry import propagate
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from libs.observability import configure_logging, configure_tracing
 from libs.observability.metrics import (
     API_ERRORS,
     API_REQUESTS,
@@ -39,6 +41,9 @@ from services.api.app.upload_validation import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging("api")
+    configure_tracing("asr-api")
+    if not getattr(app, "_is_instrumented_by_opentelemetry", False):
+        FastAPIInstrumentor().instrument_app(app)
     yield
 
 
@@ -205,7 +210,10 @@ def _upload_raw_audio(
 
 def _enqueue_transcribe(job_id: str) -> None:
     from services.worker.app.celery_app import celery_app  # lazy — avoids module-level settings init
-    celery_app.send_task("worker.transcribe_job", args=[job_id])
+    carrier: dict = {}
+    propagate.inject(carrier)
+    traceparent = carrier.get("traceparent")
+    celery_app.send_task("worker.transcribe_job", args=[job_id, traceparent])
 
 
 def _load_job(database_url: str, job_id: uuid.UUID) -> Optional[JobStatusSnapshot]:

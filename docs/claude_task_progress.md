@@ -32,6 +32,8 @@
 | 6.1  | done    | 2026-04-30 | Files created: libs/observability/__init__.py, libs/observability/logging.py (JSONFormatter + configure_logging; remove-then-add handler design; defensive redaction for key/secret/token/authorization/auth_header field names), tests/observability/__init__.py, tests/observability/test_json_formatter.py (15 tests: 7 formatter + 5 redaction + 3 configure_logging), tests/api/test_logging.py (7 tests: request middleware + job_created/enqueued log events), tests/worker/test_worker_logging.py (6 tests: malformed/not-found/received/running/completed/failed). Files modified: services/api/app/main.py (asynccontextmanager lifespan with configure_logging("api"); @app.middleware("http") request logger emitting api.request with method/path/status_code/duration_ms; unhandled exception handler now logs api.unhandled_exception; all job-related logger calls gain extra={"job_id": ...}; new api.job_created and api.job_enqueued info logs after create/enqueue steps in both routes), services/worker/app/tasks.py (worker.job_received log after UUID parse; worker.job_running log after mark-running; worker.job_completed replaces old completion log; worker.job_failed replaces old exception log; all existing logger calls gain extra={"job_id": ...}), services/worker/app/celery_app.py (worker_process_init signal → configure_logging("worker"); signal fires only in live worker process, never in pytest). No new dependencies; pyproject.toml unchanged. Login-node: 284/284 non-integration non-smoke tests passed (256 baseline + 28 new). No Docker required. JSON smoke check: two valid JSON lines with all required fields. Not blocked. Next task: 6.2. |
 | 6.2  | done        | 2026-04-30 | Files created: libs/observability/metrics.py (isolated CollectorRegistry; API_REQUESTS/API_ERRORS/JOB_COUNTER/WORKER_HEARTBEAT metrics; get_metrics_output()/start_worker_metrics_server() helpers), infra/compose/prometheus.yml (scrape asr_api:8000 + asr_worker:9091), tests/observability/test_metrics.py (13 tests), tests/api/test_metrics_endpoint.py (10 tests), tests/worker/test_worker_metrics.py (4 tests). Files modified: pyproject.toml (prometheus-client>=0.20), libs/observability/__init__.py (metrics exports), services/api/app/main.py (GET /metrics route; API_REQUESTS increment in middleware; API_ERRORS in exception handler; JOB_COUNTER queued in both POST routes), services/worker/app/celery_app.py (start_worker_metrics_server(9091) + heartbeat thread on worker_process_init), services/worker/app/tasks.py (JOB_COUNTER running/completed/failed at state transitions), infra/compose/docker-compose.yml (Prometheus service; --concurrency=1 on worker; port 9091). Login-node: 311/311 non-integration non-smoke tests passed (284 baseline + 27 new). External WSL Docker verification passed (commit 1a5ca50): full stack (api, worker, prometheus, postgres, redis, minio) up and healthy; GET /metrics → 200 with asr_api_requests_total and asr_jobs_total definitions; GET http://localhost:9091/metrics → asr_worker_heartbeat_timestamp_seconds present; POST /v1/transcribe returned {"job_id":"...","status":"queued"} and asr_jobs_total{mode="transcribe_only",status="queued"} 1.0 visible in API metrics; Prometheus API confirmed both named targets UP: asr_api and asr_worker. No secrets printed or committed. Next task: 6.3. |
 
+| 6.3  | blocked     | 2026-04-30 | Files created: libs/observability/tracing.py (_TRACING_CONFIGURED guard, configure_tracing with injected exporter=SimpleSpanProcessor or OTLP BatchSpanProcessor, _reset_tracing_for_tests resets both _TRACER_PROVIDER and _TRACER_PROVIDER_SET_ONCE), infra/otel/otel-collector-config.yml (OTLP HTTP receiver + debug exporter), tests/observability/test_tracing.py (14 tests: configure_tracing returns TracerProvider, sets global, idempotency × 4, injected exporter uses SimpleSpanProcessor, no exporter without env, span captured, job.id attribute, service.name resource, propagation inject/extract, child span linking, root span, _reset_tracing_for_tests clears all state including _TRACER_PROVIDER_SET_ONCE), tests/worker/test_worker_tracing.py (8 tests: span created, job.id/job.mode attributes, valid traceparent links to parent trace_id, None traceparent is root, failure records exception+StatusCode.ERROR, enqueue injects traceparent inside span, enqueue passes None outside span), tests/api/test_tracing.py (3 tests: instrument_app idempotent, health request produces span, double TestClient no duplicate spans). Files modified: pyproject.toml (4 OTel deps: opentelemetry-api/sdk/exporter-otlp-proto-http/instrumentation-fastapi), libs/observability/__init__.py (configure_tracing export), services/api/app/main.py (lifespan: configure_tracing + FastAPIInstrumentor guard; _enqueue_transcribe: propagate.inject → traceparent arg), services/worker/app/celery_app.py (configure_tracing("asr-worker") in worker_process_init), services/worker/app/tasks.py (traceparent Optional param; manual span with job.id/job.mode/job.preset attributes; _mark_job_running moved inside try/except so failures are recorded on span; span.record_exception + StatusCode.ERROR on failure), infra/compose/docker-compose.yml (otel-collector service; OTEL_EXPORTER_OTLP_ENDPOINT on api and worker). Login-node: 336/336 non-integration non-smoke tests passed. Key fixes during implementation: _reset_tracing_for_tests must reset both _TRACER_PROVIDER and _TRACER_PROVIDER_SET_ONCE (Once()); injected test exporters must use SimpleSpanProcessor not BatchSpanProcessor; celery module-level patch requires importlib.import_module (not from-package-import) to guarantee sys.modules registration after tasks_mod teardown pop; FastAPIInstrumentor captures tracer into build_middleware_stack closure at instrument_app() call time — between tests, uninstrument_app + reinstrument_app is required to refresh the closure with the new provider's tracer. Blocked: OTel collector trace verification requires Docker + OTel collector running in WSL. |
+
 ## Task 6.2 WSL verification commands
 
 Run these commands from the WSL Docker checkout to complete verification.
@@ -108,6 +110,99 @@ print('OK' if not missing else 'MISSING: ' + ', '.join(sorted(missing)))
     echo "Waiting for Prometheus targets ($result)... ($i)"
     sleep 5
 done
+
+docker compose down
+```
+
+## Task 6.3 WSL verification commands
+
+Run these commands from the WSL Docker checkout to complete verification. The goal is to confirm that traces from the API and worker appear in the OTel collector logs with matching trace IDs.
+
+```bash
+set -euo pipefail
+cd ~/code/asr_enhancement
+git pull --ff-only
+cd infra/compose
+
+docker compose build api worker
+docker compose down -v
+docker compose up -d postgres redis minio otel-collector
+
+docker compose run --rm api alembic upgrade head
+
+docker compose run --rm api python - <<'PY'
+from libs.common.settings import get_settings
+from libs.common.storage import StorageClient
+StorageClient.from_settings(get_settings()).ensure_bucket(create_if_missing=True)
+print("bucket ready")
+PY
+
+docker compose up -d api worker
+
+# Wait for OTel collector to be ready
+collector_ready=0
+for i in $(seq 1 12); do
+    status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4318/ 2>/dev/null || echo "000")
+    [ "$status" != "000" ] && collector_ready=1 && echo "OTel collector ready" && break
+    echo "Waiting for OTel collector... ($i)"
+    sleep 5
+done
+[ "$collector_ready" = "1" ] || exit 1
+
+# Wait for API to be ready
+for i in $(seq 1 12); do
+    status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health 2>/dev/null || echo "000")
+    [ "$status" = "200" ] && echo "API ready" && break
+    echo "Waiting for API... ($i)"
+    sleep 5
+done
+
+python3 - <<'PY'
+import wave
+from pathlib import Path
+p = Path("/tmp/asr_task63_test.wav")
+with wave.open(str(p), "wb") as w:
+    w.setnchannels(1); w.setsampwidth(2); w.setframerate(16000)
+    w.writeframes(b"\x00\x00" * 1600)
+print(p)
+PY
+
+curl -s -X POST http://localhost:8000/v1/transcribe \
+    -F "file=@/tmp/asr_task63_test.wav;type=audio/wav;filename=test.wav" \
+    | python3 -c "import json,sys; d=json.load(sys.stdin); print(d); assert 'job_id' in d"
+
+# Wait for job to complete and collector to flush
+sleep 10
+
+# Parse OTel collector debug output and verify trace propagation
+docker compose logs otel-collector 2>/dev/null | python3 - <<'PY'
+import sys, re, json
+
+text = sys.stdin.read()
+# Extract (span_name, trace_id) pairs from debug exporter output
+spans = []
+for block in text.split("Trace ID"):
+    trace_m = re.search(r":\s+([0-9a-f]{32})", block)
+    name_m = re.search(r"Name\s*:\s+(.+)", block)
+    if trace_m and name_m:
+        spans.append((name_m.group(1).strip(), trace_m.group(1).strip()))
+
+print(f"Collected {len(spans)} span(s): {spans}")
+
+api_spans = [(n, t) for n, t in spans if "GET /v1" in n or "POST /v1" in n or "http" in n.lower()]
+worker_spans = [(n, t) for n, t in spans if "worker.transcribe_job" in n]
+
+assert api_spans, "No API span found in collector output"
+assert worker_spans, f"No worker span found. All spans: {spans}"
+
+api_trace_id = api_spans[0][1]
+worker_trace_id = worker_spans[0][1]
+assert api_trace_id == worker_trace_id, (
+    f"Trace IDs do not match: API={api_trace_id}, worker={worker_trace_id}"
+)
+
+print("PASS: API and worker spans share the same trace_id:", api_trace_id)
+PY
 
 docker compose down
 ```

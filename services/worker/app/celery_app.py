@@ -30,6 +30,7 @@ def ping() -> dict:
 from celery.signals import worker_process_init  # noqa: E402
 from libs.observability import configure_logging  # noqa: E402
 from libs.observability.metrics import WORKER_HEARTBEAT, start_worker_metrics_server  # noqa: E402
+from libs.observability.tracing import configure_tracing  # noqa: E402
 
 
 def _start_heartbeat_thread() -> None:
@@ -43,5 +44,6 @@ def _start_heartbeat_thread() -> None:
 @worker_process_init.connect
 def _configure_worker_logging(**kwargs):
     configure_logging("worker")
+    configure_tracing("asr-worker")
     start_worker_metrics_server(9091)
     _start_heartbeat_thread()

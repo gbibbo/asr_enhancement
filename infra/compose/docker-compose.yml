@@ -15,7 +15,9 @@ x-backend-build: &backend-build
 services:
   api:
     build: *backend-build
-    environment: *app-environment
+    environment:
+      <<: *app-environment
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     command: uvicorn services.api.app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
@@ -29,7 +31,9 @@ services:
 
   worker:
     build: *backend-build
-    environment: *app-environment
+    environment:
+      <<: *app-environment
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     command: celery -A services.worker.app.celery_app:celery_app worker --loglevel=info --concurrency=1
     ports:
       - "9091:9091"
@@ -79,6 +83,14 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.100.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ../../infra/otel/otel-collector-config.yml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4318:4318"
 
   prometheus:
     image: prom/prometheus:v2.53.0

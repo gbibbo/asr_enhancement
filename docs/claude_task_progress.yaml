@@ -2,8 +2,8 @@ current_cut: backend_vertical_slice
 current_phase: 6
 current_task: "6.3"
 last_completed_task: "6.2"
-blocked: false
-blocker: null
+blocked: true
+blocker: "Login-node unit tests pass (336/336). Collector trace verification requires Docker + OTel collector in WSL."
 repo_state: partial
 git_state: initialized
 remote_state: remote_present
@@ -35,7 +35,7 @@ tasks:
   "5.3": done
   "6.1": done
   "6.2": done
-  "6.3": pending
+  "6.3": blocked
   "6.4": pending
   "7.1": pending
   "7.2": pending
