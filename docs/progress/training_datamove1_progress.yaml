@@ -4,18 +4,19 @@ current_cut: T0
 current_phase: 0
 current_task: "T0.5"
 last_completed_task: "T0.4"
-blocked: true
-blocker: "T0.5 cannot complete on this datamove1.surrey.ac.uk shell: sbatch/squeue/sacct are not in PATH and are not present anywhere under /opt, /usr, /cm, /shared, /apps; apptainer/singularity are also absent; no `module` system is available. Container exists at /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif. Job script committed at slurm/jobs/t0_minimal_job.sh; Gabriel must submit it from a Slurm-reachable Surrey host that also has Apptainer (e.g. condor1/aisurrey1 or whichever host he uses for Slurm), then report job ID, output path, and exit state."
+blocked: false
+blocker: null
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
-datamove1_status: not_ready_for_slurm
-slurm_status: unavailable_from_datamove1_shell
+datamove1_status: wrapper_ready
+slurm_status: validated_externally_via_aisurrey_submit01
+manual_validation: "Manual external validation succeeded on 2026-05-01: ./slurm/tools/on_submit.sh squeue -u gb0048 worked from /mnt/fast/nobackup/users/gb0048/opro3_final; sbatch produced job 2125750 which ran on aisurrey01.surrey.ac.uk; inside the job /usr/bin/apptainer and /usr/bin/singularity were available, the container /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif loaded, and python3 inside it reported 3.10.13. Apptainer warning observed: 'Not mounting current directory: user bind control is disabled by system administrator' — therefore jobs must use absolute paths only."
 artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training
 tasks:
   "T0.1": done
   "T0.2": done
   "T0.3": done
   "T0.4": done
-  "T0.5": blocked
+  "T0.5": in_progress
   "T1.1": pending
   "T1.2": pending
   "T1.3": pending

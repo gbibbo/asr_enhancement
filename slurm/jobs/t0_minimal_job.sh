@@ -6,6 +6,16 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
 
+# T0.5 minimal Slurm gate job for the ASR training branch.
+#
+# Submit from datamove1 via the repo wrapper:
+#   ./slurm/tools/on_submit.sh sbatch \
+#     /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t0_minimal_job.sh
+#
+# All paths in this script are absolute. Surrey Apptainer disables user bind
+# control, so the current working directory is NOT auto-mounted into the
+# container; do not rely on $PWD inside the apptainer call.
+
 set -euo pipefail
 
 REPO="/mnt/fast/nobackup/users/gb0048/asr_enhancement"
@@ -14,12 +24,10 @@ TRAIN_ROOT="/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training"
 
 mkdir -p "$TRAIN_ROOT/logs" "$TRAIN_ROOT/runtime" "$TRAIN_ROOT/artifacts" "$TRAIN_ROOT/cache"
 
-cd "$REPO"
-
 echo "=== T0.5 minimal Slurm gate job ==="
 echo "Hostname: $(hostname)"
 echo "Date: $(date -Iseconds)"
-echo "Working directory: $(pwd)"
+echo "Working directory (host, informational only): $(pwd)"
 echo "Container: $CONTAINER"
 echo
 echo "--- Disk usage (head of df -h) ---"

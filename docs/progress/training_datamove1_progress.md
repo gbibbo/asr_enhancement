@@ -4,7 +4,7 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T0
 Current phase: Phase 0
-Current task: Task T0.5 (blocked)
+Current task: Task T0.5 (in progress; ready to retry through committed wrapper)
 
 ## Completed
 
@@ -15,33 +15,33 @@ Current task: Task T0.5 (blocked)
 
 ## Current blocker
 
-T0.5 is blocked. The minimal Slurm gate job cannot be submitted from this datamove1 shell:
+None. The earlier blocker (Slurm/Apptainer absent from the datamove1 shell) was resolved by encoding the validated submission path into the repository.
 
-- `sbatch`, `squeue`, `sacct` are not in PATH and are absent from `/opt`, `/usr`, `/cm`, `/shared`, `/apps`.
-- `apptainer` and `singularity` are also absent.
-- No `module` system is available on this shell to load them.
-- Host confirmed: `datamove1.surrey.ac.uk`.
-- Container `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` exists (3.3 GB) and is readable.
+## Manual external validation (2026-05-01)
 
-What is ready:
+Gabriel manually validated the live Surrey Slurm workflow before the corrective commit:
 
-- The minimal job script is committed at `slurm/jobs/t0_minimal_job.sh`. It prints hostname, date, working directory, `df -h` head, and the Python version reported from inside the Apptainer container, per CLAUDE.md §10 / §8.
-- Output and error logs are routed to `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/%x_%j.{out,err}` (created by the script's `mkdir -p`).
+- `./slurm/tools/on_submit.sh squeue -u gb0048` (run from `/mnt/fast/nobackup/users/gb0048/opro3_final`) returned a normal queue listing — the wrapper's `ssh -o BatchMode=yes aisurrey-submit01.surrey.ac.uk "$@"` path works.
+- `sbatch` through the same wrapper produced job `2125750`, which ran on `aisurrey01.surrey.ac.uk`.
+- Inside the job, `/usr/bin/apptainer` and `/usr/bin/singularity` were both available.
+- The container `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` loaded; `python3 --version` inside it reported `3.10.13`.
+- Apptainer emitted: *"WARNING: Not mounting current directory: user bind control is disabled by system administrator"* — captured in CLAUDE.md §8 constraint 8 and reflected in the job script and template (absolute paths only).
 
-External verification commands Gabriel must run from a Surrey host that has both Slurm and Apptainer (e.g. condor1 / aisurrey1 / wherever he submits Slurm):
+This validates the workflow as a procedure, but T0.5 is not closed yet because the test was run from `opro3_final`, not from the now-committed `slurm/tools/on_submit.sh` and `slurm/jobs/t0_minimal_job.sh` in this repo. T0.5 closes after the same submission is repeated through this repo's wrapper.
+
+## T0.5 retry commands (run from datamove1 in the repo root)
 
 ```bash
-which sbatch squeue sacct
-which apptainer
-sinfo
 cd /mnt/fast/nobackup/users/gb0048/asr_enhancement
-sbatch slurm/jobs/t0_minimal_job.sh
-# wait for completion, then
-sacct -j <job_id> --format=JobID,JobName,State,Elapsed,MaxRSS,ExitCode
+./slurm/tools/on_submit.sh squeue -u "$USER"
+./slurm/tools/on_submit.sh sinfo || true
+./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t0_minimal_job.sh
+# capture <job_id> from sbatch output, then:
+./slurm/tools/on_submit.sh sacct -j <job_id> --format=JobID,JobName,State,Elapsed,MaxRSS,ExitCode
 cat /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_<job_id>.out
 ```
 
-Once Gabriel reports the job exited cleanly, this tracker should be flipped to: `tasks."T0.5": done`, `last_completed_task: "T0.5"`, `current_task: "T1.1"`, `blocked: false`, `blocker: null`, `datamove1_status: ready` (or the equivalent label for the host he used), `slurm_status: ok`. The T0 gate is then complete.
+Once that succeeds, this tracker should be flipped to: `tasks."T0.5": done`, `last_completed_task: "T0.5"`, `current_task: "T1.1"`, `slurm_status: ok`, `datamove1_status: ready`. The T0 gate is then complete.
 
 ## Sync status
 
@@ -49,4 +49,4 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 
 ## Next task
 
-Task T0.5 (currently blocked — see Current blocker). Once cleared, Task T1.1. Configure required Apptainer environment.
+Task T0.5 — retry the minimal Slurm gate job through the now-committed `slurm/tools/on_submit.sh` and `slurm/jobs/t0_minimal_job.sh`. Once it succeeds, advance to Task T1.1 (Configure required Apptainer environment).

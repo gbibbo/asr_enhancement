@@ -542,37 +542,40 @@ Decision rules:
 
 ### Task T0.5. Verify Slurm and minimal job execution
 
+`sbatch`/`squeue`/`sacct` are not in PATH on `datamove1.surrey.ac.uk`. All Slurm commands must go through the repo wrapper `slurm/tools/on_submit.sh`, which forwards via `ssh -o BatchMode=yes aisurrey-submit01.surrey.ac.uk "$@"`. Jobs execute on `aisurrey` compute nodes (e.g. `aisurrey01`) where `/usr/bin/apptainer` is available. See CLAUDE.md §9.
+
 Actions:
 
-1. check Slurm commands;
-2. inspect partitions if allowed;
-3. create a minimal Slurm job that prints hostname, date, Python version, and available disk;
-4. submit the job;
-5. collect output;
-6. record job ID and output path.
+1. confirm the wrapper exists at `slurm/tools/on_submit.sh` and is executable;
+2. probe the scheduler from datamove1 via the wrapper;
+3. ensure a minimal Slurm job exists at `slurm/jobs/t0_minimal_job.sh` that prints hostname, date, working directory, available disk, and the Python version reported from inside Apptainer;
+4. submit the job through the wrapper;
+5. collect output from the absolute log path under `$ASR_TRAINING_ROOT/logs/`;
+6. record job ID, execution node, and output path.
 
-Suggested checks:
+Suggested checks (run from datamove1):
 
 ```bash
-which sbatch
-which squeue
-sinfo || true
-python3 --version
+./slurm/tools/on_submit.sh squeue -u "$USER"
+./slurm/tools/on_submit.sh sinfo || true
+./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t0_minimal_job.sh
+./slurm/tools/on_submit.sh sacct -j <job_id> --format=JobID,JobName,State,Elapsed,MaxRSS,ExitCode
+cat /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_<job_id>.out
 ```
 
 Done when:
 
-1. Slurm command availability is known;
-2. a minimal job either succeeds or the blocker is recorded;
+1. wrapper-based scheduler probe succeeds (or its blocker is recorded);
+2. a minimal job submitted through the wrapper either succeeds or its failure is recorded;
 3. output path is recorded;
 4. datamove1 gate status is clear.
 
 Decision rules:
 
-1. If Slurm is available and the minimal job succeeds, mark datamove1 gate complete.
-2. If Slurm commands are unavailable, mark blocked.
-3. If Slurm is available but job submission fails, record exact scheduler error.
-4. If job remains pending too long, record queue state and stop.
+1. If the wrapper-based probe and minimal job both succeed, mark the datamove1 gate complete.
+2. If the wrapper or SSH access to `aisurrey-submit01.surrey.ac.uk` is unavailable, mark blocked.
+3. If submission via the wrapper fails on the submit host or compute node, record the exact scheduler or Apptainer error.
+4. If the job remains pending too long, record queue state via `./slurm/tools/on_submit.sh squeue` and stop.
 
 Cut T0 gate: stop after this task and report datamove1 readiness.
 
