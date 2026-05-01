@@ -1,271 +1,59 @@
-# ASR Enhancement Platform: Claude Code Rules
+# ASR Enhancement Integration Branch: Claude Code Rules
 
-## 1. Project identity
+This file is the active root `CLAUDE.md` on the `demo-rp5-v1` integration branch.
 
-Repository: `https://github.com/gbibbo/asr_enhancement`
+This branch receives changes from both implementation contexts:
 
-Default HPC checkout:
+1. demo, platform, Raspberry Pi, frontend, deployment, and GitHub narrative;
+2. datamove1, Surrey Slurm, evaluation, training, export, and model-card training content.
+
+Do not execute implementation tasks directly from this branch unless the user explicitly asks for integration-only work.
+
+For demo/platform work, use branch `feature/demo-runtime-rp5-v1` and the active rules in root `CLAUDE.md` on that branch. The reference copy is `docs/profiles/CLAUDE.demo.md`.
+
+For training/datamove1 work, use branch `feature/training-datamove1-v1` and the active rules in root `CLAUDE.md` on that branch. The reference copy is `docs/profiles/CLAUDE.training.md`.
+
+Before merging any branch into this integration branch:
+
+1. inspect `CLAUDE.md` explicitly;
+2. keep this integration router as the root `CLAUDE.md` on `demo-rp5-v1`;
+3. keep the branch-specific profiles under `docs/profiles/`;
+4. keep `.gitattributes` containing `CLAUDE.md merge=ours`;
+5. configure the local merge driver with `git config merge.ours.driver true`.
+
+Read order for integration-only work:
+
+1. `CLAUDE.md`;
+2. `docs/plans/demo_platform_plan.md`;
+3. `docs/plans/training_datamove1_plan.md`;
+4. `docs/progress/demo_platform_progress.md`, if present;
+5. `docs/progress/training_datamove1_progress.md`, if present;
+6. repository status and branch graph.
+
+Integration branch rules:
+
+1. Do not run Slurm jobs from this branch.
+2. Do not deploy to Raspberry Pi from this branch.
+3. Do not start new implementation tasks from this branch.
+4. Do not commit datasets, audio artifacts, checkpoints, caches, secrets, or runtime outputs.
+5. Only merge reviewed, task-scoped changes from feature branches.
+6. If `CLAUDE.md` conflicts, keep this router on `demo-rp5-v1`.
+7. If plan or tracker conflicts occur, stop and report exact files.
+
+Expected Git identity:
 
 ```text
-/mnt/fast/nobackup/users/gb0048/asr_enhancement
+user.name: Gabriel Bibbó
+user.email: gabobibbo@gmail.com
 ```
 
-If this file is inside an existing checkout with a different path, treat the directory containing this file as the repository root. Do not create a duplicate checkout unless explicitly instructed.
-
-The implementation plan controls task order. This file only contains persistent execution rules.
-
-## 2. Read order
-
-Before changing code, read:
-
-1. `CLAUDE.md`
-2. `plan.md`
-3. `docs/claude_task_progress.md`, if present
-4. `docs/claude_task_progress.yaml`, if present
-5. the existing project structure
-
-If progress trackers are missing, create them before implementation. Detect the last completed task and execute only the next pending task. Do not skip gates or broaden scope.
-
-## 3. MVP boundaries
-
-The MVP is pre-recorded only.
-
-Allowed core components:
-
-- FastAPI API
-- Celery worker
-- PostgreSQL
-- Redis
-- MinIO or S3-compatible object storage
-- fake ASR adapter for local tests and CI
-- AssemblyAI pre-recorded adapter only when explicitly required
-- small frontend only after the backend path works
-- basic logs, metrics, traces, and CI when required by the plan
-
-Do not implement before MVP completion:
-
-- streaming, WebSockets, or live sessions
-- batch experiment APIs
-- hyperparameter sweeps
-- preset ranking or promotion workflows
-- dedicated scheduler, experiment-runner, or streaming services
-- heavy neural enhancement models
-- Kubernetes
-- enterprise auth, multi-tenant features, or advanced dashboards
-
-Use fake ASR by default. Real provider calls must be explicit, credential-gated, and absent from CI.
-
-## 4. Surrey HPC rules
-
-Heavy work must not run directly on a login node. Slurm commands must go through:
+Verification before any integration commit:
 
 ```bash
-./slurm/tools/on_submit.sh <squeue|sbatch|scancel|sacct|scontrol> <args...>
-```
-
-Python jobs submitted to Slurm must run inside Apptainer. Do not call bare compute-node `python`, `python3`, `~/.local`, or `PYTHONUSERBASE` for scientific dependencies.
-
-Container:
-
-```text
-/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif
-```
-
-Required pattern:
-
-```bash
-REPO="/mnt/fast/nobackup/users/gb0048/asr_enhancement"
-REPO_PARENT="/mnt/fast/nobackup/users/gb0048"
-CONTAINER="$REPO_PARENT/opro2/pytorch_2.1_cuda12.sif"
-
-cd "$REPO" || exit 1
-
-apptainer exec \
-  --env ASR_REPO_ROOT="$REPO" \
-  --env ASR_RUNTIME_ROOT="$ASR_RUNTIME_ROOT" \
-  --env ASR_ARTIFACTS_ROOT="$ASR_ARTIFACTS_ROOT" \
-  --env ASR_CACHE_ROOT="$ASR_CACHE_ROOT" \
-  "$CONTAINER" \
-  python3 "$REPO/scripts/my_script.py" [args...]
-```
-
-Surrey constraints:
-
-- `--bind` is disabled. `/mnt/fast/nobackup` is auto-bound.
-- `--pwd` is disabled. Use `cd` before `apptainer exec`.
-- pass variables via `--env`
-- use `--nv` only when a job needs GPU
-- use `python3` inside the container
-
-For new Slurm Python jobs, copy `slurm/templates/apptainer_job.sh` to `slurm/jobs/<task_name>.sh`, replace `CHANGEME`, then run a micro-validation job before any full run.
-
-Docker Compose is for local/demo orchestration. Do not run heavy Compose workloads on an HPC login node.
-
-## 5. Storage rules
-
-Do not write heavy runtime artifacts inside the repository.
-
-Repository root:
-
-```text
-/mnt/fast/nobackup/users/gb0048/asr_enhancement
-```
-
-Runtime root:
-
-```text
-/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_runtime
-```
-
-Artifact root:
-
-```text
-/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_artifacts
-```
-
-Default environment variables:
-
-```bash
-ASR_REPO_ROOT=/mnt/fast/nobackup/users/gb0048/asr_enhancement
-ASR_RUNTIME_ROOT=/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_runtime
-ASR_ARTIFACTS_ROOT=/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_artifacts
-ASR_CACHE_ROOT=/mnt/fast/nobackup/scratch4weeks/gb0048/cache
-ASR_PROVIDER=fake
-```
-
-Use runtime/artifact roots for audio, object-store data, transcripts, logs, reports, caches, and test outputs. Keep only code, configs, migrations, tests, docs, lightweight metadata, and trackers in git. Do not rely on `scratch4weeks` for long-term storage.
-
-## 6. Implementation discipline
-
-For each task:
-
-- inspect the existing structure first
-- locate the current task in `plan.md`
-- prefer extending existing modules over creating duplicates
-- keep scripts rerunnable and resume-safe
-- use `pathlib` for Python paths
-- update progress trackers after completion
-- report changed files, verification run, remaining failures, and next pending task
-
-Do not add services, endpoints, dashboards, frontend polish, provider calls, or enhancement complexity unless the current plan task requires them.
-
-## 7. Public API boundary
-
-Do not expand the API early.
-
-MVP public endpoints:
-
-```text
-GET  /health
-GET  /ready
-POST /v1/transcribe
-POST /v1/enhance-and-transcribe
-GET  /v1/jobs/{job_id}
-GET  /v1/jobs/{job_id}/result
-GET  /metrics
-```
-
-Do not implement batch, experiment, streaming, or WebSocket endpoints before the MVP backend is stable.
-
-## 8. Git and GitHub identity
-
-The repository belongs to Gabriel Bibbó, GitHub username `gbibbo`. Commits must be authored as Gabriel, not as an assistant, AI vendor, or bot.
-
-Before the first commit in a checkout:
-
-```bash
-git config user.name "Gabriel Bibbó"
-
-if [ -z "$(git config user.email)" ]; then
-  echo "Missing git user.email. Stop and ask Gabriel for the correct Git email before committing."
-  exit 1
-fi
-```
-
-Do not invent an email. Stop if uncertain.
-
-Never add AI authorship banners, assistant co-author trailers, assistant sign-off trailers, bot authorship metadata, or comments saying code was written by an AI assistant to commits, PRs, source files, docs, generated artifacts, or release notes.
-
-Commit messages must be plain and project-focused. Do not push unless explicitly requested or required by the current plan task. Before pushing, verify:
-
-```bash
+git branch --show-current
+git status --short
 git remote -v
+git config user.name
+git config user.email
+git config merge.ours.driver
 ```
-
-Expected remote:
-
-```text
-git@github.com:gbibbo/asr_enhancement.git
-https://github.com/gbibbo/asr_enhancement.git
-```
-
-Do not change remotes or force push without explicit instruction.
-
-## 8a. Git synchronization for external local verification
-
-When a task is implemented on datamove1 but cannot be fully verified there because Docker, Docker Compose, or another local-only dependency is unavailable, and the remaining verification must be run by Gabriel on his local WSL/Docker checkout, follow this policy:
-
-**Tracker state while blocked:**
-
-1. Keep the task blocked, not done.
-2. Update both progress trackers to record:
-   - `current_task` remains the current task
-   - `last_completed_task` remains the previous completed task
-   - `blocked: true`
-   - `blocker` describes the missing external verification
-   - the current task status is `blocked` or `in_progress`, not `done`
-
-**Before committing:**
-
-3. Run and report all of the following:
-
-   ```bash
-   git status
-   git remote -v
-   git branch --show-current
-   git config user.name
-   git config user.email
-   git diff --stat
-   ```
-
-4. Verify:
-   - the remote is `https://github.com/gbibbo/asr_enhancement` or `git@github.com:gbibbo/asr_enhancement.git`
-   - `git user.name` is `Gabriel Bibbó`
-   - `git user.email` is present
-5. If `git user.email` is missing, stop and report. Do not invent an email.
-6. If unrelated uncommitted changes are present, stop and report them instead of committing.
-
-**Committing and pushing:**
-
-7. Commit the implementation plus the blocked tracker state together.
-8. Use a plain project-focused commit message. Do not add AI authorship trailers, assistant metadata, or bot signatures.
-9. Push only to the current branch.
-10. After pushing, report:
-    - commit hash
-    - branch pushed
-    - files included
-    - tracker state
-    - exact external verification commands Gabriel must run locally
-
-**After Gabriel reports external verification passed:**
-
-11. Update both trackers: set the task to `done`, advance `current_task` and `last_completed_task`, set `blocked: false`, set `blocker: null`.
-12. Do not implement the next task unless explicitly asked to plan or execute it.
-
-## 9. Language and docs
-
-User-facing product material must be in English: UI text, status messages, validation messages, API examples, shared code comments, dashboard titles, alerts, screenshots, and demo output.
-
-Internal personal notes may be in Spanish. Keep docs minimal and update them only when they help setup, execution, testing, or demo use.
-
-## 10. Done criteria
-
-A task is done only when:
-
-- changes match the task boundary
-- relevant tests or smoke checks ran
-- failures or unverified parts are documented
-- progress trackers are updated
-- no heavy artifacts were added to git
-- no out-of-scope service or endpoint was introduced
-- Git identity and no-signature rules were respected if a commit was created
