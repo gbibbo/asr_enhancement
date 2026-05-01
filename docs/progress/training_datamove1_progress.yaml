@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T0
 current_phase: 0
-current_task: "T0.4"
-last_completed_task: "T0.3"
+current_task: "T0.5"
+last_completed_task: "T0.4"
 blocked: false
 blocker: null
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
@@ -14,7 +14,7 @@ tasks:
   "T0.1": done
   "T0.2": done
   "T0.3": done
-  "T0.4": pending
+  "T0.4": done
   "T0.5": pending
   "T1.1": pending
   "T1.2": pending
