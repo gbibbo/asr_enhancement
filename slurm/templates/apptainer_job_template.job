@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=asr_CHANGEME
+#SBATCH --output=/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/%x_%j.out
+#SBATCH --error=/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/%x_%j.err
+#SBATCH --time=00:10:00
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=4G
+
+# Reusable Apptainer Slurm template for the ASR training branch.
+#
+# Submission (always go through the wrapper from datamove1; sbatch is not in
+# PATH on datamove1 itself):
+#
+#   ./slurm/tools/on_submit.sh sbatch \
+#     /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/<your_job>.sh
+#
+# The wrapper forwards to aisurrey-submit01.surrey.ac.uk; jobs execute on
+# aisurrey nodes (e.g. aisurrey01) where /usr/bin/apptainer is available and
+# /mnt/fast/nobackup is shared with datamove1.
+#
+# IMPORTANT — Surrey Apptainer constraints:
+#   * "user bind control is disabled by system administrator" — the current
+#     working directory is NOT auto-mounted into the container.
+#   * Use absolute paths inside the container; do not rely on $PWD or
+#     relative paths.
+#   * Pass variables through --env.
+#   * Use --nv only for GPU jobs (and add `#SBATCH --gres=gpu:1`).
+
+set -euo pipefail
+
+REPO="/mnt/fast/nobackup/users/gb0048/asr_enhancement"
+CONTAINER="/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif"
+TRAIN_ROOT="/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training"
+
+mkdir -p "$TRAIN_ROOT/logs" "$TRAIN_ROOT/runtime" "$TRAIN_ROOT/artifacts" "$TRAIN_ROOT/cache"
+
+apptainer exec \
+  --env ASR_REPO_ROOT="$REPO" \
+  --env ASR_RUNTIME_ROOT="$TRAIN_ROOT/runtime" \
+  --env ASR_ARTIFACTS_ROOT="$TRAIN_ROOT/artifacts" \
+  --env ASR_CACHE_ROOT="$TRAIN_ROOT/cache" \
+  "$CONTAINER" \
+  python3 "$REPO/scripts/CHANGEME.py"

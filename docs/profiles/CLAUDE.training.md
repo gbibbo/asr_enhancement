@@ -233,6 +233,7 @@ Surrey constraints:
 5. Pass variables through `--env`.
 6. Use `python3` inside the container.
 7. Use `--nv` only for GPU jobs.
+8. The current working directory may not be auto-mounted into the container ("WARNING: Not mounting current directory: user bind control is disabled by system administrator"). Use absolute paths inside the container; never rely on `$PWD` or relative paths from inside Apptainer.
 
 Required Apptainer pattern:
 
@@ -261,46 +262,39 @@ apptainer exec \
 
 ## 9. Slurm command policy
 
-If the repository contains:
-
-```text
-slurm/tools/on_submit.sh
-```
-
-then Slurm commands must go through:
+The Surrey Slurm scheduler is not directly callable from `datamove1.surrey.ac.uk`: `sbatch`, `squeue`, `sacct`, and `scancel` are not in PATH on that host. Never call them directly from datamove1. All Slurm commands must go through the repository wrapper:
 
 ```bash
 ./slurm/tools/on_submit.sh <squeue|sbatch|scancel|sacct|scontrol> <args...>
 ```
 
-Examples:
+The wrapper forwards each command to the Surrey submit host:
+
+```bash
+ssh -o BatchMode=yes aisurrey-submit01.surrey.ac.uk "$@"
+```
+
+Slurm jobs execute on `aisurrey` compute nodes (e.g. `aisurrey01.surrey.ac.uk`) where Apptainer (`/usr/bin/apptainer`) and Singularity (`/usr/bin/singularity`) are installed. The shared `/mnt/fast/nobackup` mount is visible from datamove1, the submit host, and the compute nodes, so absolute paths under `/mnt/fast/nobackup` are valid everywhere.
+
+Examples (run from datamove1; absolute paths recommended):
 
 ```bash
 ./slurm/tools/on_submit.sh squeue -u "$USER"
-./slurm/tools/on_submit.sh sbatch slurm/jobs/<job_name>.sh
+./slurm/tools/on_submit.sh sinfo || true
+./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/<job_name>.sh
 ./slurm/tools/on_submit.sh sacct -j <job_id> --format=JobID,JobName,State,Elapsed,MaxRSS,ExitCode
 ./slurm/tools/on_submit.sh scancel <job_id>
 ```
 
-If `slurm/tools/on_submit.sh` does not exist during T0, direct Slurm commands may be used only to verify scheduler availability and run the minimal gate job. After T0, create or use the wrapper and reusable templates before submitting project jobs.
-
-Direct Slurm commands for the T0 gate only:
-
-```bash
-which sbatch
-which squeue
-squeue -u "$USER"
-sbatch slurm/jobs/t0_minimal_job.sh
-sacct -j <job_id> --format=JobID,JobName,State,Elapsed,MaxRSS,ExitCode
-```
-
 Rules:
 
-1. Do not submit long jobs before the minimal Slurm gate succeeds.
-2. Do not submit GPU jobs before a CPU micro-validation job succeeds.
-3. Do not start full training from an interactive shell.
-4. Do not submit jobs with output paths inside the repo unless those paths are ignored and lightweight.
-5. Every reusable Slurm job must write logs outside the repo or under an ignored path.
+1. Never call `sbatch`, `squeue`, `sacct`, or `scancel` directly from `datamove1`. They are not in PATH; the wrapper is the only path.
+2. SSH key-based auth to `aisurrey-submit01.surrey.ac.uk` must be configured in advance (the wrapper uses `BatchMode=yes` and will not prompt).
+3. Do not submit long jobs before the minimal Slurm gate (Task T0.5) succeeds.
+4. Do not submit GPU jobs before a CPU micro-validation job succeeds.
+5. Do not start full training from an interactive shell.
+6. Do not submit jobs with output paths inside the repo unless those paths are ignored and lightweight.
+7. Every reusable Slurm job must write logs outside the repo or under an ignored path (e.g. `$ASR_TRAINING_ROOT/logs/`).
 
 ## 10. Slurm job template
 
@@ -641,8 +635,6 @@ git diff --stat
 
 Commit messages must be plain and project-focused.
 
-Do not push unless the current plan task requires it or Gabriel explicitly asks.
-
 Push only to the current branch:
 
 ```bash
@@ -727,3 +719,14 @@ Elapsed time:
 MaxRSS, if available:
 ```
 
+
+<!-- BEGIN GABRIEL GIT POLICY -->
+## Git policy for Claude
+
+For this training/datamove1 profile:
+
+- At the end of every successfully completed and verified task, commit and push automatically to the current branch.
+- Use Git identity exactly: Gabriel Bibbó <gabobibbo@gmail.com>.
+- Do not add Co-Authored-By, Generated-By, AI-authorship, Signed-off-by, or similar authorship trailers.
+- Do not invent commits, branches, remotes, or verification results.
+<!-- END GABRIEL GIT POLICY -->
