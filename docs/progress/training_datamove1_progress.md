@@ -2,9 +2,9 @@
 
 Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
-Current cut: T0
-Current phase: Phase 0
-Current task: Task T0.5 (in progress; ready to retry through committed wrapper)
+Current cut: T1 (T0 gate complete)
+Current phase: Phase 1
+Current task: Task T1.1
 
 ## Completed
 
@@ -12,36 +12,33 @@ Current task: Task T0.5 (in progress; ready to retry through committed wrapper)
 - T0.2: training Claude profile activated on `feature/training-datamove1-v1` (commit `243ed48`). Root `CLAUDE.md` mirrors `docs/profiles/CLAUDE.training.md`; `.gitattributes` declares `CLAUDE.md merge=ours`; local `merge.ours.driver` configured to `true`.
 - T0.3: created independent training trackers `docs/progress/training_datamove1_progress.{md,yaml}` per training plan §8 format. Legacy `docs/claude_task_progress.*` left untouched as historical.
 - T0.4: added training runtime ignore patterns to `.gitignore` (`runs/`, `artifacts/`, `checkpoints/`, `data/`, `.cache/`, `*.wav`, `*.flac`, `*.mp3`, `*.m4a`, `*.pt`, `*.pth`, `*.ckpt`, `*.onnx`). No duplicates of existing rules; source, configs, docs, plans, and trackers remain trackable.
+- T0.5: minimal Slurm gate job submitted through the committed wrapper and completed cleanly. Job `2125754` ran on `aisurrey01.surrey.ac.uk`, sacct state `COMPLETED`, exit code `0:0`. Output `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.out` reports Python `3.10.13` and platform `Linux-5.14.0-427.42.1.el9_4.x86_64-x86_64-with-glibc2.31` from inside the Apptainer container; stderr `…2125754.err` carries the expected `WARNING: Not mounting current directory: user bind control is disabled by system administrator` (already encoded in CLAUDE.md §8 constraint 8). The Cut T0 gate is complete.
 
 ## Current blocker
 
-None. The earlier blocker (Slurm/Apptainer absent from the datamove1 shell) was resolved by encoding the validated submission path into the repository.
+None. Cut T0 (datamove1 bootstrap) is complete.
 
-## Manual external validation (2026-05-01)
+## T0.5 closure evidence (2026-05-01)
 
-Gabriel manually validated the live Surrey Slurm workflow before the corrective commit:
-
-- `./slurm/tools/on_submit.sh squeue -u gb0048` (run from `/mnt/fast/nobackup/users/gb0048/opro3_final`) returned a normal queue listing — the wrapper's `ssh -o BatchMode=yes aisurrey-submit01.surrey.ac.uk "$@"` path works.
-- `sbatch` through the same wrapper produced job `2125750`, which ran on `aisurrey01.surrey.ac.uk`.
-- Inside the job, `/usr/bin/apptainer` and `/usr/bin/singularity` were both available.
-- The container `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` loaded; `python3 --version` inside it reported `3.10.13`.
-- Apptainer emitted: *"WARNING: Not mounting current directory: user bind control is disabled by system administrator"* — captured in CLAUDE.md §8 constraint 8 and reflected in the job script and template (absolute paths only).
-
-This validates the workflow as a procedure, but T0.5 is not closed yet because the test was run from `opro3_final`, not from the now-committed `slurm/tools/on_submit.sh` and `slurm/jobs/t0_minimal_job.sh` in this repo. T0.5 closes after the same submission is repeated through this repo's wrapper.
-
-## T0.5 retry commands (run from datamove1 in the repo root)
+Submitted through the committed wrapper from datamove1:
 
 ```bash
-cd /mnt/fast/nobackup/users/gb0048/asr_enhancement
-./slurm/tools/on_submit.sh squeue -u "$USER"
-./slurm/tools/on_submit.sh sinfo || true
 ./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t0_minimal_job.sh
-# capture <job_id> from sbatch output, then:
-./slurm/tools/on_submit.sh sacct -j <job_id> --format=JobID,JobName,State,Elapsed,MaxRSS,ExitCode
-cat /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_<job_id>.out
 ```
 
-Once that succeeds, this tracker should be flipped to: `tasks."T0.5": done`, `last_completed_task: "T0.5"`, `current_task: "T1.1"`, `slurm_status: ok`, `datamove1_status: ready`. The T0 gate is then complete.
+| Field | Value |
+|---|---|
+| Job ID | `2125754` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Execution node | `aisurrey01.surrey.ac.uk` |
+| Output log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.out` |
+| Error log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.err` |
+| Python (in Apptainer) | `3.10.13` |
+| Platform (in Apptainer) | `Linux-5.14.0-427.42.1.el9_4.x86_64-x86_64-with-glibc2.31` |
+| Apptainer warning (stderr) | `WARNING: Not mounting current directory: user bind control is disabled by system administrator` |
+
+The expected cwd-bind warning is already encoded as a hard constraint in CLAUDE.md §8 (item 8) and reflected in `slurm/jobs/t0_minimal_job.sh` and `slurm/templates/apptainer_job_template.job`, so all training jobs must continue to use absolute paths.
 
 ## Sync status
 
@@ -49,4 +46,4 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 
 ## Next task
 
-Task T0.5 — retry the minimal Slurm gate job through the now-committed `slurm/tools/on_submit.sh` and `slurm/jobs/t0_minimal_job.sh`. Once it succeeds, advance to Task T1.1 (Configure required Apptainer environment).
+Task T1.1. Configure required Apptainer environment.

@@ -2,21 +2,32 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T0
 current_phase: 0
-current_task: "T0.5"
-last_completed_task: "T0.4"
+current_task: "T1.1"
+last_completed_task: "T0.5"
 blocked: false
 blocker: null
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
-datamove1_status: wrapper_ready
-slurm_status: validated_externally_via_aisurrey_submit01
-manual_validation: "Manual external validation succeeded on 2026-05-01: ./slurm/tools/on_submit.sh squeue -u gb0048 worked from /mnt/fast/nobackup/users/gb0048/opro3_final; sbatch produced job 2125750 which ran on aisurrey01.surrey.ac.uk; inside the job /usr/bin/apptainer and /usr/bin/singularity were available, the container /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif loaded, and python3 inside it reported 3.10.13. Apptainer warning observed: 'Not mounting current directory: user bind control is disabled by system administrator' — therefore jobs must use absolute paths only."
+datamove1_status: ready_for_training_setup
+slurm_status: verified_via_wrapper
+t0_gate: complete
+t0_5_evidence:
+  command: "./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t0_minimal_job.sh"
+  job_id: "2125754"
+  sacct_state: COMPLETED
+  exit_code: "0:0"
+  execution_node: aisurrey01.surrey.ac.uk
+  output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.out
+  error_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.err
+  python_in_apptainer: "3.10.13"
+  platform_in_apptainer: "Linux-5.14.0-427.42.1.el9_4.x86_64-x86_64-with-glibc2.31"
+  apptainer_warning: "WARNING: Not mounting current directory: user bind control is disabled by system administrator"
 artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training
 tasks:
   "T0.1": done
   "T0.2": done
   "T0.3": done
   "T0.4": done
-  "T0.5": in_progress
+  "T0.5": done
   "T1.1": pending
   "T1.2": pending
   "T1.3": pending
