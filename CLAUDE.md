@@ -293,9 +293,6 @@ Rules:
 The planned refactor uses these mappings:
 
 ```text
-libs/asr_adapter/base.py          -> libs/asr/base.py
-libs/asr_adapter/assemblyai.py    -> libs/asr/assemblyai_provider.py
-libs/asr_adapter/fake.py          -> libs/asr/fake_provider.py
 libs/audio_pipeline/pipeline.py   -> libs/audio/enhancement.py
 libs/audio_pipeline/presets.py    -> baseline legacy presets
 ```
