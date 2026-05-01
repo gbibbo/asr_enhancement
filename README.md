@@ -19,6 +19,8 @@ The MVP is **pre-recorded only** and **not production-hardened**. The demo Next.
 
 For the full implementation plan see [`plan.md`](plan.md). For per-task execution history see [`docs/claude_task_progress.md`](docs/claude_task_progress.md) and [`docs/claude_task_progress.yaml`](docs/claude_task_progress.yaml).
 
+**Migration note:** this repository is being migrated from a completed MLOps platform MVP into a public ASR enhancement demo with Raspberry Pi deployment. The original platform MVP is preserved under the `platform-mvp-v0` tag. Public demo mode is under active development on the `demo-rp5-v1` integration branch and feature branches.
+
 ## MVP capabilities
 
 - FastAPI service exposing `GET /health`, `GET /ready`, `POST /v1/transcribe`, `POST /v1/enhance-and-transcribe`, `GET /v1/jobs/{job_id}`, `GET /v1/jobs/{job_id}/result`, and `GET /metrics`.
