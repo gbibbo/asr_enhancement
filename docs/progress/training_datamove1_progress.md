@@ -2,9 +2,9 @@
 
 Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
-Current cut: T1 (T0 gate complete; T1.1, T1.2 complete)
+Current cut: T1 (gate complete — T0 through T1.3 all done)
 Current phase: Phase 1
-Current task: Task T1.3
+Current task: Task T2.1
 
 ## Completed
 
@@ -15,10 +15,11 @@ Current task: Task T1.3
 - T0.5: minimal Slurm gate job submitted through the committed wrapper and completed cleanly. Job `2125754` ran on `aisurrey01.surrey.ac.uk`, sacct state `COMPLETED`, exit code `0:0`. Output `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.out` reports Python `3.10.13` and platform `Linux-5.14.0-427.42.1.el9_4.x86_64-x86_64-with-glibc2.31` from inside the Apptainer container; stderr `…2125754.err` carries the expected `WARNING: Not mounting current directory: user bind control is disabled by system administrator` (already encoded in CLAUDE.md §8 constraint 8). The Cut T0 gate is complete.
 - T1.1: Apptainer environment configured. Image `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` (~3.22 GiB) confirmed readable from datamove1 and from the Slurm execution context (re-using T0.5 job `2125754` evidence on `aisurrey01.surrey.ac.uk`). Python `3.10.13` inside the container (mismatch with plan §5 nominal 3.11 recorded; acceptance gated on T1.2 dependency imports). `slurm/templates/apptainer_job_template.job` already encodes the required absolute-path, `--env`-only, no-`--bind`, no-`--pwd`, no-`--nv` pattern; no new T1.1 probe job submitted; no venv-based training execution path introduced. YAML drift on `current_cut`/`current_phase` (T0/0 → T1/1) corrected as part of this closure.
 - T1.2: training dependencies installed into an external prefix (`$TRAIN_ROOT/python_env/site-packages-py310`), consumed at runtime via `PYTHONPATH=$REPO:$PREFIX` with `PYTHONNOUSERSITE=1` and `python3 -s` to keep `~/.local` out of the import path. PyTorch 2.1.0, torchaudio 2.1.0 and numpy 1.26.0 remain image-resident under `/opt/conda` (not reinstalled, not shadowed). All required project modules import from the live repo; `openai-whisper`, all pyproject deps, and the audio IO stack import from the prefix. Python `3.10.13` accepted as the runtime gate. No `requirements.lock.x86_64` generated. No venv-based Slurm execution path introduced.
+- T1.3: audio processing gate job passed. Synthetic 2-second 440 Hz WAV generated, processed through `libs.audio_pipeline.pipeline.apply_preset("denoise")` (high-pass filter + gain normalization), output validated. Job `2125808` ran on `aisurrey03.surrey.ac.uk`, sacct state `COMPLETED`, exit code `0:0`. Output peak `0.950012` (target 0.95). `libs.audio_pipeline.pipeline` resolved from REPO; `numpy` from `/opt/conda`; `scipy` and `soundfile` from PREFIX. `PYTHONNOUSERSITE=1` enforced; `site.ENABLE_USER_SITE=False`; no user-local module paths detected. Cut T1 gate complete.
 
 ## Current blocker
 
-None. Cut T0 (datamove1 bootstrap) is complete; T1.1 (Apptainer environment) and T1.2 (training dependencies) are complete.
+None. Cut T0 (datamove1 bootstrap) is complete; T1.1 (Apptainer environment), T1.2 (training dependencies), and T1.3 (audio processing gate) are complete. Cut T1 gate closed.
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -149,6 +150,37 @@ Lock file: `requirements.lock.x86_64` was absent and unused; T1.2 did **not** ge
 
 Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 behind).
 
+## T1.3 closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Job ID | `2125808` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Execution node | `aisurrey03.surrey.ac.uk` |
+| Elapsed | `00:00:02` |
+| Stdout log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t1_3_audio_probe_2125808.out` |
+| Stderr log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t1_3_audio_probe_2125808.err` |
+| JSON evidence | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_3_probe_2125808.json` |
+| Input WAV | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_3_input_2125808.wav` |
+| Output dir | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_3_audio_output_2125808/` |
+| Output WAV | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_3_audio_output_2125808/denoise.wav` |
+| Preset applied | `denoise` |
+| `enhanced` | `true` |
+| `enhancement_fallback` | `false` |
+| Output frames | `32000` |
+| Output sample rate | `16000 Hz` |
+| Output peak | `0.950012` (target 0.95; pass range [0.93, 0.97]) |
+| `audio_pipeline_origin` | `…/asr_enhancement/libs/audio_pipeline/pipeline.py` (REPO) |
+| `numpy_origin` | `/opt/conda/lib/python3.10/site-packages/numpy/__init__.py` |
+| `scipy_origin` | `…/site-packages-py310/scipy/__init__.py` (PREFIX) |
+| `soundfile_origin` | `…/site-packages-py310/soundfile.py` (PREFIX) |
+| `site_enable_user_site` | `false` |
+| `any_user_local_module_paths_detected` | `false` |
+| `pythonnousersite_env` | `"1"` |
+| `success` | `true` |
+| Stdout terminal line | `T1.3 COMPLETE` |
+
 ## Next task
 
-Task T1.3. Run one audio processing job through Slurm.
+Task T2.1. Prepare LibriSpeech source configuration.

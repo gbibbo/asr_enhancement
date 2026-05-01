@@ -2,14 +2,15 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T1
 current_phase: 1
-current_task: "T1.3"
-last_completed_task: "T1.2"
+current_task: "T2.1"
+last_completed_task: "T1.3"
 blocked: false
 blocker: null
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
 datamove1_status: ready_for_training_setup
 slurm_status: verified_via_wrapper
 t0_gate: complete
+t1_gate: complete
 t0_5_evidence:
   command: "./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t0_minimal_job.sh"
   job_id: "2125754"
@@ -130,6 +131,34 @@ t1_2_evidence:
   venv_training_path_introduced: false
   wrapper_widened_for_sinfo_or_scontrol: false
   pyproject_modified: false
+t1_3_evidence:
+  command: "./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t1_3_audio_probe.sh"
+  job_id: "2125808"
+  sacct_state: COMPLETED
+  exit_code: "0:0"
+  execution_node: aisurrey03.surrey.ac.uk
+  elapsed: "00:00:02"
+  output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t1_3_audio_probe_2125808.out
+  error_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t1_3_audio_probe_2125808.err
+  json_artifact: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_3_probe_2125808.json
+  input_wav: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_3_input_2125808.wav
+  output_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_3_audio_output_2125808
+  output_wav: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_3_audio_output_2125808/denoise.wav
+  preset_applied: denoise
+  enhanced: true
+  enhancement_fallback: false
+  output_frames: 32000
+  output_samplerate: 16000
+  output_peak: 0.950012
+  audio_pipeline_origin: /mnt/fast/nobackup/users/gb0048/asr_enhancement/libs/audio_pipeline/pipeline.py
+  numpy_origin: /opt/conda/lib/python3.10/site-packages/numpy/__init__.py
+  scipy_origin: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/scipy/__init__.py
+  soundfile_origin: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/soundfile.py
+  pythonnousersite_env: "1"
+  site_enable_user_site: false
+  site_user_site_in_sys_path: false
+  any_user_local_module_paths_detected: false
+  success: true
 tasks:
   "T0.1": done
   "T0.2": done
@@ -138,7 +167,7 @@ tasks:
   "T0.5": done
   "T1.1": done
   "T1.2": done
-  "T1.3": pending
+  "T1.3": done
   "T2.1": pending
   "T2.2": pending
   "T2.3": pending
