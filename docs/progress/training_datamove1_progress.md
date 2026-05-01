@@ -2,9 +2,9 @@
 
 Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
-Current cut: T1 (T0 gate complete; T1.1 complete)
+Current cut: T1 (T0 gate complete; T1.1, T1.2 complete)
 Current phase: Phase 1
-Current task: Task T1.2
+Current task: Task T1.3
 
 ## Completed
 
@@ -14,10 +14,11 @@ Current task: Task T1.2
 - T0.4: added training runtime ignore patterns to `.gitignore` (`runs/`, `artifacts/`, `checkpoints/`, `data/`, `.cache/`, `*.wav`, `*.flac`, `*.mp3`, `*.m4a`, `*.pt`, `*.pth`, `*.ckpt`, `*.onnx`). No duplicates of existing rules; source, configs, docs, plans, and trackers remain trackable.
 - T0.5: minimal Slurm gate job submitted through the committed wrapper and completed cleanly. Job `2125754` ran on `aisurrey01.surrey.ac.uk`, sacct state `COMPLETED`, exit code `0:0`. Output `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.out` reports Python `3.10.13` and platform `Linux-5.14.0-427.42.1.el9_4.x86_64-x86_64-with-glibc2.31` from inside the Apptainer container; stderr `…2125754.err` carries the expected `WARNING: Not mounting current directory: user bind control is disabled by system administrator` (already encoded in CLAUDE.md §8 constraint 8). The Cut T0 gate is complete.
 - T1.1: Apptainer environment configured. Image `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` (~3.22 GiB) confirmed readable from datamove1 and from the Slurm execution context (re-using T0.5 job `2125754` evidence on `aisurrey01.surrey.ac.uk`). Python `3.10.13` inside the container (mismatch with plan §5 nominal 3.11 recorded; acceptance gated on T1.2 dependency imports). `slurm/templates/apptainer_job_template.job` already encodes the required absolute-path, `--env`-only, no-`--bind`, no-`--pwd`, no-`--nv` pattern; no new T1.1 probe job submitted; no venv-based training execution path introduced. YAML drift on `current_cut`/`current_phase` (T0/0 → T1/1) corrected as part of this closure.
+- T1.2: training dependencies installed into an external prefix (`$TRAIN_ROOT/python_env/site-packages-py310`), consumed at runtime via `PYTHONPATH=$REPO:$PREFIX` with `PYTHONNOUSERSITE=1` and `python3 -s` to keep `~/.local` out of the import path. PyTorch 2.1.0, torchaudio 2.1.0 and numpy 1.26.0 remain image-resident under `/opt/conda` (not reinstalled, not shadowed). All required project modules import from the live repo; `openai-whisper`, all pyproject deps, and the audio IO stack import from the prefix. Python `3.10.13` accepted as the runtime gate. No `requirements.lock.x86_64` generated. No venv-based Slurm execution path introduced.
 
 ## Current blocker
 
-None. Cut T0 (datamove1 bootstrap) is complete; T1.1 (Apptainer environment) is complete.
+None. Cut T0 (datamove1 bootstrap) is complete; T1.1 (Apptainer environment) and T1.2 (training dependencies) are complete.
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -69,10 +70,85 @@ Raw T0.5 log excerpts re-confirmed in this closure:
 - stdout line 18: `=== T0.5 minimal job complete ===` (clean exit; matches sacct `COMPLETED 0:0`)
 - stderr lines 1–3: `INFO: Setting 'NVIDIA_VISIBLE_DEVICES=all' …`, `INFO: Setting --writable-tmpfs …`, `WARNING: Not mounting current directory: user bind control is disabled by system administrator`
 
+## T1.2 closure evidence (2026-05-02)
+
+Stage history:
+
+| Stage | Job ID | sacct | Outcome | Notes |
+|---|---|---|---|---|
+| Clean Stage A (probe) | `2125796` | `COMPLETED 0:0` | accepted | First Stage A (`2125795`) was rejected because `~/.local` was satisfying torch/torchaudio/scipy/soundfile inside the container; ran clean with `--env PYTHONNOUSERSITE=1` and `python3 -s`. |
+| Stage B+C attempt 1 | `2125798` | `FAILED 7:0` | rejected | `pip install --target --constraint torch==2.1.0` only **pinned** torch — pip still installed it (and numpy 2.2.6, ~5 GiB of CUDA wheels) into `$PREFIX`. Bash pre-Stage-C guard tripped with `BLOCKER: torch_shadowed_in_prefix`. Contaminated `$PREFIX` and `cache/pip` were removed (guarded `rm -rf` of those exact paths only) before retry. |
+| Stage B+C retry  | `2125804` | `COMPLETED 0:0` | accepted | Strategy switched to: clean dry-run (no `--target`, sees `/opt/conda`) → forbidden-stack guard on the dry-run report → `pip install --target --no-deps -r resolved_set`. Resolved set: 69 distributions, none in the forbidden set (`torch torchaudio torchvision torchtext numpy triton nvidia-*`). |
+
+Artifact paths (all under `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training`):
+
+| Kind | Path |
+|---|---|
+| Clean Stage A log | `logs/asr_t1_2_probe_2125796.out` |
+| Clean Stage A JSON | `artifacts/t1_2_probe_2125796.json` |
+| Stage B+C log (retry) | `logs/asr_t1_2_install_2125804.out` |
+| Stage C verify JSON | `artifacts/t1_2_verify_2125804.json` |
+| Pip dry-run report | `artifacts/t1_2_pip_dryrun_2125804.json` |
+| Resolved install set | `artifacts/t1_2_resolved_install_set_2125804.txt` |
+| Pip install command | `artifacts/t1_2_pip_install_cmd_2125804.txt` |
+| Dependency prefix | `python_env/site-packages-py310` (446 MiB, 69 distributions) |
+| Pip cache | `cache/pip` |
+
+Exact pip install command (verbatim, from the recorded cmd file):
+
+```text
+python3 -s -m pip install --no-warn-script-location --target /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310 --cache-dir /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/pip --no-deps -r /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_2_resolved_install_set_2125804.txt
+```
+
+Runtime discipline carried forward (every later T1.x Apptainer call must keep these):
+
+- `--env PYTHONNOUSERSITE=1`
+- `python3 -s`
+- `PYTHONPATH=$REPO:$PREFIX`
+
+Origin assertions (from `t1_2_verify_2125804.json` `origin_assertions`):
+
+- `all_libs_under_repo`: `true` (every `libs.*` resolved under `$REPO`)
+- `no_project_dirs_in_prefix`: `true` (the third-party `alembic` distribution in `$PREFIX` is not a project shadow — the repo's `alembic/` has no `__init__.py`; the probe now requires `$REPO/<name>/__init__.py` before flagging)
+- `torch_not_in_prefix`: `true`
+- `torchaudio_not_in_prefix`: `true`
+- `numpy_not_in_prefix`: `true`
+- `any_user_local_module_paths_detected`: `false`
+
+Resolved versions (image-resident under `/opt/conda` ↦ `IMG`; external prefix ↦ `PREFIX`):
+
+| Package | Version | Origin |
+|---|---|---|
+| torch | 2.1.0 | IMG |
+| torchaudio | 2.1.0 | IMG |
+| numpy | 1.26.0 | IMG |
+| scipy | 1.15.3 | PREFIX |
+| soundfile | 0.13.1 | PREFIX |
+| openai-whisper (`whisper`) | 20250625 | PREFIX |
+| fastapi | 0.136.1 | PREFIX |
+| celery | 5.6.3 | PREFIX |
+| sqlalchemy | 2.0.49 | PREFIX |
+| pydantic | 2.13.3 | PREFIX |
+| pydantic-settings | 2.14.0 | PREFIX |
+| pip | 23.2.1 | IMG |
+
+Torch CUDA fields (CPU verify node, expected): `torch.version.cuda = 12.1`, `torch.cuda.is_available() = False`. GPU not required for T1.2.
+
+Project module imports verified (all `libs.*`, all resolving under `$REPO`):
+
+- required: `libs.asr_adapter`, `libs.asr_adapter.factory`, `libs.audio_pipeline`, `libs.audio_pipeline.pipeline`, `libs.common`, `libs.common.settings`, `libs.observability`, `libs.observability.logging`
+- optional (also imported successfully): `libs.asr_adapter.assemblyai`, `libs.common.db`, `libs.common.models`, `libs.common.storage`, `libs.observability.metrics`, `libs.observability.tracing`
+
+`Settings()` is **not** instantiated; `services.api.app.main` is **not** imported. T1.2 is an import gate, not an application startup test.
+
+Python 3.10.13 vs nominal 3.11 verdict: **accepted** because every required import succeeded inside the same Apptainer container with user-site disabled. `pyproject.toml` declares `requires-python = ">=3.9"`.
+
+Lock file: `requirements.lock.x86_64` was absent and unused; T1.2 did **not** generate it (deferred per explicit instruction). The exact pip install command and the resolved install set file are the reproducibility evidence.
+
 ## Sync status
 
 Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 behind).
 
 ## Next task
 
-Task T1.2. Install training dependencies.
+Task T1.3. Run one audio processing job through Slurm.

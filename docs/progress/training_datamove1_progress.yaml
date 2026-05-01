@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T1
 current_phase: 1
-current_task: "T1.2"
-last_completed_task: "T1.1"
+current_task: "T1.3"
+last_completed_task: "T1.2"
 blocked: false
 blocker: null
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
@@ -41,6 +41,95 @@ t1_1_evidence:
   source_evidence_err_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.err
   venv_training_path_introduced: false
   wrapper_widened_for_sinfo_or_scontrol: false
+t1_2_evidence:
+  clean_stage_a_job_id: "2125796"
+  clean_stage_a_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t1_2_probe_2125796.out
+  clean_stage_a_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_2_probe_2125796.json
+  rejected_stage_a_job_id: "2125795"
+  rejected_stage_a_reason: "scientific_deps_satisfied_from_user_local (torch/torchaudio/scipy/soundfile loaded from ~/.local without PYTHONNOUSERSITE)"
+  rejected_install_job_id: "2125798"
+  rejected_install_reason: "torch_shadowed_in_prefix (constraints --constraint torch==2.1.0 only pinned the version; pip still installed torch and a 5 GiB CUDA stack into PREFIX). Contaminated PREFIX and pip cache removed before retry."
+  install_job_id: "2125804"
+  install_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t1_2_install_2125804.out
+  install_err_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t1_2_install_2125804.err
+  verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_2_verify_2125804.json
+  pip_dryrun_report: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_2_pip_dryrun_2125804.json
+  resolved_install_set: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_2_resolved_install_set_2125804.txt
+  resolved_install_set_count: 69
+  pip_install_cmd_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_2_pip_install_cmd_2125804.txt
+  pip_install_command: "python3 -s -m pip install --no-warn-script-location --target /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310 --cache-dir /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/pip --no-deps -r /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t1_2_resolved_install_set_2125804.txt"
+  install_strategy: "clean dry-run (no --target, sees /opt/conda) -> forbidden-stack guard -> pip install --target --no-deps -r resolved_set"
+  dependency_prefix: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310
+  dependency_prefix_size_human: "446M"
+  pip_cache_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/pip
+  python_in_apptainer: "3.10.13"
+  python_version_decision: "Accepted; all required imports verified at 3.10.13 with PYTHONNOUSERSITE=1 and python3 -s. pyproject requires-python>=3.9."
+  pythonpath_runtime: "$REPO:$PREFIX"
+  runtime_discipline_carried_forward:
+    - "--env PYTHONNOUSERSITE=1"
+    - "python3 -s"
+    - "PYTHONPATH=$REPO:$PREFIX"
+  forbidden_stack:
+    - torch
+    - torchaudio
+    - torchvision
+    - torchtext
+    - numpy
+    - triton
+    - "nvidia-*"
+  forbidden_stack_in_dryrun: false
+  forbidden_stack_in_prefix: false
+  versions:
+    torch: "2.1.0"
+    torch_cuda_runtime: "12.1"
+    torch_cuda_available: false
+    torchaudio: "2.1.0"
+    numpy: "1.26.0"
+    scipy: "1.15.3"
+    soundfile: "0.13.1"
+    openai_whisper: "20250625"
+    fastapi: "0.136.1"
+    celery: "5.6.3"
+    sqlalchemy: "2.0.49"
+    pydantic: "2.13.3"
+    pydantic_settings: "2.14.0"
+    pip: "23.2.1"
+  module_origins:
+    torch: /opt/conda/lib/python3.10/site-packages/torch/__init__.py
+    torchaudio: /opt/conda/lib/python3.10/site-packages/torchaudio/__init__.py
+    numpy: /opt/conda/lib/python3.10/site-packages/numpy/__init__.py
+    scipy: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/scipy/__init__.py
+    soundfile: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/soundfile.py
+    whisper: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/whisper/__init__.py
+    fastapi: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/fastapi/__init__.py
+    celery: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/celery/__init__.py
+    sqlalchemy: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/sqlalchemy/__init__.py
+    pydantic: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/pydantic/__init__.py
+    pydantic_settings: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/pydantic_settings/__init__.py
+    libs.asr_adapter: /mnt/fast/nobackup/users/gb0048/asr_enhancement/libs/asr_adapter/__init__.py
+    libs.audio_pipeline: /mnt/fast/nobackup/users/gb0048/asr_enhancement/libs/audio_pipeline/__init__.py
+    libs.common: /mnt/fast/nobackup/users/gb0048/asr_enhancement/libs/common/__init__.py
+    libs.observability: /mnt/fast/nobackup/users/gb0048/asr_enhancement/libs/observability/__init__.py
+  user_site:
+    PYTHONNOUSERSITE: "1"
+    site_ENABLE_USER_SITE: false
+    site_USER_SITE: /mnt/fast/nobackup/users/gb0048/.local/lib/python3.10/site-packages
+    user_site_in_sys_path: false
+    any_user_local_module_paths_detected: false
+  origin_assertions:
+    all_libs_under_repo: true
+    no_project_dirs_in_prefix: true
+    torch_not_in_prefix: true
+    torchaudio_not_in_prefix: true
+    numpy_not_in_prefix: true
+  lock_file:
+    path: requirements.lock.x86_64
+    state: absent_and_unused
+    generated_in_t1_2: false
+    rationale: "Explicitly deferred by user; pip install command and resolved install set recorded as reproducibility evidence."
+  venv_training_path_introduced: false
+  wrapper_widened_for_sinfo_or_scontrol: false
+  pyproject_modified: false
 tasks:
   "T0.1": done
   "T0.2": done
@@ -48,7 +137,7 @@ tasks:
   "T0.4": done
   "T0.5": done
   "T1.1": done
-  "T1.2": pending
+  "T1.2": done
   "T1.3": pending
   "T2.1": pending
   "T2.2": pending
