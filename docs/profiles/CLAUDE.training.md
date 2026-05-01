@@ -635,8 +635,6 @@ git diff --stat
 
 Commit messages must be plain and project-focused.
 
-Do not push unless the current plan task requires it or Gabriel explicitly asks.
-
 Push only to the current branch:
 
 ```bash
@@ -721,3 +719,14 @@ Elapsed time:
 MaxRSS, if available:
 ```
 
+
+<!-- BEGIN GABRIEL GIT POLICY -->
+## Git policy for Claude
+
+For this training/datamove1 profile:
+
+- At the end of every successfully completed and verified task, commit and push automatically to the current branch.
+- Use Git identity exactly: Gabriel Bibbó <gabobibbo@gmail.com>.
+- Do not add Co-Authored-By, Generated-By, AI-authorship, Signed-off-by, or similar authorship trailers.
+- Do not invent commits, branches, remotes, or verification results.
+<!-- END GABRIEL GIT POLICY -->

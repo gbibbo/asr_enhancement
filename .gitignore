@@ -65,3 +65,10 @@ data/
 *.pth
 *.ckpt
 *.onnx
+*.ogg
+*.safetensors
+*.engine
+*.plan
+*.sqlite
+*.sqlite3
+*.db
