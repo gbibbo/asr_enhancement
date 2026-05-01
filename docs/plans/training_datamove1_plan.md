@@ -425,7 +425,7 @@ Decision rules:
 3. If this is not a Git repo, stop and report the exact path.
 4. If the repo is already on `feature/training-datamove1-v1`, continue after fetching.
 
-### Task T0.2. Create or sync the training branch
+### Task T0.2. Create or sync the training branch and activate training Claude profile
 
 Actions:
 
@@ -433,7 +433,12 @@ Actions:
 2. confirm `demo-rp5-v1` exists locally or remotely;
 3. create `feature/training-datamove1-v1` from `demo-rp5-v1` if missing;
 4. otherwise sync the existing training branch with `origin/demo-rp5-v1`;
-5. push the branch if it is new.
+5. push the branch if it is new;
+6. confirm `docs/profiles/CLAUDE.training.md` exists;
+7. replace root `CLAUDE.md` with the content of `docs/profiles/CLAUDE.training.md`;
+8. create or update `.gitattributes` with `CLAUDE.md merge=ours`;
+9. configure the local merge driver with `git config merge.ours.driver true`;
+10. commit the training profile activation.
 
 Suggested commands:
 
@@ -441,8 +446,14 @@ Suggested commands:
 git fetch origin
 git checkout demo-rp5-v1 || git checkout -b demo-rp5-v1 origin/demo-rp5-v1
 git pull --ff-only origin demo-rp5-v1
-git checkout feature/training-datamove1-v1 || git checkout -b feature/training-datamove1-v1
+git checkout feature/training-datamove1-v1 || git checkout -b feature/training-datamove1-v1 origin/feature/training-datamove1-v1 || git checkout -b feature/training-datamove1-v1
 git push -u origin feature/training-datamove1-v1
+cp docs/profiles/CLAUDE.training.md CLAUDE.md
+printf "CLAUDE.md merge=ours\n" > .gitattributes
+git config merge.ours.driver true
+git add CLAUDE.md .gitattributes
+git commit -m "chore: activate training Claude profile"
+git push origin feature/training-datamove1-v1
 ```
 
 Done when:
@@ -450,14 +461,19 @@ Done when:
 1. training branch exists;
 2. branch tracks `origin/feature/training-datamove1-v1`;
 3. current branch is `feature/training-datamove1-v1`;
-4. tracker records branch state.
+4. root `CLAUDE.md` is the datamove1/training active profile;
+5. `.gitattributes` contains `CLAUDE.md merge=ours`;
+6. tracker records branch state.
 
 Decision rules:
 
 1. If `demo-rp5-v1` does not exist, stop and request completion of the split bootstrap in the demo plan.
-2. If branch creation fails because the branch exists remotely, check it out from origin.
-3. If branch is behind `demo-rp5-v1`, merge `origin/demo-rp5-v1`.
-4. If merge conflicts occur, stop and report.
+2. If `docs/profiles/CLAUDE.training.md` does not exist, stop and request completion of S0.3 in the demo plan.
+3. If branch creation fails because the branch exists remotely, check it out from origin.
+4. If branch is behind `demo-rp5-v1`, merge `origin/demo-rp5-v1`.
+5. If `CLAUDE.md` conflicts during branch sync, keep the training version on `feature/training-datamove1-v1`.
+6. Do not rely on GitHub web merge to resolve `CLAUDE.md` conflicts. Sync branches locally when this file is involved.
+7. If merge conflicts occur outside `CLAUDE.md`, stop and report.
 
 ### Task T0.3. Create independent training trackers
 

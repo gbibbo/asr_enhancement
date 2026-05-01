@@ -675,7 +675,7 @@ Decision rules:
 2. If `feature/demo-runtime-rp5-v1` already exists, check it out and merge `origin/demo-rp5-v1`.
 3. If branch creation fails, stop and report exact Git state.
 
-### Task S0.3. Add split plan files and plan router
+### Task S0.3. Add split plan files, plan router, and Claude profiles
 
 Actions:
 
@@ -683,21 +683,33 @@ Actions:
 2. add `docs/plans/demo_platform_plan.md`;
 3. add `docs/plans/training_datamove1_plan.md`;
 4. update root `plan.md` into a short router, or add a top note pointing to the new plans;
-5. do not delete useful historical content unless router replacement is intentional;
-6. commit the plan split.
+5. create `docs/profiles/`;
+6. add `docs/profiles/CLAUDE.demo.md`;
+7. add `docs/profiles/CLAUDE.training.md`;
+8. replace root `CLAUDE.md` with the content of `docs/profiles/CLAUDE.demo.md` on `feature/demo-runtime-rp5-v1`;
+9. create or update `.gitattributes` with `CLAUDE.md merge=ours`;
+10. configure the local merge driver with `git config merge.ours.driver true`;
+11. do not delete useful historical content unless router replacement is intentional;
+12. commit the plan/profile split.
 
 Done when:
 
 1. both split plans exist;
 2. root plan points to them;
-3. Git commit contains only plan and documentation changes;
-4. branch is pushed.
+3. both Claude profile reference files exist under `docs/profiles/`;
+4. root `CLAUDE.md` is the demo/RP5 active profile on `feature/demo-runtime-rp5-v1`;
+5. `.gitattributes` contains `CLAUDE.md merge=ours`;
+6. Git commit contains only plan, profile, tracker, and documentation-routing changes;
+7. branch is pushed.
 
 Decision rules:
 
 1. If root `plan.md` is still needed as historical implementation record, keep it and add a pointer near the top.
 2. If root `plan.md` is now misleading, replace it with router text in this task only.
 3. If the training plan is added here, the training branch can later inherit it from `demo-rp5-v1`.
+4. Do not use `CLAUDE.datamove1.md` or `CLAUDE.demo_rp5.md` as active filenames in the repo root. Claude Code reads root `CLAUDE.md`.
+5. If `CLAUDE.md` conflicts during branch sync, keep the version active for the current feature branch.
+6. Do not rely on GitHub web merge to resolve `CLAUDE.md` conflicts. Sync branches locally when this file is involved.
 
 ### Task S0.4. Create demo/platform trackers
 
