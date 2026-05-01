@@ -4,18 +4,18 @@ current_cut: T0
 current_phase: 0
 current_task: "T0.5"
 last_completed_task: "T0.4"
-blocked: false
-blocker: null
+blocked: true
+blocker: "T0.5 cannot complete on this datamove1.surrey.ac.uk shell: sbatch/squeue/sacct are not in PATH and are not present anywhere under /opt, /usr, /cm, /shared, /apps; apptainer/singularity are also absent; no `module` system is available. Container exists at /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif. Job script committed at slurm/jobs/t0_minimal_job.sh; Gabriel must submit it from a Slurm-reachable Surrey host that also has Apptainer (e.g. condor1/aisurrey1 or whichever host he uses for Slurm), then report job ID, output path, and exit state."
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
-datamove1_status: unknown
-slurm_status: unknown
+datamove1_status: not_ready_for_slurm
+slurm_status: unavailable_from_datamove1_shell
 artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training
 tasks:
   "T0.1": done
   "T0.2": done
   "T0.3": done
   "T0.4": done
-  "T0.5": pending
+  "T0.5": blocked
   "T1.1": pending
   "T1.2": pending
   "T1.3": pending
