@@ -1,9 +1,9 @@
 branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
-current_cut: T0
-current_phase: 0
-current_task: "T1.1"
-last_completed_task: "T0.5"
+current_cut: T1
+current_phase: 1
+current_task: "T1.2"
+last_completed_task: "T1.1"
 blocked: false
 blocker: null
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
@@ -22,13 +22,32 @@ t0_5_evidence:
   platform_in_apptainer: "Linux-5.14.0-427.42.1.el9_4.x86_64-x86_64-with-glibc2.31"
   apptainer_warning: "WARNING: Not mounting current directory: user bind control is disabled by system administrator"
 artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training
+t1_1_evidence:
+  apptainer_image: /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif
+  image_size_bytes: 3459866624
+  image_mtime: "2026-01-15T21:22:00"
+  image_readable_from_datamove1: true
+  image_readable_from_slurm_node: true
+  apptainer_required_for_slurm_python: true
+  python_in_apptainer: "3.10.13"
+  python_version_nominal: "3.11"
+  python_version_mismatch: true
+  python_version_decision: "Accepted conditionally; gated on T1.2 dependency import success inside the same container."
+  slurm_template_sufficient: true
+  slurm_template_path: slurm/templates/apptainer_job_template.job
+  probe_job_required: false
+  source_evidence_job_id: "2125754"
+  source_evidence_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.out
+  source_evidence_err_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t0_minimal_2125754.err
+  venv_training_path_introduced: false
+  wrapper_widened_for_sinfo_or_scontrol: false
 tasks:
   "T0.1": done
   "T0.2": done
   "T0.3": done
   "T0.4": done
   "T0.5": done
-  "T1.1": pending
+  "T1.1": done
   "T1.2": pending
   "T1.3": pending
   "T2.1": pending
