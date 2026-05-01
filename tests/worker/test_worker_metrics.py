@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from libs.asr_adapter.errors import AdapterTranscriptionError
-from libs.asr_adapter.schema import ASRResult
+from libs.asr.errors import AdapterTranscriptionError
+from libs.asr.schema import ASRResult
 from libs.audio_pipeline.pipeline import EnhancementResult
 from libs.common.models import JobStatus
 from libs.common.settings import get_settings
