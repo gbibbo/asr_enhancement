@@ -1,0 +1,43 @@
+branch: feature/training-datamove1-v1
+integration_branch: demo-rp5-v1
+current_cut: T0
+current_phase: 0
+current_task: "T0.4"
+last_completed_task: "T0.3"
+blocked: false
+blocker: null
+synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
+datamove1_status: unknown
+slurm_status: unknown
+artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training
+tasks:
+  "T0.1": done
+  "T0.2": done
+  "T0.3": done
+  "T0.4": pending
+  "T0.5": pending
+  "T1.1": pending
+  "T1.2": pending
+  "T1.3": pending
+  "T2.1": pending
+  "T2.2": pending
+  "T2.3": pending
+  "T2.4": pending
+  "T2.5": pending
+  "T3.1": pending
+  "T3.2": pending
+  "T3.3": pending
+  "T4.1": pending
+  "T4.2": pending
+  "T4.3": pending
+  "T5.1": pending
+  "T5.2": pending
+  "T5.3": pending
+  "T6.1": pending
+  "T6.2": pending
+  "T6.3": pending
+  "T7.1": pending
+  "T7.2": pending
+  "T8.1": pending
+  "T8.2": pending
+  "T8.3": pending
