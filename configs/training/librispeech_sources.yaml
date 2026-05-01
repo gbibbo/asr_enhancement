@@ -1,0 +1,85 @@
+# LibriSpeech source configuration — T2.1
+# Defines authoritative dataset root, split statuses, allowed splits,
+# and manifest output path for T2.2.
+# No data has been downloaded or staged in T2.1.
+
+dataset_name: LibriSpeech
+dataset_root_outside_git: true
+download_performed_in_t2_1: false
+staging_status: partial_existing_source
+staging_completed: false
+manifest_generation_ready: false
+t2_2_blocker: librispeech_dev_clean_missing
+
+# Authoritative dataset root — existing Surrey copy, used directly.
+# Forum-build copies at scratch4weeks/gb0048/forum_build/ are excluded
+# (different project context; derived/work copies, not source of truth).
+dataset_root: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech
+authoritative_source_root: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech
+
+ignored_paths:
+  - /mnt/fast/nobackup/scratch4weeks/gb0048/forum_build/sources/staged/S001
+  - /mnt/fast/nobackup/scratch4weeks/gb0048/forum_build/work/speech_candidates/S001
+ignored_reason: different project context; derived/work copies not used as source of truth
+
+# Standard LibriSpeech directory structure expected:
+#   <dataset_root>/<split>/   e.g.  …/dev-clean/   …/train-clean-100/
+split_structure: flat_under_dataset_root
+
+# All seven standard LibriSpeech splits with current status.
+# split_status: present | missing | not_used
+splits:
+  dev-clean:
+    split_status: missing
+    role: baseline_validation
+    priority: required_for_t3
+    expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/dev-clean
+  dev-other:
+    split_status: missing
+    role: baseline_validation_harder
+    priority: optional_for_t3
+    expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/dev-other
+  test-clean:
+    split_status: present
+    role: final_evaluation
+    priority: not_used_before_t7
+    expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/test-clean
+  test-other:
+    split_status: missing
+    role: final_evaluation_harder
+    priority: not_used_before_t7
+    expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/test-other
+  train-clean-100:
+    split_status: present
+    role: training
+    priority: required_for_t5
+    expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/train-clean-100
+  train-clean-360:
+    split_status: missing
+    role: training_extended
+    priority: optional_for_t6
+    expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/train-clean-360
+  train-other-500:
+    split_status: missing
+    role: training_full
+    priority: optional_for_t6
+    expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/train-other-500
+
+# Conservative first-baseline allowed set (required before T3.1 can run).
+allowed_splits_for_baseline:
+  - dev-clean
+
+# First training-run allowed splits (required before T5.1 can run).
+allowed_splits_for_training:
+  - train-clean-100
+
+# Output manifest path — written by T2.2, not T2.1.
+output_manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
+
+notes:
+  dev_clean_required_before_t2_2: true
+  t2_2_blocked_until_dev_clean_present: true
+  present_splits: [test-clean, train-clean-100]
+  missing_splits: [dev-clean, dev-other, test-other, train-clean-360, train-other-500]
+  format: "FLAC audio + TXT transcripts in standard LibriSpeech directory tree"
+  source_reference: "https://openslr.org/12 (reference only)"

@@ -2,9 +2,9 @@
 
 Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
-Current cut: T1 (gate complete — T0 through T1.3 all done)
-Current phase: Phase 1
-Current task: Task T2.1
+Current cut: T2
+Current phase: Phase 2
+Current task: Task T2.2 (blocked: librispeech_dev_clean_missing)
 
 ## Completed
 
@@ -16,10 +16,11 @@ Current task: Task T2.1
 - T1.1: Apptainer environment configured. Image `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` (~3.22 GiB) confirmed readable from datamove1 and from the Slurm execution context (re-using T0.5 job `2125754` evidence on `aisurrey01.surrey.ac.uk`). Python `3.10.13` inside the container (mismatch with plan §5 nominal 3.11 recorded; acceptance gated on T1.2 dependency imports). `slurm/templates/apptainer_job_template.job` already encodes the required absolute-path, `--env`-only, no-`--bind`, no-`--pwd`, no-`--nv` pattern; no new T1.1 probe job submitted; no venv-based training execution path introduced. YAML drift on `current_cut`/`current_phase` (T0/0 → T1/1) corrected as part of this closure.
 - T1.2: training dependencies installed into an external prefix (`$TRAIN_ROOT/python_env/site-packages-py310`), consumed at runtime via `PYTHONPATH=$REPO:$PREFIX` with `PYTHONNOUSERSITE=1` and `python3 -s` to keep `~/.local` out of the import path. PyTorch 2.1.0, torchaudio 2.1.0 and numpy 1.26.0 remain image-resident under `/opt/conda` (not reinstalled, not shadowed). All required project modules import from the live repo; `openai-whisper`, all pyproject deps, and the audio IO stack import from the prefix. Python `3.10.13` accepted as the runtime gate. No `requirements.lock.x86_64` generated. No venv-based Slurm execution path introduced.
 - T1.3: audio processing gate job passed. Synthetic 2-second 440 Hz WAV generated, processed through `libs.audio_pipeline.pipeline.apply_preset("denoise")` (high-pass filter + gain normalization), output validated. Job `2125808` ran on `aisurrey03.surrey.ac.uk`, sacct state `COMPLETED`, exit code `0:0`. Output peak `0.950012` (target 0.95). `libs.audio_pipeline.pipeline` resolved from REPO; `numpy` from `/opt/conda`; `scipy` and `soundfile` from PREFIX. `PYTHONNOUSERSITE=1` enforced; `site.ENABLE_USER_SITE=False`; no user-local module paths detected. Cut T1 gate complete.
+- T2.1: LibriSpeech source configuration defined at `configs/training/librispeech_sources.yaml`. Authoritative dataset root at `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech` confirmed via bounded find. Splits `test-clean` and `train-clean-100` present; `dev-clean`, `dev-other`, `test-other`, `train-clean-360`, `train-other-500` missing. Forum-build copies excluded (different project context). No download, no manifest, no Slurm job. YAML valid. T2.2 blocked on `dev-clean` missing.
 
 ## Current blocker
 
-None. Cut T0 (datamove1 bootstrap) is complete; T1.1 (Apptainer environment), T1.2 (training dependencies), and T1.3 (audio processing gate) are complete. Cut T1 gate closed.
+`librispeech_dev_clean_missing` — `dev-clean` is required before T2.2 can run. It is not present at the authoritative source root `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/`. Staging `dev-clean` (and `train-clean-100` for T5) requires explicit approval before T2.2 starts.
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -181,6 +182,24 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | `success` | `true` |
 | Stdout terminal line | `T1.3 COMPLETE` |
 
+## T2.1 closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Config created | `configs/training/librispeech_sources.yaml` |
+| YAML valid | `python3 yaml.safe_load` → OK |
+| Bounded search 1 | `find /mnt/fast/nobackup/scratch4weeks/gb0048 -maxdepth 5 -type d ( -name dev-clean -o -name dev-other -o -name test-clean … )` |
+| Bounded search 2 | `find /mnt/fast/nobackup/users/gb0048 -maxdepth 5 -type d ( -name dev-clean -o … )` → no matches |
+| Authoritative source root | `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech` |
+| Splits present | `test-clean`, `train-clean-100` |
+| Splits missing | `dev-clean`, `dev-other`, `test-other`, `train-clean-360`, `train-other-500` |
+| Forum-build copies | Excluded — different project context |
+| `dev-clean` required before T2.2 | true |
+| Output manifest path | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl` |
+| Download performed | false |
+| Slurm job submitted | false |
+| Manifest generated | false |
+
 ## Next task
 
-Task T2.1. Prepare LibriSpeech source configuration.
+Task T2.2. Create dataset manifest. **Blocked**: `dev-clean` must be staged to the authoritative source root before T2.2 can run. Requires explicit approval from Gabriel.

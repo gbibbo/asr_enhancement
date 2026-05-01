@@ -1,11 +1,11 @@
 branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
-current_cut: T1
-current_phase: 1
-current_task: "T2.1"
-last_completed_task: "T1.3"
-blocked: false
-blocker: null
+current_cut: T2
+current_phase: 2
+current_task: "T2.2"
+last_completed_task: "T2.1"
+blocked: true
+blocker: "librispeech_dev_clean_missing"
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
 datamove1_status: ready_for_training_setup
 slurm_status: verified_via_wrapper
@@ -159,6 +159,41 @@ t1_3_evidence:
   site_user_site_in_sys_path: false
   any_user_local_module_paths_detected: false
   success: true
+t2_1_evidence:
+  config_path: configs/training/librispeech_sources.yaml
+  bounded_search_commands:
+    - "find /mnt/fast/nobackup/scratch4weeks/gb0048 -maxdepth 5 -type d ( -name dev-clean -o -name dev-other -o -name test-clean -o -name test-other -o -name train-clean-100 -o -name train-clean-360 -o -name train-other-500 ) -print"
+    - "find /mnt/fast/nobackup/users/gb0048 -maxdepth 5 -type d ( -name dev-clean -o ... ) -print"
+  authoritative_source_root: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech
+  present_splits:
+    - test-clean
+    - train-clean-100
+  missing_splits:
+    - dev-clean
+    - dev-other
+    - test-other
+    - train-clean-360
+    - train-other-500
+  ignored_forum_build_copies:
+    - /mnt/fast/nobackup/scratch4weeks/gb0048/forum_build/sources/staged/S001
+    - /mnt/fast/nobackup/scratch4weeks/gb0048/forum_build/work/speech_candidates/S001
+  ignored_reason: different project context; derived/work copies not used as source of truth
+  dataset_root_defined: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech
+  output_manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
+  allowed_splits_for_baseline: [dev-clean]
+  allowed_splits_for_training: [train-clean-100]
+  staging_status: partial_existing_source
+  staging_completed: false
+  manifest_generation_ready: false
+  dev_clean_required_before_t2_2: true
+  t2_2_blocked_until_dev_clean_present: true
+  minimum_required_splits_before_t2_2:
+    - dev-clean
+    - train-clean-100
+  download_performed: false
+  slurm_job_required: false
+  slurm_job_submitted: false
+  yaml_validation: "python3 yaml.safe_load → OK"
 tasks:
   "T0.1": done
   "T0.2": done
@@ -168,7 +203,7 @@ tasks:
   "T1.1": done
   "T1.2": done
   "T1.3": done
-  "T2.1": pending
+  "T2.1": done
   "T2.2": pending
   "T2.3": pending
   "T2.4": pending
