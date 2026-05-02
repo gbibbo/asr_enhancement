@@ -1,9 +1,14 @@
 from libs.audio.enhancement import (
+    BYPASS_ENHANCER_VERSION,
     BYPASS_PRESET_ID,
     KNOWN_PRESET_IDS,
+    METRICGAN_PLUS_ENHANCER_VERSION,
     PRESET_REGISTRY,
+    BypassEnhancer,
+    EnhancerAdapter,
     EnhancementPreset,
     EnhancementResult,
+    MetricGANPlusEnhancer,
     UnknownPresetError,
     apply_preset,
     get_preset,
@@ -25,6 +30,11 @@ from libs.audio.degradations import (
 )
 
 __all__ = [
+    "EnhancerAdapter",
+    "BypassEnhancer",
+    "MetricGANPlusEnhancer",
+    "BYPASS_ENHANCER_VERSION",
+    "METRICGAN_PLUS_ENHANCER_VERSION",
     "EnhancementPreset",
     "EnhancementResult",
     "BYPASS_PRESET_ID",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
@@ -8,6 +9,37 @@ from typing import Any, Optional
 import numpy as np
 import soundfile as sf
 from scipy.signal import butter, sosfilt
+
+
+# ---------------------------------------------------------------------------
+# Enhancer adapter interface (B5.3)
+#
+# BYPASS_ENHANCER_VERSION and METRICGAN_PLUS_ENHANCER_VERSION are the version
+# strings returned by each adapter. They feed into the cache key via the worker
+# when the enhancer interface is wired (B5.4+).
+#
+# DEFAULT_ENHANCER_VERSION in libs/common/versions.py is left unchanged by B5.3.
+# Cache-key / default-version alignment is deferred to the worker-integration task.
+# The demo runtime will explicitly pass BypassEnhancer().enhancer_version once wired.
+# ---------------------------------------------------------------------------
+
+BYPASS_ENHANCER_VERSION: str = "bypass"
+METRICGAN_PLUS_ENHANCER_VERSION: str = "metricgan_plus_pretrained"
+
+
+class EnhancerAdapter(abc.ABC):
+    """Shared interface for all audio enhancers used by the demo runtime.
+
+    Both BypassEnhancer and MetricGANPlusEnhancer implement this interface so
+    the worker can call enhance() without knowing which enhancer is active.
+    """
+
+    @property
+    @abc.abstractmethod
+    def enhancer_version(self) -> str: ...
+
+    @abc.abstractmethod
+    def enhance(self, audio_path: Path, output_dir: Path, job_id: str) -> "EnhancementResult": ...
 
 
 # ---------------------------------------------------------------------------
@@ -168,3 +200,37 @@ def _validate_output(path: Path) -> bool:
         return info.frames > 0
     except Exception:
         return False
+
+
+# ---------------------------------------------------------------------------
+# Concrete enhancer classes (B5.3)
+# ---------------------------------------------------------------------------
+
+
+class BypassEnhancer(EnhancerAdapter):
+    """Honest no-op enhancer. Passes audio to ASR without modification."""
+
+    @property
+    def enhancer_version(self) -> str:
+        return BYPASS_ENHANCER_VERSION
+
+    def enhance(self, audio_path: Path, output_dir: Path, job_id: str) -> EnhancementResult:
+        return apply_preset(BYPASS_PRESET_ID, audio_path, output_dir)
+
+
+class MetricGANPlusEnhancer(EnhancerAdapter):
+    """Empty MetricGAN+ pretrained hook.
+
+    B5.3 owns the interface. T4.1 in feature/training-datamove1-v1 fills this
+    class. Do not add a second MetricGAN+ implementation outside this class.
+    """
+
+    @property
+    def enhancer_version(self) -> str:
+        return METRICGAN_PLUS_ENHANCER_VERSION
+
+    def enhance(self, audio_path: Path, output_dir: Path, job_id: str) -> EnhancementResult:
+        raise NotImplementedError(
+            "MetricGAN+ implementation is owned by task T4.1 in the training branch. "
+            "Use BypassEnhancer until T4.1 is merged into demo-rp5-v1."
+        )
