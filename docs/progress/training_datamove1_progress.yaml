@@ -441,6 +441,33 @@ t3_2a_evidence:
   smoke_error_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2a_degradation_bank_smoke_2125896.err
   summary_report: reports/training/degradation_bank_v1.md
   t3_2_unblocked: true
+t3_2a_apptainer_runtime_validation:
+  pytest_job_id: "2125898"
+  pytest_result: "failed_before_code_execution"
+  pytest_failure_reason: "pytest_not_installed_in_runtime"
+  pytest_stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2a_pytest_degradations_2125898.out
+  pytest_stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2a_pytest_degradations_2125898.err
+  inline_validation_job_id: "2125899"
+  inline_validation_sacct_state: COMPLETED
+  inline_validation_exit_code: "0:0"
+  inline_validation_elapsed: "00:00:02"
+  inline_validation_execution_node: aisurrey03.surrey.ac.uk
+  inline_validation_command: "python3 -s inline assertions for libs.audio.degradations"
+  runtime: apptainer
+  container: /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif
+  stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2a_degradations_inline_validation_2125899.out
+  stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2a_degradations_inline_validation_2125899.err
+  slurm_script: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/tmp/t3_2a_degradations_inline_validation.sh
+  result: passed
+  assertions_covered:
+    - DEGRADATION_VERSION == "degradation_v1"
+    - registry keys equal expected five families
+    - stochastic / deterministic family sets correct
+    - DEGRADATION_PARAMS keys equal family registry
+    - apply_degradation contract (1-D, length preserved, finite, peak <= 0.9501)
+    - same (utt, family) deterministic for all five families
+    - stochastic families differ across utterance_id
+    - deterministic families ignore utterance_id
 tasks:
   "T0.1": done
   "T0.2": done

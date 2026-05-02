@@ -396,6 +396,20 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | Result commit | `c4ee5f4` |
 | Summary report (Git) | `reports/training/degradation_bank_v1.md` |
 
+### Apptainer runtime validation (post-T3.2a)
+
+| Field | Value |
+|---|---|
+| Pytest job (rejected) | `2125898` — FAILED 1:0, `pytest` not installed in runtime; no degradation code exercised |
+| Pytest stdout / stderr | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2a_pytest_degradations_2125898.{out,err}` |
+| Inline validation job | `2125899` — COMPLETED 0:0, elapsed 00:00:02, aisurrey03 |
+| Inline validation runtime | Apptainer `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` |
+| Inline validation command | `python3 -s` inline assertions for `libs.audio.degradations` |
+| Inline validation script | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/tmp/t3_2a_degradations_inline_validation.sh` (scratch, not committed) |
+| Inline stdout / stderr | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2a_degradations_inline_validation_2125899.{out,err}` |
+| Result | `T3.2a inline degradation validation PASSED` |
+| Assertions covered | `DEGRADATION_VERSION == "degradation_v1"`; registry keys; stochastic/deterministic sets; `DEGRADATION_PARAMS` keys; `apply_degradation` 1-D / length preserved / finite / peak ≤ 0.9501; same (utt, family) deterministic for every family; stochastic families differ across `utterance_id`; deterministic families ignore `utterance_id` |
+
 ## Next task
 
 Task T3.2. Run degraded-audio Whisper baseline. **Unblocked.** Consume `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` (SHA-256 `c6f87452f146…`).
