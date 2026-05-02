@@ -163,11 +163,8 @@ def main() -> int:
     evidence["manifest_records"] = line_count
     print(f"Manifest records: {line_count}")
 
-    if line_count != 2703:
-        failures.append(
-            f"FATAL: manifest line count is {line_count}, expected 2703 "
-            f"(manifest may have changed)"
-        )
+    if line_count == 0:
+        failures.append("FATAL: manifest is empty")
         _write_summary(args.summary, evidence)
         print(f"T2.4 FAILED: {failures}")
         return 1
@@ -182,7 +179,14 @@ def main() -> int:
     print(f"SHA-256 prefix: {sha256_prefix}")
 
     # --- Phase 5: Assemble dataset version ---
-    dataset_version = f"librispeech_devclean_v1_exclpending_sha256_{sha256_prefix}"
+    # Version string encodes exclusion status and excluded count:
+    #   pending_public_examples → exclpending
+    #   complete with n excluded IDs → excl{n}
+    if excl_status == "complete":
+        excl_tag = f"excl{len(excl_ids)}"
+    else:
+        excl_tag = "exclpending"
+    dataset_version = f"librispeech_devclean_v1_{excl_tag}_sha256_{sha256_prefix}"
     evidence["dataset_version"] = dataset_version
     print(f"Dataset version: {dataset_version}")
 
@@ -215,7 +219,7 @@ def main() -> int:
             "rerun_required_after_b6_2": rerun_required,
         },
         "manifest": {
-            "path": output_manifest_path or args.manifest,
+            "path": args.manifest,  # always use the manifest actually hashed
             "records": line_count,
             "sha256": sha256_full,
             "size_bytes": stat.st_size,
@@ -236,28 +240,60 @@ def main() -> int:
     report_path = pathlib.Path(args.report)
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
-    report_lines = [
-        "# Dataset Version: T2.4",
-        "",
-        f"**dataset_version:** `{dataset_version}`",
-        "",
-        "## Manifest",
-        "",
-        f"- **Path:** `{output_manifest_path or args.manifest}`",
-        f"- **Records:** {line_count}",
-        f"- **SHA-256:** `{sha256_full}`",
-        "",
-        "## Exclusion policy",
-        "",
-        f"- **Status:** `{excl_status}`",
-        f"- **Filtered manifest:** `{filtered_manifest}`",
-        "",
-        "## Gates",
-        "",
-        "- T2.3 must be re-run after B6.2 produces `demo_examples.json`.",
-        "- T3.1 must not run while `configs/training/public_examples_excluded.yaml`",
-        "  has `status: pending_public_examples`.",
-    ]
+    if excl_status == "complete":
+        _source_manifest_sha = "bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f"
+        _source_manifest_records = 2703
+        report_lines = [
+            "# Dataset Version: T2.4 (updated T2.3b)",
+            "",
+            f"**dataset_version:** `{dataset_version}`",
+            "",
+            "## Active manifest (filtered)",
+            "",
+            f"- **Path:** `{args.manifest}`",
+            f"- **Records:** {line_count}",
+            f"- **SHA-256:** `{sha256_full}`",
+            "",
+            "## Exclusion",
+            "",
+            f"- **Status:** `{excl_status}`",
+            f"- **Excluded count:** {len(excl_ids)}",
+            f"- **Reserved examples config:** `configs/training/reserved_public_demo_examples.yaml`",
+            "",
+            "## Source manifest (unchanged)",
+            "",
+            f"- **Path:** `{sources_cfg.get('output_manifest_path', '')}`",
+            f"- **Records:** {_source_manifest_records}",
+            f"- **SHA-256:** `{_source_manifest_sha}`",
+            "",
+            "## Notes",
+            "",
+            "- B6.2 must consume the reserved examples from `configs/training/reserved_public_demo_examples.yaml`.",
+            "- T3.1 is unblocked (T2.3b complete).",
+        ]
+    else:
+        report_lines = [
+            "# Dataset Version: T2.4",
+            "",
+            f"**dataset_version:** `{dataset_version}`",
+            "",
+            "## Manifest",
+            "",
+            f"- **Path:** `{args.manifest}`",
+            f"- **Records:** {line_count}",
+            f"- **SHA-256:** `{sha256_full}`",
+            "",
+            "## Exclusion policy",
+            "",
+            f"- **Status:** `{excl_status}`",
+            f"- **Filtered manifest:** `{filtered_manifest}`",
+            "",
+            "## Gates",
+            "",
+            "- T2.3 must be re-run after B6.2 produces `demo_examples.json`.",
+            "- T3.1 must not run while `configs/training/public_examples_excluded.yaml`",
+            "  has `status: pending_public_examples`.",
+        ]
     with report_path.open("w") as fh:
         fh.write("\n".join(report_lines) + "\n")
     print(f"Written: {report_path}")

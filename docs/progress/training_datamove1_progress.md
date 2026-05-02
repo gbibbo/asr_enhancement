@@ -5,6 +5,7 @@ Integration branch: demo-rp5-v1
 Current cut: T2
 Current phase: Phase 2
 Current task: Task T3.1
+Last completed task: T2.3b
 
 ## Completed
 
@@ -21,15 +22,11 @@ Current task: Task T3.1
 - T2.3: public demo example exclusion gate created (placeholder mode). Job `2125885` ran on `aisurrey03.surrey.ac.uk`, sacct `COMPLETED 0:0`. B6 not yet started; no `demo_examples.json` found in bounded inspected locations (repo root, `configs/`, `configs/training/`, `docs/`). Exclusion config committed at `configs/training/public_examples_excluded.yaml` with `status: pending_public_examples`. Zero exclusions applied. Filtered manifest NOT written. T2.3 must be re-run after B6.2 closes. T3.1 must not run while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`.
 - T2.4: dataset version defined and manifest checksum recorded. Job `2125887` ran on `aisurrey03.surrey.ac.uk`, sacct `COMPLETED 0:0`. Version string `librispeech_devclean_v1_exclpending_sha256_bacd6f7ba89c` written to `configs/training/dataset_version.yaml`; SHA-256 `bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f` cross-checked with `sha256sum` (match). Report at `reports/training/dataset_version_v1.md`. `exclusion_policy.status: pending_public_examples` and `t3_blocked_while_pending: true` preserved. `later_tasks_must_embed_dataset_version: true` recorded.
 - T2.5: model card template created at `docs/model_card.md`. No Slurm required. Template/draft status: all training, evaluation, and artifact fields are explicit `<!-- PLACEHOLDER -->` markers (53 total). Pre-filled fields: dataset version, manifest path, manifest SHA-256 (2703 records), split policy, LibriSpeech CC BY 4.0 licence, degradation families, reference ASR, Apptainer image, Python version. Public examples exclusion gate prominently stated as `pending_public_examples`. `train-clean-100` present_empty caveat included. All 8 validation checks passed.
+- T2.3b: public examples exclusion gate resolved. Phase A — reserved 10 dev-clean examples deterministically (job `2125890`, aisurrey03, COMPLETED 0:0); sanity check matched expected ordered list; all SHA-256 hashes computed. Phase B — `public_examples_excluded.yaml` updated to `status: complete`. T2.3 re-run in complete mode (job `2125891`, aisurrey03, COMPLETED 0:0); filtered manifest written at scratch path; 2693 records; validation passed; no excluded IDs remain; source manifest SHA-256 unchanged. T2.4 re-run (job `2125892`, aisurrey03, COMPLETED 0:0); new dataset version `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`; YAML validation OK. `docs/model_card.md` updated; TEMPLATE/DRAFT status preserved. T3.1 unblocked.
 
 ## Current blocker
 
-**Blocked: `public_examples_exclusion_pending`** (2026-05-02)
-
-T2.5 is complete. T3.1 is the next task, but it is blocked until T2.3 is re-run after B6.2 closes and `configs/training/public_examples_excluded.yaml` no longer has `status: pending_public_examples`.
-
-- T2.3 must be re-run after B6.2 produces `demo_examples.json`.
-- T3.1 must not run while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`.
+None. T2.3b complete (2026-05-02). T3.1 is unblocked.
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -330,6 +327,4 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 
 ## Next task
 
-Task T3.1. Run clean-audio Whisper baseline.
-
-**Gated:** T3.1 must not start while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`. Re-run T2.3 after B6.2 closes first.
+Task T3.1. Run clean-audio Whisper baseline. T3.1 is now unblocked (T2.3b complete).

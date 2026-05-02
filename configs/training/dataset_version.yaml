@@ -1,11 +1,11 @@
-dataset_version: librispeech_devclean_v1_exclpending_sha256_bacd6f7ba89c
+dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
 dataset_version_components:
   source: librispeech
   splits: &id001
   - dev-clean
   split_policy: dev_clean_only
-  exclusion_policy: pending_public_examples
-  manifest_sha256_prefix: bacd6f7ba89c
+  exclusion_policy: complete
+  manifest_sha256_prefix: dc6674bcf7a8
 source:
   dataset: LibriSpeech
   root: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech
@@ -16,18 +16,18 @@ split_policy:
   training:
   - train-clean-100
 exclusion_policy:
-  status: pending_public_examples
-  filled_after_demo_task: B6.2
-  excluded_ids_count: 0
-  excluded_hashes_count: 0
-  filtered_manifest_path: null
-  t3_blocked_while_pending: true
-  rerun_required_after_b6_2: true
+  status: complete
+  filled_after_demo_task: null
+  excluded_ids_count: 10
+  excluded_hashes_count: 10
+  filtered_manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered.jsonl
+  t3_blocked_while_pending: false
+  rerun_required_after_b6_2: false
 manifest:
-  path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
-  records: 2703
-  sha256: bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f
-  size_bytes: 1958566
-  mtime_utc: '2026-05-02T00:24:23.961353Z'
+  path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered.jsonl
+  records: 2693
+  sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  size_bytes: 1951481
+  mtime_utc: '2026-05-02T03:25:20.377901Z'
 later_tasks_must_embed_dataset_version: true
 generated_by: scripts/training/t2_4_define_dataset_version.py

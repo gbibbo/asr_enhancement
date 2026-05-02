@@ -28,7 +28,10 @@ PREFIX="$TRAIN_ROOT/python_env/site-packages-py310"
 
 SOURCES_CONFIG="$REPO/configs/training/librispeech_sources.yaml"
 EXCLUSION_CONFIG="$REPO/configs/training/public_examples_excluded.yaml"
-MANIFEST="$TRAIN_ROOT/datasets/librispeech_manifest_v1.jsonl"
+# After T2.3b the active dataset manifest is the filtered manifest (2693 records).
+# The original source manifest (librispeech_manifest_v1.jsonl, 2703 records) is unchanged
+# and preserved at scratch but is no longer the active dataset for T3.1 onwards.
+MANIFEST="$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered.jsonl"
 OUT_CONFIG="$REPO/configs/training/dataset_version.yaml"
 REPORT_OUT="$REPO/reports/training/dataset_version_v1.md"
 SUMMARY_OUT="$TRAIN_ROOT/artifacts/t2_4_dataset_version_${SLURM_JOB_ID:-local}.json"
@@ -75,11 +78,12 @@ import yaml, sys
 d = yaml.safe_load(open('${OUT_CONFIG}'))
 assert d['dataset_version'], 'missing dataset_version'
 assert len(d['manifest']['sha256']) == 64, 'sha256 must be 64 hex chars'
-assert d['manifest']['records'] == 2703, f'records mismatch: {d[\"manifest\"][\"records\"]}'
-assert d['exclusion_policy']['status'] == 'pending_public_examples', 'wrong exclusion status'
-assert d['exclusion_policy']['t3_blocked_while_pending'] == True, 't3 gate must be True'
+assert d['manifest']['records'] == 2693, f'records mismatch: {d[\"manifest\"][\"records\"]}'
+assert d['exclusion_policy']['status'] == 'complete', f'expected complete, got {d[\"exclusion_policy\"][\"status\"]}'
+assert d['exclusion_policy']['t3_blocked_while_pending'] == False, 't3 gate must be False after complete'
 sha_prefix = d['manifest']['sha256'][:12]
 assert sha_prefix in d['dataset_version'], 'sha256 prefix not in version string'
+assert 'excl10' in d['dataset_version'], 'excl10 tag not in version string'
 print('version:      ', d['dataset_version'])
 print('sha256:       ', d['manifest']['sha256'])
 print('records:      ', d['manifest']['records'])

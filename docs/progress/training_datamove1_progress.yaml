@@ -3,13 +3,13 @@ integration_branch: demo-rp5-v1
 current_cut: T2
 current_phase: 2
 current_task: "T3.1"
-last_completed_task: "T2.5"
-blocked: true
-blocker: "public_examples_exclusion_pending"
-public_examples_exclusion_status: pending_public_examples
-public_examples_exclusion_rerun_required: true
-public_examples_exclusion_rerun_after: B6.2
-t3_blocked_if_public_examples_pending: true
+last_completed_task: "T2.3b"
+blocked: false
+blocker: null
+public_examples_exclusion_status: complete
+public_examples_exclusion_rerun_required: false
+public_examples_exclusion_rerun_after: null
+t3_blocked_if_public_examples_pending: false
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
 datamove1_status: ready_for_training_setup
 slurm_status: verified_via_wrapper
@@ -300,6 +300,51 @@ t2_5_evidence:
   manifest_sha256: bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f
   public_examples_exclusion_status: pending_public_examples
   t3_1_gate_note: "T3.1 must not run while configs/training/public_examples_excluded.yaml has status: pending_public_examples"
+t2_3b_evidence:
+  reserve_job_id: "2125890"
+  reserve_sacct_state: COMPLETED
+  reserve_exit_code: "0:0"
+  reserve_execution_node: aisurrey03.surrey.ac.uk
+  reserve_elapsed: "00:00:01"
+  reserve_output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_3b_reserve_demo_2125890.out
+  reserve_summary_artifact: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_3b_reserve_2125890.json
+  reserved_examples_config: configs/training/reserved_public_demo_examples.yaml
+  selected_utterance_ids:
+    - "1272-128104-0000"
+    - "1462-170138-0001"
+    - "1673-143396-0002"
+    - "174-168635-0000"
+    - "1919-142785-0003"
+    - "1988-147956-0002"
+    - "1993-147149-0000"
+    - "2035-147960-0000"
+    - "2078-142845-0009"
+    - "2086-149214-0000"
+  excluded_ids_count: 10
+  excluded_hashes_count: 10
+  t2_3_rerun_job_id: "2125891"
+  t2_3_rerun_sacct_state: COMPLETED
+  t2_3_rerun_exit_code: "0:0"
+  t2_3_rerun_execution_node: aisurrey03.surrey.ac.uk
+  t2_3_rerun_elapsed: "00:00:08"
+  t2_3_rerun_output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_3_exclude_examples_2125891.out
+  t2_3_rerun_summary_artifact: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_3_exclude_summary_2125891.json
+  source_manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
+  source_manifest_records: 2703
+  source_manifest_sha256: bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f
+  filtered_manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered.jsonl
+  filtered_manifest_records: 2693
+  filtered_manifest_sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  t2_4_rerun_job_id: "2125892"
+  t2_4_rerun_sacct_state: COMPLETED
+  t2_4_rerun_exit_code: "0:0"
+  t2_4_rerun_execution_node: aisurrey03.surrey.ac.uk
+  t2_4_rerun_elapsed: "00:00:01"
+  t2_4_rerun_output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_4_dataset_version_2125892.out
+  t2_4_rerun_summary_artifact: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_4_dataset_version_2125892.json
+  new_dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+  model_card_updated: true
+  t3_unblocked: true
 tasks:
   "T0.1": done
   "T0.2": done
@@ -311,7 +356,8 @@ tasks:
   "T1.3": done
   "T2.1": done
   "T2.2": done
-  "T2.3": placeholder_pending_b6
+  "T2.3": done
+  "T2.3b": done
   "T2.4": done
   "T2.5": done
   "T3.1": pending

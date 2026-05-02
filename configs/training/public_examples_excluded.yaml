@@ -1,12 +1,34 @@
-# Placeholder exclusion gate for public demo examples.
-# Re-run T2.3 after B6.2 produces demo_examples.json.
-# T3.1 must fail while status remains pending_public_examples.
-status: pending_public_examples
+status: complete
 source_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
-filtered_manifest: null
-filled_after_demo_task: B6.2
-excluded_ids: []
-excluded_audio_sha256: []
-t3_blocked_while_pending: true
-rerun_required_after_b6_2: true
-notes: "Placeholder gate. Re-run T2.3 after B6.2 produces demo_examples.json. T3.1 must fail while status remains pending_public_examples."
+filtered_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered.jsonl
+filled_by: training_datamove1_reserved_demo_examples
+filled_for_future_demo_task: B6.2
+excluded_ids:
+- 1272-128104-0000
+- 1462-170138-0001
+- 1673-143396-0002
+- 174-168635-0000
+- 1919-142785-0003
+- 1988-147956-0002
+- 1993-147149-0000
+- 2035-147960-0000
+- 2078-142845-0009
+- 2086-149214-0000
+excluded_audio_sha256:
+- 4e25e22555cd16e90edb0a3b49fdcf1fe652b2a1250ab643634db33895c75b41
+- 0962f97611ce393f6b507e372e5768eda3545b2bd4517571085203ee13ab05e2
+- d6dfc50025e5af2388d576375e589b265295cdfc6408730667c9c8bc8b9a001c
+- dbb765967c6a51c8e794fb0098240b1e070c6b1bf0594b218570631604aab38f
+- a94224c80d76de097d12c6b2daa6ec9481c86261637afe64887a85ea18221c41
+- 1ddf444b2dd7b371463678a8518c17217440e2a545f25bf9cfdce40a6043b9c1
+- bb557af288dd9ea04147b8655e274e0a31a981beab456e75bc53a6e138c5a43c
+- 0ee6731694bcc55349cf4f70123aaff81a7779c782c4a3ec4579b243b1552748
+- a69addc34aeb65fb11042ecde8303217eb2a6cd185e5b8e51c14ed72456aa45c
+- eea381d7cfb33707d92d56bacb9222accd15a59c5b5ffa6a3bd22dfe5956b332
+t3_blocked_while_pending: false
+rerun_required_after_b6_2: false
+notes: 'Reserved 10 public demo examples selected deterministically from dev-clean
+  manifest by training_datamove1 (T2.3b). B6.2 must consume this reserved set from
+  configs/training/reserved_public_demo_examples.yaml rather than selecting independently.
+  Selection rule: one per speaker, sort by (speaker_id, utterance_id), first 10 speakers,
+  duration 3-10s, sample_rate 16000, non-empty transcript.'
