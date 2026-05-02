@@ -114,7 +114,7 @@ Reference: [`reports/training/dataset_version_v1.md`](../reports/training/datase
 
 ## Degradation bank
 
-Five official degradation families are applied to training and evaluation audio. Parameters are frozen at degradation version `<!-- PLACEHOLDER: DEGRADATION_VERSION, set at B7 -->`.
+Five official degradation families are applied to training and evaluation audio. Parameters are frozen at degradation version `degradation_v1`.
 
 | Family | Description |
 |---|---|
@@ -125,7 +125,7 @@ Five official degradation families are applied to training and evaluation audio.
 | `broadband_hiss` | Broadband white/pink hiss overlay |
 
 Degradation implementation: `libs/audio/degradations.py`
-Degradation version: `<!-- PLACEHOLDER: DEGRADATION_VERSION (defined in libs/common/versions.py at B7) -->`
+Degradation version: `degradation_v1` (defined in `libs/common/versions.py`, frozen at T3.2a)
 
 ---
 
@@ -147,7 +147,7 @@ No training has been run yet. This section will be completed by tasks T5–T6.
 | Batch size | `<!-- PLACEHOLDER: set in training config -->` |
 | Random seed | `<!-- PLACEHOLDER: set in training config -->` |
 | Dataset version | `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` |
-| Degradation version | `<!-- PLACEHOLDER: DEGRADATION_VERSION -->` |
+| Degradation version | `degradation_v1` |
 | Metrics version | `metrics_v1` |
 | Output artifact root | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/<run_id>/` |
 
@@ -278,7 +278,7 @@ Handoff procedure (defined in training plan T8.3):
 | Branch | `feature/training-datamove1-v1` |
 | Apptainer image | `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` |
 | Python (container) | 3.10.13 |
-| Degradation version | `<!-- PLACEHOLDER: DEGRADATION_VERSION -->` |
+| Degradation version | `degradation_v1` |
 | Metrics version | `metrics_v1` |
 | Training run ID | `<!-- PLACEHOLDER: assigned at run time -->` |
 | Training git commit | `<!-- PLACEHOLDER: record after job submission -->` |

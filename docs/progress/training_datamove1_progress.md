@@ -5,9 +5,9 @@ Integration branch: demo-rp5-v1
 Current cut: T3
 Current phase: Phase 3
 Current task: Task T3.2
-Last completed task: T3.1
-Blocked: true
-Blocker: degradation_bank_not_ready
+Last completed task: T3.2a
+Blocked: false
+Blocker: none
 
 ## Completed
 
@@ -26,16 +26,11 @@ Blocker: degradation_bank_not_ready
 - T2.5: model card template created at `docs/model_card.md`. No Slurm required. Template/draft status: all training, evaluation, and artifact fields are explicit `<!-- PLACEHOLDER -->` markers (53 total). Pre-filled fields: dataset version, manifest path, manifest SHA-256 (2703 records), split policy, LibriSpeech CC BY 4.0 licence, degradation families, reference ASR, Apptainer image, Python version. Public examples exclusion gate prominently stated as `pending_public_examples`. `train-clean-100` present_empty caveat included. All 8 validation checks passed.
 - T2.3b: public examples exclusion gate resolved. Phase A — reserved 10 dev-clean examples deterministically (job `2125890`, aisurrey03, COMPLETED 0:0); sanity check matched expected ordered list; all SHA-256 hashes computed. Phase B — `public_examples_excluded.yaml` updated to `status: complete`. T2.3 re-run in complete mode (job `2125891`, aisurrey03, COMPLETED 0:0); filtered manifest written at scratch path; 2693 records; validation passed; no excluded IDs remain; source manifest SHA-256 unchanged. T2.4 re-run (job `2125892`, aisurrey03, COMPLETED 0:0); new dataset version `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`; YAML validation OK. `docs/model_card.md` updated; TEMPLATE/DRAFT status preserved. T3.1 unblocked.
 - T3.1: clean-audio Whisper baseline complete. Smoke: job `2125894`, 50 records, 0 failures, WER 0.1234. Full: job `2125895`, COMPLETED 0:0, 55:36 elapsed, 2693/2693 records, 0 failures. Results: mean_wer=0.0645, mean_word_accuracy=0.9361. `openai-whisper base.en 20250625`, `metrics_v1`. Predictions at scratch (not committed). Summary committed at `reports/training/baseline_clean_wer.md`. Model card updated. T3.2 requires degraded audio — see T3.2 prerequisite note.
+- T3.2a: degradation bank `degradation_v1` built. `libs/audio/degradations.py` defines five frozen families (`far_field_room`, `cafe_background`, `phone_call`, `muffled`, `broadband_hiss`); `apply_degradation` enforces length contract (output_samples == input_samples), finiteness, and peak ≤ 0.95; per-(utterance, family) seed via SHA-256. `DEGRADATION_VERSION = "degradation_v1"` set in `libs/common/versions.py`. Generation script writes to per-job staging tree, validates (manifest counts, source SHA, reserved-ID absence, format, length, deterministic recomputation of 50 entries) before atomic `os.replace` promotion to final tree. Smoke: job `2125896`, COMPLETED 0:0, 5 s elapsed, 50 files, 0 failures. Full: job `2125897`, COMPLETED 0:0, 02:59 elapsed, MaxRSS 3097852K, 2693 × 5 = 13 465 files, 0 failures. Per-family counts 2693 each. Source manifest SHA-256 unchanged (`dc6674bcf7a8…`). Final degraded manifest SHA-256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c`. Audio format WAV PCM_16, 16 kHz mono. Final audio root `$TRAIN_ROOT/datasets/degraded/degradation_v1`; final degraded manifest `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` (not committed). Reserved demo IDs absent from degraded manifest. `file_sha256.tsv` (13 465 lines) and `generation_summary.json` under run root, not committed. Summary committed at `reports/training/degradation_bank_v1.md`; model card `DEGRADATION_VERSION` placeholders replaced with `degradation_v1`. T3.2 unblocked.
 
 ## Current blocker
 
-**`degradation_bank_not_ready`** — T3.2 cannot start.
-
-T3.2 degraded baseline cannot start until the degradation bank exists, including:
-- `libs/audio/degradations.py`
-- degradation parameter/config definitions
-- degraded audio generation pipeline or degraded manifest/artifacts
-- evidence that degraded versions of the active dev-clean filtered manifest (2693 records) are available
+None.
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -370,6 +365,37 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 
 **T3.2 prerequisite note:** T3.2 (degraded baseline) requires degraded audio. The degradation bank is not yet built. T3.1 clean baseline is the sole T3.1 artefact.
 
+## T3.2a closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Smoke job ID | `2125896` |
+| Smoke sacct | COMPLETED 0:0, elapsed 00:00:05 |
+| Smoke files generated | 50 (10 records × 5 families), 0 failures |
+| Smoke run dir | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2a_bank_smoke_2125896` |
+| Full job ID | `2125897` |
+| Full sacct | COMPLETED 0:0, elapsed 00:02:59, MaxRSS 3097852K |
+| Full execution node | aisurrey03.surrey.ac.uk |
+| Full files generated | **13 465** (2693 × 5), 0 failures |
+| Per-family counts | 2693 × {`broadband_hiss`, `cafe_background`, `far_field_room`, `muffled`, `phone_call`} |
+| Final audio root | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/degraded/degradation_v1` |
+| Final degraded manifest | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` |
+| Final degraded manifest SHA-256 | `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c` |
+| Source manifest SHA-256 | `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` |
+| Source manifest unchanged | `True` |
+| Reserved demo IDs in degraded manifest | 0 |
+| Deterministic validation sample size | 50 |
+| `file_sha256.tsv` (13 465 lines) | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2a_bank_full_2125897/file_sha256.tsv` |
+| `generation_summary.json` | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2a_bank_full_2125897/generation_summary.json` |
+| Audio format | WAV, 16 kHz mono, PCM_16 |
+| Length contract | `output_samples == input_samples` enforced by `apply_degradation` |
+| Degradation version | `degradation_v1` |
+| Dataset version | `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` |
+| `git_commit_at_run` | `e89db8dcb9fbfb486930d697d9345b3361c6e93d` |
+| Prep commit | `e89db8d` |
+| Result commit | `PENDING_RESULT_COMMIT` |
+| Summary report (Git) | `reports/training/degradation_bank_v1.md` |
+
 ## Next task
 
-Task T3.2. Run degraded-audio Whisper baseline. **Blocked: `degradation_bank_not_ready`.**
+Task T3.2. Run degraded-audio Whisper baseline. **Unblocked.** Consume `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` (SHA-256 `c6f87452f146…`).
