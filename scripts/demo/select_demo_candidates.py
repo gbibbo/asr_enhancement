@@ -1,251 +1,222 @@
-"""Select 10 LibriSpeech test-clean utterances as B6.1 candidate examples.
+"""Import the datamove1 reserved public demo examples as B6.1 candidate manifest.
 
 Usage:
-    python scripts/demo/select_demo_candidates.py \\
-        --librispeech-root /path/to/LibriSpeech \\
-        --output config/demo_example_candidates.json \\
-        [--num-examples 10] \\
-        [--min-duration 5.0] \\
-        [--max-duration 15.0]
+    python scripts/demo/select_demo_candidates.py \
+        [--reserved-yaml-ref origin/feature/training-datamove1-v1] \
+        [--reserved-yaml-path configs/training/reserved_public_demo_examples.yaml] \
+        [--output config/demo_example_candidates.json]
 
---librispeech-root must point to the LibriSpeech root directory containing
-both test-clean/ and SPEAKERS.TXT, NOT directly to test-clean/.
-
-All 10 output entries have public_content_review: "pending_manual_review".
-Gabriel must review each entry and change this to "passed_manual_review"
+Reads the 10 reserved examples from the datamove1 branch via `git show`.
+Writes config/demo_example_candidates.json with public_content_review set to
+"pending_manual_review". Gabriel must review each entry and confirm approval
 before B6.1 can be marked done.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
 try:
-    import soundfile as sf
-except ImportError:  # pragma: no cover
-    print("ERROR: soundfile is required. Install it with: pip install soundfile", file=sys.stderr)
+    import yaml
+except ImportError:
+    print(
+        "ERROR: PyYAML is required. Install with: pip install PyYAML",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
-_TRAINING_SPLITS = frozenset({"train-clean-100", "train-clean-360", "train-other-500"})
-_TARGET_SPLIT = "test-clean"
-_SOURCE_DATASET = "librispeech"
+_DEFAULT_REF = "origin/feature/training-datamove1-v1"
+_DEFAULT_YAML_PATH = "configs/training/reserved_public_demo_examples.yaml"
+_DEFAULT_OUTPUT = "config/demo_example_candidates.json"
+_EXPECTED_COUNT = 10
 
 
 def _parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--librispeech-root", required=True, metavar="DIR",
-                   help="LibriSpeech root containing test-clean/ and SPEAKERS.TXT")
-    p.add_argument("--output", required=True, metavar="FILE",
-                   help="Output JSON path, e.g. config/demo_example_candidates.json")
-    p.add_argument("--num-examples", type=int, default=10, metavar="N",
-                   help="Number of examples to select (default: 10)")
-    p.add_argument("--min-duration", type=float, default=5.0, metavar="SEC",
-                   help="Minimum duration in seconds (default: 5.0)")
-    p.add_argument("--max-duration", type=float, default=15.0, metavar="SEC",
-                   help="Maximum duration in seconds (default: 15.0)")
+    p = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p.add_argument(
+        "--reserved-yaml-ref",
+        default=_DEFAULT_REF,
+        metavar="REF",
+        help=f"Git ref to read the reserved YAML from (default: {_DEFAULT_REF})",
+    )
+    p.add_argument(
+        "--reserved-yaml-path",
+        default=_DEFAULT_YAML_PATH,
+        metavar="PATH",
+        help=f"Path inside the ref to the reserved YAML (default: {_DEFAULT_YAML_PATH})",
+    )
+    p.add_argument(
+        "--output",
+        default=_DEFAULT_OUTPUT,
+        metavar="FILE",
+        help=f"Output JSON path (default: {_DEFAULT_OUTPUT})",
+    )
     return p.parse_args()
 
 
-def _validate_root(root: Path) -> None:
-    root_name = root.name.rstrip("/")
-    if root_name in ("test-clean", "test_clean"):
+def _git_show(ref: str, path: str) -> str:
+    result = subprocess.run(
+        ["git", "show", f"{ref}:{path}"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
         print(
-            "ERROR: --librispeech-root must point to the LibriSpeech root containing "
-            "test-clean/ and SPEAKERS.TXT, not directly to test-clean/.",
+            f"ERROR: `git show {ref}:{path}` failed (exit {result.returncode}):\n"
+            f"{result.stderr.strip()}",
             file=sys.stderr,
         )
         sys.exit(1)
-    if not root.is_dir():
-        print(f"ERROR: --librispeech-root does not exist or is not a directory: {root}", file=sys.stderr)
+    return result.stdout
+
+
+def _git_rev_parse(ref: str) -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", ref],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print(
+            f"ERROR: `git rev-parse {ref}` failed (exit {result.returncode}):\n"
+            f"{result.stderr.strip()}",
+            file=sys.stderr,
+        )
         sys.exit(1)
-    if not (root / _TARGET_SPLIT).is_dir():
-        print(f"ERROR: {root / _TARGET_SPLIT} not found. Is this the LibriSpeech root?", file=sys.stderr)
+    return result.stdout.strip()
+
+
+def _require(example: dict, field: str, index: int) -> object:
+    if field not in example:
+        print(
+            f"ERROR: entry [{index}] is missing required field '{field}'.",
+            file=sys.stderr,
+        )
         sys.exit(1)
-    if not (root / "SPEAKERS.TXT").is_file():
-        print(f"ERROR: SPEAKERS.TXT not found at {root / 'SPEAKERS.TXT'}.", file=sys.stderr)
-        sys.exit(1)
-
-
-def _parse_speakers(speakers_txt: Path) -> dict[str, str]:
-    gender: dict[str, str] = {}
-    for line in speakers_txt.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith(";"):
-            continue
-        parts = [p.strip() for p in line.split("|")]
-        if len(parts) >= 2:
-            sid = parts[0].strip()
-            sex = parts[1].strip().upper()
-            gender[sid] = sex if sex in ("M", "F") else "unknown"
-    return gender
-
-
-def _collect_candidates(
-    root: Path,
-    gender_map: dict[str, str],
-    min_dur: float,
-    max_dur: float,
-) -> list[dict]:
-    candidates = []
-    split_dir = root / _TARGET_SPLIT
-    for trans_file in sorted(split_dir.rglob("*.trans.txt")):
-        speaker_id = trans_file.parts[-3]
-        chapter_id = trans_file.parts[-2]
-        for line in trans_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            rec_id, _, transcript = line.partition(" ")
-            if not transcript:
-                continue
-            parts = rec_id.split("-")
-            if len(parts) != 3:
-                continue
-            s_id, c_id, u_id = parts
-            flac_path = trans_file.parent / f"{rec_id}.flac"
-            if not flac_path.is_file():
-                continue
-            try:
-                info = sf.info(str(flac_path))
-                duration = info.duration
-            except Exception:
-                continue
-            if not (min_dur <= duration <= max_dur):
-                continue
-            candidates.append({
-                "speaker_id": speaker_id,
-                "chapter_id": chapter_id,
-                "utterance_id": u_id,
-                "source_recording_id": rec_id,
-                "speaker_gender": gender_map.get(speaker_id, "unknown"),
-                "duration_seconds": round(duration, 3),
-                "ground_truth": transcript,
-                "source_audio_relpath": f"{_TARGET_SPLIT}/{speaker_id}/{chapter_id}/{rec_id}.flac",
-                "source_transcript_relpath": f"{_TARGET_SPLIT}/{speaker_id}/{chapter_id}/{speaker_id}-{chapter_id}.trans.txt",
-            })
-    return candidates
-
-
-def _select_with_gender_balance(
-    candidates: list[dict],
-    num: int,
-) -> list[dict]:
-    by_speaker: dict[str, list[dict]] = {}
-    for c in candidates:
-        by_speaker.setdefault(c["speaker_id"], []).append(c)
-
-    m_speakers = sorted(sid for sid, items in by_speaker.items() if items[0]["speaker_gender"] == "M")
-    f_speakers = sorted(sid for sid, items in by_speaker.items() if items[0]["speaker_gender"] == "F")
-    u_speakers = sorted(sid for sid, items in by_speaker.items() if items[0]["speaker_gender"] == "unknown")
-
-    ordered_speakers: list[str] = []
-    m_i, f_i = 0, 0
-    while len(ordered_speakers) < len(by_speaker):
-        if m_i < len(m_speakers):
-            ordered_speakers.append(m_speakers[m_i]); m_i += 1
-        if f_i < len(f_speakers):
-            ordered_speakers.append(f_speakers[f_i]); f_i += 1
-    for s in u_speakers:
-        if s not in ordered_speakers:
-            ordered_speakers.append(s)
-
-    selected: list[dict] = []
-    speaker_pool = list(ordered_speakers)
-    pool_idx = 0
-    while len(selected) < num and pool_idx < len(speaker_pool) * num:
-        sid = speaker_pool[pool_idx % len(speaker_pool)]
-        pool_idx += 1
-        already_used = {c["source_recording_id"] for c in selected}
-        for cand in by_speaker[sid]:
-            if cand["source_recording_id"] not in already_used:
-                selected.append(cand)
-                break
-
-    return selected[:num]
+    return example[field]
 
 
 def main() -> None:
     args = _parse_args()
-    root = Path(args.librispeech_root).resolve()
+    ref: str = args.reserved_yaml_ref
+    yaml_path: str = args.reserved_yaml_path
     output = Path(args.output)
-    num = args.num_examples
-    min_dur = args.min_duration
-    max_dur = args.max_duration
 
-    _validate_root(root)
+    yaml_text = _git_show(ref, yaml_path)
 
-    speakers_txt = root / "SPEAKERS.TXT"
-    gender_map = _parse_speakers(speakers_txt)
-    print(f"Parsed {len(gender_map)} speakers from SPEAKERS.TXT", file=sys.stderr)
+    try:
+        data = yaml.safe_load(yaml_text)
+    except yaml.YAMLError as exc:
+        print(f"ERROR: Failed to parse YAML from {ref}:{yaml_path}:\n{exc}", file=sys.stderr)
+        sys.exit(1)
 
-    candidates = _collect_candidates(root, gender_map, min_dur, max_dur)
-    print(f"Found {len(candidates)} candidates in [{min_dur}, {max_dur}]s range", file=sys.stderr)
-
-    if len(candidates) < num:
+    if not isinstance(data, dict) or "examples" not in data:
         print(
-            f"ERROR: Only {len(candidates)} candidates in [{min_dur}, {max_dur}]s range; "
-            f"need {num}. Widen duration range or check LibriSpeech root.",
+            f"ERROR: Expected a mapping with 'examples' key in {ref}:{yaml_path}.",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    distinct_speakers = {c["speaker_id"] for c in candidates}
-    if len(distinct_speakers) < 5:
+    examples = data["examples"]
+    if not isinstance(examples, list):
+        print("ERROR: 'examples' must be a list.", file=sys.stderr)
+        sys.exit(1)
+
+    if len(examples) != _EXPECTED_COUNT:
         print(
-            f"ERROR: Only {len(distinct_speakers)} distinct speakers in candidate pool; "
-            "need at least 5.",
+            f"ERROR: Expected exactly {_EXPECTED_COUNT} examples, got {len(examples)}.",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    selected = _select_with_gender_balance(candidates, num)
+    commit_sha = _git_rev_parse(ref)
+    print(f"Reading from {ref} at commit {commit_sha}", file=sys.stderr)
 
-    if len(selected) < num:
-        print(
-            f"ERROR: Could only select {len(selected)} examples after gender-balance pass; "
-            f"need {num}. Add more speakers or widen duration range.",
-            file=sys.stderr,
+    entries: list[dict] = []
+    for i, ex in enumerate(examples):
+        rec_id = str(_require(ex, "utterance_id", i))
+        parts = rec_id.split("-")
+        if len(parts) != 3:
+            print(
+                f"ERROR: entry [{i}] utterance_id '{rec_id}' is not in "
+                "speaker-chapter-utterance format.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        utterance_part = parts[2]
+        speaker_id = str(_require(ex, "speaker_id", i))
+        chapter_id = str(_require(ex, "chapter_id", i))
+        expected_rec_id = f"{speaker_id}-{chapter_id}-{utterance_part}"
+        if expected_rec_id != rec_id:
+            print(
+                f"ERROR: entry [{i}] rec_id mismatch: "
+                f"speaker_id/chapter_id give '{expected_rec_id}' but utterance_id is '{rec_id}'.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        split = str(_require(ex, "split", i))
+        transcript = str(_require(ex, "transcript", i)).strip()
+        if not transcript:
+            print(f"ERROR: entry [{i}] has an empty transcript.", file=sys.stderr)
+            sys.exit(1)
+        duration_seconds = float(_require(ex, "duration_seconds", i))
+
+        source_audio_relpath = f"{split}/{speaker_id}/{chapter_id}/{rec_id}.flac"
+        source_transcript_relpath = (
+            f"{split}/{speaker_id}/{chapter_id}/{speaker_id}-{chapter_id}.trans.txt"
         )
-        sys.exit(1)
 
-    selected_speakers = {c["speaker_id"] for c in selected}
-    if len(selected_speakers) < 5:
-        print(
-            f"ERROR: Selected set has only {len(selected_speakers)} distinct speakers; "
-            "need at least 5.",
-            file=sys.stderr,
+        selection_notes = (
+            f"Imported from datamove1 reserved set. "
+            f"Source ref: {ref} (commit {commit_sha}). "
+            f"Selection policy: one_per_speaker_deterministic_sort over dev-clean, "
+            f"duration 3.0-10.0s, exactly 10 distinct speakers. "
+            f"Gender metadata was not available in the datamove1 reserved YAML; "
+            f"speaker_gender is set to 'unknown' for all entries."
         )
-        sys.exit(1)
 
-    entries = []
-    for i, cand in enumerate(selected, start=1):
-        entries.append({
-            "chapter_id": cand["chapter_id"],
-            "duration_seconds": cand["duration_seconds"],
-            "example_id": f"ex{i:03d}",
+        entry: dict = {
+            "chapter_id": chapter_id,
+            "duration_seconds": duration_seconds,
+            "example_id": f"ex{i + 1:03d}",
             "excluded_from_training": True,
-            "ground_truth": cand["ground_truth"],
+            "ground_truth": transcript,
             "ground_truth_source": "librispeech_transcript",
             "public_content_review": "pending_manual_review",
-            "selection_notes": "",
-            "source_audio_relpath": cand["source_audio_relpath"],
-            "source_dataset": _SOURCE_DATASET,
-            "source_recording_id": cand["source_recording_id"],
-            "source_split": _TARGET_SPLIT,
-            "source_transcript_relpath": cand["source_transcript_relpath"],
-            "speaker_gender": cand["speaker_gender"],
-            "speaker_id": cand["speaker_id"],
-            "utterance_id": cand["utterance_id"],
-        })
+            "selection_notes": selection_notes,
+            "source_audio_relpath": source_audio_relpath,
+            "source_dataset": "librispeech",
+            "source_recording_id": rec_id,
+            "source_split": split,
+            "source_transcript_relpath": source_transcript_relpath,
+            "speaker_gender": "unknown",
+            "speaker_id": speaker_id,
+            "utterance_id": utterance_part,
+        }
+
+        sha256 = ex.get("audio_sha256")
+        if sha256 is not None:
+            entry["audio_sha256"] = str(sha256)
+
+        entries.append(entry)
 
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(entries, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(entries, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     print(f"Wrote {len(entries)} candidates to {output}", file=sys.stderr)
     print(
         "IMPORTANT: public_content_review is 'pending_manual_review' for all entries. "
-        "Review each entry and change to 'passed_manual_review' before committing.",
+        "Show the candidates to Gabriel and wait for explicit approval before changing "
+        "to 'passed_manual_review'.",
         file=sys.stderr,
     )
 

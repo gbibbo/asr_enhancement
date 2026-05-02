@@ -6,14 +6,29 @@ from pathlib import Path
 import pytest
 
 _CANDIDATE_FILE = Path("config/demo_example_candidates.json")
+_DEMO_EXAMPLES_FILE = Path("config/demo_examples.json")
 _EXPECTED_IDS = [f"ex{i:03d}" for i in range(1, 11)]
+_EXPECTED_SOURCE_RECORDING_IDS = [
+    "1272-128104-0000",
+    "1462-170138-0001",
+    "1673-143396-0002",
+    "174-168635-0000",
+    "1919-142785-0003",
+    "1988-147956-0002",
+    "1993-147149-0000",
+    "2035-147960-0000",
+    "2078-142845-0009",
+    "2086-149214-0000",
+]
 _VALID_GENDERS = {"M", "F", "unknown"}
-_TRAINING_SPLITS = {"train-clean-100", "train-clean-360", "train-other-500"}
 
 
 def _load() -> list[dict]:
     if not _CANDIDATE_FILE.is_file():
-        pytest.skip(f"{_CANDIDATE_FILE} does not exist yet (B6.1 blocked on LibriSpeech data)")
+        pytest.skip(
+            f"{_CANDIDATE_FILE} does not exist yet — "
+            "run scripts/demo/select_demo_candidates.py first"
+        )
     return json.loads(_CANDIDATE_FILE.read_text(encoding="utf-8"))
 
 
@@ -46,6 +61,16 @@ def test_all_recording_ids_unique():
     assert len(rids) == len(set(rids)), f"Duplicate source_recording_ids: {rids}"
 
 
+def test_all_recording_ids_match_datamove1_reserved_set():
+    data = _load()
+    actual = [e["source_recording_id"] for e in data]
+    assert actual == _EXPECTED_SOURCE_RECORDING_IDS, (
+        f"source_recording_id list does not match the datamove1 reserved set.\n"
+        f"Expected: {_EXPECTED_SOURCE_RECORDING_IDS}\n"
+        f"Got:      {actual}"
+    )
+
+
 def test_source_recording_id_matches_speaker_chapter_utterance():
     data = _load()
     for e in data:
@@ -60,15 +85,15 @@ def test_all_durations_in_valid_range():
     data = _load()
     for e in data:
         dur = e["duration_seconds"]
-        assert 5.0 <= dur <= 15.0, (
-            f"example_id={e['example_id']}: duration {dur} outside [5.0, 15.0]"
+        assert 3.0 <= dur <= 10.0, (
+            f"example_id={e['example_id']}: duration {dur} outside [3.0, 10.0]"
         )
 
 
-def test_at_least_five_distinct_speakers():
+def test_exactly_ten_distinct_speakers():
     data = _load()
     speakers = {e["speaker_id"] for e in data}
-    assert len(speakers) >= 5, f"Only {len(speakers)} distinct speakers: {speakers}"
+    assert len(speakers) == 10, f"Expected 10 distinct speakers, got {len(speakers)}: {speakers}"
 
 
 def test_all_have_nonempty_ground_truth():
@@ -87,10 +112,10 @@ def test_all_excluded_from_training():
         )
 
 
-def test_all_source_split_is_test_clean():
+def test_all_source_split_is_dev_clean():
     data = _load()
     for e in data:
-        assert e.get("source_split") == "test-clean", (
+        assert e.get("source_split") == "dev-clean", (
             f"example_id={e['example_id']}: source_split={e.get('source_split')!r}"
         )
 
@@ -109,6 +134,15 @@ def test_speaker_gender_field_valid():
         g = e.get("speaker_gender")
         assert g in _VALID_GENDERS, (
             f"example_id={e['example_id']}: speaker_gender={g!r} not in {_VALID_GENDERS}"
+        )
+
+
+def test_all_speaker_genders_unknown():
+    data = _load()
+    for e in data:
+        assert e.get("speaker_gender") == "unknown", (
+            f"example_id={e['example_id']}: speaker_gender={e.get('speaker_gender')!r}, "
+            "expected 'unknown' (gender metadata not available in datamove1)"
         )
 
 
@@ -131,12 +165,36 @@ def test_no_audio_path_inside_repo():
             )
 
 
+def test_audio_sha256_present():
+    data = _load()
+    for e in data:
+        assert "audio_sha256" in e, (
+            f"example_id={e['example_id']}: audio_sha256 field missing"
+        )
+        assert e["audio_sha256"], (
+            f"example_id={e['example_id']}: audio_sha256 is empty"
+        )
+
+
 def test_required_provenance_fields_present():
     required = {
-        "chapter_id", "duration_seconds", "example_id", "excluded_from_training",
-        "ground_truth", "ground_truth_source", "public_content_review", "selection_notes",
-        "source_audio_relpath", "source_dataset", "source_recording_id", "source_split",
-        "source_transcript_relpath", "speaker_gender", "speaker_id", "utterance_id",
+        "audio_sha256",
+        "chapter_id",
+        "duration_seconds",
+        "example_id",
+        "excluded_from_training",
+        "ground_truth",
+        "ground_truth_source",
+        "public_content_review",
+        "selection_notes",
+        "source_audio_relpath",
+        "source_dataset",
+        "source_recording_id",
+        "source_split",
+        "source_transcript_relpath",
+        "speaker_gender",
+        "speaker_id",
+        "utterance_id",
     }
     data = _load()
     for e in data:
@@ -144,3 +202,9 @@ def test_required_provenance_fields_present():
         assert not missing, (
             f"example_id={e.get('example_id', '?')}: missing fields: {sorted(missing)}"
         )
+
+
+def test_demo_examples_json_does_not_exist():
+    assert not _DEMO_EXAMPLES_FILE.is_file(), (
+        f"{_DEMO_EXAMPLES_FILE} must not exist in B6.1 — audio sourcing is B6.2"
+    )
