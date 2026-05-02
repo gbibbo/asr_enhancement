@@ -7,7 +7,12 @@ from typing import Any, Callable, Optional
 import httpx
 
 from libs.asr.base import ASRAdapter
-from libs.asr.errors import AdapterTranscriptionError, InputFileNotFoundError
+from libs.asr.errors import (
+    AdapterHTTPError,
+    AdapterTimeoutError,
+    AdapterTranscriptionError,
+    InputFileNotFoundError,
+)
 from libs.asr.schema import ASRResult
 
 
@@ -93,9 +98,12 @@ class AssemblyAIAdapter(ASRAdapter):
                 timeout=self._upload_timeout,
             )
             resp.raise_for_status()
+        except httpx.TimeoutException:
+            raise AdapterTimeoutError("AssemblyAI upload timed out") from None
         except httpx.HTTPStatusError as exc:
-            raise AdapterTranscriptionError(
-                f"AssemblyAI upload failed: HTTP {exc.response.status_code}"
+            raise AdapterHTTPError(
+                f"AssemblyAI upload failed: HTTP {exc.response.status_code}",
+                status_code=exc.response.status_code,
             ) from None
         return resp.json()["upload_url"]
 
@@ -114,9 +122,12 @@ class AssemblyAIAdapter(ASRAdapter):
                 timeout=self._submit_timeout,
             )
             resp.raise_for_status()
+        except httpx.TimeoutException:
+            raise AdapterTimeoutError("AssemblyAI submit timed out") from None
         except httpx.HTTPStatusError as exc:
-            raise AdapterTranscriptionError(
-                f"AssemblyAI submit failed: HTTP {exc.response.status_code}"
+            raise AdapterHTTPError(
+                f"AssemblyAI submit failed: HTTP {exc.response.status_code}",
+                status_code=exc.response.status_code,
             ) from None
         return resp.json()["id"]
 
@@ -130,9 +141,12 @@ class AssemblyAIAdapter(ASRAdapter):
                     timeout=self._poll_timeout,
                 )
                 resp.raise_for_status()
+            except httpx.TimeoutException:
+                raise AdapterTimeoutError("AssemblyAI poll timed out") from None
             except httpx.HTTPStatusError as exc:
-                raise AdapterTranscriptionError(
-                    f"AssemblyAI poll failed: HTTP {exc.response.status_code}"
+                raise AdapterHTTPError(
+                    f"AssemblyAI poll failed: HTTP {exc.response.status_code}",
+                    status_code=exc.response.status_code,
                 ) from None
 
             data: dict[str, Any] = resp.json()

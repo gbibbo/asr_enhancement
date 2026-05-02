@@ -1,6 +1,13 @@
 from libs.asr.assemblyai_provider import AssemblyAIAdapter
 from libs.asr.base import ASRAdapter
-from libs.asr.errors import AdapterError, AdapterTranscriptionError, InputFileNotFoundError
+from libs.asr.demo_assemblyai_provider import DemoAssemblyAIAdapter
+from libs.asr.errors import (
+    AdapterError,
+    AdapterHTTPError,
+    AdapterTimeoutError,
+    AdapterTranscriptionError,
+    InputFileNotFoundError,
+)
 from libs.asr.factory import make_asr_adapter
 from libs.asr.fake_provider import FakeASRAdapter
 from libs.asr.schema import ASRResult
@@ -27,6 +34,12 @@ def test_asr_result_is_dataclass():
 def test_error_hierarchy():
     assert issubclass(InputFileNotFoundError, AdapterError)
     assert issubclass(AdapterTranscriptionError, AdapterError)
+    assert issubclass(AdapterHTTPError, AdapterTranscriptionError)
+    assert issubclass(AdapterTimeoutError, AdapterTranscriptionError)
+
+
+def test_demo_assemblyai_adapter_is_asr_adapter():
+    assert issubclass(DemoAssemblyAIAdapter, ASRAdapter)
 
 
 def test_make_asr_adapter_returns_fake_by_default(monkeypatch):

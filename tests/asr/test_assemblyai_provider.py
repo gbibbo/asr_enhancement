@@ -8,7 +8,13 @@ import pytest
 
 from libs.asr.assemblyai_provider import AssemblyAIAdapter
 from libs.asr.base import ASRAdapter
-from libs.asr.errors import AdapterError, AdapterTranscriptionError, InputFileNotFoundError
+from libs.asr.errors import (
+    AdapterError,
+    AdapterHTTPError,
+    AdapterTimeoutError,
+    AdapterTranscriptionError,
+    InputFileNotFoundError,
+)
 from libs.asr.schema import ASRResult
 
 _API_KEY = "test-key-should-not-appear-in-errors"
@@ -369,3 +375,34 @@ def test_api_key_not_in_submit_error_message(tmp_path):
     with pytest.raises(AdapterTranscriptionError) as exc_info:
         _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
     assert _API_KEY not in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# Typed error subclasses
+# ---------------------------------------------------------------------------
+
+def test_upload_4xx_raises_adapter_http_error_with_status_code(tmp_path):
+    http_err = httpx.HTTPStatusError(
+        "401", request=MagicMock(), response=MagicMock(status_code=401)
+    )
+    client = _make_mock_client(upload_raises=http_err)
+    with pytest.raises(AdapterHTTPError) as exc_info:
+        _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
+    assert exc_info.value.status_code == 401
+
+
+def test_submit_5xx_raises_adapter_http_error_with_status_code(tmp_path):
+    http_err = httpx.HTTPStatusError(
+        "503", request=MagicMock(), response=MagicMock(status_code=503)
+    )
+    client = _make_mock_client(submit_raises=http_err)
+    with pytest.raises(AdapterHTTPError) as exc_info:
+        _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)
+    assert exc_info.value.status_code == 503
+
+
+def test_upload_timeout_raises_adapter_timeout_error(tmp_path):
+    client = MagicMock()
+    client.post.side_effect = httpx.TimeoutException("upload timed out")
+    with pytest.raises(AdapterTimeoutError):
+        _adapter(client).transcribe(_audio(tmp_path), _JOB_ID)

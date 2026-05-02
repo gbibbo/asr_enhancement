@@ -11,3 +11,15 @@ class InputFileNotFoundError(AdapterError):
 
 class AdapterTranscriptionError(AdapterError):
     """Raised when the adapter fails to produce a transcript."""
+
+
+class AdapterHTTPError(AdapterTranscriptionError):
+    """Raised when an HTTP request to a provider returns a non-2xx status."""
+
+    def __init__(self, message: str, *, status_code: int) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+
+class AdapterTimeoutError(AdapterTranscriptionError):
+    """Raised when an HTTP request to a provider times out."""
