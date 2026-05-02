@@ -110,6 +110,7 @@ def try_create_job(
     provider: str,
     degradation_id: Optional[str] = None,
     enhancer_version: Optional[str] = None,
+    input_artifact_path: Optional[str] = None,
 ) -> str:
     job_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
@@ -128,10 +129,11 @@ def try_create_job(
         conn.execute(
             """
             INSERT INTO jobs
-              (job_id, status, created_at, updated_at, provider, degradation_id, enhancer_version)
-            VALUES (?, 'queued', ?, ?, ?, ?, ?)
+              (job_id, status, created_at, updated_at, provider, degradation_id,
+               enhancer_version, input_artifact_path)
+            VALUES (?, 'queued', ?, ?, ?, ?, ?, ?)
             """,
-            (job_id, now, now, provider, degradation_id, enhancer_version),
+            (job_id, now, now, provider, degradation_id, enhancer_version, input_artifact_path),
         )
         conn.execute("COMMIT")
         in_transaction = False
@@ -208,4 +210,54 @@ def claim_next_job(db_path: Path) -> Optional[dict]:
                 conn.execute("ROLLBACK")
             except Exception:
                 pass
+        conn.close()
+
+
+def get_cache_entry(db_path: Path, cache_key: str) -> Optional[dict]:
+    conn = _open(db_path)
+    try:
+        row = conn.execute(
+            "SELECT * FROM cache_entries WHERE cache_key = ?", (cache_key,)
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def get_jobs_stats(db_path: Path) -> dict:
+    conn = _open(db_path)
+    try:
+        rows = conn.execute(
+            "SELECT status, COUNT(*) FROM jobs GROUP BY status"
+        ).fetchall()
+        result: dict = {"queued": 0, "running": 0, "completed": 0, "failed": 0}
+        for row in rows:
+            status, count = row[0], row[1]
+            if status in result:
+                result[status] = count
+        return result
+    finally:
+        conn.close()
+
+
+def set_admin_state(db_path: Path, key: str, value: str) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    conn = _open(db_path)
+    try:
+        conn.execute(
+            "INSERT OR REPLACE INTO admin_state (key, value, updated_at) VALUES (?, ?, ?)",
+            (key, value, now),
+        )
+    finally:
+        conn.close()
+
+
+def get_admin_state_value(db_path: Path, key: str) -> Optional[str]:
+    conn = _open(db_path)
+    try:
+        row = conn.execute(
+            "SELECT value FROM admin_state WHERE key = ?", (key,)
+        ).fetchone()
+        return row[0] if row else None
+    finally:
         conn.close()

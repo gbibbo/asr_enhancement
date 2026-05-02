@@ -217,3 +217,72 @@ def test_persistence_does_not_import_sqlalchemy():
 def test_persistence_does_not_import_platform_db():
     src = Path("libs/demo/persistence.py").read_text()
     assert "from libs.common.db" not in src
+
+
+# --- try_create_job: input_artifact_path ---
+
+def test_try_create_job_stores_input_artifact_path(db_path, settings):
+    from libs.demo.persistence import get_job, try_create_job
+    job_id = try_create_job(
+        db_path,
+        queue_max=settings.demo_queue_max,
+        provider="whisper",
+        input_artifact_path="/tmp/uploaded_audio.wav",
+    )
+    row = get_job(db_path, job_id)
+    assert row is not None
+    assert row["input_artifact_path"] == "/tmp/uploaded_audio.wav"
+
+
+# --- get_cache_entry ---
+
+def test_get_cache_entry_returns_none_for_missing(db_path):
+    from libs.demo.persistence import get_cache_entry
+    assert get_cache_entry(db_path, "nonexistent-key") is None
+
+
+def test_get_cache_entry_returns_dict_for_existing(db_path):
+    from datetime import datetime, timezone
+    from libs.demo.persistence import get_cache_entry
+    now = datetime.now(timezone.utc).isoformat()
+    conn = sqlite3.connect(str(db_path))
+    conn.execute(
+        """INSERT INTO cache_entries
+           (cache_key, example_id, degradation_id, degradation_version,
+            asr_provider, asr_model_version, enhancer_version, metrics_version,
+            result_json, artifact_root, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        ("key123", "ex001", "deg001", "1.0", "whisper", "tiny.en", "1.0", "1.0",
+         '{"transcript": "hello"}', "/tmp", now),
+    )
+    conn.commit()
+    conn.close()
+    entry = get_cache_entry(db_path, "key123")
+    assert entry is not None
+    assert entry["cache_key"] == "key123"
+    assert entry["example_id"] == "ex001"
+
+
+# --- get_jobs_stats ---
+
+def test_get_jobs_stats_all_zeros_when_empty(db_path):
+    from libs.demo.persistence import get_jobs_stats
+    stats = get_jobs_stats(db_path)
+    assert stats["queued"] == 0
+    assert stats["running"] == 0
+    assert stats["completed"] == 0
+    assert stats["failed"] == 0
+
+
+# --- set_admin_state / get_admin_state_value ---
+
+def test_set_and_get_admin_state_value(db_path):
+    from libs.demo.persistence import get_admin_state_value, set_admin_state
+    set_admin_state(db_path, "startup_time", "2026-01-01T00:00:00+00:00")
+    val = get_admin_state_value(db_path, "startup_time")
+    assert val == "2026-01-01T00:00:00+00:00"
+
+
+def test_get_admin_state_value_returns_none_for_missing(db_path):
+    from libs.demo.persistence import get_admin_state_value
+    assert get_admin_state_value(db_path, "nonexistent_key") is None

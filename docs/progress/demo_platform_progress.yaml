@@ -3,8 +3,8 @@ integration_branch: demo-rp5-v1
 parallel_training_branch: feature/training-datamove1-v1
 current_track: B
 current_phase: B4
-current_task: "B4.3"
-last_completed_task: "B4.2"
+current_task: "B5.1"
+last_completed_task: "B4.3"
 blocked: false
 blocker: null
 rp5_status: verified_2026-05-01
@@ -40,3 +40,4 @@ tasks:
   "B3.2": done
   "B4.1": done
   "B4.2": done
+  "B4.3": done
