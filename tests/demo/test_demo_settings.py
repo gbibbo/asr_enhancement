@@ -21,6 +21,7 @@ _DEMO_ENV_VARS = [
     "ENHANCER_VERSION",
     "ADMIN_STATS_USERNAME",
     "ADMIN_STATS_PASSWORD",
+    "DEMO_EXAMPLES_CONFIG",
 ]
 
 
@@ -127,6 +128,14 @@ def test_enhancer_version_defaults_bypass(isolated_env):
 
     s = DemoSettings()
     assert s.enhancer_version == "bypass"
+
+
+def test_default_examples_config(isolated_env):
+    from libs.common.demo_settings import DemoSettings
+
+    s = DemoSettings()
+    from pathlib import Path
+    assert s.demo_examples_config == Path("config/demo_examples.json")
 
 
 def test_demo_main_does_not_import_platform_settings():

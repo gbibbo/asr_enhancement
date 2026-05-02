@@ -23,6 +23,7 @@ _DEMO_ENV_VARS = [
     "ENHANCER_VERSION",
     "ADMIN_STATS_USERNAME",
     "ADMIN_STATS_PASSWORD",
+    "DEMO_EXAMPLES_CONFIG",
 ]
 
 
@@ -63,7 +64,19 @@ def _queue_max(client: TestClient) -> int:
 def test_health_returns_ok(client):
     resp = client.get("/demo/health")
     assert resp.status_code == 200
-    assert resp.json() == {"status": "ok", "mode": "demo"}
+    body = resp.json()
+    assert body["status"] == "ok"
+    assert body["mode"] == "demo"
+
+
+def test_health_db_ok_is_true(client):
+    body = client.get("/demo/health").json()
+    assert body["db_ok"] is True
+
+
+def test_health_queue_depth_is_integer(client):
+    body = client.get("/demo/health").json()
+    assert isinstance(body["queue_depth"], int)
 
 
 # --- POST /demo/jobs ---
@@ -112,6 +125,51 @@ def test_failed_jobs_do_not_trigger_503(client):
         _insert_job(db, "failed")
     resp = client.post("/demo/jobs")
     assert resp.status_code == 202
+
+
+# --- GET /demo/examples ---
+
+def test_examples_returns_200(client):
+    resp = client.get("/demo/examples")
+    assert resp.status_code == 200
+
+
+def test_examples_returns_empty_list_when_no_config(client):
+    body = client.get("/demo/examples").json()
+    assert body["examples"] == []
+    assert body["total"] == 0
+
+
+def test_examples_note_is_set_when_empty(client):
+    body = client.get("/demo/examples").json()
+    assert body["note"] is not None
+    assert len(body["note"]) > 0
+
+
+def test_examples_note_is_null_when_populated(tmp_path, monkeypatch):
+    import json as _json
+    for var in _DEMO_ENV_VARS:
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.chdir(tmp_path)
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    example_data = [
+        {
+            "example_id": "ex001",
+            "title": "Test",
+            "duration_seconds": 5.0,
+            "degradation_ids": ["far_field_room"],
+            "ground_truth": "Hello",
+        }
+    ]
+    (config_dir / "demo_examples.json").write_text(_json.dumps(example_data), encoding="utf-8")
+    monkeypatch.setenv("DEMO_RUNTIME_ROOT", str(tmp_path))
+    from services.api.app.demo_main import app
+    with TestClient(app) as c:
+        body = c.get("/demo/examples").json()
+    assert body["note"] is None
+    assert body["total"] == 1
+    assert body["examples"][0]["example_id"] == "ex001"
 
 
 # --- isolation check ---

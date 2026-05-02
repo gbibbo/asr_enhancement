@@ -4,10 +4,12 @@ Branch: feature/demo-runtime-rp5-v1
 Integration branch: demo-rp5-v1
 Parallel training branch: feature/training-datamove1-v1
 Current track: B (RP5 setup)
-Current phase: Phase B3
-Current task: Task B3.3
+Current phase: Phase B4
+Current task: Task B4.2
 
 ## Completed
+
+- B4.1: implemented demo health and example listing on 2026-05-02. New files: libs/demo/examples.py (DemoExample Pydantic model with example_id, title, description, duration_seconds, degradation_ids, ground_truth, audio_available, clean_audio_path, degraded_audio_paths; load_examples() returns [] when config absent), tests/demo/test_demo_examples.py (8 new tests covering absent file, empty array, valid JSON, all default field values, platform isolation check). Modified: libs/common/demo_settings.py (added demo_examples_config: Path = Path("config/demo_examples.json")), services/api/app/demo_main.py (GET /demo/health expanded to report db_ok and queue_depth by calling count_active_jobs inside try/except; GET /demo/examples new route reading settings.demo_examples_config via load_examples()), tests/demo/test_demo_api.py (added DEMO_EXAMPLES_CONFIG to env isolation list, updated test_health_returns_ok to check key fields, added test_health_db_ok_is_true, test_health_queue_depth_is_integer, test_examples_returns_200, test_examples_returns_empty_list_when_no_config, test_examples_note_is_set_when_empty, test_examples_note_is_null_when_populated), tests/demo/test_demo_settings.py (added DEMO_EXAMPLES_CONFIG to env isolation list, added test_default_examples_config). Corrected stale tracker entry: B3.3 does not exist in the plan; phase B3 ended at B3.2; tracker corrected to current_task B4.2. Validation: 63 tests passed / 0 failed (48 previous + 15 new); demo Compose config exit 0; platform Compose config exit 0; build exit 0 (no new pip packages, requirements.lock.arm64 unchanged); GET /demo/health → {"status":"ok","mode":"demo","db_ok":true,"queue_depth":0}; GET /demo/examples → {"examples":[],"total":0,"note":"No curated examples loaded. Run Phase B6 to populate."}; protected diff empty (platform files untouched); docker compose down clean. All B4.1 done-when criteria satisfied.
 
 - B3.1: created demo Compose runtime on 2026-05-02. New files: infra/compose/Dockerfile.demo (python:3.11-slim, installs from requirements.lock.arm64), infra/compose/docker-compose.demo.yml (Compose project name asr-demo, two services: demo-api on host port 8001, demo-worker; no platform services; Python stdlib urllib.request healthcheck; bind-mount /home/gbibbo/asr_enhancement_runtime), .env.demo.example (placeholder only, no secrets), libs/common/demo_settings.py (DemoSettings with model_validator filling derived paths from DEMO_RUNTIME_ROOT), services/api/app/demo_main.py (minimal FastAPI, no platform imports, GET /demo/health stub), services/worker/app/demo_worker_main.py (SIGTERM+SIGINT handlers, clean shutdown). Added .env.demo to .gitignore. Validation: docker compose config exit 0; docker compose build exit 0 (arm64 native, all packages from requirements.lock.arm64); docker compose up -d: demo-api healthy, demo-worker Up; curl http://localhost:8001/demo/health → {"status":"ok","mode":"demo"}; worker log: "Demo worker started (idle, waiting for B3.2 job queue)"; platform config: exit 0; tests/demo/ inside demo image: 19 passed / 0 failed (8 cache key + 11 new demo settings); docker compose down: clean exit. Seven protected diffs all empty. All B3.1 done-when criteria satisfied.
 
@@ -51,4 +53,4 @@ Training branch feature/training-datamove1-v1 already exists on origin from demo
 
 ## Next task
 
-Task B3.3.
+Task B4.2.

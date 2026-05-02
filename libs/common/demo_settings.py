@@ -31,6 +31,7 @@ class DemoSettings(BaseSettings):
     enhancer_version: str = "bypass"
     admin_stats_username: str = "admin"
     admin_stats_password: Optional[str] = None
+    demo_examples_config: Path = Path("config/demo_examples.json")
 
     @model_validator(mode="after")
     def fill_derived_paths(self) -> "DemoSettings":
