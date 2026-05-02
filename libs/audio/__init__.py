@@ -9,6 +9,11 @@ from libs.audio.enhancement import (
     get_preset,
     resolve_preset,
 )
+from libs.audio.metrics import (
+    MetricsResult,
+    compute_metrics,
+    normalize_text,
+)
 
 __all__ = [
     "EnhancementPreset",
@@ -20,4 +25,7 @@ __all__ = [
     "apply_preset",
     "get_preset",
     "resolve_preset",
+    "MetricsResult",
+    "compute_metrics",
+    "normalize_text",
 ]
