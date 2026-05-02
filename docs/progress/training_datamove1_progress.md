@@ -2,10 +2,10 @@
 
 Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
-Current cut: T2
-Current phase: Phase 2
-Current task: Task T3.1
-Last completed task: T2.3b
+Current cut: T3
+Current phase: Phase 3
+Current task: Task T3.2
+Last completed task: T3.1
 
 ## Completed
 
@@ -23,10 +23,11 @@ Last completed task: T2.3b
 - T2.4: dataset version defined and manifest checksum recorded. Job `2125887` ran on `aisurrey03.surrey.ac.uk`, sacct `COMPLETED 0:0`. Version string `librispeech_devclean_v1_exclpending_sha256_bacd6f7ba89c` written to `configs/training/dataset_version.yaml`; SHA-256 `bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f` cross-checked with `sha256sum` (match). Report at `reports/training/dataset_version_v1.md`. `exclusion_policy.status: pending_public_examples` and `t3_blocked_while_pending: true` preserved. `later_tasks_must_embed_dataset_version: true` recorded.
 - T2.5: model card template created at `docs/model_card.md`. No Slurm required. Template/draft status: all training, evaluation, and artifact fields are explicit `<!-- PLACEHOLDER -->` markers (53 total). Pre-filled fields: dataset version, manifest path, manifest SHA-256 (2703 records), split policy, LibriSpeech CC BY 4.0 licence, degradation families, reference ASR, Apptainer image, Python version. Public examples exclusion gate prominently stated as `pending_public_examples`. `train-clean-100` present_empty caveat included. All 8 validation checks passed.
 - T2.3b: public examples exclusion gate resolved. Phase A — reserved 10 dev-clean examples deterministically (job `2125890`, aisurrey03, COMPLETED 0:0); sanity check matched expected ordered list; all SHA-256 hashes computed. Phase B — `public_examples_excluded.yaml` updated to `status: complete`. T2.3 re-run in complete mode (job `2125891`, aisurrey03, COMPLETED 0:0); filtered manifest written at scratch path; 2693 records; validation passed; no excluded IDs remain; source manifest SHA-256 unchanged. T2.4 re-run (job `2125892`, aisurrey03, COMPLETED 0:0); new dataset version `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`; YAML validation OK. `docs/model_card.md` updated; TEMPLATE/DRAFT status preserved. T3.1 unblocked.
+- T3.1: clean-audio Whisper baseline complete. Smoke: job `2125894`, 50 records, 0 failures, WER 0.1234. Full: job `2125895`, COMPLETED 0:0, 55:36 elapsed, 2693/2693 records, 0 failures. Results: mean_wer=0.0645, mean_word_accuracy=0.9361. `openai-whisper base.en 20250625`, `metrics_v1`. Predictions at scratch (not committed). Summary committed at `reports/training/baseline_clean_wer.md`. Model card updated. T3.2 requires degraded audio — see T3.2 prerequisite note.
 
 ## Current blocker
 
-None. T2.3b complete (2026-05-02). T3.1 is unblocked.
+None. T3.1 complete (2026-05-02).
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -325,6 +326,41 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | Stdout terminal line | `T2.4 COMPLETE` |
 | YAML validation (inside Apptainer) | `YAML validation: OK` |
 
+## T3.1 closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Smoke job ID | `2125894` |
+| Smoke sacct state | `COMPLETED` |
+| Smoke exit code | `0:0` |
+| Smoke processed records | 50 |
+| Smoke failure count | 0 |
+| Smoke mean WER | 0.1234 |
+| Smoke mean Word Accuracy | 0.8766 |
+| Smoke summary md | `reports/training/baseline_clean_wer_smoke.md` |
+| Full job ID | `2125895` |
+| Full sacct state | `COMPLETED` |
+| Full exit code | `0:0` |
+| Full elapsed | `00:55:36` |
+| Full output log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_1_whisper_baseline_full_2125895.out` |
+| Run dir | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_1_baseline_full_2125895` |
+| predictions.jsonl line count | 2693 |
+| success | true |
+| processed_records | 2693 |
+| failure_count | 0 |
+| **mean_wer** | **0.0645** |
+| **mean_word_accuracy** | **0.9361** |
+| dataset_version | `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` |
+| whisper_model | `base.en` (openai-whisper 20250625) |
+| metrics_version | `metrics_v1` |
+| git_commit_at_run | `6e7d9d4464bd5900467d075221478905421945ce` |
+| prep_commit_1 | `6e0e342` (libs, scripts, slurm jobs, tests) |
+| prep_commit_2 | `6e7d9d4` (git fix: capture git state in Slurm shell) |
+| result_commit | `PENDING_RESULT_COMMIT` |
+| summary_md | `reports/training/baseline_clean_wer.md` |
+
+**T3.2 prerequisite note:** T3.2 (degraded baseline) requires degraded audio. The degradation bank is not yet built. T3.1 clean baseline is the sole T3.1 artefact.
+
 ## Next task
 
-Task T3.1. Run clean-audio Whisper baseline. T3.1 is now unblocked (T2.3b complete).
+Task T3.2. Run degraded-audio Whisper baseline. Blocked on degradation bank (T3.2 prerequisite).

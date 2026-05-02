@@ -11,8 +11,8 @@ enhancer_version: "<!-- PLACEHOLDER: set after T8.1 export -->"
 
 > **Status: TEMPLATE / DRAFT**
 > No model has been trained.
-> No evaluation metrics exist yet.
-> T3.1 is unblocked. Public examples exclusion resolved (T2.3b complete). B6.2 must consume the reserved examples from `configs/training/reserved_public_demo_examples.yaml`.
+> T3.1 complete: clean-audio baseline WER 0.0645, Word Accuracy 0.9361 (2693 records, openai-whisper base.en 20250625, metrics_v1).
+> B6.2 must consume the reserved examples from `configs/training/reserved_public_demo_examples.yaml`.
 
 ---
 
@@ -148,7 +148,7 @@ No training has been run yet. This section will be completed by tasks T5–T6.
 | Random seed | `<!-- PLACEHOLDER: set in training config -->` |
 | Dataset version | `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` |
 | Degradation version | `<!-- PLACEHOLDER: DEGRADATION_VERSION -->` |
-| Metrics version | `<!-- PLACEHOLDER: METRICS_VERSION -->` |
+| Metrics version | `metrics_v1` |
 | Output artifact root | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/<run_id>/` |
 
 ---
@@ -160,9 +160,9 @@ Evaluation uses `openai-whisper` on Surrey compute (Slurm). Shared metric implem
 | Field | Value |
 |---|---|
 | Reference ASR | `openai-whisper` |
-| ASR model version | `<!-- PLACEHOLDER: record whisper model size and package version -->` |
+| ASR model version | `base.en` (openai-whisper 20250625) |
 | Metrics implementation | `libs/audio/metrics.py` |
-| Metrics version | `<!-- PLACEHOLDER: METRICS_VERSION (defined in libs/common/versions.py) -->` |
+| Metrics version | `metrics_v1` |
 | Normalization | shared normalization function in `libs/audio/metrics.py` |
 | Evaluation granularity | per-degradation results required; average reported separately |
 | Evaluation split | `dev-clean` (baseline and training evaluation) |
@@ -178,12 +178,12 @@ Evaluation uses `openai-whisper` on Surrey compute (Slurm). Shared metric implem
 
 | Degradation | Clean WER | Degraded WER | Clean Word Acc | Degraded Word Acc |
 |---|---|---|---|---|
-| `far_field_room` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| `cafe_background` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| `phone_call` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| `muffled` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| `broadband_hiss` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| **Average** | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
+| `far_field_room` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
+| `cafe_background` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
+| `phone_call` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
+| `muffled` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
+| `broadband_hiss` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
+| **Average** | **0.0645** | `<!-- PLACEHOLDER -->` | **0.9361** | `<!-- PLACEHOLDER -->` |
 
 ### MetricGAN+ pretrained evaluation (T4)
 
@@ -279,7 +279,7 @@ Handoff procedure (defined in training plan T8.3):
 | Apptainer image | `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif` |
 | Python (container) | 3.10.13 |
 | Degradation version | `<!-- PLACEHOLDER: DEGRADATION_VERSION -->` |
-| Metrics version | `<!-- PLACEHOLDER: METRICS_VERSION -->` |
+| Metrics version | `metrics_v1` |
 | Training run ID | `<!-- PLACEHOLDER: assigned at run time -->` |
 | Training git commit | `<!-- PLACEHOLDER: record after job submission -->` |
 | Training config path | `<!-- PLACEHOLDER: e.g. configs/training/full_training.yaml -->` |
