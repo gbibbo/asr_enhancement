@@ -47,5 +47,5 @@ services:
   demo-worker:
     build: *demo-build
     environment: *demo-env
-    command: python -u services/worker/app/demo_worker_main.py
+    command: python -m services.worker.app.demo_worker_main
     volumes: *demo-volumes

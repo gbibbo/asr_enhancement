@@ -35,14 +35,19 @@ class DemoSettings(BaseSettings):
     @model_validator(mode="after")
     def fill_derived_paths(self) -> "DemoSettings":
         root = self.demo_runtime_root
-        if self.demo_db_path is None:
+
+        def _unset(p: Optional[Path]) -> bool:
+            # pydantic-settings converts EMPTY_VAR="" to Path("."); treat as unset
+            return p is None or str(p) == "."
+
+        if _unset(self.demo_db_path):
             self.demo_db_path = root / "db" / "demo.db"
-        if self.demo_upload_dir is None:
+        if _unset(self.demo_upload_dir):
             self.demo_upload_dir = root / "uploads"
-        if self.demo_cache_dir is None:
+        if _unset(self.demo_cache_dir):
             self.demo_cache_dir = root / "cache"
-        if self.demo_artifacts_dir is None:
+        if _unset(self.demo_artifacts_dir):
             self.demo_artifacts_dir = root / "artifacts"
-        if self.demo_logs_dir is None:
+        if _unset(self.demo_logs_dir):
             self.demo_logs_dir = root / "logs"
         return self

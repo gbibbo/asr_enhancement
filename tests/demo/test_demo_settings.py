@@ -103,6 +103,18 @@ def test_custom_db_path_overrides_derivation(monkeypatch, tmp_path):
     assert s.demo_db_path == custom_db
 
 
+def test_empty_string_db_path_falls_back_to_derived(monkeypatch, tmp_path):
+    for var in _DEMO_ENV_VARS:
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DEMO_RUNTIME_ROOT", str(tmp_path))
+    monkeypatch.setenv("DEMO_DB_PATH", "")
+    from libs.common.demo_settings import DemoSettings
+
+    s = DemoSettings()
+    assert s.demo_db_path == tmp_path / "db" / "demo.db"
+
+
 def test_assemblyai_key_defaults_none(isolated_env):
     from libs.common.demo_settings import DemoSettings
 
