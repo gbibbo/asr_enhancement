@@ -1,0 +1,12 @@
+# Placeholder exclusion gate for public demo examples.
+# Re-run T2.3 after B6.2 produces demo_examples.json.
+# T3.1 must fail while status remains pending_public_examples.
+status: pending_public_examples
+source_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
+filtered_manifest: null
+filled_after_demo_task: B6.2
+excluded_ids: []
+excluded_audio_sha256: []
+t3_blocked_while_pending: true
+rerun_required_after_b6_2: true
+notes: "Placeholder gate. Re-run T2.3 after B6.2 produces demo_examples.json. T3.1 must fail while status remains pending_public_examples."

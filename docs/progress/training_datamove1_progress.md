@@ -4,7 +4,7 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T2
 Current phase: Phase 2
-Current task: Task T2.3
+Current task: Task T2.4
 
 ## Completed
 
@@ -17,10 +17,14 @@ Current task: Task T2.3
 - T1.2: training dependencies installed into an external prefix (`$TRAIN_ROOT/python_env/site-packages-py310`), consumed at runtime via `PYTHONPATH=$REPO:$PREFIX` with `PYTHONNOUSERSITE=1` and `python3 -s` to keep `~/.local` out of the import path. PyTorch 2.1.0, torchaudio 2.1.0 and numpy 1.26.0 remain image-resident under `/opt/conda` (not reinstalled, not shadowed). All required project modules import from the live repo; `openai-whisper`, all pyproject deps, and the audio IO stack import from the prefix. Python `3.10.13` accepted as the runtime gate. No `requirements.lock.x86_64` generated. No venv-based Slurm execution path introduced.
 - T1.3: audio processing gate job passed. Synthetic 2-second 440 Hz WAV generated, processed through `libs.audio_pipeline.pipeline.apply_preset("denoise")` (high-pass filter + gain normalization), output validated. Job `2125808` ran on `aisurrey03.surrey.ac.uk`, sacct state `COMPLETED`, exit code `0:0`. Output peak `0.950012` (target 0.95). `libs.audio_pipeline.pipeline` resolved from REPO; `numpy` from `/opt/conda`; `scipy` and `soundfile` from PREFIX. `PYTHONNOUSERSITE=1` enforced; `site.ENABLE_USER_SITE=False`; no user-local module paths detected. Cut T1 gate complete.
 - T2.1: LibriSpeech source configuration defined at `configs/training/librispeech_sources.yaml`. Authoritative dataset root at `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech` confirmed via bounded find. Splits `test-clean` and `train-clean-100` present; `dev-clean`, `dev-other`, `test-other`, `train-clean-360`, `train-other-500` missing. Forum-build copies excluded (different project context). No download, no manifest, no Slurm job. YAML valid. T2.2 blocked on `dev-clean` missing.
+- T2.2: LibriSpeech dev-clean manifest generated. Job `2125865` ran on `aisurrey03.surrey.ac.uk`, sacct `COMPLETED 0:0`. 2703 records from dev-clean; zero missing FLACs, zero soundfile errors, all 16 kHz, all validated. `test-clean` and `train-clean-100` recorded as `present_empty` (anomaly). Manifest at scratch path, not committed.
+- T2.3: public demo example exclusion gate created (placeholder mode). Job `2125885` ran on `aisurrey03.surrey.ac.uk`, sacct `COMPLETED 0:0`. B6 not yet started; no `demo_examples.json` found in bounded inspected locations (repo root, `configs/`, `configs/training/`, `docs/`). Exclusion config committed at `configs/training/public_examples_excluded.yaml` with `status: pending_public_examples`. Zero exclusions applied. Filtered manifest NOT written. T2.3 must be re-run after B6.2 closes. T3.1 must not run while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`.
 
 ## Current blocker
 
-None. T2.2 closed successfully (2026-05-02). T2.3 is next.
+None. T2.3 placeholder gate closed (2026-05-02). T2.4 is next.
+
+**Pending gate:** T3.1 must not run while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`. T2.3 must be re-run after B6.2 closes.
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -267,6 +271,31 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | audio_path exists on disk | pass |
 | JSON parse (every line) | pass |
 
+## T2.3 closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Mode | placeholder (B6 not yet started) |
+| Job ID | `2125885` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Execution node | `aisurrey03.surrey.ac.uk` |
+| Elapsed | `00:00:01` |
+| Stdout log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_3_exclude_examples_2125885.out` |
+| Stderr log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_3_exclude_examples_2125885.err` |
+| Summary artifact | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_3_exclude_summary_2125885.json` |
+| Exclusion config | `configs/training/public_examples_excluded.yaml` |
+| Exclusion status | `pending_public_examples` |
+| Source manifest | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl` |
+| Source manifest records | 2703 (unchanged) |
+| Filtered manifest | NOT written |
+| Excluded count | 0 |
+| Stdout terminal line | `T2.3 COMPLETE (PLACEHOLDER MODE)` |
+
+**Bounded locations inspected for `demo_examples.json`:** repo root, `configs/`, `configs/training/`, `docs/`. Not found in any of these locations.
+
+**Gate note:** T2.3 must be re-run after B6.2 produces `demo_examples.json`. T3.1 must not run while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`.
+
 ## Next task
 
-Task T2.3. Exclude public demo examples from the manifest.
+Task T2.4. Define dataset version.

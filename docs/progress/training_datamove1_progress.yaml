@@ -2,10 +2,14 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T2
 current_phase: 2
-current_task: "T2.3"
-last_completed_task: "T2.2"
+current_task: "T2.4"
+last_completed_task: "T2.3"
 blocked: false
 blocker: null
+public_examples_exclusion_status: pending_public_examples
+public_examples_exclusion_rerun_required: true
+public_examples_exclusion_rerun_after: B6.2
+t3_blocked_if_public_examples_pending: true
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
 datamove1_status: ready_for_training_setup
 slurm_status: verified_via_wrapper
@@ -239,6 +243,27 @@ t2_staging_evidence:
   existing_splits_untouched: true
   slurm_job_required: false
   license: CC BY 4.0 (OpenSLR resource 12)
+t2_3_evidence:
+  mode: placeholder
+  slurm_job_id: "2125885"
+  sacct_state: COMPLETED
+  exit_code: "0:0"
+  execution_node: aisurrey03.surrey.ac.uk
+  elapsed: "00:00:01"
+  output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_3_exclude_examples_2125885.out
+  error_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_3_exclude_examples_2125885.err
+  summary_artifact: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_3_exclude_summary_2125885.json
+  exclusion_config: configs/training/public_examples_excluded.yaml
+  exclusion_status: pending_public_examples
+  source_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
+  source_manifest_records: 2703
+  source_manifest_size_bytes: 1958566
+  source_manifest_mtime: "2026-05-02T00:24:23.961353Z"
+  filtered_manifest: null
+  excluded_count: 0
+  validation_passed: null
+  rerun_after: B6.2
+  note: "Placeholder gate created. T2.3 must be re-run after B6.2 closes and demo_examples.json is available. T3.1 must not run while status remains pending_public_examples."
 tasks:
   "T0.1": done
   "T0.2": done
@@ -250,7 +275,7 @@ tasks:
   "T1.3": done
   "T2.1": done
   "T2.2": done
-  "T2.3": pending
+  "T2.3": placeholder_pending_b6
   "T2.4": pending
   "T2.5": pending
   "T3.1": pending
