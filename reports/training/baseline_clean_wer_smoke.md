@@ -11,7 +11,7 @@ Status: smoke
 | Whisper model | `base.en` (openai-whisper 20250625) |
 | Metrics version | `metrics_v1` |
 | Code commit at run | `ERROR: [Errno 2] No such file or directory: 'git'` |
-| Result commit | `PENDING_RESULT_COMMIT` |
+| Result commit | `a753b15` |
 | Slurm job ID | `2125894` |
 | Date (UTC) | `2026-05-02T03:52:38.890134Z` |
 

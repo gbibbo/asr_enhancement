@@ -356,7 +356,7 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | git_commit_at_run | `6e7d9d4464bd5900467d075221478905421945ce` |
 | prep_commit_1 | `6e0e342` (libs, scripts, slurm jobs, tests) |
 | prep_commit_2 | `6e7d9d4` (git fix: capture git state in Slurm shell) |
-| result_commit | `PENDING_RESULT_COMMIT` |
+| result_commit | `a753b15` |
 | summary_md | `reports/training/baseline_clean_wer.md` |
 
 **T3.2 prerequisite note:** T3.2 (degraded baseline) requires degraded audio. The degradation bank is not yet built. T3.1 clean baseline is the sole T3.1 artefact.

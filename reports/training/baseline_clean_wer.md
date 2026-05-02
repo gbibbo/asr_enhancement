@@ -11,7 +11,7 @@ Status: complete
 | Whisper model | `base.en` (openai-whisper 20250625) |
 | Metrics version | `metrics_v1` |
 | Code commit at run | `6e7d9d4464bd5900467d075221478905421945ce` |
-| Result commit | `PENDING_RESULT_COMMIT` |
+| Result commit | `a753b15` |
 | Slurm job ID | `2125895` |
 | Date (UTC) | `2026-05-02T03:57:14.085283Z` |
 
