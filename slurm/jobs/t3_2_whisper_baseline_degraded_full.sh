@@ -2,12 +2,12 @@
 #SBATCH --job-name=asr_t3_2_baseline_degraded_full
 #SBATCH --output=/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2_baseline_degraded_full_%j.out
 #SBATCH --error=/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2_baseline_degraded_full_%j.err
-#SBATCH --time=08:00:00
+#SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 
 # T3.2 full run: 13 465 degraded records (2693 x 5 families), base.en, CPU only.
-# Projection from T3.1 (1.239 s/record): ~04:38:10. 8 h budget gives ~70% margin.
+# Smoke projection (mean 2.358 s/record): ~08:50:00. 12 h budget gives ~26% margin.
 #
 # Submit only AFTER the smoke gate passes, and only via:
 #   ./slurm/tools/on_submit.sh sbatch \
