@@ -2,10 +2,10 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T2
 current_phase: 2
-current_task: "T2.5"
-last_completed_task: "T2.4"
-blocked: false
-blocker: null
+current_task: "T3.1"
+last_completed_task: "T2.5"
+blocked: true
+blocker: "public_examples_exclusion_pending"
 public_examples_exclusion_status: pending_public_examples
 public_examples_exclusion_rerun_required: true
 public_examples_exclusion_rerun_after: B6.2
@@ -283,6 +283,23 @@ t2_4_evidence:
   exclusion_status: pending_public_examples
   filtered_manifest_path: null
   later_tasks_must_embed_dataset_version: true
+t2_5_evidence:
+  model_card_path: docs/model_card.md
+  template_status: template_draft
+  slurm_required: false
+  validation_checks:
+    file_exists: pass
+    template_marker_present: pass
+    no_trained_model_claim: pass
+    pending_public_examples_present: pass
+    dataset_version_present: pass
+    manifest_sha256_present: pass
+    present_empty_caveat_present: pass
+    placeholder_count: 53
+  dataset_version: librispeech_devclean_v1_exclpending_sha256_bacd6f7ba89c
+  manifest_sha256: bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f
+  public_examples_exclusion_status: pending_public_examples
+  t3_1_gate_note: "T3.1 must not run while configs/training/public_examples_excluded.yaml has status: pending_public_examples"
 tasks:
   "T0.1": done
   "T0.2": done
@@ -296,7 +313,7 @@ tasks:
   "T2.2": done
   "T2.3": placeholder_pending_b6
   "T2.4": done
-  "T2.5": pending
+  "T2.5": done
   "T3.1": pending
   "T3.2": pending
   "T3.3": pending
