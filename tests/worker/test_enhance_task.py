@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from libs.asr.schema import ASRResult
-from libs.audio_pipeline.pipeline import EnhancementResult
+from libs.audio.enhancement import EnhancementResult
 from libs.common.models import JobMode, JobStatus
 from libs.common.settings import get_settings
 
