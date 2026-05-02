@@ -4,11 +4,12 @@ Branch: feature/demo-runtime-rp5-v1
 Integration branch: demo-rp5-v1
 Parallel training branch: feature/training-datamove1-v1
 Current track: B (RP5 setup)
-Current phase: Phase B1
-Current task: Task B1.1
+Current phase: Phase B2
+Current task: Task B2.1
 
 ## Completed
 
+- B1.1: OS headless verified on 2026-05-02. RP5 was already installed and running before B0.x checks. SSH confirmed as gbibbo@asr-rp5. OS: Debian GNU/Linux 13 (trixie) with Raspberry Pi kernel 6.12.75+rpt-rpi-2712 (BCM2712 / RP5). Architecture: aarch64. Hostname: asr-rp5. User: gbibbo. SSH service: active. Headless confirmed (lightdm inactive, DISPLAY not set). Timezone: America/Montevideo. Locale: en_GB.UTF-8. Disk: mmcblk0p2 ext4 rootfs 50.2 GB, 9% used, mounted at /. eth0 UP 192.168.1.241/24 is runtime path. wlan0 UP 192.168.1.240/24 is active but not runtime path per B1.1 decision rule 3 (keep Ethernet as runtime path). All B1.1 done-when criteria satisfied.
 - S0.1: inspected repository state and preserved MVP tag.
 - S0.2: created integration and demo feature branches.
 - S0.3: added split plan files and root plan router.
@@ -41,4 +42,4 @@ Training branch feature/training-datamove1-v1 already exists on origin from demo
 
 ## Next task
 
-Task B1.1. Install Raspberry Pi OS headless. Note: RP5 is already booted with SSH, Docker, and internet access confirmed in B0.1. B1.1 may be a verification and recording task only.
+Task B2.1. Install base system dependencies. Note: Docker 26.1.5, Compose 2.26.1, and Git 2.47.3 already confirmed in B0.1. B2.1 will verify docker group membership for gbibbo (docker ps without sudo) and confirm package index is reachable.
