@@ -2,11 +2,11 @@ branch: feature/demo-runtime-rp5-v1
 integration_branch: demo-rp5-v1
 parallel_training_branch: feature/training-datamove1-v1
 current_track: B
-current_phase: B5
-current_task: "B5.4"
+current_phase: B6
+current_task: "B6.1"
 last_completed_task: "B5.3"
-blocked: false
-blocker: null
+blocked: true
+blocker: "LibriSpeech test-clean not found at expected path /home/gbibbo/asr_enhancement_runtime/cache/librispeech — download or transfer LibriSpeech to that path to unblock"
 rp5_status: verified_2026-05-01
 public_url_status: unknown
 training_handoff_status: training_branch_pushed
@@ -44,3 +44,4 @@ tasks:
   "B5.1": done
   "B5.2": done
   "B5.3": done
+  "B6.1": blocked

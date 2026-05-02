@@ -4,8 +4,15 @@ Branch: feature/demo-runtime-rp5-v1
 Integration branch: demo-rp5-v1
 Parallel training branch: feature/training-datamove1-v1
 Current track: B (RP5 setup)
-Current phase: Phase B5
-Current task: Task B5.4
+Current phase: Phase B6
+Current task: Task B6.1 (blocked — LibriSpeech test-clean not available on RP5)
+
+Note: current_task was corrected from stale B5.4 to B6.1 at the start of this task. No B5.4
+exists in docs/plans/demo_platform_plan.md. Phase B5 ended at B5.3.
+
+## Blocked
+
+- B6.1: blocked on 2026-05-02. Created scripts/demo/select_demo_candidates.py (LibriSpeech test-clean scanner using soundfile for duration verification; writes config/demo_example_candidates.json with public_content_review: "pending_manual_review"; fails fast when LibriSpeech root absent or invalid). Created tests/demo/test_demo_candidates.py (16 tests: file exists, 10 entries, example_id sequence ex001-ex010, unique IDs, recording_id consistency, duration range, ≥5 speakers, non-empty GT, excluded_from_training, source_split=test-clean, source_dataset=librispeech, gender field valid, content review completed, no absolute paths, required provenance fields). Blocker: LibriSpeech test-clean not found at /home/gbibbo/asr_enhancement_runtime/cache/librispeech. To unblock: download or transfer LibriSpeech test-clean to that path, then run the selection script.
 
 ## Completed
 
