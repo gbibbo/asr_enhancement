@@ -5,9 +5,11 @@ Integration branch: demo-rp5-v1
 Parallel training branch: feature/training-datamove1-v1
 Current track: B (RP5 setup)
 Current phase: Phase B4
-Current task: Task B4.2
+Current task: Task B4.3
 
 ## Completed
+
+- B4.2: implemented demo audio endpoints on 2026-05-02. Modified: libs/demo/examples.py (added get_safe_audio_path(audio_root, path_str) helper — rejects None, empty string, absolute paths, and traversal attempts via Path.is_relative_to(); returns resolved Path if file exists, None otherwise), services/api/app/demo_main.py (added GET /demo/examples/{example_id}/audio/clean and GET /demo/examples/{example_id}/audio/degraded/{degradation_id}; both use FileResponse with media_type="audio/wav"; audio root derived as settings.demo_artifacts_dir / "examples"; 404 for unknown example, missing clean_audio_path, unknown degradation_id, absolute path in config, traversal attempt, missing file). Created: tests/demo/test_demo_audio.py (21 new tests: 7 unit tests for get_safe_audio_path covering None, empty, absolute, traversal, missing, valid, subdir; 7 API tests for clean audio endpoint; 7 API tests for degraded audio endpoint). Validation: 84 tests passed / 0 failed (63 previous + 21 new); demo Compose config exit 0; platform Compose config exit 0; build exit 0 (no new pip packages, requirements.lock.arm64 unchanged); GET /demo/health → {"status":"ok","mode":"demo","db_ok":true,"queue_depth":0}; GET /demo/examples → explicit empty response; GET /demo/examples/nonexistent/audio/clean → 404; protected diff empty (platform files untouched); docker compose down clean. All B4.2 done-when criteria satisfied.
 
 - B4.1: implemented demo health and example listing on 2026-05-02. New files: libs/demo/examples.py (DemoExample Pydantic model with example_id, title, description, duration_seconds, degradation_ids, ground_truth, audio_available, clean_audio_path, degraded_audio_paths; load_examples() returns [] when config absent), tests/demo/test_demo_examples.py (8 new tests covering absent file, empty array, valid JSON, all default field values, platform isolation check). Modified: libs/common/demo_settings.py (added demo_examples_config: Path = Path("config/demo_examples.json")), services/api/app/demo_main.py (GET /demo/health expanded to report db_ok and queue_depth by calling count_active_jobs inside try/except; GET /demo/examples new route reading settings.demo_examples_config via load_examples()), tests/demo/test_demo_api.py (added DEMO_EXAMPLES_CONFIG to env isolation list, updated test_health_returns_ok to check key fields, added test_health_db_ok_is_true, test_health_queue_depth_is_integer, test_examples_returns_200, test_examples_returns_empty_list_when_no_config, test_examples_note_is_set_when_empty, test_examples_note_is_null_when_populated), tests/demo/test_demo_settings.py (added DEMO_EXAMPLES_CONFIG to env isolation list, added test_default_examples_config). Corrected stale tracker entry: B3.3 does not exist in the plan; phase B3 ended at B3.2; tracker corrected to current_task B4.2. Validation: 63 tests passed / 0 failed (48 previous + 15 new); demo Compose config exit 0; platform Compose config exit 0; build exit 0 (no new pip packages, requirements.lock.arm64 unchanged); GET /demo/health → {"status":"ok","mode":"demo","db_ok":true,"queue_depth":0}; GET /demo/examples → {"examples":[],"total":0,"note":"No curated examples loaded. Run Phase B6 to populate."}; protected diff empty (platform files untouched); docker compose down clean. All B4.1 done-when criteria satisfied.
 
@@ -53,4 +55,4 @@ Training branch feature/training-datamove1-v1 already exists on origin from demo
 
 ## Next task
 
-Task B4.2.
+Task B4.3.

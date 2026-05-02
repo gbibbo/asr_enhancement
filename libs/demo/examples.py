@@ -24,3 +24,18 @@ def load_examples(config_path: Path) -> list[DemoExample]:
         return []
     data = json.loads(config_path.read_text(encoding="utf-8"))
     return [DemoExample(**item) for item in data]
+
+
+def get_safe_audio_path(audio_root: Path, path_str: str | None) -> Path | None:
+    if not path_str:
+        return None
+    relative_path = Path(path_str)
+    if relative_path.is_absolute():
+        return None
+    root = audio_root.resolve()
+    resolved = (root / relative_path).resolve()
+    if not resolved.is_relative_to(root):
+        return None
+    if not resolved.is_file():
+        return None
+    return resolved

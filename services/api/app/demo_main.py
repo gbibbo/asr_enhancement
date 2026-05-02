@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 
 from libs.common.demo_settings import DemoSettings
-from libs.demo.examples import load_examples
+from libs.demo.examples import get_safe_audio_path, load_examples
 from libs.demo.persistence import QueueFullError, count_active_jobs, ensure_runtime_dirs, init_schema, try_create_job
 from libs.observability.logging import configure_logging
 
@@ -47,6 +47,37 @@ async def list_demo_examples(request: Request):
     examples = load_examples(settings.demo_examples_config)
     note = None if examples else "No curated examples loaded. Run Phase B6 to populate."
     return {"examples": [e.model_dump() for e in examples], "total": len(examples), "note": note}
+
+
+@app.get("/demo/examples/{example_id}/audio/clean")
+async def get_clean_audio(example_id: str, request: Request):
+    settings: DemoSettings = request.app.state.settings
+    examples = load_examples(settings.demo_examples_config)
+    example = next((e for e in examples if e.example_id == example_id), None)
+    if example is None:
+        raise HTTPException(status_code=404, detail="Example not found")
+    audio_root = settings.demo_artifacts_dir / "examples"
+    target = get_safe_audio_path(audio_root, example.clean_audio_path)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Clean audio not available")
+    return FileResponse(target, media_type="audio/wav")
+
+
+@app.get("/demo/examples/{example_id}/audio/degraded/{degradation_id}")
+async def get_degraded_audio(example_id: str, degradation_id: str, request: Request):
+    settings: DemoSettings = request.app.state.settings
+    examples = load_examples(settings.demo_examples_config)
+    example = next((e for e in examples if e.example_id == example_id), None)
+    if example is None:
+        raise HTTPException(status_code=404, detail="Example not found")
+    path_str = example.degraded_audio_paths.get(degradation_id)
+    if path_str is None:
+        raise HTTPException(status_code=404, detail="Degraded audio not available for this degradation")
+    audio_root = settings.demo_artifacts_dir / "examples"
+    target = get_safe_audio_path(audio_root, path_str)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Degraded audio not available")
+    return FileResponse(target, media_type="audio/wav")
 
 
 @app.post("/demo/jobs", status_code=202)
