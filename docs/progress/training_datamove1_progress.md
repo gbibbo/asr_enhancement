@@ -393,7 +393,7 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | Dataset version | `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` |
 | `git_commit_at_run` | `e89db8dcb9fbfb486930d697d9345b3361c6e93d` |
 | Prep commit | `e89db8d` |
-| Result commit | `PENDING_RESULT_COMMIT` |
+| Result commit | `c4ee5f4` |
 | Summary report (Git) | `reports/training/degradation_bank_v1.md` |
 
 ## Next task

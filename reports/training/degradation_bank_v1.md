@@ -17,7 +17,7 @@ Deterministic validation sample size: 50
 Audio format: WAV, 16 kHz mono, PCM_16  
 Length contract: output_samples == input_samples (apply_degradation)  
 Code commit at run: `e89db8dcb9fbfb486930d697d9345b3361c6e93d`  
-Result commit: `PENDING_RESULT_COMMIT`  
+Result commit: `c4ee5f4`  
 Smoke Slurm job ID: `2125896`  
 Full Slurm job ID: `2125897`  
 Full elapsed: `00:02:59`  

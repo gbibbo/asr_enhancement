@@ -399,7 +399,7 @@ t3_2_blocker:
     - degraded versions of active dev-clean filtered manifest (2693 records)
 t3_2a_evidence:
   prep_commit: "e89db8d"
-  result_commit: "PENDING_RESULT_COMMIT"
+  result_commit: "c4ee5f4"
   smoke_job_id: "2125896"
   smoke_sacct_state: COMPLETED
   smoke_exit_code: "0:0"
