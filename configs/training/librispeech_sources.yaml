@@ -6,10 +6,9 @@
 dataset_name: LibriSpeech
 dataset_root_outside_git: true
 download_performed_in_t2_1: false
-staging_status: partial_existing_source
-staging_completed: false
-manifest_generation_ready: false
-t2_2_blocker: librispeech_dev_clean_missing
+staging_status: dev_clean_staged
+staging_completed: true
+manifest_generation_ready: true
 
 # Authoritative dataset root — existing Surrey copy, used directly.
 # Forum-build copies at scratch4weeks/gb0048/forum_build/ are excluded
@@ -30,7 +29,7 @@ split_structure: flat_under_dataset_root
 # split_status: present | missing | not_used
 splits:
   dev-clean:
-    split_status: missing
+    split_status: present
     role: baseline_validation
     priority: required_for_t3
     expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/dev-clean
@@ -78,8 +77,8 @@ output_manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_tr
 
 notes:
   dev_clean_required_before_t2_2: true
-  t2_2_blocked_until_dev_clean_present: true
-  present_splits: [test-clean, train-clean-100]
-  missing_splits: [dev-clean, dev-other, test-other, train-clean-360, train-other-500]
+  t2_2_blocked_until_dev_clean_present: false
+  present_splits: [dev-clean, test-clean, train-clean-100]
+  missing_splits: [dev-other, test-other, train-clean-360, train-other-500]
   format: "FLAC audio + TXT transcripts in standard LibriSpeech directory tree"
   source_reference: "https://openslr.org/12 (reference only)"

@@ -4,7 +4,7 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T2
 Current phase: Phase 2
-Current task: Task T2.2 (blocked: librispeech_dev_clean_missing)
+Current task: Task T2.2
 
 ## Completed
 
@@ -20,7 +20,7 @@ Current task: Task T2.2 (blocked: librispeech_dev_clean_missing)
 
 ## Current blocker
 
-`librispeech_dev_clean_missing` — `dev-clean` is required before T2.2 can run. It is not present at the authoritative source root `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/`. Staging `dev-clean` (and `train-clean-100` for T5) requires explicit approval before T2.2 starts.
+None. dev-clean staged successfully (2026-05-02). T2.2 is unblocked.
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -200,6 +200,30 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | Slurm job submitted | false |
 | Manifest generated | false |
 
+## T2 staging closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Download source | `https://www.openslr.org/resources/12/dev-clean.tar.gz` |
+| License | CC BY 4.0 (OpenSLR resource 12) |
+| Archive temp path | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/downloads/dev-clean.tar.gz` |
+| MD5 expected | `42e2234ba48799c1f50f24a7926300a1` |
+| MD5 actual | `42e2234ba48799c1f50f24a7926300a1` |
+| MD5 validated | true |
+| Tar safety gate | `grep -Ev '^(LibriSpeech/\|LibriSpeech/dev-clean(/\|$))'` → empty (pass) |
+| Target pre-existence check | `dev-clean` absent before extraction → OK |
+| Extraction command | `tar -xzf dev-clean.tar.gz -C …/sources/librispeech/` |
+| Extraction result | success |
+| dev-clean path | `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/dev-clean` |
+| FLAC count | 2703 |
+| Transcript count | 97 |
+| Speaker/chapter tree | confirmed |
+| test-clean after extraction | present |
+| train-clean-100 after extraction | present |
+| Archive deleted | true |
+| Slurm job required | false |
+| No data staged in Git | true |
+
 ## Next task
 
-Task T2.2. Create dataset manifest. **Blocked**: `dev-clean` must be staged to the authoritative source root before T2.2 can run. Requires explicit approval from Gabriel.
+Task T2.2. Create dataset manifest. `dev-clean` is now staged; T2.2 is unblocked.

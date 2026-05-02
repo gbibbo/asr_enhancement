@@ -4,8 +4,8 @@ current_cut: T2
 current_phase: 2
 current_task: "T2.2"
 last_completed_task: "T2.1"
-blocked: true
-blocker: "librispeech_dev_clean_missing"
+blocked: false
+blocker: null
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
 datamove1_status: ready_for_training_setup
 slurm_status: verified_via_wrapper
@@ -194,6 +194,20 @@ t2_1_evidence:
   slurm_job_required: false
   slurm_job_submitted: false
   yaml_validation: "python3 yaml.safe_load → OK"
+t2_staging_evidence:
+  dev_clean_staged: true
+  dev_clean_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/dev-clean
+  download_source: https://www.openslr.org/resources/12/dev-clean.tar.gz
+  archive_temp_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/downloads/dev-clean.tar.gz
+  archive_deleted_after_extraction: true
+  md5_validated: true
+  md5_expected: 42e2234ba48799c1f50f24a7926300a1
+  md5_actual: 42e2234ba48799c1f50f24a7926300a1
+  flac_count: 2703
+  transcript_count: 97
+  existing_splits_untouched: true
+  slurm_job_required: false
+  license: CC BY 4.0 (OpenSLR resource 12)
 tasks:
   "T0.1": done
   "T0.2": done
