@@ -1,0 +1,51 @@
+name: asr-demo
+
+x-demo-build: &demo-build
+  context: ../..
+  dockerfile: infra/compose/Dockerfile.demo
+
+x-demo-volumes: &demo-volumes
+  - ${DEMO_RUNTIME_ROOT:-/home/gbibbo/asr_enhancement_runtime}:${DEMO_RUNTIME_ROOT:-/home/gbibbo/asr_enhancement_runtime}
+
+x-demo-env: &demo-env
+  DEMO_MODE: "true"
+  DEMO_RUNTIME_ROOT: ${DEMO_RUNTIME_ROOT:-/home/gbibbo/asr_enhancement_runtime}
+  DEMO_DB_PATH: ${DEMO_DB_PATH:-}
+  DEMO_UPLOAD_DIR: ${DEMO_UPLOAD_DIR:-}
+  DEMO_CACHE_DIR: ${DEMO_CACHE_DIR:-}
+  DEMO_ARTIFACTS_DIR: ${DEMO_ARTIFACTS_DIR:-}
+  DEMO_LOGS_DIR: ${DEMO_LOGS_DIR:-}
+  DEMO_WORKER_CONCURRENCY: ${DEMO_WORKER_CONCURRENCY:-1}
+  DEMO_QUEUE_MAX: ${DEMO_QUEUE_MAX:-10}
+  DEMO_UPLOAD_LIMIT_BYTES: ${DEMO_UPLOAD_LIMIT_BYTES:-5242880}
+  DEMO_UPLOAD_MAX_DURATION_SECONDS: ${DEMO_UPLOAD_MAX_DURATION_SECONDS:-30}
+  ENHANCER_VERSION: ${ENHANCER_VERSION:-bypass}
+  ADMIN_STATS_USERNAME: ${ADMIN_STATS_USERNAME:-admin}
+  ADMIN_STATS_PASSWORD: ${ADMIN_STATS_PASSWORD:-}
+
+services:
+  demo-api:
+    build: *demo-build
+    environment:
+      <<: *demo-env
+      ASSEMBLYAI_API_KEY: ${ASSEMBLYAI_API_KEY:-}
+    command: uvicorn services.api.app.demo_main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8001:8000"
+    volumes: *demo-volumes
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/demo/health', timeout=2).read()\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  demo-worker:
+    build: *demo-build
+    environment: *demo-env
+    command: python -u services/worker/app/demo_worker_main.py
+    volumes: *demo-volumes

@@ -5,9 +5,13 @@ Integration branch: demo-rp5-v1
 Parallel training branch: feature/training-datamove1-v1
 Current track: B (RP5 setup)
 Current phase: Phase B3
-Current task: Task B3.1
+Current task: Task B3.2
 
 ## Completed
+
+- B3.1: created demo Compose runtime on 2026-05-02. New files: infra/compose/Dockerfile.demo (python:3.11-slim, installs from requirements.lock.arm64), infra/compose/docker-compose.demo.yml (Compose project name asr-demo, two services: demo-api on host port 8001, demo-worker; no platform services; Python stdlib urllib.request healthcheck; bind-mount /home/gbibbo/asr_enhancement_runtime), .env.demo.example (placeholder only, no secrets), libs/common/demo_settings.py (DemoSettings with model_validator filling derived paths from DEMO_RUNTIME_ROOT), services/api/app/demo_main.py (minimal FastAPI, no platform imports, GET /demo/health stub), services/worker/app/demo_worker_main.py (SIGTERM+SIGINT handlers, clean shutdown). Added .env.demo to .gitignore. Validation: docker compose config exit 0; docker compose build exit 0 (arm64 native, all packages from requirements.lock.arm64); docker compose up -d: demo-api healthy, demo-worker Up; curl http://localhost:8001/demo/health → {"status":"ok","mode":"demo"}; worker log: "Demo worker started (idle, waiting for B3.2 job queue)"; platform config: exit 0; tests/demo/ inside demo image: 19 passed / 0 failed (8 cache key + 11 new demo settings); docker compose down: clean exit. Seven protected diffs all empty. All B3.1 done-when criteria satisfied.
+
+
 
 - B2.5: generated requirements.lock.arm64 on RP5 on 2026-05-02. Docker container: python:3.11-slim linux/arm64 (native aarch64, no emulation). pip-tools: 7.5.3. Generation command: `docker run --rm --platform linux/arm64 -v "$(pwd)":/workspace -w /workspace python:3.11-slim sh -c "pip install --quiet pip-tools==7.5.3 && pip-compile --extra=dev --generate-hashes --output-file=requirements.lock.arm64 --strip-extras pyproject.toml"`. Container architecture check: platform.machine()=aarch64, Python 3.11.15. Sanity checks: no file:// paths, no secrets, fastapi==0.136.1 / celery==5.6.3 / pytest==9.0.3 pinned with hashes (1364 hash lines). Install from lock in bare arm64 container: install OK. Pure-Python test suites: tests/audio/ + tests/common/ + tests/demo/ + tests/asr/ = 218 passed / 0 failed in 3.05 s. Protected diff checks: requirements.lock.x86_64, pyproject.toml, libs/, services/, tests/, infra/, .github/ all empty (no unintended changes). All B2.5 done-when criteria satisfied.
 - B2.2: Git and VS Code Remote SSH verified on 2026-05-02. SSH to asr-rp5: ok. Repo ~/code/asr_enhancement fetched and fast-forwarded from 99495ad to f3400cf (19 commits). Branch: feature/demo-runtime-rp5-v1. Remote: git@github.com:gbibbo/asr_enhancement.git. GitHub SSH auth: ok (Hi gbibbo! authenticated via id_ed25519_github_rp5). Working tree: clean. Git identity: Gabriel Bibbó <gabobibbo@gmail.com>. merge.ours.driver: set to true. VS Code Remote SSH: Gabriel confirmed repo opens in VS Code remote window with branch feature/demo-runtime-rp5-v1 and tip f3400cf. All B2.2 done-when criteria satisfied.
@@ -45,4 +49,4 @@ Training branch feature/training-datamove1-v1 already exists on origin from demo
 
 ## Next task
 
-Task B3.1. Create demo Compose runtime.
+Task B3.2. Implement demo persistence and queue limit.
