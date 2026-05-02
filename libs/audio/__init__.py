@@ -14,6 +14,15 @@ from libs.audio.metrics import (
     compute_metrics,
     normalize_text,
 )
+from libs.audio.degradations import (
+    DEGRADATION_REGISTRY,
+    KNOWN_DEGRADATION_IDS,
+    DegradationResult,
+    DegradationSpec,
+    UnknownDegradationError,
+    apply_degradation,
+    get_degradation,
+)
 
 __all__ = [
     "EnhancementPreset",
@@ -28,4 +37,11 @@ __all__ = [
     "MetricsResult",
     "compute_metrics",
     "normalize_text",
+    "DEGRADATION_REGISTRY",
+    "KNOWN_DEGRADATION_IDS",
+    "DegradationResult",
+    "DegradationSpec",
+    "UnknownDegradationError",
+    "apply_degradation",
+    "get_degradation",
 ]
