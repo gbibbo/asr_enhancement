@@ -4,7 +4,7 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T2
 Current phase: Phase 2
-Current task: Task T2.2
+Current task: Task T2.3
 
 ## Completed
 
@@ -20,7 +20,7 @@ Current task: Task T2.2
 
 ## Current blocker
 
-None. dev-clean staged successfully (2026-05-02). T2.2 is unblocked.
+None. T2.2 closed successfully (2026-05-02). T2.3 is next.
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -224,6 +224,49 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | Slurm job required | false |
 | No data staged in Git | true |
 
+## T2.2 closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Job ID | `2125865` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Execution node | `aisurrey03.surrey.ac.uk` |
+| Elapsed | `00:00:08` |
+| Stdout log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_2_build_manifest_2125865.out` |
+| Stderr log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_2_build_manifest_2125865.err` |
+| Summary artifact | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_2_manifest_summary_2125865.json` |
+| Manifest path | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl` |
+| Manifest committed | false — lives under scratch path, outside Git |
+| Manifest scope | `all_present_splits` (only `dev-clean` declared `present` in config) |
+| Config path | `configs/training/librispeech_sources.yaml` |
+| Stdout terminal line | `T2.2 COMPLETE` |
+
+**Split summary:**
+
+| Split | Config status | FLAC files | trans.txt files | Manifest records |
+|---|---|---|---|---|
+| dev-clean | present | 2703 | 97 | 2703 |
+| test-clean | present_empty | 0 | 0 | 0 (excluded) |
+| train-clean-100 | present_empty | 0 | 0 | 0 (excluded) |
+
+**Anomaly note:** `test-clean` and `train-clean-100` directories exist in the authoritative LibriSpeech root but contain zero FLAC and transcript files. Verified by read-only pre-plan checks (2026-05-02). Config updated: `split_status: present_empty` for both, with `split_status_note`. The manifest is dev-clean-only as a result; this is sufficient for T2.3 (exclusion filtering) and T3.1 (baseline, which only requires dev-clean).
+
+**Validation results (every JSONL line checked):**
+
+| Check | Result |
+|---|---|
+| missing FLAC count | 0 |
+| soundfile.info() errors | 0 |
+| duplicate utterance_id | 0 |
+| missing transcript chapters | 0 |
+| validation lines checked | 2703 |
+| sample_rate == 16000 (all records) | pass |
+| duration_seconds > 0 (all records) | pass |
+| all required fields present | pass |
+| audio_path exists on disk | pass |
+| JSON parse (every line) | pass |
+
 ## Next task
 
-Task T2.2. Create dataset manifest. `dev-clean` is now staged; T2.2 is unblocked.
+Task T2.3. Exclude public demo examples from the manifest.

@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T2
 current_phase: 2
-current_task: "T2.2"
-last_completed_task: "T2.1"
+current_task: "T2.3"
+last_completed_task: "T2.2"
 blocked: false
 blocker: null
 synced_from_demo_rp5_v1: "2026-05-01 (T0.2 commit 243ed48)"
@@ -194,6 +194,37 @@ t2_1_evidence:
   slurm_job_required: false
   slurm_job_submitted: false
   yaml_validation: "python3 yaml.safe_load → OK"
+t2_2_evidence:
+  command: "./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t2_2_build_manifest.sh"
+  job_id: "2125865"
+  sacct_state: COMPLETED
+  exit_code: "0:0"
+  execution_node: aisurrey03.surrey.ac.uk
+  elapsed: "00:00:08"
+  output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_2_build_manifest_2125865.out
+  error_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_2_build_manifest_2125865.err
+  summary_artifact: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_2_manifest_summary_2125865.json
+  manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
+  manifest_committed: false
+  manifest_scope: all_present_splits
+  config_path: configs/training/librispeech_sources.yaml
+  config_present_splits: [dev-clean]
+  config_present_empty_splits: [test-clean, train-clean-100]
+  config_present_empty_note: "test-clean and train-clean-100 directories exist with zero FLAC and transcript files; updated to present_empty in librispeech_sources.yaml before job submission"
+  usable_splits: [dev-clean]
+  skipped_present_splits: []
+  per_split_flac_counts: {dev-clean: 2703}
+  per_split_transcript_counts: {dev-clean: 97}
+  per_split_manifest_record_counts: {dev-clean: 2703}
+  total_records: 2703
+  missing_flac_count: 0
+  soundfile_error_count: 0
+  duplicate_utterance_id_count: 0
+  missing_transcript_chapter_count: 0
+  validation_lines_checked: 2703
+  validation_passed: true
+  pythonnousersite_env: "1"
+  success: true
 t2_staging_evidence:
   dev_clean_staged: true
   dev_clean_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/dev-clean
@@ -218,7 +249,7 @@ tasks:
   "T1.2": done
   "T1.3": done
   "T2.1": done
-  "T2.2": pending
+  "T2.2": done
   "T2.3": pending
   "T2.4": pending
   "T2.5": pending

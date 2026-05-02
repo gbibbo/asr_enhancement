@@ -1,7 +1,6 @@
-# LibriSpeech source configuration — T2.1
+# LibriSpeech source configuration — updated through T2.2
 # Defines authoritative dataset root, split statuses, allowed splits,
-# and manifest output path for T2.2.
-# No data has been downloaded or staged in T2.1.
+# and manifest output path.
 
 dataset_name: LibriSpeech
 dataset_root_outside_git: true
@@ -9,6 +8,7 @@ download_performed_in_t2_1: false
 staging_status: dev_clean_staged
 staging_completed: true
 manifest_generation_ready: true
+manifest_scope: dev_clean_only
 
 # Authoritative dataset root — existing Surrey copy, used directly.
 # Forum-build copies at scratch4weeks/gb0048/forum_build/ are excluded
@@ -26,7 +26,10 @@ ignored_reason: different project context; derived/work copies not used as sourc
 split_structure: flat_under_dataset_root
 
 # All seven standard LibriSpeech splits with current status.
-# split_status: present | missing | not_used
+# split_status: present | present_empty | missing | not_used
+#   present       — directory exists and contains FLAC + transcript files
+#   present_empty — directory exists but contains zero FLAC and transcript files
+#                   (anomaly verified 2026-05-02 by T2.2 pre-plan checks)
 splits:
   dev-clean:
     split_status: present
@@ -39,7 +42,8 @@ splits:
     priority: optional_for_t3
     expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/dev-other
   test-clean:
-    split_status: present
+    split_status: present_empty
+    split_status_note: "directory tree exists; zero FLAC and transcript files found (verified 2026-05-02)"
     role: final_evaluation
     priority: not_used_before_t7
     expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/test-clean
@@ -49,7 +53,8 @@ splits:
     priority: not_used_before_t7
     expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/test-other
   train-clean-100:
-    split_status: present
+    split_status: present_empty
+    split_status_note: "directory tree exists; zero FLAC and transcript files found (verified 2026-05-02)"
     role: training
     priority: required_for_t5
     expected_path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/train-clean-100
@@ -78,7 +83,9 @@ output_manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_tr
 notes:
   dev_clean_required_before_t2_2: true
   t2_2_blocked_until_dev_clean_present: false
-  present_splits: [dev-clean, test-clean, train-clean-100]
+  present_splits: [dev-clean]
+  present_empty_splits: [test-clean, train-clean-100]
   missing_splits: [dev-other, test-other, train-clean-360, train-other-500]
+  usable_splits_for_t2_2_manifest: [dev-clean]
   format: "FLAC audio + TXT transcripts in standard LibriSpeech directory tree"
   source_reference: "https://openslr.org/12 (reference only)"
