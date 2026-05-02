@@ -290,13 +290,6 @@ Rules:
 
 ## 9. Shared refactor rules
 
-The planned refactor uses these mappings:
-
-```text
-libs/audio_pipeline/pipeline.py   -> libs/audio/enhancement.py
-libs/audio_pipeline/presets.py    -> baseline legacy presets
-```
-
 Rules:
 
 1. Copy or adapt first.
