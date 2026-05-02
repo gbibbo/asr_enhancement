@@ -5,10 +5,11 @@ Integration branch: demo-rp5-v1
 Parallel training branch: feature/training-datamove1-v1
 Current track: B (RP5 setup)
 Current phase: Phase B2
-Current task: Task B2.2
+Current task: Task B2.5
 
 ## Completed
 
+- B2.2: Git and VS Code Remote SSH verified on 2026-05-02. SSH to asr-rp5: ok. Repo ~/code/asr_enhancement fetched and fast-forwarded from 99495ad to f3400cf (19 commits). Branch: feature/demo-runtime-rp5-v1. Remote: git@github.com:gbibbo/asr_enhancement.git. GitHub SSH auth: ok (Hi gbibbo! authenticated via id_ed25519_github_rp5). Working tree: clean. Git identity: Gabriel Bibbó <gabobibbo@gmail.com>. merge.ours.driver: set to true. VS Code Remote SSH: Gabriel confirmed repo opens in VS Code remote window with branch feature/demo-runtime-rp5-v1 and tip f3400cf. All B2.2 done-when criteria satisfied.
 - B2.1: base system dependencies verified on 2026-05-02. apt-get update: exit 0, fetched 707 kB in 3 s from deb.debian.org (trixie, trixie-updates, trixie-security) and archive.raspberrypi.com (trixie). Git: 2.47.3. Docker: 26.1.5+dfsg1 build a72d7cd. Docker Compose: 2.26.1-4. gbibbo already in docker group (gid 105) — no usermod required. docker ps without sudo: exit 0. docker run --rm alpine echo docker-ok: pulled alpine:latest from Docker Hub, printed docker-ok. All B2.1 done-when criteria satisfied.
 - B1.1: OS headless verified on 2026-05-02. RP5 was already installed and running before B0.x checks. SSH confirmed as gbibbo@asr-rp5. OS: Debian GNU/Linux 13 (trixie) with Raspberry Pi kernel 6.12.75+rpt-rpi-2712 (BCM2712 / RP5). Architecture: aarch64. Hostname: asr-rp5. User: gbibbo. SSH service: active. Headless confirmed (lightdm inactive, DISPLAY not set). Timezone: America/Montevideo. Locale: en_GB.UTF-8. Disk: mmcblk0p2 ext4 rootfs 50.2 GB, 9% used, mounted at /. eth0 UP 192.168.1.241/24 is runtime path. wlan0 UP 192.168.1.240/24 is active but not runtime path per B1.1 decision rule 3 (keep Ethernet as runtime path). All B1.1 done-when criteria satisfied.
 - S0.1: inspected repository state and preserved MVP tag.
@@ -43,4 +44,4 @@ Training branch feature/training-datamove1-v1 already exists on origin from demo
 
 ## Next task
 
-Task B2.2. Configure Git and VS Code Remote SSH.
+Task B2.5. Generate arm64 lock on RP5 if missing.
