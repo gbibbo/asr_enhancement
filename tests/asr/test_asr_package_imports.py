@@ -1,9 +1,10 @@
-from libs.asr.base import ASRAdapter
-from libs.asr.schema import ASRResult
-from libs.asr.errors import AdapterError, InputFileNotFoundError, AdapterTranscriptionError
-from libs.asr.fake_provider import FakeASRAdapter
 from libs.asr.assemblyai_provider import AssemblyAIAdapter
+from libs.asr.base import ASRAdapter
+from libs.asr.errors import AdapterError, AdapterTranscriptionError, InputFileNotFoundError
 from libs.asr.factory import make_asr_adapter
+from libs.asr.fake_provider import FakeASRAdapter
+from libs.asr.schema import ASRResult
+from libs.asr.whisper_provider import WhisperAdapter
 
 
 def test_fake_provider_is_asr_adapter():
@@ -12,6 +13,10 @@ def test_fake_provider_is_asr_adapter():
 
 def test_assemblyai_provider_is_asr_adapter():
     assert issubclass(AssemblyAIAdapter, ASRAdapter)
+
+
+def test_whisper_provider_is_asr_adapter():
+    assert issubclass(WhisperAdapter, ASRAdapter)
 
 
 def test_asr_result_is_dataclass():
