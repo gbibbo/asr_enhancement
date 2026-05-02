@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T2
 current_phase: 2
-current_task: "T2.4"
-last_completed_task: "T2.3"
+current_task: "T2.5"
+last_completed_task: "T2.4"
 blocked: false
 blocker: null
 public_examples_exclusion_status: pending_public_examples
@@ -264,6 +264,25 @@ t2_3_evidence:
   validation_passed: null
   rerun_after: B6.2
   note: "Placeholder gate created. T2.3 must be re-run after B6.2 closes and demo_examples.json is available. T3.1 must not run while status remains pending_public_examples."
+t2_4_evidence:
+  slurm_job_id: "2125887"
+  sacct_state: COMPLETED
+  exit_code: "0:0"
+  execution_node: aisurrey03.surrey.ac.uk
+  elapsed: "00:00:02"
+  output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_4_dataset_version_2125887.out
+  error_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_4_dataset_version_2125887.err
+  evidence_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_4_dataset_version_2125887.json
+  dataset_version_config: configs/training/dataset_version.yaml
+  dataset_version_report: reports/training/dataset_version_v1.md
+  dataset_version: librispeech_devclean_v1_exclpending_sha256_bacd6f7ba89c
+  manifest_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl
+  manifest_records: 2703
+  manifest_sha256: bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f
+  manifest_sha256_prefix: bacd6f7ba89c
+  exclusion_status: pending_public_examples
+  filtered_manifest_path: null
+  later_tasks_must_embed_dataset_version: true
 tasks:
   "T0.1": done
   "T0.2": done
@@ -276,7 +295,7 @@ tasks:
   "T2.1": done
   "T2.2": done
   "T2.3": placeholder_pending_b6
-  "T2.4": pending
+  "T2.4": done
   "T2.5": pending
   "T3.1": pending
   "T3.2": pending

@@ -4,7 +4,7 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T2
 Current phase: Phase 2
-Current task: Task T2.4
+Current task: Task T2.5
 
 ## Completed
 
@@ -19,10 +19,11 @@ Current task: Task T2.4
 - T2.1: LibriSpeech source configuration defined at `configs/training/librispeech_sources.yaml`. Authoritative dataset root at `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech` confirmed via bounded find. Splits `test-clean` and `train-clean-100` present; `dev-clean`, `dev-other`, `test-other`, `train-clean-360`, `train-other-500` missing. Forum-build copies excluded (different project context). No download, no manifest, no Slurm job. YAML valid. T2.2 blocked on `dev-clean` missing.
 - T2.2: LibriSpeech dev-clean manifest generated. Job `2125865` ran on `aisurrey03.surrey.ac.uk`, sacct `COMPLETED 0:0`. 2703 records from dev-clean; zero missing FLACs, zero soundfile errors, all 16 kHz, all validated. `test-clean` and `train-clean-100` recorded as `present_empty` (anomaly). Manifest at scratch path, not committed.
 - T2.3: public demo example exclusion gate created (placeholder mode). Job `2125885` ran on `aisurrey03.surrey.ac.uk`, sacct `COMPLETED 0:0`. B6 not yet started; no `demo_examples.json` found in bounded inspected locations (repo root, `configs/`, `configs/training/`, `docs/`). Exclusion config committed at `configs/training/public_examples_excluded.yaml` with `status: pending_public_examples`. Zero exclusions applied. Filtered manifest NOT written. T2.3 must be re-run after B6.2 closes. T3.1 must not run while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`.
+- T2.4: dataset version defined and manifest checksum recorded. Job `2125887` ran on `aisurrey03.surrey.ac.uk`, sacct `COMPLETED 0:0`. Version string `librispeech_devclean_v1_exclpending_sha256_bacd6f7ba89c` written to `configs/training/dataset_version.yaml`; SHA-256 `bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f` cross-checked with `sha256sum` (match). Report at `reports/training/dataset_version_v1.md`. `exclusion_policy.status: pending_public_examples` and `t3_blocked_while_pending: true` preserved. `later_tasks_must_embed_dataset_version: true` recorded.
 
 ## Current blocker
 
-None. T2.3 placeholder gate closed (2026-05-02). T2.4 is next.
+None. T2.4 closed (2026-05-02). T2.5 is next.
 
 **Pending gate:** T3.1 must not run while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`. T2.3 must be re-run after B6.2 closes.
 
@@ -296,6 +297,33 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 
 **Gate note:** T2.3 must be re-run after B6.2 produces `demo_examples.json`. T3.1 must not run while `configs/training/public_examples_excluded.yaml` has `status: pending_public_examples`.
 
+## T2.4 closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Job ID | `2125887` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Execution node | `aisurrey03.surrey.ac.uk` |
+| Elapsed | `00:00:02` |
+| Stdout log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_4_dataset_version_2125887.out` |
+| Stderr log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t2_4_dataset_version_2125887.err` |
+| Evidence JSON | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t2_4_dataset_version_2125887.json` |
+| Dataset version config | `configs/training/dataset_version.yaml` |
+| Dataset version report | `reports/training/dataset_version_v1.md` |
+| `dataset_version` | `librispeech_devclean_v1_exclpending_sha256_bacd6f7ba89c` |
+| Manifest path | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1.jsonl` |
+| Manifest records | 2703 |
+| Manifest SHA-256 | `bacd6f7ba89c439bd73ee4b94e3430db318cf0a62cd8a506fa6972a9a9feb60f` |
+| SHA-256 prefix (in version string) | `bacd6f7ba89c` |
+| SHA-256 cross-check | `sha256sum` match (independent) |
+| Exclusion status | `pending_public_examples` |
+| Filtered manifest | NOT written |
+| `t3_blocked_while_pending` | `true` |
+| `later_tasks_must_embed_dataset_version` | `true` |
+| Stdout terminal line | `T2.4 COMPLETE` |
+| YAML validation (inside Apptainer) | `YAML validation: OK` |
+
 ## Next task
 
-Task T2.4. Define dataset version.
+Task T2.5. Create model card template.
