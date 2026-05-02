@@ -45,6 +45,10 @@ RESERVED_IDS = {
 
 
 def _git_rev_parse_head(repo: pathlib.Path) -> str:
+    # Prefer env var set by the Slurm shell (git not available inside Apptainer).
+    val = os.environ.get("GIT_COMMIT_AT_RUN", "")
+    if val:
+        return val
     try:
         return subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=repo, text=True
@@ -54,6 +58,10 @@ def _git_rev_parse_head(repo: pathlib.Path) -> str:
 
 
 def _git_status_short(repo: pathlib.Path) -> str:
+    # Prefer env var set by the Slurm shell (git not available inside Apptainer).
+    val = os.environ.get("GIT_STATUS_SHORT_AT_RUN", None)
+    if val is not None:
+        return val
     try:
         return subprocess.check_output(
             ["git", "status", "--short"], cwd=repo, text=True

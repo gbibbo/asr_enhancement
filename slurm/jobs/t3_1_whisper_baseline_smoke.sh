@@ -26,6 +26,10 @@ RUN_DIR="$TRAIN_ROOT/runs/t3_1_baseline_smoke_${SLURM_JOB_ID:-local}"
 
 mkdir -p "$RUN_DIR" "$TRAIN_ROOT/logs" "$TRAIN_ROOT/cache/whisper"
 
+# Capture git state in the shell before entering Apptainer (git not in container).
+GIT_COMMIT_AT_RUN=$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo "unknown")
+GIT_STATUS_SHORT_AT_RUN=$(git -C "$REPO" status --short 2>/dev/null || echo "")
+
 echo "=== T3.1 Whisper baseline (smoke) ==="
 echo "Host:          $(hostname)"
 echo "Date:          $(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -46,6 +50,8 @@ apptainer exec \
   --env WHISPER_CACHE="$WHISPER_CACHE" \
   --env XDG_CACHE_HOME="$TRAIN_ROOT/cache" \
   --env ASR_REPO_ROOT="$REPO" \
+  --env GIT_COMMIT_AT_RUN="$GIT_COMMIT_AT_RUN" \
+  --env GIT_STATUS_SHORT_AT_RUN="$GIT_STATUS_SHORT_AT_RUN" \
   "$CONTAINER" \
   python3 -s "$REPO/scripts/training/run_whisper_baseline.py" \
     --manifest      "$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered.jsonl" \
