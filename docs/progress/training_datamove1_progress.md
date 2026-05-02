@@ -6,6 +6,8 @@ Current cut: T3
 Current phase: Phase 3
 Current task: Task T3.2
 Last completed task: T3.1
+Blocked: true
+Blocker: degradation_bank_not_ready
 
 ## Completed
 
@@ -27,7 +29,13 @@ Last completed task: T3.1
 
 ## Current blocker
 
-None. T3.1 complete (2026-05-02).
+**`degradation_bank_not_ready`** — T3.2 cannot start.
+
+T3.2 degraded baseline cannot start until the degradation bank exists, including:
+- `libs/audio/degradations.py`
+- degradation parameter/config definitions
+- degraded audio generation pipeline or degraded manifest/artifacts
+- evidence that degraded versions of the active dev-clean filtered manifest (2693 records) are available
 
 ## T0.5 closure evidence (2026-05-01)
 
@@ -354,13 +362,14 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | whisper_model | `base.en` (openai-whisper 20250625) |
 | metrics_version | `metrics_v1` |
 | git_commit_at_run | `6e7d9d4464bd5900467d075221478905421945ce` |
-| prep_commit_1 | `6e0e342` (libs, scripts, slurm jobs, tests) |
-| prep_commit_2 | `6e7d9d4` (git fix: capture git state in Slurm shell) |
+| prep_commit 1 | `6e0e342` (libs, scripts, slurm jobs, tests) |
+| prep_commit 2 | `6e7d9d4` (git fix: capture git state in Slurm shell) |
 | result_commit | `a753b15` |
+| backfill_commit | `c3cc95e` (backfill result_commit hash in summaries and trackers) |
 | summary_md | `reports/training/baseline_clean_wer.md` |
 
 **T3.2 prerequisite note:** T3.2 (degraded baseline) requires degraded audio. The degradation bank is not yet built. T3.1 clean baseline is the sole T3.1 artefact.
 
 ## Next task
 
-Task T3.2. Run degraded-audio Whisper baseline. Blocked on degradation bank (T3.2 prerequisite).
+Task T3.2. Run degraded-audio Whisper baseline. **Blocked: `degradation_bank_not_ready`.**

@@ -4,8 +4,8 @@ current_cut: T3
 current_phase: 3
 current_task: "T3.2"
 last_completed_task: "T3.1"
-blocked: false
-blocker: null
+blocked: true
+blocker: "degradation_bank_not_ready"
 public_examples_exclusion_status: complete
 public_examples_exclusion_rerun_required: false
 public_examples_exclusion_rerun_after: null
@@ -377,11 +377,26 @@ t3_1_evidence:
   whisper_version: "20250625"
   metrics_version: metrics_v1
   git_commit_at_run: 6e7d9d4464bd5900467d075221478905421945ce
-  prep_commit_1: 6e0e342
-  prep_commit_2: 6e7d9d4
+  prep_commits:
+    - 6e0e342
+    - 6e7d9d4
   result_commit: a753b15
+  backfill_commit: c3cc95e
   summary_md: reports/training/baseline_clean_wer.md
   t3_2_prerequisite: "T3.2 (degraded baseline) requires noise/degradation audio — not yet available. T3.1 clean baseline complete."
+t3_2_blocker:
+  blocker: degradation_bank_not_ready
+  reason: >
+    T3.2 degraded baseline cannot start until the degradation bank exists,
+    including: libs/audio/degradations.py, degradation parameter/config
+    definitions, degraded audio generation pipeline or degraded
+    manifest/artifacts, and evidence that degraded versions of the active
+    dev-clean filtered manifest are available.
+  required_before_t3_2:
+    - libs/audio/degradations.py
+    - degradation parameter/config definitions
+    - degraded audio generation pipeline or degraded manifest/artifacts
+    - degraded versions of active dev-clean filtered manifest (2693 records)
 tasks:
   "T0.1": done
   "T0.2": done
