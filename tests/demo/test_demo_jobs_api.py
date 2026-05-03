@@ -244,6 +244,7 @@ def test_get_job_result_200_for_completed_upload_b9_2_schema(client):
     assert body["result"] == payload
     assert "ground_truth" not in json.dumps(body)
     assert body["result"]["metrics"] == {}
+    assert isinstance(body["result"]["warnings"], list)
 
 
 def test_get_job_result_200_for_failed(client):

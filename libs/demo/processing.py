@@ -38,6 +38,13 @@ PROVIDER_WHISPER = "whisper"
 PROVIDER_ASSEMBLYAI = "assemblyai"
 DEFAULT_WHISPER_MODEL_VERSION = "tiny.en"
 
+NON_ENGLISH_LANGUAGE_THRESHOLD = 0.5
+NON_ENGLISH_WARNING_MESSAGE = (
+    "Detected language is not English. This demo is designed for English speech, "
+    "so results may be unreliable. Continue?"
+)
+NON_ENGLISH_WARNING_CODE = "non_english_language"
+
 _ASSEMBLYAI_GATED_MESSAGE = (
     "AssemblyAI is not enabled for uploads in B9.2. "
     "Switch provider to 'whisper'."
@@ -145,6 +152,28 @@ def _language_probability(asr_result: ASRResult) -> Optional[float]:
     if isinstance(val, (int, float)):
         return float(val)
     return None
+
+
+def _language_warning(asr_result: ASRResult) -> Optional[dict]:
+    """Return the non-English language warning payload, or None.
+
+    A warning is emitted only when ASR reports a non-empty language that is
+    not "en" *and* a numeric language probability strictly above
+    ``NON_ENGLISH_LANGUAGE_THRESHOLD``. Missing or non-numeric probabilities
+    suppress the warning (plan §B9.3 decision rule 3).
+    """
+    language = asr_result.language
+    if not isinstance(language, str) or language == "" or language == "en":
+        return None
+    probability = _language_probability(asr_result)
+    if probability is None or probability <= NON_ENGLISH_LANGUAGE_THRESHOLD:
+        return None
+    return {
+        "code": NON_ENGLISH_WARNING_CODE,
+        "message": NON_ENGLISH_WARNING_MESSAGE,
+        "detected_language": language,
+        "language_probability": probability,
+    }
 
 
 def _time_transcribe(
@@ -315,6 +344,10 @@ def process_upload_job(
         "metrics": {},
         "warnings": [],
     }
+
+    language_warning = _language_warning(raw_result)
+    if language_warning is not None:
+        result_payload["warnings"] = [language_warning]
 
     log.info("job=%s result=completed", job_id)
     return ProcessingOutcome(status="completed", result=result_payload)
