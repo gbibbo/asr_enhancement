@@ -224,6 +224,136 @@ def get_cache_entry(db_path: Path, cache_key: str) -> Optional[dict]:
         conn.close()
 
 
+def upsert_cache_entry(
+    db_path: Path,
+    *,
+    cache_key: str,
+    example_id: str,
+    degradation_id: str,
+    degradation_version: str,
+    asr_provider: str,
+    asr_model_version: str,
+    enhancer_version: str,
+    metrics_version: str,
+    result_json: str,
+    artifact_root: str,
+) -> str:
+    """Insert or replace a cache_entries row.
+
+    Returns "inserted" or "updated" depending on whether a row with the same
+    cache_key existed before the call.
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    conn = _open(db_path)
+    try:
+        existing = conn.execute(
+            "SELECT 1 FROM cache_entries WHERE cache_key = ?", (cache_key,)
+        ).fetchone()
+        action = "updated" if existing else "inserted"
+        conn.execute(
+            """
+            INSERT INTO cache_entries (
+                cache_key, example_id, degradation_id, degradation_version,
+                asr_provider, asr_model_version, enhancer_version, metrics_version,
+                result_json, artifact_root, created_at, validated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+            ON CONFLICT(cache_key) DO UPDATE SET
+                example_id=excluded.example_id,
+                degradation_id=excluded.degradation_id,
+                degradation_version=excluded.degradation_version,
+                asr_provider=excluded.asr_provider,
+                asr_model_version=excluded.asr_model_version,
+                enhancer_version=excluded.enhancer_version,
+                metrics_version=excluded.metrics_version,
+                result_json=excluded.result_json,
+                artifact_root=excluded.artifact_root,
+                created_at=excluded.created_at,
+                validated_at=NULL
+            """,
+            (
+                cache_key,
+                example_id,
+                degradation_id,
+                degradation_version,
+                asr_provider,
+                asr_model_version,
+                enhancer_version,
+                metrics_version,
+                result_json,
+                artifact_root,
+                now,
+            ),
+        )
+        return action
+    finally:
+        conn.close()
+
+
+def list_cache_entries(db_path: Path) -> list[dict]:
+    conn = _open(db_path)
+    try:
+        rows = conn.execute(
+            "SELECT * FROM cache_entries ORDER BY cache_key"
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def delete_cache_entries(
+    db_path: Path,
+    *,
+    where_sql: str,
+    params: tuple,
+    dry_run: bool = True,
+) -> tuple[int, list[str]]:
+    """Delete cache_entries rows matching the supplied WHERE clause.
+
+    Returns (matched_count, sample_cache_keys). When dry_run is True, no rows
+    are deleted; the function only counts matches and returns up to 10 sample
+    cache_keys for preview.
+    """
+    if not where_sql.strip():
+        raise ValueError("where_sql must not be empty (refusing unfiltered delete)")
+    conn = _open(db_path)
+    try:
+        count_row = conn.execute(
+            f"SELECT COUNT(*) FROM cache_entries WHERE {where_sql}", params
+        ).fetchone()
+        matched = int(count_row[0])
+        sample_rows = conn.execute(
+            f"SELECT cache_key FROM cache_entries WHERE {where_sql} "
+            f"ORDER BY cache_key LIMIT 10",
+            params,
+        ).fetchall()
+        sample = [r[0] for r in sample_rows]
+        if not dry_run and matched > 0:
+            conn.execute("BEGIN IMMEDIATE")
+            try:
+                conn.execute(
+                    f"DELETE FROM cache_entries WHERE {where_sql}", params
+                )
+                conn.execute("COMMIT")
+            except Exception:
+                conn.execute("ROLLBACK")
+                raise
+        return matched, sample
+    finally:
+        conn.close()
+
+
+def mark_cache_entry_validated(db_path: Path, cache_key: str) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    conn = _open(db_path)
+    try:
+        conn.execute(
+            "UPDATE cache_entries SET validated_at = ? WHERE cache_key = ?",
+            (now, cache_key),
+        )
+    finally:
+        conn.close()
+
+
 def get_jobs_stats(db_path: Path) -> dict:
     conn = _open(db_path)
     try:
