@@ -86,3 +86,13 @@ def test_no_partial_file_left_on_size_error(tmp_path):
         asyncio.run(save_upload(upload, tmp_path, limit_bytes=5))
     remaining = [f for f in tmp_path.iterdir() if f.is_file()]
     assert remaining == []
+
+
+def test_save_upload_does_not_probe_audio_content(tmp_path):
+    """Back-compat: save_upload remains a pure size+extension check.
+    Random bytes with an allowed extension must still be saved successfully;
+    audio decodability is the responsibility of validate_and_save_upload."""
+    upload = _make_upload(b"\x00" * 200, filename="audio.wav")
+    path, ext = asyncio.run(save_upload(upload, tmp_path, limit_bytes=10_000))
+    assert path.exists()
+    assert ext == ".wav"

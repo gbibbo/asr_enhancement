@@ -25,7 +25,12 @@ from libs.demo.persistence import (
     set_admin_state,
     try_create_job,
 )
-from libs.demo.upload import FileTooLargeError, UnsupportedExtensionError, save_upload
+from libs.demo.upload import (
+    FileTooLargeError,
+    InvalidAudioError,
+    UnsupportedExtensionError,
+    validate_and_save_upload,
+)
 from libs.observability.logging import configure_logging
 
 
@@ -172,15 +177,18 @@ async def upload_audio(
 ):
     settings: DemoSettings = request.app.state.settings
     try:
-        saved_path, _ = await save_upload(
+        saved_path, _, _ = await validate_and_save_upload(
             file,
             settings.demo_upload_dir,
             settings.demo_upload_limit_bytes,
+            settings.demo_upload_max_duration_seconds,
         )
     except UnsupportedExtensionError:
         raise HTTPException(status_code=415, detail="Unsupported file type.")
     except FileTooLargeError:
         raise HTTPException(status_code=413, detail="File too large.")
+    except InvalidAudioError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
     try:
         job_id = try_create_job(
             settings.demo_db_path,

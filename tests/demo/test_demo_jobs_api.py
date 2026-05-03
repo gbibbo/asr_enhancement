@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import io
 import json
 import sqlite3
 import struct
 import uuid
+import wave
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -42,6 +44,23 @@ def _minimal_wav() -> bytes:
     data = struct.pack("<4sI", b"data", 0)
     riff = struct.pack("<4sI4s", b"RIFF", 4 + len(fmt) + len(data), b"WAVE")
     return riff + fmt + data
+
+
+_B9_SAMPLERATE = 16000
+
+
+def _wav_bytes_for_frames(frames: int) -> bytes:
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(_B9_SAMPLERATE)
+        w.writeframes(b"\x00\x00" * frames)
+    return buf.getvalue()
+
+
+def _wav_bytes_for_seconds(seconds: float) -> bytes:
+    return _wav_bytes_for_frames(int(round(seconds * _B9_SAMPLERATE)))
 
 
 def _insert_job(db_path: Path, status: str) -> str:
@@ -342,6 +361,64 @@ def test_upload_503_when_queue_full_no_orphan(client):
     if upload_dir.exists():
         remaining = [f for f in upload_dir.iterdir() if f.is_file()]
         assert remaining == []
+
+
+# ---------------------------------------------------------------------------
+# B9.1 — backend upload validation: 422 paths
+# ---------------------------------------------------------------------------
+
+def test_upload_corrupt_audio_returns_422(client):
+    resp = client.post(
+        "/demo/upload",
+        files={"file": ("audio.wav", b"\x00" * 100, "audio/wav")},
+    )
+    assert resp.status_code == 422
+    assert "could not be decoded" in resp.json()["detail"].lower()
+
+
+def test_upload_too_long_returns_422(client):
+    wav = _wav_bytes_for_seconds(31.0)
+    resp = client.post(
+        "/demo/upload",
+        files={"file": ("audio.wav", wav, "audio/wav")},
+    )
+    assert resp.status_code == 422
+    assert "exceeds 30 seconds" in resp.json()["detail"].lower()
+
+
+def test_upload_422_removes_saved_file(client):
+    resp = client.post(
+        "/demo/upload",
+        files={"file": ("audio.wav", b"\x00" * 100, "audio/wav")},
+    )
+    assert resp.status_code == 422
+
+    upload_dir = client.app.state.settings.demo_upload_dir
+    if upload_dir.exists():
+        remaining = [f for f in upload_dir.iterdir() if f.is_file()]
+        assert remaining == []
+
+
+def test_upload_422_does_not_change_queue_depth(client):
+    db = _db_path(client)
+    conn = sqlite3.connect(str(db))
+    before = conn.execute(
+        "SELECT COUNT(*) FROM jobs WHERE status IN ('queued', 'running')"
+    ).fetchone()[0]
+    conn.close()
+
+    resp = client.post(
+        "/demo/upload",
+        files={"file": ("audio.wav", _wav_bytes_for_seconds(31.0), "audio/wav")},
+    )
+    assert resp.status_code == 422
+
+    conn = sqlite3.connect(str(db))
+    after = conn.execute(
+        "SELECT COUNT(*) FROM jobs WHERE status IN ('queued', 'running')"
+    ).fetchone()[0]
+    conn.close()
+    assert after == before
 
 
 # ---------------------------------------------------------------------------
