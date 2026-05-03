@@ -533,7 +533,7 @@ t3_3_evidence:
     - reports/training/baseline_degraded_wer.md
   slurm_jobs: none
   scripts_modified: none
-  result_commit: "PENDING_RESULT_COMMIT"
+  result_commit: "5baf32c"
 tasks:
   "T0.1": done
   "T0.2": done
