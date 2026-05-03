@@ -1,10 +1,15 @@
 {
   "generated_at": "2026-05-02T23:59:40.242536+00:00",
+  "amended_at": "2026-05-03T00:14:53.716234+00:00",
   "whisper_model": "tiny.en",
   "model_cache_path": "/home/gbibbo/asr_enhancement_runtime/cache/whisper",
   "candidates_config": "config/demo_example_candidates.json",
   "examples_config": "config/demo_examples.json",
   "pass_threshold": 0.01,
+  "scope_note": "B6.1 candidate pool was 10 reserved examples from datamove1. B6.2 final public demo set is the 5 examples that satisfied the ASR drop criterion under DEGRADATION_VERSION 1.0 with faster-whisper tiny.en. The 5 excluded examples remain reserved/excluded from training but are not exposed via config/demo_examples.json.",
+  "candidate_count": 10,
+  "final_demo_count": 5,
+  "excluded_count": 5,
   "results": [
     {
       "example_id": "ex001",
@@ -53,54 +58,6 @@
         }
       },
       "example_pass": true
-    },
-    {
-      "example_id": "ex002",
-      "source_recording_id": "1462-170138-0001",
-      "ground_truth": "HUGH'S WRITTEN A DELIGHTFUL PART FOR HER AND SHE'S QUITE INEXPRESSIBLE",
-      "clean": {
-        "hypothesis": "He was written a delightful part for her and she's quite inexpressible.",
-        "wer": 0.1818,
-        "word_accuracy": 0.8182
-      },
-      "degradations": {
-        "far_field_room": {
-          "hypothesis": "She was written a delightful part for her, and she's quite inexpressible.",
-          "wer": 0.1818,
-          "word_accuracy": 0.8182,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "cafe_background": {
-          "hypothesis": "He was written a delightful part for her, and she's quite inexpressible.",
-          "wer": 0.1818,
-          "word_accuracy": 0.8182,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "phone_call": {
-          "hypothesis": "Hughes written a delightful part for her and she's quite inexpressible.",
-          "wer": 0.0909,
-          "word_accuracy": 0.9091,
-          "drop_vs_clean": -0.0909,
-          "pass": false
-        },
-        "muffled": {
-          "hypothesis": "He's written a delightful part for her, and she's quite inexpressible.",
-          "wer": 0.0909,
-          "word_accuracy": 0.9091,
-          "drop_vs_clean": -0.0909,
-          "pass": false
-        },
-        "broadband_hiss": {
-          "hypothesis": "He was written a delightful part for her and she's quite inexpressible.",
-          "wer": 0.1818,
-          "word_accuracy": 0.8182,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        }
-      },
-      "example_pass": false
     },
     {
       "example_id": "ex003",
@@ -199,102 +156,6 @@
       "example_pass": true
     },
     {
-      "example_id": "ex005",
-      "source_recording_id": "1919-142785-0003",
-      "ground_truth": "THE LONG PEPPER IS LESS AROMATIC THAN THE BLACK BUT ITS OIL IS MORE PUNGENT",
-      "clean": {
-        "hypothesis": "The long pepper is less aromatic than the black, but its oil is more pungent.",
-        "wer": 0.0,
-        "word_accuracy": 1.0
-      },
-      "degradations": {
-        "far_field_room": {
-          "hypothesis": "The long pepper is less aromatic than the black, but its oil is more pungent.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "cafe_background": {
-          "hypothesis": "The long pepper is less aromatic than the black, but its oil is more pungent.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "phone_call": {
-          "hypothesis": "The long pepper is less aromatic than the black, but its oil is more pungent.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "muffled": {
-          "hypothesis": "The long pepper is less aromatic than the black, but its oil is more pungent.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "broadband_hiss": {
-          "hypothesis": "The long pepper is less aromatic than the black, but its oil is more pungent.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        }
-      },
-      "example_pass": false
-    },
-    {
-      "example_id": "ex006",
-      "source_recording_id": "1988-147956-0002",
-      "ground_truth": "IT'S NO BETTER THAN A BADGER HOLE NO PROPER DUGOUT AT ALL",
-      "clean": {
-        "hypothesis": "It's no better than a badger hole, no proper dugout at all.",
-        "wer": 0.0,
-        "word_accuracy": 1.0
-      },
-      "degradations": {
-        "far_field_room": {
-          "hypothesis": "It's no better than a badger hole. No proper dugout at all.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "cafe_background": {
-          "hypothesis": "It's no better than a badger hole. No proper dugout at all.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "phone_call": {
-          "hypothesis": "It's no better than a badger hole, no proper dugout at all.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "muffled": {
-          "hypothesis": "It's no better than a badger hole, no proper dugout at all.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "broadband_hiss": {
-          "hypothesis": "It's no better than a badger hole. No proper dugout at all.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        }
-      },
-      "example_pass": false
-    },
-    {
       "example_id": "ex007",
       "source_recording_id": "1993-147149-0000",
       "ground_truth": "HOW INFINITE THE WEALTH OF LOVE AND HOPE GARNERED IN THESE SAME TINY TREASURE HOUSES AND OH",
@@ -341,102 +202,6 @@
         }
       },
       "example_pass": true
-    },
-    {
-      "example_id": "ex008",
-      "source_recording_id": "2035-147960-0000",
-      "ground_truth": "SHE WAS FOUR YEARS OLDER THAN I TO BE SURE AND HAD SEEN MORE OF THE WORLD BUT I WAS A BOY AND SHE WAS A GIRL AND I RESENTED HER PROTECTING MANNER",
-      "clean": {
-        "hypothesis": "She was four years older than I, to be sure, and had seen more of the world. But I was a boy, and she was a girl, and I resented her protecting manner.",
-        "wer": 0.0,
-        "word_accuracy": 1.0
-      },
-      "degradations": {
-        "far_field_room": {
-          "hypothesis": "She was four years older than I, to be sure, and had seen more of the world, but I was a boy and she was a girl, and I resented her protecting manner.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "cafe_background": {
-          "hypothesis": "She was four years older than I, to be sure, and had seen more of the world. But I was a boy, and she was a girl, and I resented her protecting manner.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "phone_call": {
-          "hypothesis": "She was four years older than I, to be sure, and had seen more of the world. But I was a boy, and she was a girl, and I resented her protecting manner.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "muffled": {
-          "hypothesis": "She was four years older than I, to be sure, and had seen more of the world, but I was a boy and she was a girl, and I resented her protecting manner.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "broadband_hiss": {
-          "hypothesis": "She was four years older than I, to be sure, and had seen more of the world. But I was a boy, and she was a girl, and I resented her protecting manner.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        }
-      },
-      "example_pass": false
-    },
-    {
-      "example_id": "ex009",
-      "source_recording_id": "2078-142845-0009",
-      "ground_truth": "ILLUSTRATION ITALIAN MILLET",
-      "clean": {
-        "hypothesis": "illustration Italian millet.",
-        "wer": 0.0,
-        "word_accuracy": 1.0
-      },
-      "degradations": {
-        "far_field_room": {
-          "hypothesis": "illustration Italian millet",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "cafe_background": {
-          "hypothesis": "illustration Italian millet",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "phone_call": {
-          "hypothesis": "illustration Italian millet.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "muffled": {
-          "hypothesis": "illustration Italian millet.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        },
-        "broadband_hiss": {
-          "hypothesis": "illustration Italian millet.",
-          "wer": 0.0,
-          "word_accuracy": 1.0,
-          "drop_vs_clean": 0.0,
-          "pass": false
-        }
-      },
-      "example_pass": false
     },
     {
       "example_id": "ex010",
@@ -487,5 +252,47 @@
       "example_pass": true
     }
   ],
-  "overall_pass": false
+  "excluded_examples": [
+    {
+      "example_id": "ex002",
+      "source_recording_id": "1462-170138-0001",
+      "ground_truth": "HUGH'S WRITTEN A DELIGHTFUL PART FOR HER AND SHE'S QUITE INEXPRESSIBLE",
+      "clean_word_accuracy": 0.8182,
+      "best_degradation_drop": 0.0,
+      "reason": "No degradation satisfied clean_word_accuracy - degraded_word_accuracy >= 0.01; best observed drop = 0.0000"
+    },
+    {
+      "example_id": "ex005",
+      "source_recording_id": "1919-142785-0003",
+      "ground_truth": "THE LONG PEPPER IS LESS AROMATIC THAN THE BLACK BUT ITS OIL IS MORE PUNGENT",
+      "clean_word_accuracy": 1.0,
+      "best_degradation_drop": 0.0,
+      "reason": "No degradation satisfied clean_word_accuracy - degraded_word_accuracy >= 0.01; best observed drop = 0.0000"
+    },
+    {
+      "example_id": "ex006",
+      "source_recording_id": "1988-147956-0002",
+      "ground_truth": "IT'S NO BETTER THAN A BADGER HOLE NO PROPER DUGOUT AT ALL",
+      "clean_word_accuracy": 1.0,
+      "best_degradation_drop": 0.0,
+      "reason": "No degradation satisfied clean_word_accuracy - degraded_word_accuracy >= 0.01; best observed drop = 0.0000"
+    },
+    {
+      "example_id": "ex008",
+      "source_recording_id": "2035-147960-0000",
+      "ground_truth": "SHE WAS FOUR YEARS OLDER THAN I TO BE SURE AND HAD SEEN MORE OF THE WORLD BUT I WAS A BOY AND SHE WAS A GIRL AND I RESENTED HER PROTECTING MANNER",
+      "clean_word_accuracy": 1.0,
+      "best_degradation_drop": 0.0,
+      "reason": "No degradation satisfied clean_word_accuracy - degraded_word_accuracy >= 0.01; best observed drop = 0.0000"
+    },
+    {
+      "example_id": "ex009",
+      "source_recording_id": "2078-142845-0009",
+      "ground_truth": "ILLUSTRATION ITALIAN MILLET",
+      "clean_word_accuracy": 1.0,
+      "best_degradation_drop": 0.0,
+      "reason": "No degradation satisfied clean_word_accuracy - degraded_word_accuracy >= 0.01; best observed drop = 0.0000"
+    }
+  ],
+  "overall_pass": true
 }

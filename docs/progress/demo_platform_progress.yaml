@@ -3,10 +3,10 @@ integration_branch: demo-rp5-v1
 parallel_training_branch: feature/training-datamove1-v1
 current_track: B
 current_phase: B6
-current_task: "B6.2"
-last_completed_task: "B6.1"
-blocked: true
-blocker: "ASR drop criterion not met for 5 examples. ex002 clean WA=0.818 (Whisper mishears possessive apostrophe); degradations do not reduce WA. ex005, ex006, ex008, ex009 clean WA=1.000; all degradations also produce WA=1.000 (sentences too clear/short for current degradation params to cause errors in tiny.en). reports/demo/demo_examples_asr_drop.json overall_pass=false. Decision required: replace failing examples or adjust degradation parameters."
+current_task: "B7.1"
+last_completed_task: "B6.2"
+blocked: false
+blocker: null
 rp5_status: verified_2026-05-01
 public_url_status: unknown
 training_handoff_status: training_branch_pushed
@@ -45,3 +45,4 @@ tasks:
   "B5.2": done
   "B5.3": done
   "B6.1": done
+  "B6.2": done

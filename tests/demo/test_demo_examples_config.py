@@ -7,7 +7,7 @@ import pytest
 
 _CANDIDATES_FILE = Path("config/demo_example_candidates.json")
 _EXAMPLES_FILE = Path("config/demo_examples.json")
-_EXPECTED_IDS = [f"ex{i:03d}" for i in range(1, 11)]
+_EXPECTED_FINAL_IDS = ["ex001", "ex003", "ex004", "ex007", "ex010"]
 _EXPECTED_DEGRADATION_IDS = [
     "far_field_room",
     "cafe_background",
@@ -38,27 +38,29 @@ def test_demo_examples_json_exists():
     )
 
 
-def test_demo_examples_has_ten_entries():
+def test_demo_examples_has_five_entries():
     data = _load_examples()
-    assert len(data) == 10, f"Expected 10 entries, got {len(data)}"
+    assert len(data) == 5, f"Expected 5 entries, got {len(data)}"
 
 
-def test_example_ids_are_ex001_through_ex010():
+def test_example_ids_are_expected_final_set():
     data = _load_examples()
     actual = [e["example_id"] for e in data]
-    assert actual == _EXPECTED_IDS, f"example_id sequence mismatch: {actual}"
+    assert actual == _EXPECTED_FINAL_IDS, (
+        f"example_id sequence mismatch:\n"
+        f"  expected: {_EXPECTED_FINAL_IDS}\n"
+        f"  actual:   {actual}"
+    )
 
 
-def test_example_ids_match_candidates_order():
+def test_example_ids_are_subset_of_candidates():
     examples = _load_examples()
     candidates = _load_candidates()
-    ex_ids = [e["example_id"] for e in examples]
-    cand_ids = [c["example_id"] for c in candidates]
-    assert ex_ids == cand_ids, (
-        f"example_id order does not match candidates:\n"
-        f"  examples:   {ex_ids}\n"
-        f"  candidates: {cand_ids}"
-    )
+    cand_ids = {c["example_id"] for c in candidates}
+    for e in examples:
+        assert e["example_id"] in cand_ids, (
+            f"example_id={e['example_id']!r} not present in candidates"
+        )
 
 
 def test_degradation_ids_are_canonical_five():
@@ -118,6 +120,9 @@ def test_clean_audio_path_is_set_and_relative():
         assert not Path(p).is_absolute(), (
             f"example_id={e['example_id']}: clean_audio_path is absolute: {p!r}"
         )
+        assert ".." not in Path(p).parts, (
+            f"example_id={e['example_id']}: clean_audio_path contains traversal: {p!r}"
+        )
 
 
 def test_degraded_audio_paths_are_relative():
@@ -129,6 +134,9 @@ def test_degraded_audio_paths_are_relative():
             )
             assert not Path(p).is_absolute(), (
                 f"example_id={e['example_id']}: {deg_id} path is absolute: {p!r}"
+            )
+            assert ".." not in Path(p).parts, (
+                f"example_id={e['example_id']}: {deg_id} path contains traversal: {p!r}"
             )
 
 

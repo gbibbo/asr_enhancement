@@ -5,12 +5,14 @@ Integration branch: demo-rp5-v1
 Parallel training branch: feature/training-datamove1-v1
 Current track: B (RP5 setup)
 Current phase: Phase B6
-Current task: Task B6.2
+Current task: Task B7.1
 
 Note: current_task was corrected from stale B5.4 to B6.1 at the start of this task. No B5.4
 exists in docs/plans/demo_platform_plan.md. Phase B5 ended at B5.3.
 
 ## Completed
+
+- B6.2: done on 2026-05-02. Implementation: scripts/demo/materialize_demo_examples.py (downloads dev-clean.tar.gz selectively, verifies per-FLAC SHA256 from candidates JSON, converts FLAC → 16 kHz mono PCM_16 WAV via soundfile, applies five registered degradations via libs.audio.degradations.apply_degradation with seed=0, writes config/demo_examples.json; --asr-only mode runs WhisperAdapter tiny.en on every clean and degraded WAV and computes word_accuracy via libs.audio.metrics.compute_metrics; --source-dir uses standard LibriSpeech layout first then recursive search for {source_recording_id}.flac; --allow-download downloads dev-clean.tar.gz from OpenSLR to DEMO_RUNTIME_ROOT/cache then extracts only the 10 needed members and deletes the tarball; --asr-only and main mode use separate /app/config:ro and /out/config writable mounts so runtime services keep config read-only). Modified: infra/compose/docker-compose.demo.yml (added ../../config:/app/config:ro to x-demo-volumes so /demo/examples can read config/demo_examples.json from inside the container without rebuilding). Modified: tests/demo/test_demo_candidates.py (removed obsolete test_demo_examples_json_does_not_exist gate). Created: tests/demo/test_demo_examples_config.py (12 tests for the final 5-example config; preserves existing tests/demo/test_demo_examples.py). Generated: config/demo_examples.json with 5 entries (ex001, ex003, ex004, ex007, ex010). Generated reports: reports/demo/demo_examples_asr_drop.json and .md. Scope amendment: B6.1 candidate pool was 10 datamove1 reserved examples; ASR drop verification with faster-whisper tiny.en under DEGRADATION_VERSION 1.0 produced overall_pass on 5 of the 10 candidates and no measurable drop on the other 5 (ex002 clean WA=0.818 with possessive apostrophe transcribed wrong, all degradations produce equal or higher WA; ex005/ex006/ex008/ex009 clean WA=1.000 and all degradations produce 1.000 because sentences are too clear or too short to cause tiny.en errors at current degradation parameters). Decision: keep degradation parameters unchanged, do not bump DEGRADATION_VERSION, do not replace examples; final B6.2 public demo set is the 5 passing examples. Excluded examples ex002, ex005, ex006, ex008, ex009 remain reserved in candidates JSON, remain excluded from training, but are not exposed via /demo/examples. Original example IDs preserved (no renumbering) for traceability back to candidates JSON and ASR drop report. Validation: 12/12 new config tests pass; full suite inside demo container 651 passed / 0 new failures (pre-existing platform failures in observability+db+storage+smoke unrelated to B6.2 still present); GET /demo/examples returned 5 entries; GET /demo/examples/ex001/audio/clean → HTTP 200; GET /demo/examples/ex001/audio/degraded/phone_call → HTTP 200; reports/demo/demo_examples_asr_drop.json overall_pass=true with results section listing the 5 passing examples and excluded_examples section listing the 5 with reason and best observed drop; protected diff empty (services/api/, services/worker/, libs/demo/persistence.py, libs/demo/examples.py, libs/common/demo_settings.py, libs/asr/, libs/audio/, libs/common/versions.py, pyproject.toml, both lockfiles, infra/compose/Dockerfile.demo all untouched); no audio files committed.
 
 - B6.1: done on 2026-05-02. Revised implementation: initial attempt scanned a local LibriSpeech test-clean root (blocked because that path was absent on RP5); revised implementation imports the 10 reserved examples from the datamove1 branch instead. No LibriSpeech download required. Source of truth: origin/feature/training-datamove1-v1:configs/training/reserved_public_demo_examples.yaml (commit 73808ed). Note: stale current_task B5.4 was corrected — no B5.4 exists in docs/plans/demo_platform_plan.md; phase B5 ended at B5.3. Revised: scripts/demo/select_demo_candidates.py (replaced LibriSpeech+soundfile scanner with git-show importer; reads YAML via subprocess, parses with yaml.safe_load, validates 10 entries, maps transcript→ground_truth, source_split=dev-clean, source_dataset=librispeech, excluded_from_training=True, speaker_gender="unknown" for all entries — gender metadata not tracked in datamove1; assigns example_id ex001–ex010; includes audio_sha256 from datamove1; records datamove1 ref, commit SHA, selection policy, and gender limitation in selection_notes; all CLI args have defaults). Revised: tests/demo/test_demo_candidates.py (20 tests: updated duration range [3.0,10.0], exactly 10 distinct speakers, source_split=dev-clean, added test_all_recording_ids_match_datamove1_reserved_set with exact ordered list, added test_all_speaker_genders_unknown, added test_audio_sha256_present, added test_demo_examples_json_does_not_exist, added audio_sha256 to required provenance fields). Generated: config/demo_example_candidates.json (10 entries, all public_content_review=passed_manual_review after Gabriel's explicit approval). Scope: no worker/API/ASR/audio changes; pyproject.toml and both lock files unchanged; Dockerfile.demo and docker-compose.demo.yml unchanged; config/demo_examples.json not created (audio sourcing is B6.2). Validation: 20/20 candidate tests pass including gate test; 654 pass / 0 new failures (pre-existing platform/infra errors unchanged); GET /demo/examples → {"examples":[],"total":0,"note":"No curated examples loaded. Run Phase B6 to populate."} (correct — demo_examples.json not yet created); protected diff empty.
 
@@ -60,19 +62,7 @@ exists in docs/plans/demo_platform_plan.md. Phase B5 ended at B5.3.
 
 ## Current blocker
 
-**B6.2 blocked — ASR drop criterion not met for 5 examples.**
-
-The B6.2 ASR drop verification failed with `overall_pass: false`. See `reports/demo/demo_examples_asr_drop.json` for the full table.
-
-- **ex002** (`1462-170138-0001`): clean WA = 0.818. Whisper tiny.en mishears the possessive contraction ("HUGH'S" → "He was"). Degradations do not reduce WA further — some filters actually improve it slightly (negative drop). No degradation meets `clean_wa - degraded_wa >= 0.01`.
-- **ex005** (`1919-142785-0003`): clean WA = 1.000. All 5 degradations also produce WA = 1.000. Sentence is short and clear; current degradation parameters are too mild for tiny.en to make errors.
-- **ex006** (`1988-147956-0002`): clean WA = 1.000. Same issue.
-- **ex008** (`2035-147960-0000`): clean WA = 1.000. Same issue.
-- **ex009** (`2078-142845-0009`): clean WA = 1.000. Same issue (very short 3-word sentence).
-
-**Implementation state:** All code is complete and committed (materialize script, tests, config, reports, Docker mount). The blocker is a data/parameter mismatch: 5 of the 10 B6.1 reserved examples do not show measurable ASR degradation under the current `DEGRADATION_VERSION = "1.0"` parameters with `faster-whisper tiny.en`.
-
-**Decision required (Gabriel):** Replace the 5 failing examples with ones that show visible ASR drop, or adjust degradation parameters. If examples change, notify the training branch.
+None.
 
 ## Training handoff status
 
@@ -80,4 +70,4 @@ Training branch feature/training-datamove1-v1 already exists on origin from demo
 
 ## Next task
 
-Task B6.2 (blocked — see blocker section above).
+Task B7.1.

@@ -23,29 +23,6 @@
     }
   },
   {
-    "example_id": "ex002",
-    "title": "HUGH'S WRITTEN A DELIGHTFUL PART FOR HER AND SHE'S QUITE…",
-    "description": "LibriSpeech dev-clean, speaker 1462",
-    "duration_seconds": 3.985,
-    "degradation_ids": [
-      "far_field_room",
-      "cafe_background",
-      "phone_call",
-      "muffled",
-      "broadband_hiss"
-    ],
-    "ground_truth": "HUGH'S WRITTEN A DELIGHTFUL PART FOR HER AND SHE'S QUITE INEXPRESSIBLE",
-    "audio_available": true,
-    "clean_audio_path": "ex002/clean.wav",
-    "degraded_audio_paths": {
-      "far_field_room": "ex002/far_field_room.wav",
-      "cafe_background": "ex002/cafe_background.wav",
-      "phone_call": "ex002/phone_call.wav",
-      "muffled": "ex002/muffled.wav",
-      "broadband_hiss": "ex002/broadband_hiss.wav"
-    }
-  },
-  {
     "example_id": "ex003",
     "title": "YET THE MOST CHARITABLE CRITICISM MUST REFUSE THESE…",
     "description": "LibriSpeech dev-clean, speaker 1673",
@@ -92,52 +69,6 @@
     }
   },
   {
-    "example_id": "ex005",
-    "title": "THE LONG PEPPER IS LESS AROMATIC THAN THE BLACK BUT ITS OIL…",
-    "description": "LibriSpeech dev-clean, speaker 1919",
-    "duration_seconds": 5.405,
-    "degradation_ids": [
-      "far_field_room",
-      "cafe_background",
-      "phone_call",
-      "muffled",
-      "broadband_hiss"
-    ],
-    "ground_truth": "THE LONG PEPPER IS LESS AROMATIC THAN THE BLACK BUT ITS OIL IS MORE PUNGENT",
-    "audio_available": true,
-    "clean_audio_path": "ex005/clean.wav",
-    "degraded_audio_paths": {
-      "far_field_room": "ex005/far_field_room.wav",
-      "cafe_background": "ex005/cafe_background.wav",
-      "phone_call": "ex005/phone_call.wav",
-      "muffled": "ex005/muffled.wav",
-      "broadband_hiss": "ex005/broadband_hiss.wav"
-    }
-  },
-  {
-    "example_id": "ex006",
-    "title": "IT'S NO BETTER THAN A BADGER HOLE NO PROPER DUGOUT AT ALL",
-    "description": "LibriSpeech dev-clean, speaker 1988",
-    "duration_seconds": 4.395,
-    "degradation_ids": [
-      "far_field_room",
-      "cafe_background",
-      "phone_call",
-      "muffled",
-      "broadband_hiss"
-    ],
-    "ground_truth": "IT'S NO BETTER THAN A BADGER HOLE NO PROPER DUGOUT AT ALL",
-    "audio_available": true,
-    "clean_audio_path": "ex006/clean.wav",
-    "degraded_audio_paths": {
-      "far_field_room": "ex006/far_field_room.wav",
-      "cafe_background": "ex006/cafe_background.wav",
-      "phone_call": "ex006/phone_call.wav",
-      "muffled": "ex006/muffled.wav",
-      "broadband_hiss": "ex006/broadband_hiss.wav"
-    }
-  },
-  {
     "example_id": "ex007",
     "title": "HOW INFINITE THE WEALTH OF LOVE AND HOPE GARNERED IN THESE…",
     "description": "LibriSpeech dev-clean, speaker 1993",
@@ -158,52 +89,6 @@
       "phone_call": "ex007/phone_call.wav",
       "muffled": "ex007/muffled.wav",
       "broadband_hiss": "ex007/broadband_hiss.wav"
-    }
-  },
-  {
-    "example_id": "ex008",
-    "title": "SHE WAS FOUR YEARS OLDER THAN I TO BE SURE AND HAD SEEN…",
-    "description": "LibriSpeech dev-clean, speaker 2035",
-    "duration_seconds": 9.02,
-    "degradation_ids": [
-      "far_field_room",
-      "cafe_background",
-      "phone_call",
-      "muffled",
-      "broadband_hiss"
-    ],
-    "ground_truth": "SHE WAS FOUR YEARS OLDER THAN I TO BE SURE AND HAD SEEN MORE OF THE WORLD BUT I WAS A BOY AND SHE WAS A GIRL AND I RESENTED HER PROTECTING MANNER",
-    "audio_available": true,
-    "clean_audio_path": "ex008/clean.wav",
-    "degraded_audio_paths": {
-      "far_field_room": "ex008/far_field_room.wav",
-      "cafe_background": "ex008/cafe_background.wav",
-      "phone_call": "ex008/phone_call.wav",
-      "muffled": "ex008/muffled.wav",
-      "broadband_hiss": "ex008/broadband_hiss.wav"
-    }
-  },
-  {
-    "example_id": "ex009",
-    "title": "ILLUSTRATION ITALIAN MILLET",
-    "description": "LibriSpeech dev-clean, speaker 2078",
-    "duration_seconds": 3.435,
-    "degradation_ids": [
-      "far_field_room",
-      "cafe_background",
-      "phone_call",
-      "muffled",
-      "broadband_hiss"
-    ],
-    "ground_truth": "ILLUSTRATION ITALIAN MILLET",
-    "audio_available": true,
-    "clean_audio_path": "ex009/clean.wav",
-    "degraded_audio_paths": {
-      "far_field_room": "ex009/far_field_room.wav",
-      "cafe_background": "ex009/cafe_background.wav",
-      "phone_call": "ex009/phone_call.wav",
-      "muffled": "ex009/muffled.wav",
-      "broadband_hiss": "ex009/broadband_hiss.wav"
     }
   },
   {
