@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 3
-current_task: "T3.2"
-last_completed_task: "T3.2a"
+current_task: "T3.3"
+last_completed_task: "T3.2"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -468,6 +468,64 @@ t3_2a_apptainer_runtime_validation:
     - same (utt, family) deterministic for all five families
     - stochastic families differ across utterance_id
     - deterministic families ignore utterance_id
+t3_2_evidence:
+  prep_commit: "9ac0fbc5d776e20fe7056769f500081d5b384526"
+  wall_time_adjustment_commit: "73808ed975940b0847404794dcd74fbda0b570ef"
+  smoke_job_id: "2126085"
+  smoke_sacct_state: COMPLETED
+  smoke_exit_code: "0:0"
+  smoke_elapsed: "00:01:13"
+  smoke_processed_records: 25
+  smoke_failure_count: 0
+  smoke_per_family_counts: {broadband_hiss: 5, cafe_background: 5, far_field_room: 5, muffled: 5, phone_call: 5}
+  smoke_summary_md: null
+  full_job_id: "2126086"
+  full_sacct_state: COMPLETED
+  full_exit_code: "0:0"
+  full_elapsed: "04:54:54"
+  full_maxrss: "3.58 GB"
+  full_output_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2_baseline_degraded_full_2126086.out
+  full_error_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2_baseline_degraded_full_2126086.err
+  run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2_baseline_degraded_full_2126086
+  predictions_jsonl: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2_baseline_degraded_full_2126086/predictions.jsonl
+  predictions_line_count: 13465
+  metrics_summary_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2_baseline_degraded_full_2126086/metrics_summary.json
+  success: true
+  total_manifest_records: 13465
+  processed_records: 13465
+  failure_count: 0
+  per_family:
+    broadband_hiss:  {count: 2693, mean_per_record_wer: 0.1271, mean_per_record_word_accuracy: 0.8742}
+    cafe_background: {count: 2693, mean_per_record_wer: 0.1632, mean_per_record_word_accuracy: 0.8390}
+    far_field_room:  {count: 2693, mean_per_record_wer: 0.1659, mean_per_record_word_accuracy: 0.8356}
+    muffled:         {count: 2693, mean_per_record_wer: 0.3863, mean_per_record_word_accuracy: 0.6361}
+    phone_call:      {count: 2693, mean_per_record_wer: 0.0789, mean_per_record_word_accuracy: 0.9217}
+  overall_macro_per_record_wer: 0.1843
+  overall_macro_per_record_word_accuracy: 0.8213
+  record_micro_wer: 0.1843
+  record_micro_word_accuracy: 0.8213
+  macro_record_micro_equivalent: true
+  abs_macro_record_micro_wer_diff: 3.28e-15
+  clean_baseline_per_record_wer: 0.0645
+  clean_baseline_per_record_word_accuracy: 0.9361
+  delta_macro_per_record_wer: +0.1198
+  delta_macro_per_record_word_accuracy: -0.1148
+  dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+  degradation_version: degradation_v1
+  metrics_version: metrics_v1
+  whisper_model: base.en
+  whisper_version: "20250625"
+  source_clean_manifest_sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  source_clean_manifest_sha256_unchanged: true
+  source_degraded_manifest_sha256: c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c
+  source_degraded_manifest_sha256_unchanged: true
+  reserved_demo_ids_source: configs/training/reserved_public_demo_examples.yaml
+  reserved_demo_ids_count: 10
+  reserved_demo_ids_absent_from_manifest: true
+  reserved_demo_ids_absent_from_predictions: true
+  git_commit_at_run: "73808ed975940b0847404794dcd74fbda0b570ef"
+  result_commit: "PENDING_RESULT_COMMIT"
+  summary_md: reports/training/baseline_degraded_wer.md
 tasks:
   "T0.1": done
   "T0.2": done
@@ -485,7 +543,7 @@ tasks:
   "T2.5": done
   "T3.1": done
   "T3.2a": done
-  "T3.2": pending
+  "T3.2": done
   "T3.3": pending
   "T4.1": pending
   "T4.2": pending

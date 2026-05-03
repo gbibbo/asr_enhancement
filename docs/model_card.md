@@ -172,18 +172,22 @@ Evaluation uses `openai-whisper` on Surrey compute (Slurm). Shared metric implem
 
 ## Evaluation results
 
-**No evaluation has been run.** This table will be filled by T3 (baseline) and T7 (selected checkpoint).
+T3.1 clean baseline and T3.2 degraded baseline are complete (`openai-whisper base.en 20250625`, `metrics_v1`, `degradation_v1`). T7 (selected checkpoint) results remain pending.
 
 ### Baseline (no enhancement)
 
-| Degradation | Clean WER | Degraded WER | Clean Word Acc | Degraded Word Acc |
-|---|---|---|---|---|
-| `far_field_room` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
-| `cafe_background` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
-| `phone_call` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
-| `muffled` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
-| `broadband_hiss` | 0.0645 | `<!-- PLACEHOLDER -->` | 0.9361 | `<!-- PLACEHOLDER -->` |
-| **Average** | **0.0645** | `<!-- PLACEHOLDER -->` | **0.9361** | `<!-- PLACEHOLDER -->` |
+Mean per-record WER and Word Accuracy (`base.en`, `metrics_v1`, `dev-clean`, 2693 records per family).
+
+| Degradation | Clean WER | Degraded WER | Δ WER | Clean Word Acc | Degraded Word Acc | Δ WA |
+|---|---|---|---|---|---|---|
+| `broadband_hiss` | 0.0645 | 0.1271 | +0.0626 | 0.9361 | 0.8742 | -0.0619 |
+| `cafe_background` | 0.0645 | 0.1632 | +0.0987 | 0.9361 | 0.8390 | -0.0971 |
+| `far_field_room` | 0.0645 | 0.1659 | +0.1014 | 0.9361 | 0.8356 | -0.1005 |
+| `muffled` | 0.0645 | 0.3863 | +0.3218 | 0.9361 | 0.6361 | -0.3000 |
+| `phone_call` | 0.0645 | 0.0789 | +0.0144 | 0.9361 | 0.9217 | -0.0144 |
+| **Average (macro)** | **0.0645** | **0.1843** | **+0.1198** | **0.9361** | **0.8213** | **-0.1148** |
+
+Dataset version: `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`. Source clean manifest SHA-256: `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b`. Source degraded manifest SHA-256: `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c`. Full baseline report: [`reports/training/baseline_degraded_wer.md`](../reports/training/baseline_degraded_wer.md).
 
 ### MetricGAN+ pretrained evaluation (T4)
 

@@ -4,8 +4,8 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T3
 Current phase: Phase 3
-Current task: Task T3.2
-Last completed task: T3.2a
+Current task: Task T3.3
+Last completed task: T3.2
 Blocked: false
 Blocker: none
 
@@ -27,6 +27,7 @@ Blocker: none
 - T2.3b: public examples exclusion gate resolved. Phase A — reserved 10 dev-clean examples deterministically (job `2125890`, aisurrey03, COMPLETED 0:0); sanity check matched expected ordered list; all SHA-256 hashes computed. Phase B — `public_examples_excluded.yaml` updated to `status: complete`. T2.3 re-run in complete mode (job `2125891`, aisurrey03, COMPLETED 0:0); filtered manifest written at scratch path; 2693 records; validation passed; no excluded IDs remain; source manifest SHA-256 unchanged. T2.4 re-run (job `2125892`, aisurrey03, COMPLETED 0:0); new dataset version `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`; YAML validation OK. `docs/model_card.md` updated; TEMPLATE/DRAFT status preserved. T3.1 unblocked.
 - T3.1: clean-audio Whisper baseline complete. Smoke: job `2125894`, 50 records, 0 failures, WER 0.1234. Full: job `2125895`, COMPLETED 0:0, 55:36 elapsed, 2693/2693 records, 0 failures. Results: mean_wer=0.0645, mean_word_accuracy=0.9361. `openai-whisper base.en 20250625`, `metrics_v1`. Predictions at scratch (not committed). Summary committed at `reports/training/baseline_clean_wer.md`. Model card updated. T3.2 requires degraded audio — see T3.2 prerequisite note.
 - T3.2a: degradation bank `degradation_v1` built. `libs/audio/degradations.py` defines five frozen families (`far_field_room`, `cafe_background`, `phone_call`, `muffled`, `broadband_hiss`); `apply_degradation` enforces length contract (output_samples == input_samples), finiteness, and peak ≤ 0.95; per-(utterance, family) seed via SHA-256. `DEGRADATION_VERSION = "degradation_v1"` set in `libs/common/versions.py`. Generation script writes to per-job staging tree, validates (manifest counts, source SHA, reserved-ID absence, format, length, deterministic recomputation of 50 entries) before atomic `os.replace` promotion to final tree. Smoke: job `2125896`, COMPLETED 0:0, 5 s elapsed, 50 files, 0 failures. Full: job `2125897`, COMPLETED 0:0, 02:59 elapsed, MaxRSS 3097852K, 2693 × 5 = 13 465 files, 0 failures. Per-family counts 2693 each. Source manifest SHA-256 unchanged (`dc6674bcf7a8…`). Final degraded manifest SHA-256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c`. Audio format WAV PCM_16, 16 kHz mono. Final audio root `$TRAIN_ROOT/datasets/degraded/degradation_v1`; final degraded manifest `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` (not committed). Reserved demo IDs absent from degraded manifest. `file_sha256.tsv` (13 465 lines) and `generation_summary.json` under run root, not committed. Summary committed at `reports/training/degradation_bank_v1.md`; model card `DEGRADATION_VERSION` placeholders replaced with `degradation_v1`. T3.2 unblocked.
+- T3.2: degraded-audio Whisper baseline complete. Smoke: job `2126085`, 25 records (5 × 5 families), 0 failures, COMPLETED 0:0. Full: job `2126086`, COMPLETED 0:0, elapsed 04:54:54, MaxRSS 3.58 GB, 13 465/13 465 records, 0 failures. Per-family results (mean WER / mean WA): broadband_hiss 0.1271/0.8742, cafe_background 0.1632/0.8390, far_field_room 0.1659/0.8356, muffled 0.3863/0.6361, phone_call 0.0789/0.9217. Overall macro: mean WER 0.1843, mean WA 0.8213 (Δ vs T3.1 clean: +0.1198 / -0.1148). macro == record_micro (abs diff 3.28e-15). Source manifest SHAs unchanged. Reserved demo IDs absent from manifest and predictions. Dataset version `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`, degradation_version `degradation_v1`, metrics_version `metrics_v1`. Summary committed at `reports/training/baseline_degraded_wer.md`; model card degraded baseline section filled. current_task → T3.3.
 
 ## Current blocker
 
@@ -410,6 +411,74 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | Result | `T3.2a inline degradation validation PASSED` |
 | Assertions covered | `DEGRADATION_VERSION == "degradation_v1"`; registry keys; stochastic/deterministic sets; `DEGRADATION_PARAMS` keys; `apply_degradation` 1-D / length preserved / finite / peak ≤ 0.9501; same (utt, family) deterministic for every family; stochastic families differ across `utterance_id`; deterministic families ignore `utterance_id` |
 
+## T3.2 closure evidence (2026-05-02)
+
+| Field | Value |
+|---|---|
+| Prep commit | `9ac0fbc5d776e20fe7056769f500081d5b384526` |
+| Wall-time adjustment commit | `73808ed975940b0847404794dcd74fbda0b570ef` |
+| Smoke job ID | `2126085` |
+| Smoke sacct state | `COMPLETED` |
+| Smoke exit code | `0:0` |
+| Smoke elapsed | `00:01:13` |
+| Smoke processed records | 25 (5 × 5 families) |
+| Smoke failure count | 0 |
+| Full job ID | `2126086` |
+| Full sacct state | `COMPLETED` |
+| Full exit code | `0:0` |
+| Full elapsed | `04:54:54` |
+| Full MaxRSS | `3.58 GB` |
+| Full output log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2_baseline_degraded_full_2126086.out` |
+| Full error log | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t3_2_baseline_degraded_full_2126086.err` |
+| Run dir | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2_baseline_degraded_full_2126086` |
+| predictions.jsonl | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2_baseline_degraded_full_2126086/predictions.jsonl` |
+| predictions.jsonl line count | 13465 |
+| metrics_summary.json | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t3_2_baseline_degraded_full_2126086/metrics_summary.json` |
+| success | true |
+| total_manifest_records | 13465 |
+| processed_records | 13465 |
+| failure_count | 0 |
+| reserved_demo_ids_checked | 10 |
+| reserved_demo_ids_in_predictions | 0 |
+| reserved_demo_ids_absent_from_manifest | true |
+| dataset_version | `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` |
+| degradation_version | `degradation_v1` |
+| metrics_version | `metrics_v1` |
+| whisper_model | `base.en` (openai-whisper 20250625) |
+| code_commit_at_run | `73808ed975940b0847404794dcd74fbda0b570ef` |
+| result_commit | `PENDING_RESULT_COMMIT` |
+| source_clean_manifest_sha256 | `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` |
+| source_clean_manifest_sha256_unchanged | true |
+| source_degraded_manifest_sha256 | `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c` |
+| source_degraded_manifest_sha256_unchanged | true |
+| summary_md | `reports/training/baseline_degraded_wer.md` |
+
+### Per-family results
+
+| Family | Count | Mean per-record WER | Mean per-record Word Accuracy | Δ WER vs clean | Δ WA vs clean |
+|---|---|---|---|---|---|
+| broadband_hiss | 2693 | 0.1271 | 0.8742 | +0.0626 | -0.0619 |
+| cafe_background | 2693 | 0.1632 | 0.8390 | +0.0987 | -0.0971 |
+| far_field_room | 2693 | 0.1659 | 0.8356 | +0.1014 | -0.1005 |
+| muffled | 2693 | 0.3863 | 0.6361 | +0.3218 | -0.3000 |
+| phone_call | 2693 | 0.0789 | 0.9217 | +0.0144 | -0.0144 |
+
+### Overall (macro over families, headline)
+
+| Metric | Value | Δ vs T3.1 clean |
+|---|---|---|
+| Mean per-record WER | 0.1843 | +0.1198 |
+| Mean per-record Word Accuracy | 0.8213 | -0.1148 |
+
+macro_record_micro_equivalent: true (abs macro − record_micro WER = 3.28e-15)
+
+### Clean baseline reference (T3.1)
+
+| Metric | Value |
+|---|---|
+| Mean per-record WER | 0.0645 |
+| Mean per-record Word Accuracy | 0.9361 |
+
 ## Next task
 
-Task T3.2. Run degraded-audio Whisper baseline. **Unblocked.** Consume `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` (SHA-256 `c6f87452f146…`).
+Task T3.3. Produce baseline summary report (`reports/training/baseline_summary.md`). **Unblocked.**
