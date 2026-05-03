@@ -516,7 +516,7 @@ No Slurm jobs. No SpeechBrain installation. No real-WAV enhancement. No Whisper 
 | `libs/common/versions.py` `ENHANCER_VERSION` | unchanged (`None`); per `CLAUDE.training.md` rule 6, updated only at T8.1 export |
 | PR into `demo-rp5-v1` | deferred; documented future integration path only |
 | Stash@{0} | untouched |
-| Result commit | PENDING_RESULT_COMMIT |
+| Result commit | 061a646 |
 
 ## Next task
 

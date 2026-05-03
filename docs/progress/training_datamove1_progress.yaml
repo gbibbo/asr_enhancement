@@ -576,8 +576,8 @@ t4_1_evidence:
   pr_into_demo_rp5_v1: "deferred; documented future integration path only in docs/training/metricgan_plus_dependency_notes.md"
   stash_untouched: true
   enhancer_version_in_libs_common_versions_changed: false
-  code_commit: "PENDING_RESULT_COMMIT"
-  result_commit: "PENDING_RESULT_COMMIT"
+  code_commit: "061a646c90c2a804f7a8a4edf03045a73f484bf1"
+  result_commit: "061a646c90c2a804f7a8a4edf03045a73f484bf1"
 tasks:
   "T0.1": done
   "T0.2": done
