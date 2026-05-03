@@ -180,6 +180,40 @@ def update_job_status(
         conn.close()
 
 
+def update_job_artifacts(
+    db_path: Path,
+    job_id: str,
+    *,
+    degraded_artifact_path: Optional[str] = None,
+    enhanced_artifact_path: Optional[str] = None,
+) -> None:
+    """Update only the artifact-path columns and ``updated_at``.
+
+    Pass ``None`` to leave a column unchanged. Calling with both arguments
+    ``None`` is a no-op (does not touch ``updated_at``) so callers can invoke
+    the helper unconditionally without spuriously bumping the timestamp.
+    """
+    assignments: list[str] = []
+    params: list = []
+    if degraded_artifact_path is not None:
+        assignments.append("degraded_artifact_path = ?")
+        params.append(degraded_artifact_path)
+    if enhanced_artifact_path is not None:
+        assignments.append("enhanced_artifact_path = ?")
+        params.append(enhanced_artifact_path)
+    if not assignments:
+        return
+    assignments.append("updated_at = ?")
+    params.append(datetime.now(timezone.utc).isoformat())
+    params.append(job_id)
+    sql = f"UPDATE jobs SET {', '.join(assignments)} WHERE job_id = ?"
+    conn = _open(db_path)
+    try:
+        conn.execute(sql, tuple(params))
+    finally:
+        conn.close()
+
+
 def claim_next_job(db_path: Path) -> Optional[dict]:
     now = datetime.now(timezone.utc).isoformat()
     conn = _open(db_path)

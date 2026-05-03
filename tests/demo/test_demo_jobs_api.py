@@ -196,6 +196,56 @@ def test_get_job_result_200_for_completed(client):
     assert body["result"]["transcript"] == "hello"
 
 
+def test_get_job_result_200_for_completed_upload_b9_2_schema(client):
+    """B9.2: GET /demo/jobs/{id}/result surfaces the upload result_json schema verbatim."""
+    db = _db_path(client)
+    job_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    payload = {
+        "source_type": "upload",
+        "provider": "whisper",
+        "asr_model_version": "tiny.en",
+        "enhancer_version": "bypass",
+        "degradation_id": None,
+        "degradation_version": None,
+        "degradation_applied": False,
+        "input_audio_path": "/abs/uploads/u.wav",
+        "degraded_audio_path": None,
+        "enhanced_audio_path": None,
+        "raw": {
+            "transcript": "hello",
+            "language": "en",
+            "language_probability": 0.99,
+            "latency_seconds": 0.42,
+        },
+        "enhanced": {
+            "transcript": "hello",
+            "latency_seconds": 0.41,
+            "preset_applied": "bypass",
+            "enhanced_flag": False,
+            "enhancement_fallback": False,
+        },
+        "enhanced_error": None,
+        "metrics": {},
+        "warnings": [],
+    }
+    conn = sqlite3.connect(str(db))
+    conn.execute(
+        "INSERT INTO jobs (job_id, status, created_at, updated_at, provider, result_json)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        (job_id, "completed", now, now, "whisper", json.dumps(payload)),
+    )
+    conn.commit()
+    conn.close()
+    resp = client.get(f"/demo/jobs/{job_id}/result")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "completed"
+    assert body["result"] == payload
+    assert "ground_truth" not in json.dumps(body)
+    assert body["result"]["metrics"] == {}
+
+
 def test_get_job_result_200_for_failed(client):
     db = _db_path(client)
     job_id = str(uuid.uuid4())
