@@ -16,7 +16,7 @@ Mode: full
 | Whisper model | `base.en` (openai-whisper 20250625) |
 | Metrics version | `metrics_v1` |
 | Code commit at run | `73808ed975940b0847404794dcd74fbda0b570ef` |
-| Result commit | `PENDING_RESULT_COMMIT` |
+| Result commit | `34e93c8dddfedb58584f49afe1868618ddec4f56` |
 | Smoke Slurm job ID | `2126085` |
 | Full Slurm job ID | `2126086` |
 | Full elapsed | `04:54:54` |

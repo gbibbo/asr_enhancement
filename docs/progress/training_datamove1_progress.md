@@ -446,7 +446,7 @@ Last synced from demo-rp5-v1: 2026-05-01 (T0.2 commit `243ed48`, 1 ahead / 0 beh
 | metrics_version | `metrics_v1` |
 | whisper_model | `base.en` (openai-whisper 20250625) |
 | code_commit_at_run | `73808ed975940b0847404794dcd74fbda0b570ef` |
-| result_commit | `PENDING_RESULT_COMMIT` |
+| result_commit | `34e93c8dddfedb58584f49afe1868618ddec4f56` |
 | source_clean_manifest_sha256 | `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` |
 | source_clean_manifest_sha256_unchanged | true |
 | source_degraded_manifest_sha256 | `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c` |

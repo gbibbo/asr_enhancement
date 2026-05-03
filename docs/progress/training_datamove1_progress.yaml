@@ -524,7 +524,7 @@ t3_2_evidence:
   reserved_demo_ids_absent_from_manifest: true
   reserved_demo_ids_absent_from_predictions: true
   git_commit_at_run: "73808ed975940b0847404794dcd74fbda0b570ef"
-  result_commit: "PENDING_RESULT_COMMIT"
+  result_commit: "34e93c8dddfedb58584f49afe1868618ddec4f56"
   summary_md: reports/training/baseline_degraded_wer.md
 tasks:
   "T0.1": done
