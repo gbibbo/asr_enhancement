@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 3
-current_task: "T3.3"
-last_completed_task: "T3.2"
+current_task: "T4.1"
+last_completed_task: "T3.3"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -526,6 +526,14 @@ t3_2_evidence:
   git_commit_at_run: "73808ed975940b0847404794dcd74fbda0b570ef"
   result_commit: "34e93c8dddfedb58584f49afe1868618ddec4f56"
   summary_md: reports/training/baseline_degraded_wer.md
+t3_3_evidence:
+  summary_md: reports/training/baseline_summary.md
+  sources:
+    - reports/training/baseline_clean_wer.md
+    - reports/training/baseline_degraded_wer.md
+  slurm_jobs: none
+  scripts_modified: none
+  result_commit: "PENDING_RESULT_COMMIT"
 tasks:
   "T0.1": done
   "T0.2": done
@@ -544,7 +552,7 @@ tasks:
   "T3.1": done
   "T3.2a": done
   "T3.2": done
-  "T3.3": pending
+  "T3.3": done
   "T4.1": pending
   "T4.2": pending
   "T4.3": pending
