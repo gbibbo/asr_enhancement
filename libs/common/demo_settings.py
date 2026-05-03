@@ -26,6 +26,7 @@ class DemoSettings(BaseSettings):
     demo_queue_max: int = 10
     demo_upload_limit_bytes: int = 5_242_880
     demo_upload_max_duration_seconds: int = 30
+    demo_upload_retention_hours: int = 24
 
     assemblyai_api_key: Optional[str] = None
     enhancer_version: str = "bypass"
