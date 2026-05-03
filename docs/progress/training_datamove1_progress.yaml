@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 3
-current_task: "T4.1"
-last_completed_task: "T3.3"
+current_task: "T4.2"
+last_completed_task: "T4.1"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -534,6 +534,50 @@ t3_3_evidence:
   slurm_jobs: none
   scripts_modified: none
   result_commit: "5baf32c"
+t4_1_evidence:
+  enhancement_py_source_branch: "origin/feature/demo-runtime-rp5-v1"
+  enhancement_py_source_blob: "aee9ded8d0eba2cd21731bfb6000e164f4ea8575"
+  b5_3_source_rationale: "libs/audio/enhancement.py is absent from origin/demo-rp5-v1; B5.3 lives only on origin/feature/demo-runtime-rp5-v1."
+  retrieval_method: "git show origin/feature/demo-runtime-rp5-v1:libs/audio/enhancement.py > libs/audio/enhancement.py (path-limited, no merge, no cherry-pick, no implicit index change)"
+  interface_preserved: true
+  files_added:
+    - libs/audio/enhancement.py
+    - scripts/training/enhance_metricgan_plus.py
+    - tests/audio/test_metricgan_plus_import.py
+    - docs/training/metricgan_plus_dependency_notes.md
+  files_modified:
+    - pyproject.toml
+    - docs/progress/training_datamove1_progress.md
+    - docs/progress/training_datamove1_progress.yaml
+  metricgan_plus_implementation: "speechbrain/metricgan-plus-voicebank via SpectralMaskEnhancement; lazy imports for speechbrain, hyperpyyaml, huggingface_hub, torch, torchaudio"
+  enhancer_version_constant: "metricgan_plus_pretrained"
+  optional_extra_name: "training-enhancer"
+  optional_extra_packages:
+    - "speechbrain>=1.0"
+    - "hyperpyyaml>=1.2"
+    - "huggingface_hub>=0.20"
+    - "sentencepiece>=0.2"
+  required_dependencies_modified: false
+  dependencies_installed: false
+  runtime_one_wav_smoke_run: false
+  runtime_one_wav_smoke_deferred_to: "T4.2 prep / dependency-validation step"
+  whisper_run: false
+  slurm_jobs: none
+  validation_checks:
+    import_smoke: pass
+    pytest_tests_audio_test_metricgan_plus_import: pass
+    yaml_parse: pass
+    toml_parse: pass
+    py_compile: pass
+    ast_parse: pass
+    ruff: not_run_tool_unavailable_on_login_node
+    mypy: not_run_tool_unavailable_on_login_node
+    diff_against_source_blob_confined_to_metricganplus_enhance: true
+  pr_into_demo_rp5_v1: "deferred; documented future integration path only in docs/training/metricgan_plus_dependency_notes.md"
+  stash_untouched: true
+  enhancer_version_in_libs_common_versions_changed: false
+  code_commit: "PENDING_RESULT_COMMIT"
+  result_commit: "PENDING_RESULT_COMMIT"
 tasks:
   "T0.1": done
   "T0.2": done
@@ -553,7 +597,7 @@ tasks:
   "T3.2a": done
   "T3.2": done
   "T3.3": done
-  "T4.1": pending
+  "T4.1": done
   "T4.2": pending
   "T4.3": pending
   "T5.1": pending

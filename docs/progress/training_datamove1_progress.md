@@ -2,10 +2,10 @@
 
 Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
-Current cut: T3
-Current phase: Phase 3
-Current task: Task T4.1
-Last completed task: T3.3
+Current cut: T4
+Current phase: Phase 4
+Current task: Task T4.2
+Last completed task: T4.1
 Blocked: false
 Blocker: none
 
@@ -490,6 +490,34 @@ No Slurm jobs. Documentation-only task.
 | Sources | `reports/training/baseline_clean_wer.md`, `reports/training/baseline_degraded_wer.md` |
 | Result commit | 5baf32c |
 
+## T4.1 closure evidence (2026-05-04)
+
+No Slurm jobs. No SpeechBrain installation. No real-WAV enhancement. No Whisper run.
+
+| Field | Value |
+|---|---|
+| B5.3 source-of-truth | `origin/feature/demo-runtime-rp5-v1` (B5.3 hook is absent from `origin/demo-rp5-v1`) |
+| Source blob | `aee9ded8d0eba2cd21731bfb6000e164f4ea8575` |
+| Retrieval method | `git show origin/feature/demo-runtime-rp5-v1:libs/audio/enhancement.py > libs/audio/enhancement.py` (path-limited, no merge, no cherry-pick, no implicit index change) |
+| Interface preservation | `EnhancerAdapter`, `BypassEnhancer`, `EnhancementResult`, presets, version constants byte-identical to source |
+| MetricGAN+ implementation | `speechbrain/metricgan-plus-voicebank` via `SpectralMaskEnhancement`; lazy imports inside `MetricGANPlusEnhancer.enhance()` |
+| Optional extra | `[project.optional-dependencies] training-enhancer` with `speechbrain>=1.0`, `hyperpyyaml>=1.2`, `huggingface_hub>=0.20`, `sentencepiece>=0.2` |
+| Required dependencies modified | false |
+| Dependencies installed in T4.1 | false |
+| Real-WAV runtime smoke | deferred to T4.2 prep / dependency-validation step |
+| Files added | `libs/audio/enhancement.py`, `scripts/training/enhance_metricgan_plus.py`, `tests/audio/test_metricgan_plus_import.py`, `docs/training/metricgan_plus_dependency_notes.md` |
+| Files modified | `pyproject.toml`, `docs/progress/training_datamove1_progress.md`, `docs/progress/training_datamove1_progress.yaml` |
+| Validation: import smoke | pass |
+| Validation: `pytest tests/audio/test_metricgan_plus_import.py -q` | 4 passed |
+| Validation: yaml/toml parse | pass |
+| Validation: `py_compile` + `ast.parse` | pass |
+| Validation: ruff / mypy | not run — tools unavailable on login-node Python; documented and substituted with `py_compile` + `ast.parse` |
+| Validation: diff vs source blob | confined to body and docstring of `MetricGANPlusEnhancer.enhance()` |
+| `libs/common/versions.py` `ENHANCER_VERSION` | unchanged (`None`); per `CLAUDE.training.md` rule 6, updated only at T8.1 export |
+| PR into `demo-rp5-v1` | deferred; documented future integration path only |
+| Stash@{0} | untouched |
+| Result commit | PENDING_RESULT_COMMIT |
+
 ## Next task
 
-Task T4.1. Integrate MetricGAN+ pretrained wrapper for Surrey evaluation. **Unblocked.**
+Task T4.2. Evaluate degraded versus pretrained-enhanced ASR. **Unblocked.**

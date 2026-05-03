@@ -37,6 +37,12 @@ lint = [
     "ruff==0.6.9",
     "mypy==1.11.2",
 ]
+training-enhancer = [
+    "speechbrain>=1.0",
+    "hyperpyyaml>=1.2",
+    "huggingface_hub>=0.20",
+    "sentencepiece>=0.2",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
