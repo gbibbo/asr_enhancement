@@ -32,3 +32,9 @@ def test_default_enhancer_version_is_nonempty_string():
 
     assert isinstance(DEFAULT_ENHANCER_VERSION, str)
     assert DEFAULT_ENHANCER_VERSION
+
+
+def test_degradation_version_is_frozen_at_v1():
+    from libs.common.versions import DEGRADATION_VERSION
+
+    assert DEGRADATION_VERSION == "degradation_v1"
