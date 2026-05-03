@@ -3,10 +3,10 @@ integration_branch: demo-rp5-v1
 parallel_training_branch: feature/training-datamove1-v1
 current_track: B
 current_phase: B6.5
-current_task: "B6.5.1"
-last_completed_task: "B7.1"
-blocked: true
-blocker: "B6.5.1 RP5-side artifacts pushed (scripts/demo/run_reference_whisper.py, scripts/demo/compare_rp5_surrey.py, reports/demo/b6_5_1_rp5_results.json). Awaiting Surrey/datamove1 openai-whisper reference run producing reports/demo/b6_5_1_surrey_results.json."
+current_task: "B6.5.2"
+last_completed_task: "B6.5.1"
+blocked: false
+blocker: null
 rp5_status: verified_2026-05-01
 public_url_status: unknown
 training_handoff_status: training_branch_pushed
@@ -47,3 +47,4 @@ tasks:
   "B6.1": done
   "B6.2": done
   "B7.1": done
+  "B6.5.1": done
