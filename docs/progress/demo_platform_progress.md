@@ -60,7 +60,19 @@ exists in docs/plans/demo_platform_plan.md. Phase B5 ended at B5.3.
 
 ## Current blocker
 
-None.
+**B6.2 blocked — ASR drop criterion not met for 5 examples.**
+
+The B6.2 ASR drop verification failed with `overall_pass: false`. See `reports/demo/demo_examples_asr_drop.json` for the full table.
+
+- **ex002** (`1462-170138-0001`): clean WA = 0.818. Whisper tiny.en mishears the possessive contraction ("HUGH'S" → "He was"). Degradations do not reduce WA further — some filters actually improve it slightly (negative drop). No degradation meets `clean_wa - degraded_wa >= 0.01`.
+- **ex005** (`1919-142785-0003`): clean WA = 1.000. All 5 degradations also produce WA = 1.000. Sentence is short and clear; current degradation parameters are too mild for tiny.en to make errors.
+- **ex006** (`1988-147956-0002`): clean WA = 1.000. Same issue.
+- **ex008** (`2035-147960-0000`): clean WA = 1.000. Same issue.
+- **ex009** (`2078-142845-0009`): clean WA = 1.000. Same issue (very short 3-word sentence).
+
+**Implementation state:** All code is complete and committed (materialize script, tests, config, reports, Docker mount). The blocker is a data/parameter mismatch: 5 of the 10 B6.1 reserved examples do not show measurable ASR degradation under the current `DEGRADATION_VERSION = "1.0"` parameters with `faster-whisper tiny.en`.
+
+**Decision required (Gabriel):** Replace the 5 failing examples with ones that show visible ASR drop, or adjust degradation parameters. If examples change, notify the training branch.
 
 ## Training handoff status
 
@@ -68,4 +80,4 @@ Training branch feature/training-datamove1-v1 already exists on origin from demo
 
 ## Next task
 
-Task B5.3.
+Task B6.2 (blocked — see blocker section above).

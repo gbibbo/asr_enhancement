@@ -6,6 +6,7 @@ x-demo-build: &demo-build
 
 x-demo-volumes: &demo-volumes
   - ${DEMO_RUNTIME_ROOT:-/home/gbibbo/asr_enhancement_runtime}:${DEMO_RUNTIME_ROOT:-/home/gbibbo/asr_enhancement_runtime}
+  - ../../config:/app/config:ro
 
 x-demo-env: &demo-env
   DEMO_MODE: "true"

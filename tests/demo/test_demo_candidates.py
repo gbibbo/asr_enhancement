@@ -204,7 +204,3 @@ def test_required_provenance_fields_present():
         )
 
 
-def test_demo_examples_json_does_not_exist():
-    assert not _DEMO_EXAMPLES_FILE.is_file(), (
-        f"{_DEMO_EXAMPLES_FILE} must not exist in B6.1 — audio sourcing is B6.2"
-    )
