@@ -300,3 +300,40 @@ audio {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.9rem;
 }
+
+/* B11.1b: audio rows, GT block, and optional manual GT textarea. */
+
+.demo-audio-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.demo-audio-label {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #3a3a44;
+}
+
+.demo-gt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.demo-gt-privacy {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.demo-textarea {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid #cccccf;
+  border-radius: 4px;
+  background: #ffffff;
+  resize: vertical;
+}

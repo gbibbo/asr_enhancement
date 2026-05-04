@@ -146,6 +146,16 @@ export default function DemoPage() {
   const [pollTimedOut, setPollTimedOut] = useState(false);
   const [polling, setPolling] = useState(false);
 
+  // B11.1b: original-upload object URL and optional frontend-only manual GT.
+  // The object URL is created when uploadFile is non-null and revoked only on
+  // file change, on explicit reset, or on unmount — never on submit success or
+  // job completion, so the user can still play the original audio after seeing
+  // the transcript. Manual GT is held only in component state and never sent
+  // to the backend, never persisted, never logged. Word Accuracy / WER are
+  // deferred to B11.1c.
+  const [uploadObjectUrl, setUploadObjectUrl] = useState<string | null>(null);
+  const [manualGt, setManualGt] = useState<string>("");
+
   const pollControllerRef = useRef<AbortController | null>(null);
 
   // ---- Backend health + provider state -----------------------------------
@@ -304,7 +314,23 @@ export default function DemoPage() {
     const f = e.target.files?.[0] ?? null;
     setUploadFile(f);
     setUploadError(null);
+    // Per B11.1b: clear manual GT only when the user picks a different file.
+    setManualGt("");
   }, []);
+
+  // Object URL lifecycle. Cleanup runs when uploadFile changes (revoking the
+  // previous URL before the next one is created) and on unmount.
+  useEffect(() => {
+    if (uploadFile === null) {
+      setUploadObjectUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(uploadFile);
+    setUploadObjectUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [uploadFile]);
 
   const submitUpload = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -500,6 +526,18 @@ export default function DemoPage() {
   const uploadResultWarnings: DemoWarning[] | undefined = jobResult?.warnings;
   const cachedResultWarnings: DemoWarning[] | undefined = cachedResult?.warnings;
 
+  const cachedCleanAudioReady =
+    selectedExample !== undefined &&
+    selectedExample.audio_available === true &&
+    selectedExample.clean_audio_path !== null &&
+    selectedExample.clean_audio_path.length > 0;
+  const cachedDegradedAudioReady =
+    selectedExample !== undefined &&
+    selectedExample.audio_available === true &&
+    selectedDegradationCached.length > 0 &&
+    typeof selectedExample.degraded_audio_paths?.[selectedDegradationCached] === "string" &&
+    selectedExample.degraded_audio_paths[selectedDegradationCached].length > 0;
+
   return (
     <main className="demo-main">
       <header className="demo-header">
@@ -611,6 +649,57 @@ export default function DemoPage() {
             </button>
           </form>
 
+          {selectedExample !== undefined && (
+            <div className="demo-audio-row" aria-label="Original audio">
+              <p className="demo-audio-label">Original audio (clean)</p>
+              {cachedCleanAudioReady ? (
+                <audio
+                  controls
+                  preload="metadata"
+                  src={`/api/demo/examples/${encodeURIComponent(
+                    selectedExample.example_id,
+                  )}/audio/clean`}
+                />
+              ) : (
+                <p className="demo-subtle">Audio unavailable for this example.</p>
+              )}
+            </div>
+          )}
+
+          {selectedExample !== undefined && selectedDegradationCached.length > 0 && (
+            <div className="demo-audio-row" aria-label="Degraded audio">
+              <p className="demo-audio-label">
+                Degraded audio (
+                {DEGRADATION_LABELS[
+                  selectedDegradationCached as keyof typeof DEGRADATION_LABELS
+                ] ?? selectedDegradationCached}
+                )
+              </p>
+              {cachedDegradedAudioReady ? (
+                <audio
+                  controls
+                  preload="metadata"
+                  src={`/api/demo/examples/${encodeURIComponent(
+                    selectedExample.example_id,
+                  )}/audio/degraded/${encodeURIComponent(selectedDegradationCached)}`}
+                />
+              ) : (
+                <p className="demo-subtle">
+                  Audio unavailable for this example/degradation.
+                </p>
+              )}
+            </div>
+          )}
+
+          {selectedExample !== undefined &&
+            typeof selectedExample.ground_truth === "string" &&
+            selectedExample.ground_truth.length > 0 && (
+              <div className="demo-gt" aria-label="Ground truth (verified)">
+                <p className="demo-audio-label">Ground truth (verified)</p>
+                <pre className="demo-transcript">{selectedExample.ground_truth}</pre>
+              </div>
+            )}
+
           {cachedError !== null && (
             <p role="alert" className="error">
               {cachedError}
@@ -691,10 +780,31 @@ export default function DemoPage() {
               </select>
             </label>
 
+            <label>
+              Optional ground truth
+              <textarea
+                className="demo-textarea"
+                value={manualGt}
+                onChange={(e) => setManualGt(e.target.value)}
+                rows={3}
+                placeholder="Type the spoken text if you want to compare later."
+              />
+            </label>
+            <p className="demo-gt-privacy demo-subtle">
+              Optional ground truth is used only to calculate accuracy for this session. It is not stored.
+            </p>
+
             <button type="submit" disabled={uploadSubmitting || !uploadFile}>
               {uploadSubmitting ? "Submitting…" : "Submit upload"}
             </button>
           </form>
+
+          {uploadObjectUrl !== null && (
+            <div className="demo-audio-row" aria-label="Uploaded audio">
+              <p className="demo-audio-label">Original audio (your upload)</p>
+              <audio controls preload="metadata" src={uploadObjectUrl} />
+            </div>
+          )}
 
           {uploadError !== null && (
             <p role="alert" className="error">
