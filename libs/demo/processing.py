@@ -25,10 +25,19 @@ from libs.audio.enhancement import (
     BypassEnhancer,
     EnhancerAdapter,
 )
+from libs.asr.demo_assemblyai_provider import DemoAssemblyAIAdapter
 from libs.asr.errors import AdapterError
 from libs.asr.schema import ASRResult
 from libs.asr.whisper_provider import WhisperAdapter
 from libs.common.demo_settings import DemoSettings
+from libs.demo.upload import probe_audio_duration
+from libs.demo.usage import (
+    CapBlockedError,
+    LedgerWriteError,
+    MSG_DISABLED,
+    MSG_LEDGER_UNAVAILABLE,
+    transcribe_with_ledger,
+)
 
 
 log = logging.getLogger("demo-worker.processing")
@@ -37,6 +46,7 @@ log = logging.getLogger("demo-worker.processing")
 PROVIDER_WHISPER = "whisper"
 PROVIDER_ASSEMBLYAI = "assemblyai"
 DEFAULT_WHISPER_MODEL_VERSION = "tiny.en"
+ASSEMBLYAI_MODEL_VERSION = "universal"
 
 NON_ENGLISH_LANGUAGE_THRESHOLD = 0.5
 NON_ENGLISH_WARNING_MESSAGE = (
@@ -45,10 +55,6 @@ NON_ENGLISH_WARNING_MESSAGE = (
 )
 NON_ENGLISH_WARNING_CODE = "non_english_language"
 
-_ASSEMBLYAI_GATED_MESSAGE = (
-    "AssemblyAI is not enabled for uploads in B9.2. "
-    "Switch provider to 'whisper'."
-)
 _METRICGAN_GATED_MESSAGE = (
     "Enhancer 'metricgan_plus_pretrained' is owned by training task T4.1 "
     "and is not enabled in the demo runtime. Use 'bypass'."
@@ -83,18 +89,21 @@ def default_asr_factory(settings: DemoSettings) -> ASRFactory:
     """Return a factory that maps provider name to an ASR adapter.
 
     Whisper returns a ``WhisperAdapter`` (faster-whisper tiny.en).
-    AssemblyAI is gated for uploads in B9.2 and raises
-    ``ProviderDisabledError``; no silent fallback.
+    AssemblyAI returns a ``DemoAssemblyAIAdapter`` when an API key is
+    configured; otherwise it raises ``ProviderDisabledError`` with the
+    canonical disabled message. No silent fallback to Whisper.
     """
-    del settings  # currently unused; kept for forward compatibility
 
     def _factory(provider: str) -> _ASRAdapterLike:
         if provider == PROVIDER_WHISPER:
             return WhisperAdapter()
         if provider == PROVIDER_ASSEMBLYAI:
-            raise ProviderDisabledError(_ASSEMBLYAI_GATED_MESSAGE)
+            api_key = settings.assemblyai_api_key
+            if not api_key:
+                raise ProviderDisabledError(MSG_DISABLED)
+            return DemoAssemblyAIAdapter(api_key=api_key)
         raise ProviderDisabledError(
-            f"Unsupported provider {provider!r}. Use 'whisper'."
+            f"Unsupported provider {provider!r}. Use 'whisper' or 'assemblyai'."
         )
 
     return _factory
@@ -144,6 +153,8 @@ def _asr_model_version(provider: str, asr_result: ASRResult) -> str:
         if isinstance(model, str) and model:
             return model
         return DEFAULT_WHISPER_MODEL_VERSION
+    if provider == PROVIDER_ASSEMBLYAI:
+        return ASSEMBLYAI_MODEL_VERSION
     return provider
 
 
@@ -271,9 +282,37 @@ def process_upload_job(
 
     raw_input_path = degraded_audio_path if degraded_audio_path is not None else input_path
 
-    # Raw ASR (B9.2 action 4)
+    # Raw ASR (B9.2 action 4). For AssemblyAI, the call is wrapped in
+    # transcribe_with_ledger (B10.2): one atomic reservation per upload, with
+    # the ledger row updated to completed or failed by the helper itself.
     try:
-        raw_result, raw_latency = _time_transcribe(asr, raw_input_path, job_id)
+        if provider == PROVIDER_ASSEMBLYAI:
+            try:
+                duration_for_cost = probe_audio_duration(raw_input_path)
+            except Exception as exc:  # noqa: BLE001
+                return ProcessingOutcome(
+                    status="failed",
+                    error_message=_safe_message("Raw ASR failed", exc),
+                )
+            t0 = time.monotonic()
+            raw_result = transcribe_with_ledger(
+                asr,
+                raw_input_path,
+                job_id,
+                db_path=settings.demo_db_path,
+                settings=settings,
+                audio_duration_seconds=duration_for_cost,
+                session_id_hash=job.get("session_id_hash"),
+            )
+            raw_latency = time.monotonic() - t0
+        else:
+            raw_result, raw_latency = _time_transcribe(asr, raw_input_path, job_id)
+    except CapBlockedError as exc:
+        log.info("job=%s raw_asr=cap_blocked", job_id)
+        return ProcessingOutcome(status="failed", error_message=str(exc))
+    except LedgerWriteError:
+        log.info("job=%s raw_asr=ledger_unavailable", job_id)
+        return ProcessingOutcome(status="failed", error_message=MSG_LEDGER_UNAVAILABLE)
     except AdapterError as exc:
         log.info("job=%s raw_asr=failed", job_id)
         return ProcessingOutcome(
@@ -289,6 +328,10 @@ def process_upload_job(
 
     # Enhanced ASR (B9.2 action 5).
     # Decision rule 3: if the enhanced path fails, complete the job with raw + enhanced_error.
+    # B10.2 bypass optimization: when the enhancer returns the raw input
+    # unchanged (BypassEnhancer), reuse raw_result for the enhanced block to
+    # avoid a second transcribe call (which for AssemblyAI would also create
+    # a duplicate ledger row).
     enhanced_block: Optional[dict] = None
     enhanced_error: Optional[str] = None
     enhanced_audio_path: Optional[Path] = None
@@ -297,9 +340,12 @@ def process_upload_job(
         if enhancement.output_path != raw_input_path:
             enhanced_audio_path = enhancement.output_path
             update_artifacts(enhanced_artifact_path=str(enhanced_audio_path))
-        enhanced_result, enhanced_latency = _time_transcribe(
-            asr, enhancement.output_path, job_id
-        )
+            enhanced_result, enhanced_latency = _time_transcribe(
+                asr, enhancement.output_path, job_id
+            )
+        else:
+            enhanced_result = raw_result
+            enhanced_latency = raw_latency
     except Exception as exc:  # noqa: BLE001
         # Decision rule 3: never abort the job because the enhanced path failed
         # after raw succeeded.

@@ -395,12 +395,35 @@ def test_warning_emitted_independent_of_degradation(settings, db_path):
 
 
 def test_warning_present_when_enhanced_path_fails(settings, db_path):
-    from libs.audio.enhancement import BypassEnhancer
+    """Second ASR call only fires when the enhancer rewrites the audio.
+
+    Post-B10.2 BypassEnhancer reuses the raw transcribe result, so this
+    coverage uses a fake enhancer that writes a distinct file to force a
+    second ASR call on the enhanced path.
+    """
+    from dataclasses import dataclass
     from libs.demo.processing import process_upload_job
+
+    @dataclass
+    class _FakeEnhancement:
+        output_path: Path
+        preset_applied: str = "fake_distinct"
+        enhanced: bool = True
+        enhancement_fallback: bool = False
+
+    class _DistinctEnhancer:
+        @property
+        def enhancer_version(self) -> str:  # pragma: no cover
+            return "fake_distinct"
+
+        def enhance(self, audio_path: Path, output_dir: Path, job_id: str):
+            output_dir.mkdir(parents=True, exist_ok=True)
+            out = output_dir / "enhanced.wav"
+            out.write_bytes(audio_path.read_bytes())
+            return _FakeEnhancement(output_path=out)
 
     upload = _write_tone_wav(settings.demo_upload_dir / "u_fr_enh_fail.wav")
     job = _insert_upload_job(db_path, input_artifact_path=str(upload))
-    # raise on the second transcribe call (the enhanced path)
     asr = _FakeASR(
         language="fr",
         language_probability=0.83,
@@ -411,7 +434,7 @@ def test_warning_present_when_enhanced_path_fails(settings, db_path):
     outcome = process_upload_job(
         job, settings,
         asr_factory=_factory(asr),
-        enhancer_factory=_factory(BypassEnhancer()),
+        enhancer_factory=_factory(_DistinctEnhancer()),
         update_artifacts=_record_artifacts([]),
     )
 
@@ -439,9 +462,10 @@ def test_warning_only_computed_once_for_completed_job(settings, db_path):
         update_artifacts=_record_artifacts([]),
     )
 
-    # raw + enhanced both ran
-    assert len(asr.calls) == 2
-    # but the warning was added only once at the top level
+    # B10.2 bypass optimization: raw + bypass-enhanced reuses the same ASR
+    # result, so the underlying adapter is called exactly once. The non-English
+    # warning is still added only once at the top level.
+    assert len(asr.calls) == 1
     assert len(outcome.result["warnings"]) == 1
 
 

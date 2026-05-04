@@ -64,6 +64,24 @@ LEDGER_STATUS_FAILED = "failed"
 
 PROVIDER_ASSEMBLYAI = "assemblyai"
 
+# B10.2 user-facing strings (single source of truth shared by API and worker).
+MSG_DISABLED = "AssemblyAI is not configured. Use Whisper local instead."
+MSG_DAILY_QUOTA_REACHED = (
+    "AssemblyAI daily quota reached. Use Whisper local instead."
+)
+MSG_HARD_QUOTA_EXHAUSTED = (
+    "AssemblyAI quota exhausted. Use Whisper local instead."
+)
+MSG_SESSION_LIMIT_REACHED = (
+    "AssemblyAI session limit reached (3 uses in 24 hours). Use Whisper local instead."
+)
+MSG_SESSION_HEADER_REQUIRED = (
+    "AssemblyAI requires session header. Use Whisper local instead."
+)
+MSG_LEDGER_UNAVAILABLE = (
+    "AssemblyAI temporarily unavailable. Try again or use Whisper local."
+)
+
 ALL_CAP_STATES = (CAP_BELOW, CAP_WARNING_REACHED, CAP_SOFT_REACHED, CAP_HARD_REACHED)
 ALL_PROVIDER_STATES = (
     STATE_AVAILABLE,
@@ -92,13 +110,9 @@ class CapBlockedError(Exception):
         self.cap_state = cap_state
         if message is None:
             if cap_state == CAP_SOFT_REACHED:
-                message = (
-                    "AssemblyAI daily quota reached. Use Whisper local instead."
-                )
+                message = MSG_DAILY_QUOTA_REACHED
             else:
-                message = (
-                    "AssemblyAI quota exhausted. Use Whisper local instead."
-                )
+                message = MSG_HARD_QUOTA_EXHAUSTED
         super().__init__(message)
 
 
@@ -201,6 +215,13 @@ def _utc_day_start_iso(now: Optional[datetime] = None) -> str:
     n = _now(now)
     start = n.replace(hour=0, minute=0, second=0, microsecond=0)
     return start.isoformat()
+
+
+def rolling_24h_start_iso(now: Optional[datetime] = None) -> str:
+    """ISO timestamp of (now - 24h) in UTC. Used by the B10.2 session gate."""
+    from datetime import timedelta
+    n = _now(now)
+    return (n - timedelta(hours=24)).isoformat()
 
 
 # ---------------------------------------------------------------------------

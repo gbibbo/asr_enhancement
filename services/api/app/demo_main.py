@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import secrets
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
@@ -16,6 +17,7 @@ from libs.demo.examples import get_safe_audio_path, load_examples
 from libs.demo.persistence import (
     QueueFullError,
     count_active_jobs,
+    count_effective_session_assemblyai_uses,
     ensure_runtime_dirs,
     get_admin_state_value,
     get_cache_entry,
@@ -31,7 +33,20 @@ from libs.demo.upload import (
     UnsupportedExtensionError,
     validate_and_save_upload,
 )
-from libs.demo.usage import compute_admin_view, compute_public_view
+from libs.demo.usage import (
+    MSG_DAILY_QUOTA_REACHED,
+    MSG_DISABLED,
+    MSG_HARD_QUOTA_EXHAUSTED,
+    MSG_SESSION_HEADER_REQUIRED,
+    MSG_SESSION_LIMIT_REACHED,
+    STATE_AVAILABLE,
+    STATE_DAILY_QUOTA_REACHED,
+    STATE_DISABLED,
+    STATE_QUOTA_EXHAUSTED,
+    compute_admin_view,
+    compute_public_view,
+    rolling_24h_start_iso,
+)
 from libs.observability.logging import configure_logging
 
 
@@ -58,6 +73,35 @@ _ASR_MODEL_DEFAULTS: dict[str, str] = {
     "whisper": "tiny.en",
     "assemblyai": "best",
 }
+
+_ALLOWED_UPLOAD_PROVIDERS: frozenset[str] = frozenset({"whisper", "assemblyai"})
+
+# Whitelist of jobs columns exposed by /demo/jobs/{job_id}. session_id_hash
+# is intentionally omitted so the public endpoint cannot leak the per-browser
+# identifier added in B10.2.
+_PUBLIC_JOB_COLUMNS: tuple[str, ...] = (
+    "job_id",
+    "status",
+    "created_at",
+    "updated_at",
+    "provider",
+    "degradation_id",
+    "enhancer_version",
+    "input_artifact_path",
+    "degraded_artifact_path",
+    "enhanced_artifact_path",
+    "result_json",
+    "error_message",
+    "expires_at",
+)
+
+
+def _public_job_view(row: dict) -> dict:
+    return {col: row[col] for col in _PUBLIC_JOB_COLUMNS if col in row}
+
+
+def _hash_session_id(session_id: str) -> str:
+    return hashlib.sha256(session_id.encode("utf-8")).hexdigest()
 
 
 class _RunCachedRequest(BaseModel):
@@ -175,10 +219,11 @@ async def upload_audio(
     provider: str = Form("whisper"),
     degradation_id: str | None = Form(None),
     enhancer_version: str | None = Form(None),
+    x_demo_session_id: str | None = Header(default=None, alias="X-Demo-Session-Id"),
 ):
     settings: DemoSettings = request.app.state.settings
     try:
-        saved_path, _, _ = await validate_and_save_upload(
+        saved_path, _, duration = await validate_and_save_upload(
             file,
             settings.demo_upload_dir,
             settings.demo_upload_limit_bytes,
@@ -190,6 +235,53 @@ async def upload_audio(
         raise HTTPException(status_code=413, detail="File too large.")
     except InvalidAudioError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+
+    if provider not in _ALLOWED_UPLOAD_PROVIDERS:
+        saved_path.unlink(missing_ok=True)
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Unsupported provider {provider!r}. Use 'whisper' or 'assemblyai'."
+            ),
+        )
+
+    session_id_hash: str | None = None
+    if provider == "assemblyai":
+        public_view = compute_public_view(settings.demo_db_path, settings)
+        state = public_view["assemblyai"]["state"]
+        if state == STATE_DISABLED:
+            saved_path.unlink(missing_ok=True)
+            raise HTTPException(status_code=400, detail=MSG_DISABLED)
+        if state == STATE_DAILY_QUOTA_REACHED:
+            saved_path.unlink(missing_ok=True)
+            raise HTTPException(status_code=503, detail=MSG_DAILY_QUOTA_REACHED)
+        if state == STATE_QUOTA_EXHAUSTED:
+            saved_path.unlink(missing_ok=True)
+            raise HTTPException(status_code=503, detail=MSG_HARD_QUOTA_EXHAUSTED)
+        if state != STATE_AVAILABLE:
+            # Defensive: any future state addition must explicitly opt in.
+            saved_path.unlink(missing_ok=True)
+            raise HTTPException(status_code=503, detail=MSG_DISABLED)
+        if not x_demo_session_id:
+            saved_path.unlink(missing_ok=True)
+            raise HTTPException(status_code=400, detail=MSG_SESSION_HEADER_REQUIRED)
+        session_id_hash = _hash_session_id(x_demo_session_id)
+        if duration > float(settings.demo_upload_max_duration_seconds):
+            saved_path.unlink(missing_ok=True)
+            raise HTTPException(
+                status_code=422,
+                detail="Audio exceeds 30 seconds maximum.",
+            )
+        since_iso = rolling_24h_start_iso()
+        effective_uses = count_effective_session_assemblyai_uses(
+            settings.demo_db_path,
+            session_id_hash=session_id_hash,
+            since_iso=since_iso,
+        )
+        if effective_uses >= 3:
+            saved_path.unlink(missing_ok=True)
+            raise HTTPException(status_code=429, detail=MSG_SESSION_LIMIT_REACHED)
+
     try:
         job_id = try_create_job(
             settings.demo_db_path,
@@ -198,6 +290,7 @@ async def upload_audio(
             degradation_id=degradation_id,
             enhancer_version=enhancer_version,
             input_artifact_path=str(saved_path),
+            session_id_hash=session_id_hash,
         )
     except QueueFullError:
         saved_path.unlink(missing_ok=True)
@@ -223,7 +316,7 @@ async def get_demo_job(job_id: str, request: Request):
     job = get_job(settings.demo_db_path, job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
-    return job
+    return _public_job_view(job)
 
 
 @app.get("/demo/jobs/{job_id}/result")

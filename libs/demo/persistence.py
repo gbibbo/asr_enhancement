@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     enhanced_artifact_path TEXT,
     result_json TEXT,
     error_message TEXT,
-    expires_at TIMESTAMP
+    expires_at TIMESTAMP,
+    session_id_hash TEXT
 );
 
 CREATE TABLE IF NOT EXISTS cache_entries (
@@ -92,6 +93,10 @@ def init_schema(db_path: Path) -> None:
     conn = _open(db_path)
     try:
         conn.executescript(_DDL)
+        # Idempotent migration: pre-B10.2 jobs tables lack session_id_hash.
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(jobs)").fetchall()}
+        if "session_id_hash" not in cols:
+            conn.execute("ALTER TABLE jobs ADD COLUMN session_id_hash TEXT")
     finally:
         conn.close()
 
@@ -115,6 +120,7 @@ def try_create_job(
     degradation_id: Optional[str] = None,
     enhancer_version: Optional[str] = None,
     input_artifact_path: Optional[str] = None,
+    session_id_hash: Optional[str] = None,
 ) -> str:
     job_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
@@ -134,10 +140,19 @@ def try_create_job(
             """
             INSERT INTO jobs
               (job_id, status, created_at, updated_at, provider, degradation_id,
-               enhancer_version, input_artifact_path)
-            VALUES (?, 'queued', ?, ?, ?, ?, ?, ?)
+               enhancer_version, input_artifact_path, session_id_hash)
+            VALUES (?, 'queued', ?, ?, ?, ?, ?, ?, ?)
             """,
-            (job_id, now, now, provider, degradation_id, enhancer_version, input_artifact_path),
+            (
+                job_id,
+                now,
+                now,
+                provider,
+                degradation_id,
+                enhancer_version,
+                input_artifact_path,
+                session_id_hash,
+            ),
         )
         conn.execute("COMMIT")
         in_transaction = False
@@ -608,5 +623,107 @@ def count_usage_rows(
             sql += " AND created_at >= ?"
             params.append(since_iso)
         return int(conn.execute(sql, tuple(params)).fetchone()[0])
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# B10.2 session-limit helpers
+# ---------------------------------------------------------------------------
+
+
+def count_session_assemblyai_usage(
+    db_path: Path,
+    *,
+    session_id_hash: str,
+    since_iso: str,
+) -> int:
+    """Count usage_ledger rows that consume the user's session quota."""
+    conn = _open(db_path)
+    try:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) FROM usage_ledger
+            WHERE provider = 'assemblyai'
+              AND session_id_hash = ?
+              AND status IN ('started', 'completed')
+              AND created_at >= ?
+            """,
+            (session_id_hash, since_iso),
+        ).fetchone()
+        return int(row[0])
+    finally:
+        conn.close()
+
+
+def count_pending_session_assemblyai_jobs(
+    db_path: Path,
+    *,
+    session_id_hash: str,
+    since_iso: str,
+) -> int:
+    """Count queued/running AssemblyAI jobs for this session in the window."""
+    conn = _open(db_path)
+    try:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) FROM jobs
+            WHERE provider = 'assemblyai'
+              AND session_id_hash = ?
+              AND status IN ('queued', 'running')
+              AND created_at >= ?
+            """,
+            (session_id_hash, since_iso),
+        ).fetchone()
+        return int(row[0])
+    finally:
+        conn.close()
+
+
+def count_effective_session_assemblyai_uses(
+    db_path: Path,
+    *,
+    session_id_hash: str,
+    since_iso: str,
+) -> int:
+    """De-duplicated session count used by the API gate.
+
+    Counts AssemblyAI uses for a single session in the rolling window without
+    double-counting a job that is simultaneously ``running`` and already has a
+    ``started`` ledger row. The ledger row is the canonical entry; pending
+    jobs are added only when no ledger row exists yet for that ``job_id``.
+    """
+    conn = _open(db_path)
+    try:
+        row = conn.execute(
+            """
+            SELECT
+              (SELECT COUNT(*) FROM usage_ledger
+                 WHERE provider = 'assemblyai'
+                   AND session_id_hash = ?
+                   AND status IN ('started', 'completed')
+                   AND created_at >= ?)
+              +
+              (SELECT COUNT(*) FROM jobs
+                 WHERE provider = 'assemblyai'
+                   AND session_id_hash = ?
+                   AND status IN ('queued', 'running')
+                   AND created_at >= ?
+                   AND job_id NOT IN (
+                     SELECT job_id FROM usage_ledger
+                       WHERE provider = 'assemblyai'
+                         AND session_id_hash = ?
+                         AND status IN ('started', 'completed')
+                         AND created_at >= ?
+                         AND job_id IS NOT NULL
+                   ))
+            """,
+            (
+                session_id_hash, since_iso,
+                session_id_hash, since_iso,
+                session_id_hash, since_iso,
+            ),
+        ).fetchone()
+        return int(row[0])
     finally:
         conn.close()

@@ -214,9 +214,11 @@ def test_no_degradation_bypass_returns_raw_and_enhanced(settings, db_path, tmp_p
     assert r["metrics"] == {}
     assert r["warnings"] == []
     assert artifacts == []  # bypass never writes a separate enhanced file
-    assert len(asr.calls) == 2  # raw + enhanced
+    # B10.2 bypass optimization: when enhancement.output_path == raw_input_path
+    # (BypassEnhancer), the enhanced block reuses the raw transcribe result and
+    # the second ASR call is suppressed.
+    assert len(asr.calls) == 1
     assert asr.calls[0] == upload
-    assert asr.calls[1] == upload  # bypass output_path == input_path
 
 
 def test_known_degradation_writes_file_and_persists_path(settings, db_path):
@@ -248,8 +250,10 @@ def test_known_degradation_writes_file_and_persists_path(settings, db_path):
     assert r["degradation_applied"] is True
     assert r["degradation_version"]  # set from libs.audio.degradations
     assert r["degraded_audio_path"] == str(expected_file)
-    # Both ASR calls happened on the degraded audio (bypass enhancer is no-op)
-    assert asr.calls == [expected_file, expected_file]
+    # B10.2 bypass optimization: BypassEnhancer returns the same path it was
+    # given, so the worker reuses the raw transcribe result for the enhanced
+    # block and does not call ASR a second time.
+    assert asr.calls == [expected_file]
     # update_artifacts called once for degraded; no enhanced file persisted
     assert artifacts == [{"degraded_artifact_path": str(expected_file)}]
 
@@ -370,10 +374,13 @@ def test_rejects_unknown_enhancer(settings, db_path):
     assert "Unsupported enhancer" in outcome.error_message
 
 
-def test_rejects_assemblyai_provider_with_b9_2_message(settings, db_path):
+def test_rejects_assemblyai_provider_when_no_key(settings, db_path):
     from libs.audio.enhancement import BypassEnhancer
     from libs.demo.processing import default_asr_factory, process_upload_job
+    from libs.demo.usage import MSG_DISABLED
 
+    # The fixture clears ASSEMBLYAI_API_KEY, so default_asr_factory must
+    # raise ProviderDisabledError with the canonical disabled message.
     upload = _write_tone_wav(settings.demo_upload_dir / "u5.wav")
     job = _insert_upload_job(
         db_path,
@@ -389,7 +396,21 @@ def test_rejects_assemblyai_provider_with_b9_2_message(settings, db_path):
     )
 
     assert outcome.status == "failed"
-    assert "AssemblyAI is not enabled for uploads in B9.2" in outcome.error_message
+    assert outcome.error_message == MSG_DISABLED
+
+
+def test_assemblyai_factory_returns_demo_adapter_when_key_configured(
+    settings, monkeypatch
+):
+    from libs.asr.demo_assemblyai_provider import DemoAssemblyAIAdapter
+    from libs.demo.processing import default_asr_factory
+
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "sk-test-key")
+    from libs.common.demo_settings import DemoSettings
+    s = DemoSettings()
+    factory = default_asr_factory(s)
+    adapter = factory("assemblyai")
+    assert isinstance(adapter, DemoAssemblyAIAdapter)
 
 
 def test_rejects_unknown_provider(settings, db_path):
@@ -435,12 +456,36 @@ def test_raw_asr_failure_marks_job_failed(settings, db_path):
 
 
 def test_enhanced_asr_failure_keeps_raw_completed(settings, db_path):
-    from libs.audio.enhancement import BypassEnhancer
+    """Second ASR call can only fire when the enhancer rewrites the audio.
+
+    Post-B10.2 BypassEnhancer reuses the raw transcribe result, so this
+    coverage uses a fake enhancer that writes a distinct file to force a
+    second ASR call.
+    """
+    from dataclasses import dataclass
     from libs.demo.processing import process_upload_job
+
+    @dataclass
+    class _FakeEnhancement:
+        output_path: Path
+        preset_applied: str = "fake_distinct"
+        enhanced: bool = True
+        enhancement_fallback: bool = False
+
+    class _DistinctEnhancer:
+        @property
+        def enhancer_version(self) -> str:  # pragma: no cover - not exercised
+            return "fake_distinct"
+
+        def enhance(self, audio_path: Path, output_dir: Path, job_id: str):
+            output_dir.mkdir(parents=True, exist_ok=True)
+            out = output_dir / "enhanced.wav"
+            out.write_bytes(audio_path.read_bytes())
+            return _FakeEnhancement(output_path=out)
 
     upload = _write_tone_wav(settings.demo_upload_dir / "u7.wav")
     job = _insert_upload_job(db_path, input_artifact_path=str(upload))
-    # First call (raw) succeeds, second call (enhanced) raises.
+    # First call (raw) succeeds, second call (enhanced on the distinct file) raises.
     asr = _FakeASR(
         text="raw transcript",
         raise_on_call=2,
@@ -450,7 +495,7 @@ def test_enhanced_asr_failure_keeps_raw_completed(settings, db_path):
     outcome = process_upload_job(
         job, settings,
         asr_factory=_factory(asr),
-        enhancer_factory=_factory(BypassEnhancer()),
+        enhancer_factory=_factory(_DistinctEnhancer()),
         update_artifacts=lambda **kw: None,
     )
 
