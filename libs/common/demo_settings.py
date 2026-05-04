@@ -34,6 +34,13 @@ class DemoSettings(BaseSettings):
     admin_stats_password: Optional[str] = None
     demo_examples_config: Path = Path("config/demo_examples.json")
 
+    # B10.1 AssemblyAI cost-control settings. usd_per_second is a duration-based
+    # estimate, not a billed amount; operators may override per host via env.
+    demo_assemblyai_daily_soft_cap_usd: float = 5.0
+    demo_assemblyai_warning_cap_usd: float = 35.0
+    demo_assemblyai_hard_cap_usd: float = 45.0
+    demo_assemblyai_usd_per_second: float = 0.000103
+
     @model_validator(mode="after")
     def fill_derived_paths(self) -> "DemoSettings":
         root = self.demo_runtime_root

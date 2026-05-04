@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import math
 import sqlite3
 import uuid
 from datetime import datetime, timezone
@@ -7,6 +9,8 @@ from pathlib import Path
 from typing import Optional
 
 from libs.common.demo_settings import DemoSettings
+
+_log = logging.getLogger("demo-api.persistence")
 
 
 class QueueFullError(Exception):
@@ -423,5 +427,186 @@ def get_admin_state_value(db_path: Path, key: str) -> Optional[str]:
             "SELECT value FROM admin_state WHERE key = ?", (key,)
         ).fetchone()
         return row[0] if row else None
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# B10.1 usage_ledger helpers
+# ---------------------------------------------------------------------------
+
+_LEDGER_SUM_WARNED = False
+
+
+def _safe_cost(value: object) -> float:
+    """Coerce an estimated_cost_usd cell to a non-negative finite float.
+
+    Non-finite or negative values are treated as 0.0 and a single structured
+    warning is emitted across the process lifetime so that operator review is
+    possible without flooding logs.
+    """
+    global _LEDGER_SUM_WARNED
+    try:
+        f = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        f = float("nan")
+    if not math.isfinite(f) or f < 0.0:
+        if not _LEDGER_SUM_WARNED:
+            _log.warning("usage_ledger contains a non-finite or negative cost value; treating as 0.0")
+            _LEDGER_SUM_WARNED = True
+        return 0.0
+    return f
+
+
+def insert_usage_ledger(
+    db_path: Path,
+    *,
+    provider: str,
+    audio_duration_seconds: float,
+    estimated_cost_usd: float,
+    status: str,
+    cap_state: str,
+    session_id_hash: Optional[str] = None,
+    job_id: Optional[str] = None,
+    now: Optional[str] = None,
+) -> str:
+    """Insert a usage_ledger row and return the generated ledger_id."""
+    ledger_id = uuid.uuid4().hex
+    created_at = now or datetime.now(timezone.utc).isoformat()
+    conn = _open(db_path)
+    try:
+        conn.execute(
+            """
+            INSERT INTO usage_ledger
+                (ledger_id, provider, session_id_hash, job_id,
+                 audio_duration_seconds, estimated_cost_usd,
+                 status, cap_state, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                ledger_id,
+                provider,
+                session_id_hash,
+                job_id,
+                float(audio_duration_seconds),
+                float(estimated_cost_usd),
+                status,
+                cap_state,
+                created_at,
+            ),
+        )
+        return ledger_id
+    finally:
+        conn.close()
+
+
+def update_usage_ledger_status(
+    db_path: Path, ledger_id: str, status: str
+) -> None:
+    """Update only the status column of a usage_ledger row.
+
+    No row-existence assertion: an UPDATE matching no rows is a silent no-op.
+    Other columns (cap_state, estimated_cost_usd, created_at) are left intact
+    so that the precheck snapshot is preserved.
+    """
+    conn = _open(db_path)
+    try:
+        conn.execute(
+            "UPDATE usage_ledger SET status = ? WHERE ledger_id = ?",
+            (status, ledger_id),
+        )
+    finally:
+        conn.close()
+
+
+def get_usage_ledger_row(db_path: Path, ledger_id: str) -> Optional[dict]:
+    conn = _open(db_path)
+    try:
+        row = conn.execute(
+            "SELECT * FROM usage_ledger WHERE ledger_id = ?", (ledger_id,)
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def _sum_usage_cost_in_conn(
+    conn: sqlite3.Connection,
+    *,
+    provider: str,
+    status: str,
+    since_iso: Optional[str] = None,
+) -> float:
+    """Sum estimated_cost_usd for a provider/status, optionally since an ISO ts.
+
+    Operates inside the caller's connection so it can participate in a
+    BEGIN IMMEDIATE transaction. Non-finite/negative values are treated as 0
+    via _safe_cost.
+    """
+    if since_iso is None:
+        rows = conn.execute(
+            "SELECT estimated_cost_usd FROM usage_ledger "
+            "WHERE provider = ? AND status = ?",
+            (provider, status),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT estimated_cost_usd FROM usage_ledger "
+            "WHERE provider = ? AND status = ? AND created_at >= ?",
+            (provider, status, since_iso),
+        ).fetchall()
+    return sum(_safe_cost(r[0]) for r in rows)
+
+
+def sum_completed_usage_cost(
+    db_path: Path,
+    *,
+    provider: str,
+    since_iso: Optional[str] = None,
+) -> float:
+    """Sum estimated_cost_usd over status='completed' rows for provider."""
+    conn = _open(db_path)
+    try:
+        return _sum_usage_cost_in_conn(
+            conn, provider=provider, status="completed", since_iso=since_iso
+        )
+    finally:
+        conn.close()
+
+
+def sum_reserved_usage_cost(
+    db_path: Path,
+    *,
+    provider: str,
+    since_iso: Optional[str] = None,
+) -> float:
+    """Sum estimated_cost_usd over status='started' rows for provider."""
+    conn = _open(db_path)
+    try:
+        return _sum_usage_cost_in_conn(
+            conn, provider=provider, status="started", since_iso=since_iso
+        )
+    finally:
+        conn.close()
+
+
+def count_usage_rows(
+    db_path: Path,
+    *,
+    provider: str,
+    status: Optional[str] = None,
+    since_iso: Optional[str] = None,
+) -> int:
+    conn = _open(db_path)
+    try:
+        sql = "SELECT COUNT(*) FROM usage_ledger WHERE provider = ?"
+        params: list = [provider]
+        if status is not None:
+            sql += " AND status = ?"
+            params.append(status)
+        if since_iso is not None:
+            sql += " AND created_at >= ?"
+            params.append(since_iso)
+        return int(conn.execute(sql, tuple(params)).fetchone()[0])
     finally:
         conn.close()

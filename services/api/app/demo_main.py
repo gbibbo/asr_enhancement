@@ -31,6 +31,7 @@ from libs.demo.upload import (
     UnsupportedExtensionError,
     validate_and_save_upload,
 )
+from libs.demo.usage import compute_admin_view, compute_public_view
 from libs.observability.logging import configure_logging
 
 
@@ -210,6 +211,12 @@ async def upload_audio(
     return JSONResponse(status_code=202, content={"job_id": job_id, "status": "queued"})
 
 
+@app.get("/demo/providers/assemblyai/status")
+async def get_assemblyai_status(request: Request):
+    settings: DemoSettings = request.app.state.settings
+    return compute_public_view(settings.demo_db_path, settings)
+
+
 @app.get("/demo/jobs/{job_id}")
 async def get_demo_job(job_id: str, request: Request):
     settings: DemoSettings = request.app.state.settings
@@ -267,4 +274,5 @@ async def admin_stats(
         "uptime_seconds": uptime,
         "queue_depth": count_active_jobs(settings.demo_db_path),
         "jobs_by_status": get_jobs_stats(settings.demo_db_path),
+        "provider_state": compute_admin_view(settings.demo_db_path, settings),
     }
