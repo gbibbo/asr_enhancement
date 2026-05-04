@@ -737,7 +737,7 @@ open; T4.2d (Whisper evaluation on the enhanced manifest) is the next gate.
 - No tracker modification before this evidence commit.
 - `stash@{0}` untouched.
 
-Evidence commit: `PENDING_RESULT_COMMIT`
+Evidence commit: `7141e39`
 
 ## Next task
 

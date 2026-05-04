@@ -744,7 +744,7 @@ t4_2_evidence:
       stash_untouched: true
     next_gate: T4.2d
     next_gate_description: "Whisper evaluation on the enhanced manifest — run openai-whisper base.en on all 13465 enhanced WAVs, compute per-family WER/WA, compare to T3.2 degraded baseline"
-    evidence_commit: "PENDING_RESULT_COMMIT"
+    evidence_commit: "7141e39"
 tasks:
   "T0.1": done
   "T0.2": done
