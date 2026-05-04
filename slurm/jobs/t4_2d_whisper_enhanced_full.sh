@@ -2,13 +2,15 @@
 #SBATCH --job-name=asr_t4_2d_whisper_enhanced_full
 #SBATCH --output=/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/%x_%j.out
 #SBATCH --error=/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/%x_%j.err
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 
 # T4.2d full run: 13 465 enhanced records (2693 x 5 families), base.en, CPU only.
-# Mirrors the T3.2 full budget. T3.2 full elapsed was 04:54:54; 12 h gives ample margin
-# (refine after the smoke if desired).
+# T4.2d smoke (job 2127690) ran at 4.480 s/record on aisurrey05, projecting
+# ~16.76 h for the full 13 465 records. Wall-time set to 24 h to keep a safe
+# margin without changing the runtime environment relative to T3.2 (CPU only,
+# same container, same base.en model).
 #
 # Submit only AFTER the T4.2d smoke gate passes, and only via (NOT inside this script):
 #   ./slurm/tools/on_submit.sh sbatch \
