@@ -643,7 +643,7 @@ next gate.
 - No tracker modification before this evidence commit.
 - `stash@{0}` untouched.
 
-Evidence commit: `PENDING_RESULT_COMMIT`
+Evidence commit: `6c3dac46c15d17adafb918393ba9bbab2e48b099`
 
 ## Next task
 

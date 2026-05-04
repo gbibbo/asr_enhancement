@@ -671,7 +671,7 @@ t4_2_evidence:
       stash_untouched: true
     next_gate: T4.2c
     next_gate_description: "Full-scale MetricGAN+ enhancement run on all 13465 degraded records (prerequisite for T4.2 Whisper evaluation)"
-    evidence_commit: "PENDING_RESULT_COMMIT"
+    evidence_commit: "6c3dac46c15d17adafb918393ba9bbab2e48b099"
 tasks:
   "T0.1": done
   "T0.2": done
