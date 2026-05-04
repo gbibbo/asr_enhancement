@@ -520,7 +520,7 @@ No Slurm jobs. No SpeechBrain installation. No real-WAV enhancement. No Whisper 
 
 ## T4.2 — in progress
 
-T4.2 is executing through gated subtasks. T4.2a (dependency validation) is complete. T4.2b (one-file enhancement smoke) is the next gate.
+T4.2 is executing through gated subtasks. T4.2a (dependency validation) and T4.2b (one-file enhancement smoke) are complete. T4.2c (full-scale MetricGAN+ enhancement run) is the next gate. T4.2 itself remains pending and only closes after the full-scale enhancement plus the Whisper evaluation are complete.
 
 ### T4.2a — complete (2026-05-04)
 
@@ -562,6 +562,89 @@ SpeechBrain dependency stack installed into `$PREFIX` and validated inside Appta
 
 Evidence commit: `68bdba2`
 
+### T4.2b — complete (2026-05-04)
+
+One-file MetricGAN+ enhancement smoke executed inside Apptainer on the deterministic
+first record of the degraded manifest. SpeechBrain loaded
+`speechbrain/metricgan-plus-voicebank`, model files were placed under TRAIN_ROOT cache
+(no writes to `$HOME/.cache` or `$HOME/.local`), one valid 16 kHz mono 4.815 s enhanced
+WAV was produced, and the consolidated verify JSON reported `validation_passed: true`.
+T4.2 remains open; T4.2c (full-scale enhancement of all 13 465 degraded records) is the
+next gate.
+
+| Field | Value |
+|---|---|
+| Prep commit | `ca2851b1ce4714835406876720807bd837aec34e` |
+| Slurm job ID | `2126934` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Elapsed | `00:00:32` |
+| MaxRSS | `2476K` (batch step) |
+| Node | `aisurrey05` |
+| Stdout log | `$TRAIN_ROOT/logs/asr_t4_2b_smoke_enhance_2126934.out` |
+| Stderr log | `$TRAIN_ROOT/logs/asr_t4_2b_smoke_enhance_2126934.err` |
+| Run dir | `$TRAIN_ROOT/runs/t4_2b_smoke_enhance_2126934` |
+| Raw stdout | `$TRAIN_ROOT/runs/t4_2b_smoke_enhance_2126934/enhance_stdout_raw.txt` |
+| Enhance result JSON | `$TRAIN_ROOT/runs/t4_2b_smoke_enhance_2126934/enhance_result.json` |
+| Output WAV | `$TRAIN_ROOT/runs/t4_2b_smoke_enhance_2126934/metricgan_plus_pretrained.wav` |
+| Verify JSON | `$TRAIN_ROOT/artifacts/t4_2b_smoke_verify_2126934.json` |
+
+**Input record (deterministic, manifest line 1):**
+
+| Field | Value |
+|---|---|
+| `utterance_id` | `1272-128104-0001` |
+| `family` | `broadband_hiss` |
+| Input WAV | `$TRAIN_ROOT/datasets/degraded/degradation_v1/broadband_hiss/1272-128104-0001.wav` |
+| Input SHA-256 expected | `abebf43b4c73b0cf644b838a52f0794932f16c86565399ef37b53c369a7a8446` |
+| Input SHA-256 observed | `abebf43b4c73b0cf644b838a52f0794932f16c86565399ef37b53c369a7a8446` |
+| SHA-256 match | true |
+
+**Enhancement result:**
+
+| Field | Value |
+|---|---|
+| `enhanced` | `true` |
+| `enhancement_fallback` | `false` |
+| `enhancer_version` | `metricgan_plus_pretrained` |
+| `diagnostic.model_id` | `speechbrain/metricgan-plus-voicebank` |
+| `diagnostic.input_sample_rate_hz` | `16000` |
+| `diagnostic.output_sample_rate_hz` | `16000` |
+
+**Output WAV validation:**
+
+| Check | Value |
+|---|---|
+| frames | `77040` |
+| samplerate | `16000` |
+| channels | `1` |
+| duration_seconds | `4.815` |
+| frames_nonzero | true |
+| samplerate_16khz | true |
+| channels_mono | true |
+| duration_in_range | true (3.0 ≤ 4.815 ≤ 7.0) |
+
+**Cache validation:**
+
+| Check | Value |
+|---|---|
+| SpeechBrain savedir | `$TRAIN_ROOT/cache/speechbrain/metricgan_plus_voicebank` |
+| savedir exists | true |
+| savedir non-empty | true (2 symlinks: `enhance_model.ckpt`, `hyperparams.yaml`) |
+| HuggingFace cache | `$TRAIN_ROOT/cache/huggingface/hub` (model `speechbrain/metricgan-plus-voicebank`, 7.3 MB checkpoint + 1.1 KB hparams) |
+| `$HOME/.cache` pollution | false |
+| `$HOME/.local` pollution | false |
+| All model files under TRAIN_ROOT cache | true |
+
+**Non-actions:**
+
+- No Whisper run.
+- No other Slurm jobs submitted.
+- No tracker modification before this evidence commit.
+- `stash@{0}` untouched.
+
+Evidence commit: `PENDING_RESULT_COMMIT`
+
 ## Next task
 
-T4.2b — one-file enhancement smoke (next gate within T4.2). **Pending planning authorization.**
+T4.2c — full-scale MetricGAN+ enhancement run on all 13 465 degraded records from `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl`. Output WAVs land under a per-run directory in `$TRAIN_ROOT/runs/`. T4.2c is a prerequisite for the T4.2 Whisper evaluation. T4.2 itself stays open until both the full enhancement and the Whisper evaluation are complete. **Pending authorization.**

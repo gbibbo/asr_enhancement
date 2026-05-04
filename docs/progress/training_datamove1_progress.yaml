@@ -618,6 +618,60 @@ t4_2_evidence:
     numpy_in_prefix: false
     prefix_contamination_detected: false
     evidence_commit: "68bdba2"
+  t4_2b_evidence:
+    prep_commit: "ca2851b1ce4714835406876720807bd837aec34e"
+    job_id: "2126934"
+    sacct_state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:00:32"
+    max_rss: "2476K batch step"
+    node: aisurrey05
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2b_smoke_enhance_2126934.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2b_smoke_enhance_2126934.err
+    run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2b_smoke_enhance_2126934
+    raw_stdout: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2b_smoke_enhance_2126934/enhance_stdout_raw.txt
+    enhance_result_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2b_smoke_enhance_2126934/enhance_result.json
+    output_wav: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2b_smoke_enhance_2126934/metricgan_plus_pretrained.wav
+    verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t4_2b_smoke_verify_2126934.json
+    input:
+      utterance_id: "1272-128104-0001"
+      family: broadband_hiss
+      input_wav: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/degraded/degradation_v1/broadband_hiss/1272-128104-0001.wav
+      input_sha256_expected: "abebf43b4c73b0cf644b838a52f0794932f16c86565399ef37b53c369a7a8446"
+      input_sha256_observed: "abebf43b4c73b0cf644b838a52f0794932f16c86565399ef37b53c369a7a8446"
+      input_sha256_match: true
+    enhancement_result:
+      enhanced: true
+      enhancement_fallback: false
+      enhancer_version: metricgan_plus_pretrained
+      diagnostic_model_id: speechbrain/metricgan-plus-voicebank
+      diagnostic_input_sample_rate_hz: 16000
+      diagnostic_output_sample_rate_hz: 16000
+    output_wav_validation:
+      frames: 77040
+      samplerate: 16000
+      channels: 1
+      duration_seconds: 4.815
+      frames_nonzero: true
+      samplerate_16khz: true
+      channels_mono: true
+      duration_in_range: true
+    cache_validation:
+      speechbrain_savedir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/speechbrain/metricgan_plus_voicebank
+      speechbrain_savedir_exists: true
+      speechbrain_savedir_nonempty: true
+      huggingface_cache_used: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/huggingface/hub
+      home_cache_pollution: false
+      home_local_pollution: false
+      all_model_files_under_train_root_cache: true
+    non_actions:
+      whisper_run: false
+      other_slurm_jobs_submitted: false
+      tracker_modified_before_evidence_commit: false
+      stash_untouched: true
+    next_gate: T4.2c
+    next_gate_description: "Full-scale MetricGAN+ enhancement run on all 13465 degraded records (prerequisite for T4.2 Whisper evaluation)"
+    evidence_commit: "PENDING_RESULT_COMMIT"
 tasks:
   "T0.1": done
   "T0.2": done
