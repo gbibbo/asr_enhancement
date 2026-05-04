@@ -617,7 +617,7 @@ t4_2_evidence:
     torchaudio_in_prefix: false
     numpy_in_prefix: false
     prefix_contamination_detected: false
-    evidence_commit: PENDING_RESULT_COMMIT
+    evidence_commit: "68bdba2"
 tasks:
   "T0.1": done
   "T0.2": done

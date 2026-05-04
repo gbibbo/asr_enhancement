@@ -560,7 +560,7 @@ SpeechBrain dependency stack installed into `$PREFIX` and validated inside Appta
 | torchaudio 2.1.0 | `/opt/conda/lib/python3.10/site-packages/torchaudio/__init__.py` |
 | numpy 1.26.0 | `/opt/conda/lib/python3.10/site-packages/numpy/__init__.py` |
 
-Evidence commit: PENDING_RESULT_COMMIT
+Evidence commit: `68bdba2`
 
 ## Next task
 
