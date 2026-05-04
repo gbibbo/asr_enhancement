@@ -520,7 +520,7 @@ No Slurm jobs. No SpeechBrain installation. No real-WAV enhancement. No Whisper 
 
 ## T4.2 — in progress
 
-T4.2 is executing through gated subtasks. T4.2a (dependency validation) and T4.2b (one-file enhancement smoke) are complete. T4.2c (full-scale MetricGAN+ enhancement run) is the next gate. T4.2 itself remains pending and only closes after the full-scale enhancement plus the Whisper evaluation are complete.
+T4.2 is executing through gated subtasks. T4.2a (dependency validation), T4.2b (one-file enhancement smoke), and T4.2c (full-scale MetricGAN+ enhancement bank generation) are complete. T4.2d (Whisper evaluation on the enhanced manifest) is the next gate. T4.2 itself remains pending and only closes after the Whisper evaluation is complete.
 
 ### T4.2a — complete (2026-05-04)
 
@@ -645,6 +645,105 @@ next gate.
 
 Evidence commit: `6c3dac46c15d17adafb918393ba9bbab2e48b099`
 
+### T4.2c — complete (2026-05-04)
+
+Full-scale MetricGAN+ enhancement bank generated. All 13 465 degraded records were
+enhanced with the pretrained `speechbrain/metricgan-plus-voicebank` model in a single
+load-once Apptainer process; the enhanced WAVs and the enhanced manifest were written
+to `$TRAIN_ROOT/datasets/enhanced/...` and `$TRAIN_ROOT/datasets/...jsonl` respectively
+(both outside Git). The smoke gate (5 records per family = 25 records, isolated under
+the smoke run dir) passed first; the full job ran fresh with no resume. T4.2 remains
+open; T4.2d (Whisper evaluation on the enhanced manifest) is the next gate.
+
+**Prep commit:** `658d0a3614f13c2dff4d6f26976126b0df9038aa`
+
+**Smoke job (gate before full):**
+
+| Field | Value |
+|---|---|
+| Slurm job ID | `2127631` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Elapsed | `00:00:40` |
+| Node | `aisurrey05` |
+| Stdout log | `$TRAIN_ROOT/logs/asr_t4_2c_enhance_smoke_2127631.out` |
+| Stderr log | `$TRAIN_ROOT/logs/asr_t4_2c_enhance_smoke_2127631.err` |
+| Run dir | `$TRAIN_ROOT/runs/t4_2c_enhance_smoke_2127631` |
+| Verify JSON | `$TRAIN_ROOT/artifacts/t4_2c_smoke_verify_2127631.json` |
+| `enhanced_count` | `25` |
+| `newly_enhanced_count` | `25` |
+| `skipped_count` | `0` |
+| `failure_count` | `0` |
+| Per-family counts | broadband_hiss=5, cafe_background=5, far_field_room=5, muffled=5, phone_call=5 |
+| `validation_passed` | `true` |
+
+**Full job:**
+
+| Field | Value |
+|---|---|
+| Slurm job ID | `2127639` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Elapsed | `00:26:00` |
+| MaxRSS | `443208K` batch step (~432 MiB) |
+| Node | `aisurrey05` |
+| Stdout log | `$TRAIN_ROOT/logs/asr_t4_2c_enhance_full_2127639.out` |
+| Stderr log | `$TRAIN_ROOT/logs/asr_t4_2c_enhance_full_2127639.err` |
+| Run dir | `$TRAIN_ROOT/runs/t4_2c_enhance_full_2127639` |
+| Run summary | `$TRAIN_ROOT/runs/t4_2c_enhance_full_2127639/run_summary.json` |
+| Failures JSONL | `$TRAIN_ROOT/runs/t4_2c_enhance_full_2127639/failures.jsonl` (0 entries) |
+| Verify JSON | `$TRAIN_ROOT/artifacts/t4_2c_full_verify_2127639.json` |
+| `enhanced_count` | `13465` |
+| `newly_enhanced_count` | `13465` |
+| `skipped_count` | `0` |
+| `failure_count` | `0` |
+| Per-family counts | broadband_hiss=2693, cafe_background=2693, far_field_room=2693, muffled=2693, phone_call=2693 |
+| `validation_passed` | `true` |
+
+**Enhanced bank:**
+
+| Field | Value |
+|---|---|
+| Enhanced audio root | `$TRAIN_ROOT/datasets/enhanced/metricgan_plus_pretrained/enhancement_v1` |
+| Enhanced manifest | `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1_enhanced_metricgan_plus_pretrained.jsonl` |
+| Enhanced manifest records | `13465` |
+| Enhanced manifest SHA-256 | `544d6fa580e22cb0fa1d23053edf3083877416b7b96819f488e446c8c67a79c9` |
+| `enhancer_version` | `metricgan_plus_pretrained` |
+| `enhancement_version` | `enhancement_v1` |
+
+**Runtime:**
+
+| Field | Value |
+|---|---|
+| Model load | `0.30 s` |
+| Processing | `1528.77 s` (~25.5 min) |
+| Throughput | `8.81 records/s` |
+| Seconds per file | `0.114 s` |
+| Wall-time budget | `16:00:00` |
+| Wall-time used | `~2.7%` |
+
+**Cache validation:**
+
+| Check | Value |
+|---|---|
+| `$HOME/.cache` pollution | false |
+| `$HOME/.local` pollution | false |
+| All model files under TRAIN_ROOT cache | true |
+
+**Non-actions:**
+
+- No Whisper run.
+- No other Slurm jobs submitted.
+- No tracker modification before this evidence commit.
+- `stash@{0}` untouched.
+
+Evidence commit: `PENDING_RESULT_COMMIT`
+
 ## Next task
 
-T4.2c — full-scale MetricGAN+ enhancement run on all 13 465 degraded records from `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl`. Output WAVs land under a per-run directory in `$TRAIN_ROOT/runs/`. T4.2c is a prerequisite for the T4.2 Whisper evaluation. T4.2 itself stays open until both the full enhancement and the Whisper evaluation are complete. **Pending authorization.**
+T4.2d — Whisper evaluation on the enhanced manifest. Run `openai-whisper base.en` on all
+13 465 enhanced WAVs from `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1_enhanced_metricgan_plus_pretrained.jsonl`,
+compute per-record WER and Word Accuracy via `libs.audio.metrics`, aggregate per-family
+(5 families × 2693 records) and compute the macro headline, and compare to the T3.2
+degraded baseline (`reports/training/baseline_degraded_wer.md`). T4.2 closes only after
+T4.2d completes and the per-family enhancement delta is recorded. **Pending authorization.**

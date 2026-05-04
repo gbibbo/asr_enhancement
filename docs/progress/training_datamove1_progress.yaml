@@ -672,6 +672,79 @@ t4_2_evidence:
     next_gate: T4.2c
     next_gate_description: "Full-scale MetricGAN+ enhancement run on all 13465 degraded records (prerequisite for T4.2 Whisper evaluation)"
     evidence_commit: "6c3dac46c15d17adafb918393ba9bbab2e48b099"
+  t4_2c_evidence:
+    prep_commit: "658d0a3614f13c2dff4d6f26976126b0df9038aa"
+    smoke:
+      job_id: "2127631"
+      sacct_state: COMPLETED
+      exit_code: "0:0"
+      elapsed: "00:00:40"
+      node: aisurrey05
+      stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2c_enhance_smoke_2127631.out
+      stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2c_enhance_smoke_2127631.err
+      run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2c_enhance_smoke_2127631
+      verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t4_2c_smoke_verify_2127631.json
+      enhanced_count: 25
+      newly_enhanced_count: 25
+      skipped_count: 0
+      failure_count: 0
+      per_family_counts:
+        broadband_hiss: 5
+        cafe_background: 5
+        far_field_room: 5
+        muffled: 5
+        phone_call: 5
+      validation_passed: true
+    full:
+      job_id: "2127639"
+      sacct_state: COMPLETED
+      exit_code: "0:0"
+      elapsed: "00:26:00"
+      max_rss: "443208K batch step (~432 MiB)"
+      node: aisurrey05
+      stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2c_enhance_full_2127639.out
+      stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2c_enhance_full_2127639.err
+      run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2c_enhance_full_2127639
+      run_summary_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2c_enhance_full_2127639/run_summary.json
+      failures_jsonl: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2c_enhance_full_2127639/failures.jsonl
+      verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t4_2c_full_verify_2127639.json
+      enhanced_count: 13465
+      newly_enhanced_count: 13465
+      skipped_count: 0
+      failure_count: 0
+      per_family_counts:
+        broadband_hiss: 2693
+        cafe_background: 2693
+        far_field_room: 2693
+        muffled: 2693
+        phone_call: 2693
+      validation_passed: true
+    enhanced_bank:
+      enhanced_audio_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/enhanced/metricgan_plus_pretrained/enhancement_v1
+      enhanced_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered_degraded_v1_enhanced_metricgan_plus_pretrained.jsonl
+      enhanced_manifest_records: 13465
+      enhanced_manifest_sha256: "544d6fa580e22cb0fa1d23053edf3083877416b7b96819f488e446c8c67a79c9"
+      enhancer_version: metricgan_plus_pretrained
+      enhancement_version: enhancement_v1
+    runtime:
+      model_load_seconds: 0.30
+      processing_seconds: 1528.77
+      throughput_records_per_second: 8.81
+      seconds_per_file: 0.114
+      wall_budget: "16:00:00"
+      wall_budget_used_percent: 2.7
+    cache_validation:
+      home_cache_pollution: false
+      home_local_pollution: false
+      all_model_files_under_train_root_cache: true
+    non_actions:
+      whisper_run: false
+      other_slurm_jobs_submitted: false
+      tracker_modified_before_evidence_commit: false
+      stash_untouched: true
+    next_gate: T4.2d
+    next_gate_description: "Whisper evaluation on the enhanced manifest — run openai-whisper base.en on all 13465 enhanced WAVs, compute per-family WER/WA, compare to T3.2 degraded baseline"
+    evidence_commit: "PENDING_RESULT_COMMIT"
 tasks:
   "T0.1": done
   "T0.2": done
