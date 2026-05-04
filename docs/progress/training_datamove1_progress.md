@@ -518,6 +518,50 @@ No Slurm jobs. No SpeechBrain installation. No real-WAV enhancement. No Whisper 
 | Stash@{0} | untouched |
 | Result commit | 061a646 |
 
+## T4.2 — in progress
+
+T4.2 is executing through gated subtasks. T4.2a (dependency validation) is complete. T4.2b (one-file enhancement smoke) is the next gate.
+
+### T4.2a — complete (2026-05-04)
+
+SpeechBrain dependency stack installed into `$PREFIX` and validated inside Apptainer. All four required packages import from PREFIX; torch, torchaudio, numpy remain exclusively under `/opt/conda`. No forbidden-stack contamination detected.
+
+| Field | Value |
+|---|---|
+| Prep commit | `06af152497e50bacf2a973ee51bdbc8e35d9dc20` |
+| Slurm job ID | `2126933` |
+| sacct state | `COMPLETED` |
+| Exit code | `0:0` |
+| Elapsed | `00:00:27` |
+| Node | `aisurrey05` |
+| Stdout log | `$TRAIN_ROOT/logs/asr_t4_2a_install_speechbrain_2126933.out` |
+| Stderr log | `$TRAIN_ROOT/logs/asr_t4_2a_install_speechbrain_2126933.err` |
+| Dry-run pkg count | 22 |
+| Filtered pkg count | 22 |
+| Forbidden in dry-run | none |
+| Forbidden removed | none |
+| Import validation | pass |
+| Contamination detected | false |
+
+**Installed versions (all in PREFIX):**
+
+| Package | Version | Origin |
+|---|---|---|
+| speechbrain | 1.1.0 | `$PREFIX/speechbrain/__init__.py` |
+| hyperpyyaml | 1.2.3 | `$PREFIX/hyperpyyaml/__init__.py` |
+| huggingface_hub | 1.13.0 | `$PREFIX/huggingface_hub/__init__.py` |
+| sentencepiece | 0.2.1 | `$PREFIX/sentencepiece/__init__.py` |
+
+**Forbidden stack (all in `/opt/conda`, not in PREFIX):**
+
+| Package | Origin |
+|---|---|
+| torch 2.1.0 | `/opt/conda/lib/python3.10/site-packages/torch/__init__.py` |
+| torchaudio 2.1.0 | `/opt/conda/lib/python3.10/site-packages/torchaudio/__init__.py` |
+| numpy 1.26.0 | `/opt/conda/lib/python3.10/site-packages/numpy/__init__.py` |
+
+Evidence commit: PENDING_RESULT_COMMIT
+
 ## Next task
 
-Task T4.2. Evaluate degraded versus pretrained-enhanced ASR. **Unblocked.**
+T4.2b — one-file enhancement smoke (next gate within T4.2). **Pending planning authorization.**

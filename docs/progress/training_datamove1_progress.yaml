@@ -578,6 +578,46 @@ t4_1_evidence:
   enhancer_version_in_libs_common_versions_changed: false
   code_commit: "061a646c90c2a804f7a8a4edf03045a73f484bf1"
   result_commit: "061a646c90c2a804f7a8a4edf03045a73f484bf1"
+t4_2_evidence:
+  t4_2a_evidence:
+    prep_commit: "06af152497e50bacf2a973ee51bdbc8e35d9dc20"
+    job_id: "2126933"
+    sacct_state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:00:27"
+    max_rss: "24K extern step; batch step reported 0"
+    node: aisurrey05
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2a_install_speechbrain_2126933.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2a_install_speechbrain_2126933.err
+    dryrun_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/dependency_reports/t4_2a_dryrun_report_2126933.json
+    dryrun_all_txt: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/dependency_reports/t4_2a_dryrun_all_2126933.txt
+    resolved_filtered_txt: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/dependency_reports/t4_2a_resolved_filtered_2126933.txt
+    verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/dependency_reports/t4_2a_verify_2126933.json
+    dryrun_pkg_count: 22
+    filtered_pkg_count: 22
+    forbidden_in_dryrun: []
+    forbidden_removed: []
+    contamination_detected: false
+    import_validation: pass
+    installed_versions:
+      speechbrain: "1.1.0"
+      hyperpyyaml: "1.2.3"
+      huggingface_hub: "1.13.0"
+      sentencepiece: "0.2.1"
+    module_origins:
+      speechbrain: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/speechbrain/__init__.py
+      hyperpyyaml: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/hyperpyyaml/__init__.py
+      huggingface_hub: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/huggingface_hub/__init__.py
+      sentencepiece: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/sentencepiece/__init__.py
+    forbidden_origins:
+      torch: /opt/conda/lib/python3.10/site-packages/torch/__init__.py
+      torchaudio: /opt/conda/lib/python3.10/site-packages/torchaudio/__init__.py
+      numpy: /opt/conda/lib/python3.10/site-packages/numpy/__init__.py
+    torch_in_prefix: false
+    torchaudio_in_prefix: false
+    numpy_in_prefix: false
+    prefix_contamination_detected: false
+    evidence_commit: PENDING_RESULT_COMMIT
 tasks:
   "T0.1": done
   "T0.2": done
