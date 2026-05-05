@@ -1,9 +1,9 @@
 branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
-current_phase: 5
-current_task: "T5.3"
-last_completed_task: "T5.2"
+current_phase: 6
+current_task: "T6.1"
+last_completed_task: "T5.3"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -1100,6 +1100,136 @@ t5_2_evidence:
   blocked: false
   blocker: null
   result_commit: "b682f7260685861e757c860adfe7892be398f91b"
+t5_3_evidence:
+  scope: "Phase 5 dry-run on Slurm (training_datamove1_plan.md §15). Closure run is Slurm job 2128458; the prior diagnostic Slurm job 2128437 is recorded for traceability only and is not used as closure evidence."
+  prep_commit: "eea0bd65e6611e00d8404fb30b32c4fd4793bdb3"
+  prep_commit_subject: "T5.3 prep: add Slurm dry-run job script"
+  fix_commit: "fed825a8d982d5b82f2a69e5bd03d5e6d9c5a0e4"
+  fix_commit_subject: "T5.3: fix dry-run runtime git metadata capture"
+  result_commit: "PENDING_RESULT_COMMIT"
+  diagnostic_run:
+    job_id: "2128437"
+    status: failed_gate_metadata_only
+    state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:00:07"
+    node: aisurrey01
+    run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128437
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t5_3_dry_run_2128437.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t5_3_dry_run_2128437.err
+    reason: "runtime.git_commit and runtime.branch were the literal string 'unknown' because git is not installed inside the Apptainer container and train_enhancer.py invoked git via subprocess instead of reading the GIT_COMMIT_AT_RUN env var exported by the Slurm script"
+    used_for_closure: false
+    fixed_by_commit: "fed825a8d982d5b82f2a69e5bd03d5e6d9c5a0e4"
+  closure_run:
+    submission_command: "./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t5_3_dry_run.sh"
+    job_id: "2128458"
+    state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:00:07"
+    max_rss: "1916K batch step"
+    node: aisurrey01
+    submit_time: "2026-05-05T21:28:15"
+    run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t5_3_dry_run_2128458.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t5_3_dry_run_2128458.err
+    stdout_success_line: "OK: dry-run wrote 6 artifacts to /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458"
+  artifacts:
+    config_yaml:
+      path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458/config.yaml
+      bytes: 6372
+      status: complete
+    metrics_csv:
+      path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458/metrics.csv
+      bytes: 582
+      status: complete
+    wer_by_degradation_csv:
+      path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458/wer_by_degradation.csv
+      bytes: 332
+      status: "placeholder (no Whisper)"
+    loss_curve_png:
+      path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458/loss_curve.png
+      bytes: 101
+      status: placeholder
+      reason: "matplotlib unavailable in container; 1x1 placeholder PNG fallback emitted by _placeholder_png_bytes"
+    val_wer_curve_png:
+      path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458/val_wer_curve.png
+      bytes: 104
+      status: placeholder
+      reason: "matplotlib unavailable in container; 1x1 placeholder PNG fallback emitted by _placeholder_png_bytes"
+    run_summary_md:
+      path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458/run_summary.md
+      bytes: 1689
+      status: complete
+  runtime_metadata:
+    run_id: t5_3_dry_run_2128458
+    slurm_job_id: "2128458"
+    git_commit: "fed825a8d982d5b82f2a69e5bd03d5e6d9c5a0e4"
+    branch: feature/training-datamove1-v1
+    config_path: /mnt/fast/nobackup/users/gb0048/asr_enhancement/configs/training/dry_run.yaml
+    dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+    degradation_version: degradation_v1
+    metrics_version: metrics_v1
+    enhancer_version: null
+    output_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458
+    start_time: "2026-05-05T20:28:21Z"
+    steps_executed: 100
+    torch_available: true
+    smoke_mode: false
+  artifact_validation:
+    metrics_csv_header: "step,phase,loss,wer,word_accuracy,note"
+    metrics_train_rows: 10
+    metrics_val_rows: 2
+    metrics_val_rows_note: placeholder_no_whisper
+    wer_by_degradation_families:
+      - broadband_hiss
+      - cafe_background
+      - far_field_room
+      - muffled
+      - phone_call
+    wer_by_degradation_note: placeholder_no_whisper
+    loss_curve_png_signature_valid: true
+    val_wer_curve_png_signature_valid: true
+    png_placeholders_recorded_in_run_summary: true
+    run_summary_required_sections_present:
+      - "## Reproducibility metadata"
+      - "## Summary metrics"
+      - "## Artifacts"
+      - "## Known failures and limitations"
+      - "## Notes"
+    placeholder_wording_present: true
+    runtime_git_commit_matches_fix_commit: true
+    runtime_branch_matches: true
+    runtime_slurm_job_id_matches: true
+    runtime_steps_executed_eq_100: true
+    runtime_dataset_version_matches: true
+    runtime_degradation_version_matches: true
+    runtime_metrics_version_matches: true
+    runtime_enhancer_version_is_null: true
+    run_dir_outside_repo: true
+  non_actions:
+    slurm_jobs_submitted_during_evidence_recording: 0
+    training_rerun: false
+    whisper_run: false
+    enhancement_run: false
+    model_card_modified: false
+    train_enhancer_script_modified: false
+    slurm_t5_3_job_script_modified: false
+    configs_dry_run_yaml_modified: false
+    other_scripts_modified: false
+    other_slurm_jobs_modified: false
+    reports_modified: false
+    run_artifacts_modified: false
+    logs_modified: false
+    libs_audio_modified: false
+    libs_common_versions_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    stash_untouched: true
+  current_task_after: "T6.1"
+  last_completed_task_after: "T5.3"
+  blocked: false
+  blocker: null
 tasks:
   "T0.1": done
   "T0.2": done
@@ -1124,7 +1254,7 @@ tasks:
   "T4.3": done
   "T5.1": done
   "T5.2": done
-  "T5.3": pending
+  "T5.3": done
   "T6.1": pending
   "T6.2": pending
   "T6.3": pending

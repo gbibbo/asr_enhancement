@@ -3,9 +3,9 @@
 Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T3
-Current phase: Phase 5
-Current task: Task T5.3
-Last completed task: T5.2
+Current phase: Phase 6
+Current task: Task T6.1
+Last completed task: T5.3
 Blocked: false
 Blocker: none
 
@@ -31,6 +31,7 @@ Blocker: none
 - T3.3: baseline summary report produced. `reports/training/baseline_summary.md` consolidates T3.1 clean baseline and T3.2 degraded baseline into one comparison view. No Slurm jobs run; no scripts modified. Cut T3 gate complete. current_task → T4.1. Result commit: 5baf32c.
 - T5.1: dry-run training config created at `configs/training/dry_run.yaml`. Documentation/config-only; no Slurm job submitted; no training, Whisper, or enhancement run. Config is deterministic (`seed: 1234`, `deterministic: true`, `torch_deterministic: true`, `cuda_deterministic: true`); `training.steps: 100`; `enhancer_version: null` (pending T8.1). Versions match the live repo state: `dataset_version` `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` (matches `configs/training/dataset_version.yaml`), `metrics_version` `metrics_v1` (matches `libs.common.versions.METRICS_VERSION`), `degradation_version` `degradation_v1` (matches `libs.common.versions.DEGRADATION_VERSION`); `degradation_freeze_status: datamove1_pinned_degradation_v1` (no claim of demo-branch B7 completion). Manifests are the filtered ones: clean `librispeech_manifest_v1_filtered.jsonl` SHA-256 `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` (2693 records) and degraded `librispeech_manifest_v1_filtered_degraded_v1.jsonl` SHA-256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c` (13 465 records); `excluded_ids_source: configs/training/reserved_public_demo_examples.yaml`. All output paths are under `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/` (outside the repository). MetricGAN+ pretrained appears **only** under `prior_baselines` (tier `null_or_negative`, `deployment_decision: not_selected`); `model.architecture` is `placeholder_for_t5_2_or_later` and `model.notes` explicitly forbids selecting MetricGAN+ as the trainable enhancer. `docs/model_card.md` not modified; `libs/common/versions.py` not modified; `configs/training/dataset_version.yaml`, `configs/training/public_examples_excluded.yaml`, `configs/training/reserved_public_demo_examples.yaml` not modified; baseline reports and `reports/training/metricgan_plus_wer.md` not modified. `stash@{0}` untouched. Config sha256 `3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379`. Result commit: c02234cf4388158a0f4f17dcd006b90d438f36bc.
 - T5.2: dry-run training script implemented at `scripts/training/train_enhancer.py` (sha256 `dab7c2b979c9d2604ebb22c9265393dcd0cb2113de97cf0eaada5b08b90ecb3d`, 1022 lines). Loads `configs/training/dry_run.yaml` (sha256 `3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379` — unchanged from T5.1), enforces all seven `guards:` keys (`refuse_if_artifact_root_inside_repo`, `refuse_if_run_dir_writable_inside_repo`, `refuse_if_dataset_version_mismatch_libs_common`, `refuse_if_degradation_version_mismatch_libs_common`, `refuse_if_metrics_version_mismatch_libs_common`, `refuse_if_steps_gt`, `refuse_if_reserved_demo_id_present`), strictly verifies the clean filtered manifest exists with sha256 `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` and the degraded manifest with sha256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c`, loads the 10 reserved public demo IDs from `configs/training/reserved_public_demo_examples.yaml`, and verifies they are absent from the deterministically materialized train (50 records) and val (5 per family × 5 families = 25 records, shuffle_seed 1234) subsets. Version checks compare `metrics_version` and `degradation_version` against `libs.common.versions` and `dataset_version` against `configs/training/dataset_version.yaml`. Heavy imports (`torch`, `matplotlib`) are lazy inside `_run_dry_run` and the plot writers — the script does not import torch, whisper, SpeechBrain, or any enhancement code at module load. `--validate-only` creates no run directory; the artifact contract (`config.yaml`, `metrics.csv`, `wer_by_degradation.csv`, `loss_curve.png`, `val_wer_curve.png`, `run_summary.md`) is implemented in code; WER and Word Accuracy are flagged as placeholders in `run_summary.md` and `metrics.csv` `note=placeholder_no_whisper` because Phase 5 does not run Whisper. The trainable enhancer is a small placeholder Conv1d initialized to identity; MetricGAN+ pretrained is not used as a trainable enhancer (`tier null_or_negative`, `deployment_decision: not_selected`). Static checks: `ast.parse` pass, `compileall` pass, `python3 scripts/training/train_enhancer.py --config configs/training/dry_run.yaml --validate-only` exits 0 with `OK: guards passed (train=50 val=25 families=5 clean_sha_ok=True degraded_sha_ok=True)`; tampered config with `training.steps=500` exits 2 with `BLOCKER: guards.refuse_if_steps_gt: training.steps=500 > 200`; `pytest -q tests/training/test_train_enhancer_validate_only.py` reports `2 passed in 0.44s`. No Slurm job submitted; no Whisper run; no enhancement run; no training executed; `docs/model_card.md`, `libs/common/versions.py`, `libs/audio/*`, `configs/training/*.yaml`, baseline reports, `reports/training/metricgan_plus_wer.md`, demo / RP files, demo trackers, and `stash@{0}` not modified. `--smoke-mode` not executed. Result commit: b682f7260685861e757c860adfe7892be398f91b.
+- T5.3: Phase 5 dry-run executed on Slurm and the six-artifact contract verified end-to-end. Closure run is Slurm job **2128458** (`COMPLETED 0:0`, elapsed `00:00:07`, MaxRSS `1916K` batch step, node `aisurrey01`, submitted `2026-05-05T21:28:15` via `./slurm/tools/on_submit.sh sbatch …/slurm/jobs/t5_3_dry_run.sh`). The prior Slurm submission **2128437** is recorded as a diagnostic failed gate only — `runtime.git_commit` and `runtime.branch` came back as the literal string `unknown` because git is not installed inside the Apptainer container and `train_enhancer.py` was invoking `git` via subprocess; that gap was closed by commit `fed825a8d982d5b82f2a69e5bd03d5e6d9c5a0e4` (`T5.3: fix dry-run runtime git metadata capture`), which adds a `_resolve_git_value()` helper preferring `GIT_COMMIT_AT_RUN` / `GIT_BRANCH_AT_RUN` env vars over subprocess git, plus `slurm/jobs/t5_3_dry_run.sh` exporting `GIT_BRANCH_AT_RUN`, plus three pytest cases for the env-var fallback (5/5 tests pass in 0.44s). Job 2128437 is **not** used as closure evidence. Run dir for the closure run: `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458/` (outside the repo). All six required artifacts present and non-empty: `config.yaml` (6372 B, complete), `metrics.csv` (582 B, header `step,phase,loss,wer,word_accuracy,note`, 10 train rows + 2 val rows, val rows `note=placeholder_no_whisper`), `wer_by_degradation.csv` (332 B, exactly five expected families `broadband_hiss, cafe_background, far_field_room, muffled, phone_call`, all rows `note=placeholder_no_whisper`), `loss_curve.png` (101 B, valid PNG signature, placeholder fallback because matplotlib unavailable in container), `val_wer_curve.png` (104 B, valid PNG signature, placeholder fallback), `run_summary.md` (1689 B, contains `## Reproducibility metadata`, `## Summary metrics`, `## Artifacts`, `## Known failures and limitations`, `## Notes`; explicitly states "WER and Word Accuracy values are PLACEHOLDERS. Whisper is not run during T5.2/T5.3"; both PNG-placeholder fallbacks recorded under known failures). Recorded `runtime` block in `config.yaml`: `slurm_job_id: 2128458`, `git_commit: fed825a8d982d5b82f2a69e5bd03d5e6d9c5a0e4`, `branch: feature/training-datamove1-v1`, `dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`, `degradation_version: degradation_v1`, `metrics_version: metrics_v1`, `enhancer_version: null`, `steps_executed: 100`, `torch_available: true`, `smoke_mode: false`. Stdout success line: `OK: dry-run wrote 6 artifacts to …/runs/t5_3_dry_run_2128458`. Logs: `…/logs/asr_t5_3_dry_run_2128458.{out,err}`. Prep commit `eea0bd65e6611e00d8404fb30b32c4fd4793bdb3` (`T5.3 prep: add Slurm dry-run job script`). No Whisper run; no enhancement run; no training rerun during evidence recording; `docs/model_card.md`, `libs/`, `configs/training/*.yaml`, `scripts/training/train_enhancer.py`, `slurm/jobs/t5_3_dry_run.sh`, `reports/`, demo/RP files, demo trackers all unmodified by this closure; `stash@{0}` untouched. Cut T3 still active per plan §7. current_task → T6.1. Result commit: PENDING_RESULT_COMMIT.
 - T4.2 (closed via T4.2d): MetricGAN+ pretrained Whisper evaluation complete. Smoke job `2127690` (COMPLETED 0:0, 02:04 elapsed, 25/25 records, 0 failures). Full job `2127693` (COMPLETED 0:0, 06:47:48 elapsed, MaxRSS 908608K, aisurrey05, 13 465/13 465 records, 0 failures). Per-family enhanced (mean WER / mean WA): broadband_hiss 0.2666/0.7390, cafe_background 0.4716/0.5401, far_field_room 0.5920/0.4264, muffled 0.6657/0.3978, phone_call 0.1592/0.8429. Macro: WER 0.4310, WA 0.5892 (Δ vs T3.2 degraded: WER +0.2467 / WA −0.2321; Δ vs T3.1 clean: WER +0.3665 / WA −0.3469). macro == record_micro (abs diff ≤ 4.44e-16). MetricGAN+ pretrained **worsened** ASR on this benchmark; tier `null_or_negative`. Manifest SHAs unchanged; reserved demo IDs absent from manifest and predictions. Enhanced manifest SHA `544d6fa5…79c9`; degraded source SHA `c6f8745…0bbb7c`; enhancer_version `metricgan_plus_pretrained`; enhancement_version `enhancement_v1`; metrics_version `metrics_v1`; whisper `base.en` (`20250625`). Summary committed at `reports/training/metricgan_plus_wer.md`. `docs/model_card.md` not modified — deferred to T4.3. current_task → T4.3. Result commit: 8baa2ccc7798a54162b0c5659154864f316fb144.
 
 ## Current blocker
@@ -1115,12 +1116,125 @@ Result commit: `b682f7260685861e757c860adfe7892be398f91b` (hash
 backfilled in the immediately following commit on this branch; see
 `T5.2: backfill dry-run script result_commit hash`).
 
+## T5.3 closure evidence (2026-05-05)
+
+T5.3 is the Slurm execution gate for Phase 5. Closure run is Slurm job
+**2128458** (`COMPLETED 0:0`, elapsed `00:00:07`, MaxRSS `1916K` batch
+step, node `aisurrey01`, submitted `2026-05-05T21:28:15` via the
+`./slurm/tools/on_submit.sh sbatch
+/mnt/fast/nobackup/users/gb0048/asr_enhancement/slurm/jobs/t5_3_dry_run.sh`
+wrapper command). Job 2128458 is the **valid** closure evidence.
+
+The earlier Slurm submission **2128437** is recorded as a diagnostic
+failed gate only and is **not** used as closure evidence. Its
+artifacts `config.yaml` and `run_summary.md` recorded
+`runtime.git_commit = "unknown"` and `runtime.branch = "unknown"`
+because git is not installed inside the Apptainer container and
+`scripts/training/train_enhancer.py` invoked git via a `subprocess`
+call that fell through to the `"unknown"` exception branch. The Slurm
+script already exported `GIT_COMMIT_AT_RUN`, but the Python script did
+not consult it.
+
+Fix commit `fed825a8d982d5b82f2a69e5bd03d5e6d9c5a0e4`
+(`T5.3: fix dry-run runtime git metadata capture`):
+
+- `scripts/training/train_enhancer.py`: new `_resolve_git_value(env_var,
+  *git_args)` helper that prefers `os.environ[env_var]` (when set and
+  non-empty) over the existing `_git()` subprocess fallback; the two
+  `runtime_meta` fields `git_commit` and `branch` now read
+  `GIT_COMMIT_AT_RUN` and `GIT_BRANCH_AT_RUN` first.
+- `slurm/jobs/t5_3_dry_run.sh`: computes
+  `GIT_BRANCH_AT_RUN=$(git -C "$REPO" rev-parse --abbrev-ref HEAD
+  2>/dev/null || echo "unknown")`, echoes `Git branch at run: …` in
+  the job header, and forwards
+  `--env GIT_BRANCH_AT_RUN="$GIT_BRANCH_AT_RUN"` into Apptainer
+  alongside the existing `GIT_COMMIT_AT_RUN` export.
+- `tests/training/test_train_enhancer_validate_only.py`: three new
+  pytest cases prove (a) env vars are preferred over subprocess git,
+  (b) empty env var is treated as absent and falls through, (c) with
+  `PATH=""` and env unset the helper returns the literal `"unknown"`.
+  No torch / whisper / SpeechBrain / matplotlib / enhancement imports.
+  All five tests pass in 0.44 s.
+
+Prep commit `eea0bd65e6611e00d8404fb30b32c4fd4793bdb3`
+(`T5.3 prep: add Slurm dry-run job script`) added the Slurm job script
+itself. The closure run records `git_commit: fed825a…` (the fix
+commit) inside `config.yaml::runtime` and `run_summary.md::Reproducibility
+metadata`, end-to-end verified.
+
+Closure-run artifacts in
+`/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458/`
+(outside the repo, ignored by `.gitignore`):
+
+- `config.yaml` — 6372 B, complete. Top-level config matches
+  `configs/training/dry_run.yaml`; appended `runtime:` block records
+  `slurm_job_id: 2128458`, `git_commit: fed825a8d982d5b82f2a69e5bd03d5e6d9c5a0e4`,
+  `branch: feature/training-datamove1-v1`, `config_path:
+  /mnt/.../configs/training/dry_run.yaml`, `dataset_version:
+  librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`,
+  `degradation_version: degradation_v1`, `metrics_version: metrics_v1`,
+  `enhancer_version: null`, `output_path:
+  /mnt/.../runs/t5_3_dry_run_2128458`, `start_time:
+  2026-05-05T20:28:21Z`, `steps_executed: 100`, `torch_available: true`,
+  `smoke_mode: false`.
+- `metrics.csv` — 582 B, complete. Header
+  `step,phase,loss,wer,word_accuracy,note`. 10 train rows (steps
+  10, 20, …, 100) + 2 val rows (steps 50, 100). All val rows carry
+  `note=placeholder_no_whisper`.
+- `wer_by_degradation.csv` — 332 B, status `placeholder (no Whisper)`.
+  Header `family,count,mean_wer,mean_word_accuracy,note`. Exactly
+  five rows for the five expected families: `broadband_hiss`,
+  `cafe_background`, `far_field_room`, `muffled`, `phone_call`. All
+  rows carry `note=placeholder_no_whisper`.
+- `loss_curve.png` — 101 B, valid PNG signature `\x89PNG\r\n\x1a\n`,
+  status `placeholder` (matplotlib unavailable in the container; 1×1
+  grayscale fallback emitted by `_placeholder_png_bytes`). Recorded in
+  `run_summary.md::Known failures and limitations`.
+- `val_wer_curve.png` — 104 B, valid PNG signature, same placeholder
+  fallback, same recorded note in `run_summary.md`.
+- `run_summary.md` — 1689 B, complete. Required headers present:
+  `## Reproducibility metadata`, `## Summary metrics`, `## Artifacts`,
+  `## Known failures and limitations`, `## Notes`. Notes section
+  contains the exact required sentence: "WER and Word Accuracy values
+  are PLACEHOLDERS. Whisper is not run during T5.2/T5.3 (Phase 5
+  dry-run); the artifact contract is the gate, not convergence."
+
+Stdout success line in
+`…/logs/asr_t5_3_dry_run_2128458.out`:
+
+```
+OK: dry-run wrote 6 artifacts to /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_2128458
+```
+
+Stderr (`…/logs/asr_t5_3_dry_run_2128458.err`) contains only the
+expected Apptainer / NVIDIA / "Not mounting current directory" warnings.
+
+Non-actions during T5.3 evidence recording:
+
+- No additional Slurm job was submitted.
+- No training rerun.
+- No Whisper run.
+- No enhancement run.
+- `docs/model_card.md` not modified.
+- `scripts/training/train_enhancer.py`,
+  `slurm/jobs/t5_3_dry_run.sh`,
+  `tests/training/test_train_enhancer_validate_only.py`,
+  `configs/training/dry_run.yaml`, `libs/`, `reports/`, demo/RP files,
+  and demo trackers not modified by this closure (the script, Slurm
+  job script, and test file changes are part of the prior fix
+  commit `fed825a…`, not this evidence-recording commit).
+- Run artifacts under
+  `/mnt/.../runs/t5_3_dry_run_2128458/` are referenced, not copied
+  into Git.
+- `stash@{0}` remains present and untouched.
+
+Result commit: `PENDING_RESULT_COMMIT` (backfilled in the immediately
+following commit on this branch; see
+`T5.3: backfill dry-run result_commit hash`).
+
 ## Next task
 
-T5.3 — Run the 100-step dry-run on Slurm
-(`docs/plans/training_datamove1_plan.md` §15). T5.3 is **not started**.
-T5.3 will create `slurm/jobs/t5_3_dry_run.sh` from the Apptainer
-template, submit via `./slurm/tools/on_submit.sh sbatch …`, monitor
-via `sacct`, collect run artifacts under
-`/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_<job_id>/`,
-and update the trackers. T5.3 requires explicit authorization.
+T6.1 — Create the full training config at
+`configs/training/full_training.yaml` per
+`docs/plans/training_datamove1_plan.md` §16 Phase 6. T6.1 is **not
+started** and requires explicit authorization. Cut T3 remains active.
