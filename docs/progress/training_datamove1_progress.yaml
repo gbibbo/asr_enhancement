@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 5
-current_task: "T5.2"
-last_completed_task: "T5.1"
+current_task: "T5.3"
+last_completed_task: "T5.2"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -1012,6 +1012,94 @@ t5_1_evidence:
   blocked: false
   blocker: null
   result_commit: "c02234cf4388158a0f4f17dcd006b90d438f36bc"
+t5_2_evidence:
+  scope: "implementation of dry-run training script + static tests; no Slurm, no Whisper, no enhancement, no training executed"
+  script_path: scripts/training/train_enhancer.py
+  script_sha256: "dab7c2b979c9d2604ebb22c9265393dcd0cb2113de97cf0eaada5b08b90ecb3d"
+  script_lines: 1022
+  test_file: tests/training/test_train_enhancer_validate_only.py
+  test_file_sha256: "46301fc47956fc689ea53b8fd02523fbee62c537924e0513ea9ab2513cba0d78"
+  config_path: configs/training/dry_run.yaml
+  config_sha256: "3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379"
+  validate_only_exit_code: 0
+  validate_only_stdout_starts_with: "OK: guards passed"
+  tampered_config_exit_code: 2
+  tampered_config_blocker_message: "BLOCKER: guards.refuse_if_steps_gt: training.steps=500 > 200"
+  ast_parse: pass
+  compileall: pass
+  pytest: pass
+  pytest_summary: "2 passed in 0.44s"
+  pytest_version: "8.4.2"
+  python_version: "3.9.13"
+  guards_implemented:
+    - refuse_if_artifact_root_inside_repo
+    - refuse_if_reserved_demo_id_present
+    - refuse_if_dataset_version_mismatch_libs_common
+    - refuse_if_degradation_version_mismatch_libs_common
+    - refuse_if_metrics_version_mismatch_libs_common
+    - refuse_if_steps_gt
+    - refuse_if_run_dir_writable_inside_repo
+  manifest_verification:
+    clean_filtered_manifest_present: true
+    clean_filtered_manifest_sha256_matches: true
+    degraded_manifest_present: true
+    degraded_manifest_sha256_matches: true
+  reserved_demo_ids_loaded: 10
+  reserved_demo_ids_absent_from_sampled_train_subset: true
+  reserved_demo_ids_absent_from_sampled_val_subset: true
+  sampled_train_records: 50
+  sampled_val_records: 25
+  sampled_val_per_family_cap: 5
+  shuffle_seed: 1234
+  artifact_contract_implemented_in_code:
+    - config.yaml
+    - metrics.csv
+    - wer_by_degradation.csv
+    - loss_curve.png
+    - val_wer_curve.png
+    - run_summary.md
+  wer_values_marked_placeholder: true
+  metricgan_plus_role_in_script: prior_baseline_only_not_selected
+  heavy_imports_lazy:
+    torch: lazy_inside_run_dry_run
+    matplotlib: lazy_inside_plot_writers
+    whisper: not_imported
+    speechbrain: not_imported
+    enhancement: not_imported
+  validate_only_creates_no_run_dir: true
+  smoke_mode_executed: false
+  slurm_jobs: none
+  training_run: false
+  whisper_run: false
+  enhancement_run: false
+  fine_tuning_run: false
+  rp5_run: false
+  scripts_modified: true
+  slurm_scripts_modified: false
+  manifests_modified: false
+  baseline_reports_modified: false
+  metricgan_plus_wer_md_modified: false
+  model_card_modified: false
+  libs_common_versions_modified: false
+  libs_audio_modified: false
+  configs_dry_run_yaml_modified: false
+  configs_dataset_version_yaml_modified: false
+  configs_public_examples_excluded_yaml_modified: false
+  configs_reserved_public_demo_examples_yaml_modified: false
+  demo_files_modified: false
+  rp_files_modified: false
+  demo_trackers_modified: false
+  enhanced_audio_modified: false
+  run_artifacts_modified: false
+  stash_untouched: true
+  codex_directory_staged: false
+  trackers_advanced_after_content_written: true
+  current_task_after: "T5.3"
+  last_completed_task_after: "T5.2"
+  t5_3_started: false
+  blocked: false
+  blocker: null
+  result_commit: "PENDING_RESULT_COMMIT"
 tasks:
   "T0.1": done
   "T0.2": done
@@ -1035,7 +1123,7 @@ tasks:
   "T4.2": done
   "T4.3": done
   "T5.1": done
-  "T5.2": pending
+  "T5.2": done
   "T5.3": pending
   "T6.1": pending
   "T6.2": pending

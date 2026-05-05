@@ -4,8 +4,8 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T3
 Current phase: Phase 5
-Current task: Task T5.2
-Last completed task: T5.1
+Current task: Task T5.3
+Last completed task: T5.2
 Blocked: false
 Blocker: none
 
@@ -30,6 +30,7 @@ Blocker: none
 - T3.2: degraded-audio Whisper baseline complete. Smoke: job `2126085`, 25 records (5 × 5 families), 0 failures, COMPLETED 0:0. Full: job `2126086`, COMPLETED 0:0, elapsed 04:54:54, MaxRSS 3.58 GB, 13 465/13 465 records, 0 failures. Per-family results (mean WER / mean WA): broadband_hiss 0.1271/0.8742, cafe_background 0.1632/0.8390, far_field_room 0.1659/0.8356, muffled 0.3863/0.6361, phone_call 0.0789/0.9217. Overall macro: mean WER 0.1843, mean WA 0.8213 (Δ vs T3.1 clean: +0.1198 / -0.1148). macro == record_micro (abs diff 3.28e-15). Source manifest SHAs unchanged. Reserved demo IDs absent from manifest and predictions. Dataset version `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`, degradation_version `degradation_v1`, metrics_version `metrics_v1`. Summary committed at `reports/training/baseline_degraded_wer.md`; model card degraded baseline section filled. current_task → T3.3.
 - T3.3: baseline summary report produced. `reports/training/baseline_summary.md` consolidates T3.1 clean baseline and T3.2 degraded baseline into one comparison view. No Slurm jobs run; no scripts modified. Cut T3 gate complete. current_task → T4.1. Result commit: 5baf32c.
 - T5.1: dry-run training config created at `configs/training/dry_run.yaml`. Documentation/config-only; no Slurm job submitted; no training, Whisper, or enhancement run. Config is deterministic (`seed: 1234`, `deterministic: true`, `torch_deterministic: true`, `cuda_deterministic: true`); `training.steps: 100`; `enhancer_version: null` (pending T8.1). Versions match the live repo state: `dataset_version` `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` (matches `configs/training/dataset_version.yaml`), `metrics_version` `metrics_v1` (matches `libs.common.versions.METRICS_VERSION`), `degradation_version` `degradation_v1` (matches `libs.common.versions.DEGRADATION_VERSION`); `degradation_freeze_status: datamove1_pinned_degradation_v1` (no claim of demo-branch B7 completion). Manifests are the filtered ones: clean `librispeech_manifest_v1_filtered.jsonl` SHA-256 `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` (2693 records) and degraded `librispeech_manifest_v1_filtered_degraded_v1.jsonl` SHA-256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c` (13 465 records); `excluded_ids_source: configs/training/reserved_public_demo_examples.yaml`. All output paths are under `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/` (outside the repository). MetricGAN+ pretrained appears **only** under `prior_baselines` (tier `null_or_negative`, `deployment_decision: not_selected`); `model.architecture` is `placeholder_for_t5_2_or_later` and `model.notes` explicitly forbids selecting MetricGAN+ as the trainable enhancer. `docs/model_card.md` not modified; `libs/common/versions.py` not modified; `configs/training/dataset_version.yaml`, `configs/training/public_examples_excluded.yaml`, `configs/training/reserved_public_demo_examples.yaml` not modified; baseline reports and `reports/training/metricgan_plus_wer.md` not modified. `stash@{0}` untouched. Config sha256 `3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379`. Result commit: c02234cf4388158a0f4f17dcd006b90d438f36bc.
+- T5.2: dry-run training script implemented at `scripts/training/train_enhancer.py` (sha256 `dab7c2b979c9d2604ebb22c9265393dcd0cb2113de97cf0eaada5b08b90ecb3d`, 1022 lines). Loads `configs/training/dry_run.yaml` (sha256 `3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379` — unchanged from T5.1), enforces all seven `guards:` keys (`refuse_if_artifact_root_inside_repo`, `refuse_if_run_dir_writable_inside_repo`, `refuse_if_dataset_version_mismatch_libs_common`, `refuse_if_degradation_version_mismatch_libs_common`, `refuse_if_metrics_version_mismatch_libs_common`, `refuse_if_steps_gt`, `refuse_if_reserved_demo_id_present`), strictly verifies the clean filtered manifest exists with sha256 `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` and the degraded manifest with sha256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c`, loads the 10 reserved public demo IDs from `configs/training/reserved_public_demo_examples.yaml`, and verifies they are absent from the deterministically materialized train (50 records) and val (5 per family × 5 families = 25 records, shuffle_seed 1234) subsets. Version checks compare `metrics_version` and `degradation_version` against `libs.common.versions` and `dataset_version` against `configs/training/dataset_version.yaml`. Heavy imports (`torch`, `matplotlib`) are lazy inside `_run_dry_run` and the plot writers — the script does not import torch, whisper, SpeechBrain, or any enhancement code at module load. `--validate-only` creates no run directory; the artifact contract (`config.yaml`, `metrics.csv`, `wer_by_degradation.csv`, `loss_curve.png`, `val_wer_curve.png`, `run_summary.md`) is implemented in code; WER and Word Accuracy are flagged as placeholders in `run_summary.md` and `metrics.csv` `note=placeholder_no_whisper` because Phase 5 does not run Whisper. The trainable enhancer is a small placeholder Conv1d initialized to identity; MetricGAN+ pretrained is not used as a trainable enhancer (`tier null_or_negative`, `deployment_decision: not_selected`). Static checks: `ast.parse` pass, `compileall` pass, `python3 scripts/training/train_enhancer.py --config configs/training/dry_run.yaml --validate-only` exits 0 with `OK: guards passed (train=50 val=25 families=5 clean_sha_ok=True degraded_sha_ok=True)`; tampered config with `training.steps=500` exits 2 with `BLOCKER: guards.refuse_if_steps_gt: training.steps=500 > 200`; `pytest -q tests/training/test_train_enhancer_validate_only.py` reports `2 passed in 0.44s`. No Slurm job submitted; no Whisper run; no enhancement run; no training executed; `docs/model_card.md`, `libs/common/versions.py`, `libs/audio/*`, `configs/training/*.yaml`, baseline reports, `reports/training/metricgan_plus_wer.md`, demo / RP files, demo trackers, and `stash@{0}` not modified. `--smoke-mode` not executed. Result commit: PENDING_RESULT_COMMIT (will be backfilled).
 - T4.2 (closed via T4.2d): MetricGAN+ pretrained Whisper evaluation complete. Smoke job `2127690` (COMPLETED 0:0, 02:04 elapsed, 25/25 records, 0 failures). Full job `2127693` (COMPLETED 0:0, 06:47:48 elapsed, MaxRSS 908608K, aisurrey05, 13 465/13 465 records, 0 failures). Per-family enhanced (mean WER / mean WA): broadband_hiss 0.2666/0.7390, cafe_background 0.4716/0.5401, far_field_room 0.5920/0.4264, muffled 0.6657/0.3978, phone_call 0.1592/0.8429. Macro: WER 0.4310, WA 0.5892 (Δ vs T3.2 degraded: WER +0.2467 / WA −0.2321; Δ vs T3.1 clean: WER +0.3665 / WA −0.3469). macro == record_micro (abs diff ≤ 4.44e-16). MetricGAN+ pretrained **worsened** ASR on this benchmark; tier `null_or_negative`. Manifest SHAs unchanged; reserved demo IDs absent from manifest and predictions. Enhanced manifest SHA `544d6fa5…79c9`; degraded source SHA `c6f8745…0bbb7c`; enhancer_version `metricgan_plus_pretrained`; enhancement_version `enhancement_v1`; metrics_version `metrics_v1`; whisper `base.en` (`20250625`). Summary committed at `reports/training/metricgan_plus_wer.md`. `docs/model_card.md` not modified — deferred to T4.3. current_task → T4.3. Result commit: 8baa2ccc7798a54162b0c5659154864f316fb144.
 
 ## Current blocker
@@ -988,8 +989,137 @@ Result commit: `c02234cf4388158a0f4f17dcd006b90d438f36bc` (hash backfilled
 in the immediately following commit on this branch; see
 `T5.1: backfill dry-run config result_commit hash`).
 
+## T5.2 closure evidence (2026-05-05)
+
+T5.2 is implementation of `scripts/training/train_enhancer.py` plus a
+single static test. The script consumes
+`configs/training/dry_run.yaml` (sha256
+`3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379`,
+unchanged from T5.1) and proves the dry-run pipeline can later (T5.3)
+satisfy the artifact contract on Slurm.
+
+Files added:
+
+- `scripts/training/train_enhancer.py` — sha256
+  `dab7c2b979c9d2604ebb22c9265393dcd0cb2113de97cf0eaada5b08b90ecb3d`,
+  1022 lines.
+- `tests/training/__init__.py` — empty package marker.
+- `tests/training/test_train_enhancer_validate_only.py` — sha256
+  `46301fc47956fc689ea53b8fd02523fbee62c537924e0513ea9ab2513cba0d78`,
+  61 lines. Two tests, both via `subprocess`:
+  - `test_validate_only_real_config_exits_ok` — exits 0 against the
+    real `configs/training/dry_run.yaml` and prints `OK:`.
+  - `test_tampered_steps_too_high_blocks` — copies the YAML to a
+    temp path with `training.steps=500`, expects non-zero exit and
+    `BLOCKER` in stderr; also asserts no `*VALIDATE_ONLY*` run dir
+    is created under `paths.artifact_root`.
+  No torch / whisper / SpeechBrain / enhancement imports.
+
+Guard implementation (one-to-one with `dry_run.yaml::guards`):
+
+- `refuse_if_artifact_root_inside_repo`: resolves
+  `paths.artifact_root` and rejects if it lives under
+  `Path(__file__).resolve().parents[2]`.
+- `refuse_if_run_dir_writable_inside_repo`: same check on
+  `paths.run_dir_template` after substitution.
+- `refuse_if_dataset_version_mismatch_libs_common`: compares
+  `cfg.dataset_version` against
+  `configs/training/dataset_version.yaml::dataset_version`.
+- `refuse_if_degradation_version_mismatch_libs_common`: compares
+  `cfg.degradation_version` against
+  `libs.common.versions.DEGRADATION_VERSION`.
+- `refuse_if_metrics_version_mismatch_libs_common`: compares
+  `cfg.metrics_version` against
+  `libs.common.versions.METRICS_VERSION`.
+- `refuse_if_steps_gt`: rejects `training.steps > 200`.
+- `refuse_if_reserved_demo_id_present`: loads 10 IDs from
+  `configs/training/reserved_public_demo_examples.yaml`, materializes
+  the deterministic train/val subsets (50 / 25 with
+  `per_family_val_cap=5`, `shuffle_seed=1234`), and rejects any
+  reserved ID seen in either subset.
+
+Strict pre-flight (datamove1 mode): `--validate-only` also verifies the
+clean and degraded manifest files exist on disk and that their SHA-256
+values match the config; missing or mismatched manifests exit 2 with a
+`BLOCKER` message. There is no `WARN_NO_MANIFEST` fallback for the real
+`dry_run.yaml` workflow.
+
+Artifact contract (implemented in `_run_dry_run`, not exercised in
+T5.2 — the function is reachable only via `--smoke-mode` or a Slurm
+run, and `--smoke-mode` was NOT executed):
+
+- `config.yaml` — config snapshot containing the original
+  `dry_run.yaml` content plus a `runtime:` mapping (run_id, slurm_job_id,
+  git_commit, branch, version triple, output_path, start_time,
+  end_time, smoke_mode, steps_executed, summary_metrics,
+  known_failures). Not byte-identical to the input — the runtime block
+  is appended.
+- `metrics.csv` — header `step,phase,loss,wer,word_accuracy,note`.
+  WER / WA on val rows are placeholders flagged with
+  `note=placeholder_no_whisper`.
+- `wer_by_degradation.csv` — header
+  `family,count,mean_wer,mean_word_accuracy,note`. One row per
+  expected family (`broadband_hiss`, `cafe_background`,
+  `far_field_room`, `muffled`, `phone_call`).
+- `loss_curve.png` — matplotlib line plot when matplotlib is
+  available, otherwise a minimal 1×1 placeholder PNG with a `tEXt`
+  chunk identifying it as `placeholder`.
+- `val_wer_curve.png` — same fallback policy.
+- `run_summary.md` — markdown with the
+  `record_in_run_summary` keys, an `Artifacts` section, and a
+  `Notes` section that explicitly states WER / WA are placeholders
+  because no Whisper inference is run during T5.2 / T5.3.
+
+Heavy imports (`torch`, `matplotlib`) are confined to `_run_dry_run`
+and the plot writers. `whisper`, `speechbrain`, and the
+`libs.audio.enhancement` module are not imported at all. `numpy` is
+not used. The script imports only `normalize_text`,
+`word_error_rate`, and `word_accuracy` from `libs.audio.metrics`, and
+imports the version constants from `libs.common.versions`.
+
+Static checks before commit:
+
+- `python3 -c "import ast; ast.parse(open('scripts/training/train_enhancer.py').read())"` — pass.
+- `python3 -m compileall -q scripts/training/train_enhancer.py` — pass.
+- `python3 scripts/training/train_enhancer.py --config configs/training/dry_run.yaml --validate-only` — exit 0; stdout `OK: guards passed (train=50 val=25 families=5 clean_sha_ok=True degraded_sha_ok=True)`.
+- Tampered-config check (in-process subprocess): exit 2, stderr `BLOCKER: guards.refuse_if_steps_gt: training.steps=500 > 200`.
+- `python3 -m pytest -q tests/training/test_train_enhancer_validate_only.py` — `2 passed in 0.44s` (pytest 8.4.2, Python 3.9.13).
+- `python3 -c "import yaml; yaml.safe_load(open('docs/progress/training_datamove1_progress.yaml'))"` — pass; trackers parse cleanly.
+
+Boundary respected — not modified by T5.2:
+
+- `configs/training/dry_run.yaml`
+- `configs/training/dataset_version.yaml`
+- `configs/training/public_examples_excluded.yaml`
+- `configs/training/reserved_public_demo_examples.yaml`
+- `libs/common/versions.py`
+- `libs/audio/*`
+- `docs/model_card.md`
+- `reports/training/metricgan_plus_wer.md`
+- baseline reports
+- any script under `scripts/` other than the new
+  `scripts/training/train_enhancer.py`
+- any Slurm job under `slurm/jobs/` or `slurm/templates/`
+- demo / RP files; demo trackers
+- `.codex/` (untracked, not staged)
+
+Stash status: `stash@{0}: WIP unrelated demo/B6.5.1 changes before T3.2
+result commit` — preserved untouched.
+
+No Slurm job submitted. No Whisper run. No enhancement run. No
+training executed. `--smoke-mode` not executed. No file under
+`/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/`
+was created or modified.
+
+Result commit: PENDING_RESULT_COMMIT (hash backfilled in the
+immediately following commit, mirroring the T5.1 closure pattern).
+
 ## Next task
 
-T5.2 — Implement dry-run training script (`scripts/training/train_enhancer.py`)
-per `docs/plans/training_datamove1_plan.md` §15. T5.2 is **not started**;
-implementation requires explicit authorization.
+T5.3 — Run the 100-step dry-run on Slurm
+(`docs/plans/training_datamove1_plan.md` §15). T5.3 is **not started**.
+T5.3 will create `slurm/jobs/t5_3_dry_run.sh` from the Apptainer
+template, submit via `./slurm/tools/on_submit.sh sbatch …`, monitor
+via `sacct`, collect run artifacts under
+`/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t5_3_dry_run_<job_id>/`,
+and update the trackers. T5.3 requires explicit authorization.
