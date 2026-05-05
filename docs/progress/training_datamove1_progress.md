@@ -820,8 +820,81 @@ Tier classification: **`null_or_negative`**.
 
 Prep commit: `1baa80b`. Wall-time bump commit: `8a40b4f`. Result commit: `8baa2ccc7798a54162b0c5659154864f316fb144`. Report committed at `reports/training/metricgan_plus_wer.md`.
 
+## T4.3 closure evidence (2026-05-05)
+
+T4.3 is documentation-only. It propagates the T4.2 `null_or_negative`
+MetricGAN+ pretrained Whisper result into the model card, adds a
+training-side summary, and emits the B6.5 RP5 cross-validation request.
+No Slurm job, no Whisper run, no enhancement run, no fine-tuning, no
+RP5 work. Demo trackers untouched. `stash@{0}` untouched.
+
+**Inputs source of truth:** `reports/training/metricgan_plus_wer.md` at
+T4.2 result commit `8baa2ccc7798a54162b0c5659154864f316fb144`.
+
+**Files created:**
+
+- `reports/training/metricgan_pretrained_summary.md`
+
+**Files modified:**
+
+- `docs/model_card.md`
+- `docs/progress/training_datamove1_progress.yaml`
+- `docs/progress/training_datamove1_progress.md`
+
+**Model card changes:**
+
+| Field | Value |
+|---|---|
+| `status` (front matter) | `template_draft` (unchanged) |
+| `model_family` (front matter) | `TBD; MetricGAN+ pretrained evaluated and not selected for deployment` |
+| `enhancer_version` (front matter) | `metricgan_plus_pretrained (evaluation only; not exported; not selected)` |
+| Status banner | Updated with T3.2 macro, T4.2 macro, tier `null_or_negative`, and explicit non-deployment statement |
+| MetricGAN+ T4 table | Filled with verbatim T4.2 values (per-family + macro); placeholders removed |
+| MetricGAN+ tier statement | `null_or_negative` (Δ macro WA −0.2321 vs T3.2) |
+| T7 selected-checkpoint table | Untouched |
+| Publishability tier section | Untouched |
+| Limitations | Added MetricGAN+ pretrained negative-result bullet with non-deployment recommendation |
+| Reference documents | Activated link to `reports/training/metricgan_pretrained_summary.md` and `reports/training/metricgan_plus_wer.md` |
+
+**B6.5 RP5 validation request:**
+
+| Field | Value |
+|---|---|
+| Status | `requested` (training-side documentation only) |
+| Decision rule | training plan §14.4.3.2 — pretrained evaluation complete but weak; B6.5 may run as documentation only |
+| Recommended demo action | Do **not** promote MetricGAN+ pretrained to default RP5 enhancer; keep `BypassEnhancer` (`bypass`) as default; if B6.5 runs, treat as documented negative comparison only |
+| Wrapper RP5 compatibility | Unknown — CPU-only SpeechBrain stack with lazy imports; not validated on RP5 hardware |
+| Fallback if RP5-incompatible | Use exported or bypass-compatible path per training plan §14.4.3.3 |
+| Cross-branch PR | Not opened; deferred per `docs/training/metricgan_plus_dependency_notes.md` |
+| Demo trackers modified | No |
+| RP5 executed | No |
+
+**Headline (verbatim from `reports/training/metricgan_plus_wer.md`):**
+
+MetricGAN+ pretrained worsened Whisper `base.en` ASR on the dev-clean
+degraded benchmark; macro Word Accuracy dropped from 0.8213 (degraded)
+to 0.5892 (enhanced); tier `null_or_negative`.
+
+**Non-actions:**
+
+- No Slurm job submitted.
+- No Whisper run.
+- No enhancement run.
+- No fine-tuning.
+- No RP5 execution.
+- No PR opened, prepared, or modified.
+- No demo or RP files modified.
+- No baseline reports modified; `reports/training/metricgan_plus_wer.md` not modified.
+- No `libs/`, `configs/`, `scripts/`, `slurm/`, manifests, enhanced audio,
+  or run artifacts modified.
+- `stash@{0}` untouched.
+- `.codex/` not staged.
+
+Result commit: `PENDING_RESULT_COMMIT` (backfilled in a follow-up commit:
+`PENDING_RESULT_COMMIT`).
+
 ## Next task
 
-T4.3 — update `docs/model_card.md` with the MetricGAN+ pretrained evaluation summary
-(per-family + macro + tier from `reports/training/metricgan_plus_wer.md`) and activate
-the B6.5 RP5 validation request. T4.3 is **pending authorization**.
+T5.1 — Create dry-run training config (`configs/training/dry_run.yaml`)
+per `docs/plans/training_datamove1_plan.md` §15. T5.1 is **not started**;
+implementation requires explicit authorization.

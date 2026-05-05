@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 3
-current_task: "T4.3"
-last_completed_task: "T4.2"
+current_task: "T5.1"
+last_completed_task: "T4.3"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -876,6 +876,77 @@ t4_2_evidence:
     next_gate: T4.3
     next_gate_description: "Update docs/model_card.md with MetricGAN+ pretrained evaluation summary and activate B6.5 RP5 validation request"
     result_commit: "8baa2ccc7798a54162b0c5659154864f316fb144"
+t4_3_evidence:
+  scope: "documentation only"
+  inputs_source_of_truth: reports/training/metricgan_plus_wer.md
+  inputs_source_commit: "8baa2ccc7798a54162b0c5659154864f316fb144"
+  files_created:
+    - reports/training/metricgan_pretrained_summary.md
+  files_modified:
+    - docs/model_card.md
+    - docs/progress/training_datamove1_progress.md
+    - docs/progress/training_datamove1_progress.yaml
+  model_card_changes:
+    front_matter_model_family: "TBD; MetricGAN+ pretrained evaluated and not selected for deployment"
+    front_matter_enhancer_version: "metricgan_plus_pretrained (evaluation only; not exported; not selected)"
+    status_field_unchanged: true
+    status_field_value: template_draft
+    status_banner_updated: true
+    t4_table_filled_with_t4_2_values: true
+    t4_table_placeholders_remaining: false
+    t7_table_modified: false
+    deployment_target_section_modified: false
+    publishability_tier_modified: false
+    limitations_metricgan_bullet_added: true
+    references_metricgan_pretrained_summary_link_active: true
+    references_metricgan_plus_wer_link_active: true
+  metricgan_pretrained_summary_changes:
+    contains_null_or_negative_tier: true
+    contains_macro_table: true
+    contains_per_family_table: true
+    contains_b6_5_request_section: true
+    contains_limitations: true
+    contains_explicit_non_claims: true
+  rp5_validation_request:
+    status: requested
+    decision_rule_applied: "training plan §14.4.3.2 (pretrained complete but weak; B6.5 may run as documentation only)"
+    recommended_demo_action: "do not promote MetricGAN+ pretrained to default RP5 enhancer; keep BypassEnhancer (bypass) as default; if B6.5 runs, treat as documented negative comparison only"
+    wrapper_rp5_compatible: unknown
+    wrapper_rp5_compatible_note: "CPU-only SpeechBrain stack with lazy imports; not validated on RP5 hardware"
+    fallback_if_rp5_incompatible: "use exported or bypass-compatible path per training plan §14.4.3.3"
+    cross_branch_pr_opened: false
+    cross_branch_pr_status: "deferred per docs/training/metricgan_plus_dependency_notes.md"
+    demo_trackers_modified: false
+    rp5_executed: false
+  trackers_advanced_after_content_written: true
+  current_task_after: "T5.1"
+  last_completed_task_after: "T4.3"
+  t5_1_started: false
+  blocked: false
+  blocker: null
+  non_actions:
+    slurm_jobs_submitted: false
+    whisper_run: false
+    enhancement_run: false
+    fine_tuning_run: false
+    rp5_run: false
+    pr_opened: false
+    demo_files_modified: false
+    rp_files_modified: false
+    libs_audio_modified: false
+    libs_common_versions_modified: false
+    configs_modified: false
+    scripts_modified: false
+    slurm_scripts_modified: false
+    manifests_modified: false
+    enhanced_audio_modified: false
+    run_artifacts_modified: false
+    baseline_reports_modified: false
+    metricgan_plus_wer_md_modified: false
+    stash_untouched: true
+    codex_directory_staged: false
+  result_commit: "PENDING_RESULT_COMMIT"
+  backfill_commit: "PENDING_RESULT_COMMIT"
 tasks:
   "T0.1": done
   "T0.2": done
@@ -897,7 +968,7 @@ tasks:
   "T3.3": done
   "T4.1": done
   "T4.2": done
-  "T4.3": pending
+  "T4.3": done
   "T5.1": pending
   "T5.2": pending
   "T5.3": pending

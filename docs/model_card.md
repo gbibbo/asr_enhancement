@@ -5,13 +5,15 @@ status: template_draft
 template_version: "1"
 dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
 public_examples_exclusion_status: complete
-model_family: "<!-- PLACEHOLDER: e.g. MetricGAN+, SpeechEnhancer, bypass -->"
-enhancer_version: "<!-- PLACEHOLDER: set after T8.1 export -->"
+model_family: "TBD; MetricGAN+ pretrained evaluated and not selected for deployment"
+enhancer_version: "metricgan_plus_pretrained (evaluation only; not exported; not selected)"
 ---
 
 > **Status: TEMPLATE / DRAFT**
-> No model has been trained.
+> No model has been trained. No enhancer has been selected for deployment.
 > T3.1 complete: clean-audio baseline WER 0.0645, Word Accuracy 0.9361 (2693 records, openai-whisper base.en 20250625, metrics_v1).
+> T3.2 complete: degraded macro WER 0.1843, Word Accuracy 0.8213 (13 465 records across five families).
+> T4.2 complete (pretrained MetricGAN+ evaluation only): macro WER 0.4310, Word Accuracy 0.5892, tier `null_or_negative` — the pretrained enhancer worsened ASR on this benchmark and is **not** recommended for deployment. See [`reports/training/metricgan_pretrained_summary.md`](../reports/training/metricgan_pretrained_summary.md) and [`reports/training/metricgan_plus_wer.md`](../reports/training/metricgan_plus_wer.md).
 > B6.2 must consume the reserved examples from `configs/training/reserved_public_demo_examples.yaml`.
 
 ---
@@ -21,8 +23,8 @@ enhancer_version: "<!-- PLACEHOLDER: set after T8.1 export -->"
 | Field | Value |
 |---|---|
 | Card type | Template — to be completed by T3–T8 tasks |
-| Model family | `<!-- PLACEHOLDER: MetricGAN+, SpeechEnhancer, or bypass -->` |
-| Enhancer version | `<!-- PLACEHOLDER: set after T8.1 export -->` |
+| Model family | TBD; MetricGAN+ pretrained evaluated (T4.2) and **not selected** for deployment |
+| Enhancer version | `metricgan_plus_pretrained` (evaluation only; not exported; not selected) |
 | Training branch | `feature/training-datamove1-v1` |
 | Integration branch | `demo-rp5-v1` |
 | Reference ASR (Surrey eval) | `openai-whisper` |
@@ -189,16 +191,27 @@ Mean per-record WER and Word Accuracy (`base.en`, `metrics_v1`, `dev-clean`, 269
 
 Dataset version: `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`. Source clean manifest SHA-256: `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b`. Source degraded manifest SHA-256: `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c`. Full baseline report: [`reports/training/baseline_degraded_wer.md`](../reports/training/baseline_degraded_wer.md).
 
-### MetricGAN+ pretrained evaluation (T4)
+### MetricGAN+ pretrained evaluation (T4.2)
 
-| Degradation | Degraded WER | Enhanced WER | Word Acc improvement |
-|---|---|---|---|
-| `far_field_room` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| `cafe_background` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| `phone_call` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| `muffled` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| `broadband_hiss` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
-| **Average** | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` | `<!-- PLACEHOLDER -->` |
+Mean per-record WER and Word Accuracy on the dev-clean degraded benchmark
+(`base.en`, `metrics_v1`, `degradation_v1`, enhancer `metricgan_plus_pretrained`,
+enhancement `enhancement_v1`, 2693 records per family). Source manifest SHA-256
+`544d6fa580e22cb0fa1d23053edf3083877416b7b96819f488e446c8c67a79c9`. Full
+Slurm job `2127693`. Canonical detail: [`reports/training/metricgan_plus_wer.md`](../reports/training/metricgan_plus_wer.md).
+T4.3 summary: [`reports/training/metricgan_pretrained_summary.md`](../reports/training/metricgan_pretrained_summary.md).
+
+| Degradation | Degraded WER | Enhanced WER | Degraded Word Acc | Enhanced Word Acc | Δ Word Acc |
+|---|---|---|---|---|---|
+| `far_field_room`  | 0.1659 | 0.5920 | 0.8356 | 0.4264 | -0.4092 |
+| `cafe_background` | 0.1632 | 0.4716 | 0.8390 | 0.5401 | -0.2989 |
+| `phone_call`      | 0.0789 | 0.1592 | 0.9217 | 0.8429 | -0.0788 |
+| `muffled`         | 0.3863 | 0.6657 | 0.6361 | 0.3978 | -0.2383 |
+| `broadband_hiss`  | 0.1271 | 0.2666 | 0.8742 | 0.7390 | -0.1352 |
+| **Average (macro)** | **0.1843** | **0.4310** | **0.8213** | **0.5892** | **-0.2321** |
+
+Δ vs clean (macro only; T3.1 has no per-family values): WER +0.3665, Word Accuracy −0.3469.
+
+**MetricGAN+ pretrained tier (T4.2): `null_or_negative`** — Δ macro Word Accuracy = −0.2321 vs T3.2 degraded baseline. The pretrained MetricGAN+ enhancer **worsened** Whisper `base.en` ASR on this benchmark; every family individually shows positive ΔWER and negative ΔWA. The pretrained enhancer is **not** a candidate for deployment. No fine-tuning has been performed; no checkpoint has been selected; no enhancer artifact has been exported.
 
 ### Selected checkpoint evaluation (T7)
 
@@ -228,6 +241,7 @@ Tiers are assigned at T7.2 based on average Word Accuracy improvement:
 ## Limitations
 
 - **No training run has been completed.** This card will be updated after T5–T8.
+- **MetricGAN+ pretrained worsened ASR on this benchmark (T4.2)**: tier `null_or_negative` (Δ macro Word Accuracy −0.2321 vs T3.2 degraded baseline). The pretrained enhancer is **not** recommended for the public Raspberry Pi 5 demo and is **not** a deployment candidate. The B6.5 RP5 cross-validation request, if executed, must treat MetricGAN+ pretrained strictly as a documented negative comparison and keep the bypass enhancer as the RP5 default. See [`reports/training/metricgan_pretrained_summary.md`](../reports/training/metricgan_pretrained_summary.md).
 - **`train-clean-100` is currently `present_empty`**: the directory exists but contains zero FLAC and transcript files. Training tasks (T5+) must verify or stage usable training data before using this split.
 - **Public examples exclusion is complete (T2.3b)**: 10 examples removed from the active manifest. Filtered manifest has 2693 records.
 - **Evaluation is Surrey-only**: results use `openai-whisper` on Surrey compute. Demo branch metrics (RP5, `faster-whisper tiny.en`) are cross-validated separately in task B6.5.
@@ -318,5 +332,6 @@ All heavy artifacts live outside Git under the training root.
 - LibriSpeech source config: [`configs/training/librispeech_sources.yaml`](../configs/training/librispeech_sources.yaml)
 - Training plan: [`docs/plans/training_datamove1_plan.md`](plans/training_datamove1_plan.md)
 - Baseline summary (to be created at T3.3): `reports/training/baseline_summary.md`
-- MetricGAN+ pretrained summary (to be created at T4.3): `reports/training/metricgan_pretrained_summary.md`
+- MetricGAN+ pretrained summary (T4.3): [`reports/training/metricgan_pretrained_summary.md`](../reports/training/metricgan_pretrained_summary.md)
+- MetricGAN+ pretrained canonical evidence (T4.2): [`reports/training/metricgan_plus_wer.md`](../reports/training/metricgan_plus_wer.md)
 - Full training summary (to be created at T6.3): `reports/training/full_training_summary.md`
