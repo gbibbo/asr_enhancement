@@ -1297,7 +1297,7 @@ t6_1_evidence:
   t6_2_started: false
   blocked: false
   blocker: null
-  result_commit: PENDING_RESULT_COMMIT
+  result_commit: "4e4b619e828fb36c7cc4b994cbe464dce6e3efd3"
 tasks:
   "T0.1": done
   "T0.2": done
