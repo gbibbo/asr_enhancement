@@ -63,6 +63,22 @@ export type DemoResultRaw = {
   latency_seconds: number;
 };
 
+// B11.1c: enhanced block emitted by libs/demo/processing.py for upload jobs.
+// For the bypass enhancer raw and enhanced are byte-identical; for non-bypass
+// (future) the block carries the post-enhancement transcript and latency.
+export type DemoResultEnhanced = {
+  transcript: string;
+  latency_seconds: number;
+  preset_applied?: string | null;
+  enhanced_flag?: boolean;
+  enhancement_fallback?: boolean;
+};
+
+// Public projection consumed by /demo. The TS type is deliberately a subset
+// of the wire format — forbidden fields (cache_key, session_id_hash, ledger_id,
+// audio_sha256, source_report, *_audio_path filesystem paths, key_configured,
+// spend, caps, raw provider payload) are intentionally absent so accidental
+// access at the call site fails typecheck.
 export type DemoResult = {
   source_type?: string;
   provider?: string;
@@ -70,7 +86,16 @@ export type DemoResult = {
   enhancer_version?: string | null;
   degradation_id?: string | null;
   degradation_version?: string | null;
+  degradation_applied?: boolean;
   raw?: DemoResultRaw;
+  enhanced?: DemoResultEnhanced | null;
+  enhanced_error?: string | null;
+  // Cached (B6.5.1 baseline) result_json shape — top-level fields used by the
+  // B11.1c comparison panel to bridge cached vs upload payload shapes.
+  hypothesis?: string;
+  wer?: number | null;
+  word_accuracy?: number | null;
+  latency_seconds?: number | null;
   warnings?: DemoWarning[];
 };
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 
 import { DEGRADATION_IDS, DEGRADATION_LABELS } from "./degradations";
+import { computeMetrics, type MetricsResult } from "./scoring";
 import { getOrCreateDemoSessionId } from "./session";
 import type {
   BackendDetail,
@@ -14,13 +15,13 @@ import type {
   DemoJobResultResponse,
   DemoJobView,
   DemoResult,
-  DemoWarning,
   Provider,
   ProviderState,
   ProviderStateResponse,
   RunCachedResponse,
   UploadAcceptedResponse,
 } from "./types";
+import { DEGRADATION_VERSION, METRICS_VERSION } from "./versions";
 
 type Mode = "cached_example" | "upload";
 
@@ -523,9 +524,6 @@ export default function DemoPage() {
 
   const cachedDegradationOptions = selectedExample?.degradation_ids ?? [];
 
-  const uploadResultWarnings: DemoWarning[] | undefined = jobResult?.warnings;
-  const cachedResultWarnings: DemoWarning[] | undefined = cachedResult?.warnings;
-
   const cachedCleanAudioReady =
     selectedExample !== undefined &&
     selectedExample.audio_available === true &&
@@ -715,12 +713,15 @@ export default function DemoPage() {
           {cachedOrigin === "cache_hit" && cachedResult !== null && (
             <ResultPanel
               origin="cache_hit"
-              provider={cachedResult.provider}
-              asrModelVersion={cachedResult.asr_model_version}
-              transcript={cachedResult.raw?.transcript ?? null}
-              warnings={cachedResultWarnings}
+              result={cachedResult}
+              reference={
+                selectedExample !== undefined &&
+                typeof selectedExample.ground_truth === "string" &&
+                selectedExample.ground_truth.trim().length > 0
+                  ? selectedExample.ground_truth
+                  : null
+              }
               jobId={null}
-              statusLabel="Loaded from cache (cache_hit)"
               errorMessage={null}
             />
           )}
@@ -813,28 +814,33 @@ export default function DemoPage() {
           )}
 
           {jobId !== null && (
-            <ResultPanel
-              origin={
-                jobResult?.provider === "assemblyai"
-                  ? "computed_assemblyai"
-                  : "computed_whisper"
-              }
-              provider={jobResult?.provider ?? jobSnapshot?.provider ?? null}
-              asrModelVersion={jobResult?.asr_model_version ?? null}
-              transcript={jobResult?.raw?.transcript ?? null}
-              warnings={uploadResultWarnings}
-              jobId={jobId}
-              statusLabel={
-                pollTimedOut
+            <>
+              {(() => {
+                const externalStatus = pollTimedOut
                   ? "polling timed out"
-                  : (jobSnapshot?.status ?? (polling ? "polling" : null))
-              }
-              errorMessage={
-                jobSnapshot?.status === "failed"
-                  ? jobSnapshot.error_message ?? "Job failed."
-                  : null
-              }
-            />
+                  : (jobSnapshot?.status ?? (polling ? "polling" : null));
+                return externalStatus !== null ? (
+                  <p className="demo-subtle" role="status">
+                    Job status: {externalStatus}
+                  </p>
+                ) : null;
+              })()}
+              <ResultPanel
+                origin={
+                  (jobResult?.provider ?? jobSnapshot?.provider) === "assemblyai"
+                    ? "computed_assemblyai"
+                    : "computed_whisper"
+                }
+                result={jobResult}
+                reference={manualGt.trim().length > 0 ? manualGt.trim() : null}
+                jobId={jobId}
+                errorMessage={
+                  jobSnapshot?.status === "failed"
+                    ? jobSnapshot.error_message ?? "Job failed."
+                    : null
+                }
+              />
+            </>
           )}
 
           {pollError !== null && (
@@ -850,67 +856,81 @@ export default function DemoPage() {
 
 type ResultPanelProps = {
   origin: "cache_hit" | "computed_whisper" | "computed_assemblyai";
-  provider: string | null | undefined;
-  asrModelVersion: string | null | undefined;
-  transcript: string | null;
-  warnings: DemoWarning[] | undefined;
+  result: DemoResult | null;
+  reference: string | null;
   jobId: string | null;
-  statusLabel: string | null;
   errorMessage: string | null;
 };
 
+function formatPercent(v: number): string {
+  return `${(v * 100).toFixed(1)}%`;
+}
+
+function formatWer(v: number): string {
+  return v.toFixed(2);
+}
+
+function MetricLine({ metrics }: { metrics: MetricsResult | null }) {
+  if (
+    metrics === null ||
+    !metrics.available ||
+    metrics.wer === null ||
+    metrics.wordAccuracy === null
+  ) {
+    return null;
+  }
+  return (
+    <p className="demo-metric-line demo-subtle">
+      Word Accuracy: {formatPercent(metrics.wordAccuracy)} • WER:{" "}
+      {formatWer(metrics.wer)}
+    </p>
+  );
+}
+
 function ResultPanel(props: ResultPanelProps) {
-  const {
-    origin,
-    provider,
-    asrModelVersion,
-    transcript,
-    warnings,
-    jobId,
-    statusLabel,
-    errorMessage,
-  } = props;
+  const { origin, result, reference, jobId, errorMessage } = props;
 
   const originLabel =
     origin === "cache_hit"
-      ? "Loaded from cache (cache_hit)"
+      ? "Loaded from cache"
       : origin === "computed_assemblyai"
         ? "computed (assemblyai)"
         : "computed (whisper)";
 
+  const provider = result?.provider ?? null;
+  const asrModelVersion = result?.asr_model_version ?? null;
+  const enhancerVersion = result?.enhancer_version ?? null;
+  const degradationId = result?.degradation_id ?? null;
+  const degradationVersion = result?.degradation_version ?? DEGRADATION_VERSION;
+  const degradationApplied = result?.degradation_applied;
+  const warnings = result?.warnings;
+  const enhancedError = result?.enhanced_error ?? null;
+  const isBypass = enhancerVersion === "bypass";
+
+  // Bridge cached vs upload payload shapes:
+  //   cached prewarm payload:  top-level `hypothesis` + `latency_seconds`
+  //   upload result_json:      `raw.transcript` / `enhanced.transcript` /
+  //                            `raw.latency_seconds`
+  const rawTranscript: string | null =
+    result?.raw?.transcript ?? result?.hypothesis ?? null;
+  const enhancedTranscript: string | null =
+    result?.enhanced?.transcript ?? result?.hypothesis ?? null;
+  const latency: number | null =
+    result?.raw?.latency_seconds ?? result?.latency_seconds ?? null;
+
+  const rawMetrics =
+    rawTranscript !== null ? computeMetrics(rawTranscript, reference) : null;
+  const enhancedMetrics =
+    enhancedTranscript !== null
+      ? computeMetrics(enhancedTranscript, reference)
+      : null;
+
+  const noTranscriptYet =
+    rawTranscript === null && enhancedTranscript === null && errorMessage === null;
+
   return (
     <div className="demo-result">
       <h3>Result</h3>
-      <dl className="demo-meta">
-        {jobId !== null && (
-          <>
-            <dt>job_id</dt>
-            <dd className="demo-mono">{jobId}</dd>
-          </>
-        )}
-        {statusLabel !== null && (
-          <>
-            <dt>status</dt>
-            <dd>{statusLabel}</dd>
-          </>
-        )}
-        <dt>origin</dt>
-        <dd>{originLabel}</dd>
-        {provider != null && provider.length > 0 && (
-          <>
-            <dt>provider</dt>
-            <dd>{provider}</dd>
-          </>
-        )}
-        {asrModelVersion != null && asrModelVersion.length > 0 && (
-          <>
-            <dt>asr_model_version</dt>
-            <dd>{asrModelVersion}</dd>
-          </>
-        )}
-        <dt>enhancer</dt>
-        <dd>bypass</dd>
-      </dl>
 
       {warnings !== undefined && warnings.length > 0 && (
         <ul className="demo-warnings">
@@ -922,15 +942,97 @@ function ResultPanel(props: ResultPanelProps) {
         </ul>
       )}
 
-      {errorMessage !== null ? (
+      {errorMessage !== null && (
         <p role="alert" className="error">
           {errorMessage}
         </p>
-      ) : transcript !== null && transcript.length > 0 ? (
-        <pre className="demo-transcript">{transcript}</pre>
-      ) : (
-        <p className="demo-subtle">Transcript is not available yet.</p>
       )}
+
+      <section className="demo-compare" aria-label="Raw and enhanced comparison">
+        {rawTranscript !== null && (
+          <div className="demo-compare-block">
+            <p className="demo-compare-label">Raw transcript</p>
+            <pre className="demo-transcript">{rawTranscript}</pre>
+            <MetricLine metrics={rawMetrics} />
+          </div>
+        )}
+
+        {enhancedTranscript !== null && (
+          <div className="demo-compare-block">
+            <p className="demo-compare-label">Enhanced transcript</p>
+            {enhancedError !== null && (
+              <p className="demo-banner demo-banner-warn">{enhancedError}</p>
+            )}
+            <pre className="demo-transcript">{enhancedTranscript}</pre>
+            <MetricLine metrics={enhancedMetrics} />
+          </div>
+        )}
+
+        {noTranscriptYet && (
+          <p className="demo-subtle">Transcript is not available yet.</p>
+        )}
+
+        {isBypass && rawTranscript !== null && enhancedTranscript !== null && (
+          <p className="demo-bypass-note demo-subtle">
+            Enhancer is bypass — audio is not enhanced. Raw and enhanced
+            transcripts are identical.
+          </p>
+        )}
+      </section>
+
+      <details className="demo-pipeline-details">
+        <summary>Pipeline details</summary>
+        <dl className="demo-meta">
+          {jobId !== null && (
+            <>
+              <dt>job_id</dt>
+              <dd className="demo-mono">{jobId}</dd>
+            </>
+          )}
+          <dt>cache status</dt>
+          <dd>{originLabel}</dd>
+          {provider !== null && provider.length > 0 && (
+            <>
+              <dt>provider</dt>
+              <dd>{provider}</dd>
+            </>
+          )}
+          {asrModelVersion !== null && asrModelVersion.length > 0 && (
+            <>
+              <dt>asr_model_version</dt>
+              <dd>{asrModelVersion}</dd>
+            </>
+          )}
+          {enhancerVersion !== null && enhancerVersion.length > 0 && (
+            <>
+              <dt>enhancer_version</dt>
+              <dd>{enhancerVersion}</dd>
+            </>
+          )}
+          {degradationId !== null && degradationId.length > 0 && (
+            <>
+              <dt>degradation_id</dt>
+              <dd>{degradationId}</dd>
+            </>
+          )}
+          <dt>degradation_version</dt>
+          <dd>{degradationVersion}</dd>
+          {degradationApplied !== undefined && (
+            <>
+              <dt>degradation_applied</dt>
+              <dd>{degradationApplied ? "true" : "false"}</dd>
+            </>
+          )}
+          <dt>metrics_version</dt>
+          <dd>{METRICS_VERSION}</dd>
+          {latency !== null && (
+            <>
+              <dt>latency_seconds</dt>
+              <dd>{latency.toFixed(3)}</dd>
+            </>
+          )}
+        </dl>
+      </details>
     </div>
   );
 }
