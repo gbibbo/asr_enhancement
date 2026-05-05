@@ -283,6 +283,7 @@ export default function DemoPage() {
             example_id: selectedExampleId,
             degradation_id: selectedDegradationCached,
             provider: "whisper",
+            enhancer_version: "bypass",
           }),
         });
         const body = await readJson<RunCachedResponse>(res);

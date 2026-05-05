@@ -5,8 +5,8 @@ current_track: B
 current_phase: B11
 current_task: "B11.2"
 last_completed_task: "B11.1c"
-blocked: false
-blocker: null
+blocked: true
+blocker: "B11.2 cache hotfix implemented; pending Gabriel mobile visual validation and screenshots."
 rp5_status: verified_2026-05-04
 public_url_status: unknown
 training_handoff_status: training_branch_pushed
