@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 3
-current_task: "T4.2"
-last_completed_task: "T4.1"
+current_task: "T4.3"
+last_completed_task: "T4.2"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -745,6 +745,137 @@ t4_2_evidence:
     next_gate: T4.2d
     next_gate_description: "Whisper evaluation on the enhanced manifest — run openai-whisper base.en on all 13465 enhanced WAVs, compute per-family WER/WA, compare to T3.2 degraded baseline"
     evidence_commit: "7141e39"
+  t4_2d_evidence:
+    prep_commit: "1baa80bc15fbfb68583f395401ae6f5a4c0544e5"
+    walltime_bump_commit: "8a40b4fc840127801b5255d6d230841a7b06f3ae"
+    smoke:
+      job_id: "2127690"
+      sacct_state: COMPLETED
+      exit_code: "0:0"
+      elapsed: "00:02:04"
+      max_rss: "867360K batch step (~847 MiB)"
+      node: aisurrey05
+      stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2d_whisper_enhanced_smoke_2127690.out
+      stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2d_whisper_enhanced_smoke_2127690.err
+      run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_smoke_2127690
+      predictions_jsonl: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_smoke_2127690/predictions.jsonl
+      predictions_line_count: 25
+      failures_jsonl: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_smoke_2127690/failures.jsonl
+      failure_count: 0
+      metrics_summary_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_smoke_2127690/metrics_summary.json
+      config_snapshot_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_smoke_2127690/config_snapshot.json
+      run_summary_md: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_smoke_2127690/run_summary.md
+      per_family_counts:
+        broadband_hiss: 5
+        cafe_background: 5
+        far_field_room: 5
+        muffled: 5
+        phone_call: 5
+      validation_passed: true
+      smoke_inference_seconds_per_record: 4.480
+      smoke_projected_full_runtime_hours: 16.76
+    full:
+      job_id: "2127693"
+      sacct_state: COMPLETED
+      exit_code: "0:0"
+      elapsed: "06:47:48"
+      max_rss: "908608K batch step (~887 MiB)"
+      node: aisurrey05
+      stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2d_whisper_enhanced_full_2127693.out
+      stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t4_2d_whisper_enhanced_full_2127693.err
+      run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_full_2127693
+      predictions_jsonl: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_full_2127693/predictions.jsonl
+      predictions_line_count: 13465
+      failures_jsonl: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_full_2127693/failures.jsonl
+      failure_count: 0
+      metrics_summary_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_full_2127693/metrics_summary.json
+      config_snapshot_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_full_2127693/config_snapshot.json
+      run_summary_md: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t4_2d_whisper_enhanced_full_2127693/run_summary.md
+      per_family_counts:
+        broadband_hiss: 2693
+        cafe_background: 2693
+        far_field_room: 2693
+        muffled: 2693
+        phone_call: 2693
+      validation_passed: true
+      whisper_model: base.en
+      whisper_version: "20250625"
+      metrics_version: metrics_v1
+      enhancer_version: metricgan_plus_pretrained
+      enhancement_version: enhancement_v1
+      dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+      degradation_version: degradation_v1
+      enhanced_manifest_sha256: "544d6fa580e22cb0fa1d23053edf3083877416b7b96819f488e446c8c67a79c9"
+      degraded_source_manifest_sha256: "c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c"
+      enhanced_manifest_sha256_unchanged: true
+      degraded_source_manifest_sha256_unchanged: true
+      reserved_demo_ids_absent_from_manifest: true
+      reserved_demo_ids_absent_from_predictions: true
+    per_family_enhanced:
+      broadband_hiss:
+        mean_per_record_wer: 0.2666
+        mean_per_record_word_accuracy: 0.7390
+      cafe_background:
+        mean_per_record_wer: 0.4716
+        mean_per_record_word_accuracy: 0.5401
+      far_field_room:
+        mean_per_record_wer: 0.5920
+        mean_per_record_word_accuracy: 0.4264
+      muffled:
+        mean_per_record_wer: 0.6657
+        mean_per_record_word_accuracy: 0.3978
+      phone_call:
+        mean_per_record_wer: 0.1592
+        mean_per_record_word_accuracy: 0.8429
+    macro:
+      mean_per_record_wer: 0.4310
+      mean_per_record_word_accuracy: 0.5892
+      record_micro_wer: 0.4310
+      record_micro_word_accuracy: 0.5892
+      macro_record_micro_equivalent: true
+      abs_macro_record_micro_wer_diff: 4.44e-16
+      abs_macro_record_micro_wa_diff: 3.33e-16
+    delta_vs_degraded:
+      macro:
+        delta_per_record_wer: 0.2467
+        delta_per_record_word_accuracy: -0.2321
+      per_family:
+        broadband_hiss:
+          delta_per_record_wer: 0.1395
+          delta_per_record_word_accuracy: -0.1352
+        cafe_background:
+          delta_per_record_wer: 0.3084
+          delta_per_record_word_accuracy: -0.2989
+        far_field_room:
+          delta_per_record_wer: 0.4261
+          delta_per_record_word_accuracy: -0.4092
+        muffled:
+          delta_per_record_wer: 0.2794
+          delta_per_record_word_accuracy: -0.2383
+        phone_call:
+          delta_per_record_wer: 0.0803
+          delta_per_record_word_accuracy: -0.0788
+    delta_vs_clean:
+      macro:
+        delta_per_record_wer: 0.3665
+        delta_per_record_word_accuracy: -0.3469
+    tier_classification: null_or_negative
+    tier_strong_threshold: 0.05
+    headline: "MetricGAN+ pretrained worsened ASR on dev-clean degraded benchmark; macro WA dropped from 0.8213 (degraded) to 0.5892 (enhanced); tier null_or_negative"
+    report_path: reports/training/metricgan_plus_wer.md
+    cache_validation:
+      home_cache_pollution: false
+      home_local_pollution: false
+      all_model_files_under_train_root_cache: true
+    non_actions:
+      enhancement_run: false
+      other_slurm_jobs_submitted: false
+      tracker_modified_before_evidence_commit: false
+      stash_untouched: true
+      model_card_modified: false
+    next_gate: T4.3
+    next_gate_description: "Update docs/model_card.md with MetricGAN+ pretrained evaluation summary and activate B6.5 RP5 validation request"
+    result_commit: "PENDING_RESULT_COMMIT"
 tasks:
   "T0.1": done
   "T0.2": done
@@ -765,7 +896,7 @@ tasks:
   "T3.2": done
   "T3.3": done
   "T4.1": done
-  "T4.2": pending
+  "T4.2": done
   "T4.3": pending
   "T5.1": pending
   "T5.2": pending

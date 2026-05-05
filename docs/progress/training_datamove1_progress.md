@@ -4,8 +4,8 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T4
 Current phase: Phase 4
-Current task: Task T4.2
-Last completed task: T4.1
+Current task: Task T4.3
+Last completed task: T4.2
 Blocked: false
 Blocker: none
 
@@ -29,6 +29,7 @@ Blocker: none
 - T3.2a: degradation bank `degradation_v1` built. `libs/audio/degradations.py` defines five frozen families (`far_field_room`, `cafe_background`, `phone_call`, `muffled`, `broadband_hiss`); `apply_degradation` enforces length contract (output_samples == input_samples), finiteness, and peak ≤ 0.95; per-(utterance, family) seed via SHA-256. `DEGRADATION_VERSION = "degradation_v1"` set in `libs/common/versions.py`. Generation script writes to per-job staging tree, validates (manifest counts, source SHA, reserved-ID absence, format, length, deterministic recomputation of 50 entries) before atomic `os.replace` promotion to final tree. Smoke: job `2125896`, COMPLETED 0:0, 5 s elapsed, 50 files, 0 failures. Full: job `2125897`, COMPLETED 0:0, 02:59 elapsed, MaxRSS 3097852K, 2693 × 5 = 13 465 files, 0 failures. Per-family counts 2693 each. Source manifest SHA-256 unchanged (`dc6674bcf7a8…`). Final degraded manifest SHA-256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c`. Audio format WAV PCM_16, 16 kHz mono. Final audio root `$TRAIN_ROOT/datasets/degraded/degradation_v1`; final degraded manifest `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` (not committed). Reserved demo IDs absent from degraded manifest. `file_sha256.tsv` (13 465 lines) and `generation_summary.json` under run root, not committed. Summary committed at `reports/training/degradation_bank_v1.md`; model card `DEGRADATION_VERSION` placeholders replaced with `degradation_v1`. T3.2 unblocked.
 - T3.2: degraded-audio Whisper baseline complete. Smoke: job `2126085`, 25 records (5 × 5 families), 0 failures, COMPLETED 0:0. Full: job `2126086`, COMPLETED 0:0, elapsed 04:54:54, MaxRSS 3.58 GB, 13 465/13 465 records, 0 failures. Per-family results (mean WER / mean WA): broadband_hiss 0.1271/0.8742, cafe_background 0.1632/0.8390, far_field_room 0.1659/0.8356, muffled 0.3863/0.6361, phone_call 0.0789/0.9217. Overall macro: mean WER 0.1843, mean WA 0.8213 (Δ vs T3.1 clean: +0.1198 / -0.1148). macro == record_micro (abs diff 3.28e-15). Source manifest SHAs unchanged. Reserved demo IDs absent from manifest and predictions. Dataset version `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`, degradation_version `degradation_v1`, metrics_version `metrics_v1`. Summary committed at `reports/training/baseline_degraded_wer.md`; model card degraded baseline section filled. current_task → T3.3.
 - T3.3: baseline summary report produced. `reports/training/baseline_summary.md` consolidates T3.1 clean baseline and T3.2 degraded baseline into one comparison view. No Slurm jobs run; no scripts modified. Cut T3 gate complete. current_task → T4.1. Result commit: 5baf32c.
+- T4.2 (closed via T4.2d): MetricGAN+ pretrained Whisper evaluation complete. Smoke job `2127690` (COMPLETED 0:0, 02:04 elapsed, 25/25 records, 0 failures). Full job `2127693` (COMPLETED 0:0, 06:47:48 elapsed, MaxRSS 908608K, aisurrey05, 13 465/13 465 records, 0 failures). Per-family enhanced (mean WER / mean WA): broadband_hiss 0.2666/0.7390, cafe_background 0.4716/0.5401, far_field_room 0.5920/0.4264, muffled 0.6657/0.3978, phone_call 0.1592/0.8429. Macro: WER 0.4310, WA 0.5892 (Δ vs T3.2 degraded: WER +0.2467 / WA −0.2321; Δ vs T3.1 clean: WER +0.3665 / WA −0.3469). macro == record_micro (abs diff ≤ 4.44e-16). MetricGAN+ pretrained **worsened** ASR on this benchmark; tier `null_or_negative`. Manifest SHAs unchanged; reserved demo IDs absent from manifest and predictions. Enhanced manifest SHA `544d6fa5…79c9`; degraded source SHA `c6f8745…0bbb7c`; enhancer_version `metricgan_plus_pretrained`; enhancement_version `enhancement_v1`; metrics_version `metrics_v1`; whisper `base.en` (`20250625`). Summary committed at `reports/training/metricgan_plus_wer.md`. `docs/model_card.md` not modified — deferred to T4.3. current_task → T4.3. Result commit: PENDING_RESULT_COMMIT.
 
 ## Current blocker
 
@@ -739,11 +740,88 @@ open; T4.2d (Whisper evaluation on the enhanced manifest) is the next gate.
 
 Evidence commit: `7141e39`
 
+## T4.2d closure evidence (2026-05-05)
+
+T4.2 closes via T4.2d: Whisper `base.en` on the MetricGAN+ enhanced manifest.
+
+**Smoke (job `2127690`):**
+
+| Field | Value |
+|---|---|
+| sacct State | `COMPLETED` |
+| ExitCode | `0:0` |
+| Elapsed | `00:02:04` |
+| MaxRSS (batch) | `867360K` (~847 MiB) |
+| Node | `aisurrey05` |
+| Stdout log | `$TRAIN_ROOT/logs/asr_t4_2d_whisper_enhanced_smoke_2127690.out` |
+| Stderr log | `$TRAIN_ROOT/logs/asr_t4_2d_whisper_enhanced_smoke_2127690.err` |
+| Run dir | `$TRAIN_ROOT/runs/t4_2d_whisper_enhanced_smoke_2127690` |
+| Predictions | 25 lines (5 per family × 5 families) |
+| Failures | 0 |
+| Inference | 4.480 s/record on aisurrey05 (smoke projected ~16.76 h for full) |
+
+**Full (job `2127693`):**
+
+| Field | Value |
+|---|---|
+| sacct State | `COMPLETED` |
+| ExitCode | `0:0` |
+| Elapsed | `06:47:48` |
+| MaxRSS (batch) | `908608K` (~887 MiB) |
+| Node | `aisurrey05` |
+| Stdout log | `$TRAIN_ROOT/logs/asr_t4_2d_whisper_enhanced_full_2127693.out` |
+| Stderr log | `$TRAIN_ROOT/logs/asr_t4_2d_whisper_enhanced_full_2127693.err` |
+| Run dir | `$TRAIN_ROOT/runs/t4_2d_whisper_enhanced_full_2127693` |
+| `predictions.jsonl` | 13 465 lines |
+| `failures.jsonl` | 0 lines |
+| `metrics_summary.json` | present |
+| `config_snapshot.json` | present |
+| `run_summary.md` | present |
+| Whisper model | `base.en` (openai-whisper `20250625`) |
+| Metrics version | `metrics_v1` |
+| Enhancer version | `metricgan_plus_pretrained` |
+| Enhancement version | `enhancement_v1` |
+| Dataset version | `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` |
+| Degradation version | `degradation_v1` |
+| Enhanced manifest SHA-256 | `544d6fa580e22cb0fa1d23053edf3083877416b7b96819f488e446c8c67a79c9` |
+| Degraded source manifest SHA-256 | `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c` |
+| Enhanced manifest SHA unchanged after run | true |
+| Degraded source manifest SHA unchanged after run | true |
+| Reserved demo IDs absent from manifest | true |
+| Reserved demo IDs absent from predictions | true |
+
+**Per-family enhanced (mean per-record WER / WA):**
+
+| Family | Count | Enhanced WER | Enhanced WA | Δ WER vs degraded | Δ WA vs degraded |
+|---|---|---|---|---|---|
+| broadband_hiss | 2693 | 0.2666 | 0.7390 | +0.1395 | −0.1352 |
+| cafe_background | 2693 | 0.4716 | 0.5401 | +0.3084 | −0.2989 |
+| far_field_room | 2693 | 0.5920 | 0.4264 | +0.4261 | −0.4092 |
+| muffled | 2693 | 0.6657 | 0.3978 | +0.2794 | −0.2383 |
+| phone_call | 2693 | 0.1592 | 0.8429 | +0.0803 | −0.0788 |
+
+**Macro:**
+
+| Metric | Macro | record_micro | abs(macro − record_micro) | Δ vs degraded | Δ vs clean |
+|---|---|---|---|---|---|
+| Mean per-record WER | 0.4310 | 0.4310 | 4.44e-16 | +0.2467 | +0.3665 |
+| Mean per-record Word Accuracy | 0.5892 | 0.5892 | 3.33e-16 | −0.2321 | −0.3469 |
+
+**Headline:** MetricGAN+ pretrained **worsened** ASR on this dev-clean degraded
+benchmark. Macro Word Accuracy dropped from 0.8213 (degraded) to 0.5892 (enhanced).
+Tier classification: **`null_or_negative`**.
+
+**Non-actions:**
+
+- No enhancement run.
+- No other Slurm jobs submitted.
+- `docs/model_card.md` not modified (deferred to T4.3).
+- `stash@{0}` untouched.
+
+Prep commit: `1baa80b`. Wall-time bump commit: `8a40b4f`. Result commit: `PENDING_RESULT_COMMIT`. Report committed at `reports/training/metricgan_plus_wer.md`.
+
 ## Next task
 
-T4.2d — Whisper evaluation on the enhanced manifest. Run `openai-whisper base.en` on all
-13 465 enhanced WAVs from `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1_enhanced_metricgan_plus_pretrained.jsonl`,
-compute per-record WER and Word Accuracy via `libs.audio.metrics`, aggregate per-family
-(5 families × 2693 records) and compute the macro headline, and compare to the T3.2
-degraded baseline (`reports/training/baseline_degraded_wer.md`). T4.2 closes only after
-T4.2d completes and the per-family enhancement delta is recorded. **Pending authorization.**
+T4.3 — update `docs/model_card.md` with the MetricGAN+ pretrained evaluation summary
+(per-family + macro + tier from `reports/training/metricgan_plus_wer.md`) and activate
+the B6.5 RP5 validation request. T4.3 is **pending authorization**.
