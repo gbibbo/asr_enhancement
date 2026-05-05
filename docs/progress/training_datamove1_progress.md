@@ -2,10 +2,10 @@
 
 Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
-Current cut: T4
-Current phase: Phase 4
-Current task: Task T4.3
-Last completed task: T4.2
+Current cut: T3
+Current phase: Phase 5
+Current task: Task T5.2
+Last completed task: T5.1
 Blocked: false
 Blocker: none
 
@@ -29,6 +29,7 @@ Blocker: none
 - T3.2a: degradation bank `degradation_v1` built. `libs/audio/degradations.py` defines five frozen families (`far_field_room`, `cafe_background`, `phone_call`, `muffled`, `broadband_hiss`); `apply_degradation` enforces length contract (output_samples == input_samples), finiteness, and peak ≤ 0.95; per-(utterance, family) seed via SHA-256. `DEGRADATION_VERSION = "degradation_v1"` set in `libs/common/versions.py`. Generation script writes to per-job staging tree, validates (manifest counts, source SHA, reserved-ID absence, format, length, deterministic recomputation of 50 entries) before atomic `os.replace` promotion to final tree. Smoke: job `2125896`, COMPLETED 0:0, 5 s elapsed, 50 files, 0 failures. Full: job `2125897`, COMPLETED 0:0, 02:59 elapsed, MaxRSS 3097852K, 2693 × 5 = 13 465 files, 0 failures. Per-family counts 2693 each. Source manifest SHA-256 unchanged (`dc6674bcf7a8…`). Final degraded manifest SHA-256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c`. Audio format WAV PCM_16, 16 kHz mono. Final audio root `$TRAIN_ROOT/datasets/degraded/degradation_v1`; final degraded manifest `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` (not committed). Reserved demo IDs absent from degraded manifest. `file_sha256.tsv` (13 465 lines) and `generation_summary.json` under run root, not committed. Summary committed at `reports/training/degradation_bank_v1.md`; model card `DEGRADATION_VERSION` placeholders replaced with `degradation_v1`. T3.2 unblocked.
 - T3.2: degraded-audio Whisper baseline complete. Smoke: job `2126085`, 25 records (5 × 5 families), 0 failures, COMPLETED 0:0. Full: job `2126086`, COMPLETED 0:0, elapsed 04:54:54, MaxRSS 3.58 GB, 13 465/13 465 records, 0 failures. Per-family results (mean WER / mean WA): broadband_hiss 0.1271/0.8742, cafe_background 0.1632/0.8390, far_field_room 0.1659/0.8356, muffled 0.3863/0.6361, phone_call 0.0789/0.9217. Overall macro: mean WER 0.1843, mean WA 0.8213 (Δ vs T3.1 clean: +0.1198 / -0.1148). macro == record_micro (abs diff 3.28e-15). Source manifest SHAs unchanged. Reserved demo IDs absent from manifest and predictions. Dataset version `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`, degradation_version `degradation_v1`, metrics_version `metrics_v1`. Summary committed at `reports/training/baseline_degraded_wer.md`; model card degraded baseline section filled. current_task → T3.3.
 - T3.3: baseline summary report produced. `reports/training/baseline_summary.md` consolidates T3.1 clean baseline and T3.2 degraded baseline into one comparison view. No Slurm jobs run; no scripts modified. Cut T3 gate complete. current_task → T4.1. Result commit: 5baf32c.
+- T5.1: dry-run training config created at `configs/training/dry_run.yaml`. Documentation/config-only; no Slurm job submitted; no training, Whisper, or enhancement run. Config is deterministic (`seed: 1234`, `deterministic: true`, `torch_deterministic: true`, `cuda_deterministic: true`); `training.steps: 100`; `enhancer_version: null` (pending T8.1). Versions match the live repo state: `dataset_version` `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` (matches `configs/training/dataset_version.yaml`), `metrics_version` `metrics_v1` (matches `libs.common.versions.METRICS_VERSION`), `degradation_version` `degradation_v1` (matches `libs.common.versions.DEGRADATION_VERSION`); `degradation_freeze_status: datamove1_pinned_degradation_v1` (no claim of demo-branch B7 completion). Manifests are the filtered ones: clean `librispeech_manifest_v1_filtered.jsonl` SHA-256 `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` (2693 records) and degraded `librispeech_manifest_v1_filtered_degraded_v1.jsonl` SHA-256 `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c` (13 465 records); `excluded_ids_source: configs/training/reserved_public_demo_examples.yaml`. All output paths are under `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/` (outside the repository). MetricGAN+ pretrained appears **only** under `prior_baselines` (tier `null_or_negative`, `deployment_decision: not_selected`); `model.architecture` is `placeholder_for_t5_2_or_later` and `model.notes` explicitly forbids selecting MetricGAN+ as the trainable enhancer. `docs/model_card.md` not modified; `libs/common/versions.py` not modified; `configs/training/dataset_version.yaml`, `configs/training/public_examples_excluded.yaml`, `configs/training/reserved_public_demo_examples.yaml` not modified; baseline reports and `reports/training/metricgan_plus_wer.md` not modified. `stash@{0}` untouched. Config sha256 `3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379`. Result commit: PENDING_RESULT_COMMIT.
 - T4.2 (closed via T4.2d): MetricGAN+ pretrained Whisper evaluation complete. Smoke job `2127690` (COMPLETED 0:0, 02:04 elapsed, 25/25 records, 0 failures). Full job `2127693` (COMPLETED 0:0, 06:47:48 elapsed, MaxRSS 908608K, aisurrey05, 13 465/13 465 records, 0 failures). Per-family enhanced (mean WER / mean WA): broadband_hiss 0.2666/0.7390, cafe_background 0.4716/0.5401, far_field_room 0.5920/0.4264, muffled 0.6657/0.3978, phone_call 0.1592/0.8429. Macro: WER 0.4310, WA 0.5892 (Δ vs T3.2 degraded: WER +0.2467 / WA −0.2321; Δ vs T3.1 clean: WER +0.3665 / WA −0.3469). macro == record_micro (abs diff ≤ 4.44e-16). MetricGAN+ pretrained **worsened** ASR on this benchmark; tier `null_or_negative`. Manifest SHAs unchanged; reserved demo IDs absent from manifest and predictions. Enhanced manifest SHA `544d6fa5…79c9`; degraded source SHA `c6f8745…0bbb7c`; enhancer_version `metricgan_plus_pretrained`; enhancement_version `enhancement_v1`; metrics_version `metrics_v1`; whisper `base.en` (`20250625`). Summary committed at `reports/training/metricgan_plus_wer.md`. `docs/model_card.md` not modified — deferred to T4.3. current_task → T4.3. Result commit: 8baa2ccc7798a54162b0c5659154864f316fb144.
 
 ## Current blocker
@@ -894,8 +895,100 @@ Result commit: `b6ecd71c02ce577cf9e4c1d80b7f1b1bec6c5048` (hash backfilled
 in the immediately following commit on this branch; see
 `docs(training): backfill T4.3 result_commit hash`).
 
+## T5.1 closure evidence (2026-05-05)
+
+T5.1 is documentation/config-only. It introduces a single new file —
+`configs/training/dry_run.yaml` — and updates the two training trackers.
+No Slurm job was submitted; no training, Whisper, enhancement, or RP5
+work was run.
+
+Files modified:
+
+- `configs/training/dry_run.yaml` (new)
+- `docs/progress/training_datamove1_progress.md` (this file)
+- `docs/progress/training_datamove1_progress.yaml`
+
+Local validation:
+
+| Check | Result |
+|---|---|
+| `python3 -c "import yaml; yaml.safe_load(open('configs/training/dry_run.yaml'))"` | pass |
+| `python3 -c "import yaml; yaml.safe_load(open('docs/progress/training_datamove1_progress.yaml'))"` | pass |
+| `dry_run.yaml.dataset_version == configs/training/dataset_version.yaml::dataset_version` | pass (`librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8`) |
+| `dry_run.yaml.metrics_version == libs.common.versions.METRICS_VERSION` | pass (`metrics_v1`) |
+| `dry_run.yaml.degradation_version == libs.common.versions.DEGRADATION_VERSION` | pass (`degradation_v1`) |
+| `dry_run.yaml.manifests.clean_filtered_manifest_sha256 == configs/training/dataset_version.yaml::manifest.sha256` | pass (`dc6674bcf7a8…`) |
+| `dry_run.yaml.manifests.degraded_manifest_sha256 == T3.2a/T4.2 evidence` | pass (`c6f87452f146…`) |
+| `dry_run.yaml.training.steps == 100` | pass |
+| `dry_run.yaml.enhancer_version is null` | pass |
+| `dry_run.yaml.paths.artifact_root` is outside the repo | pass (`/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs`) |
+| `excluded_ids_source == configs/training/reserved_public_demo_examples.yaml` | pass |
+| Clean manifest is the filtered one | pass |
+| Degraded manifest is the filtered+degraded one | pass |
+| MetricGAN+ tier preserved (`null_or_negative`) | pass |
+| MetricGAN+ deployment_decision preserved (`not_selected`) | pass |
+
+Determinism: `seed: 1234`, `deterministic: true`, `torch_deterministic: true`,
+`cuda_deterministic: true`.
+
+Versioning embedded in `dry_run.yaml`:
+
+| Field | Value |
+|---|---|
+| dataset_version | `librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8` |
+| degradation_version | `degradation_v1` |
+| degradation_freeze_status | `datamove1_pinned_degradation_v1` |
+| metrics_version | `metrics_v1` |
+| enhancer_version | `null` |
+| enhancement_version | `null` |
+| config_schema_version | `"1"` |
+| config sha256 | `3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379` |
+
+Manifests referenced:
+
+| Manifest | Path | SHA-256 | Records |
+|---|---|---|---|
+| Clean filtered | `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered.jsonl` | `dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b` | 2693 |
+| Degraded | `$TRAIN_ROOT/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl` | `c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c` | 13465 |
+
+Reserved demo IDs source: `configs/training/reserved_public_demo_examples.yaml`
+(`reserved_demo_ids_must_be_absent: true`).
+
+MetricGAN+ pretrained role in this config: `prior_baselines` only,
+tier `null_or_negative`, `deployment_decision: not_selected`. The
+`model.architecture` field is `placeholder_for_t5_2_or_later` and
+`model.notes` explicitly forbids selecting MetricGAN+ as the trainable
+enhancer.
+
+Output paths (all under `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/`):
+
+- `paths.artifact_root` → `…/runs`
+- `paths.run_dir_template` → `{artifact_root}/t5_3_dry_run_{slurm_job_id}`
+- `paths.log_dir` → `…/logs`
+- `paths.cache_root` → `…/cache`
+
+Files **not** modified:
+
+- `docs/model_card.md`
+- `libs/common/versions.py`
+- `libs/audio/*` (`degradations.py`, `metrics.py`, `enhancement.py`)
+- `configs/training/dataset_version.yaml`
+- `configs/training/public_examples_excluded.yaml`
+- `configs/training/reserved_public_demo_examples.yaml`
+- `configs/training/librispeech_sources.yaml`
+- `reports/training/*` (baseline reports, `metricgan_plus_wer.md`,
+  `metricgan_pretrained_summary.md`)
+- any script under `scripts/`
+- any Slurm job under `slurm/jobs/` or `slurm/templates/`
+- demo / RP files; demo trackers
+
+Stash status: `stash@{0}: WIP unrelated demo/B6.5.1 changes before T3.2 result commit` — preserved untouched.
+
+Result commit: `PENDING_RESULT_COMMIT` (will be backfilled by a
+follow-up commit `T5.1: backfill dry-run config result_commit hash`).
+
 ## Next task
 
-T5.1 — Create dry-run training config (`configs/training/dry_run.yaml`)
-per `docs/plans/training_datamove1_plan.md` §15. T5.1 is **not started**;
+T5.2 — Implement dry-run training script (`scripts/training/train_enhancer.py`)
+per `docs/plans/training_datamove1_plan.md` §15. T5.2 is **not started**;
 implementation requires explicit authorization.

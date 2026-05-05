@@ -1,0 +1,153 @@
+# T5.1 — dry-run training config
+# Purpose: declare the deterministic configuration for the Phase 5 dry-run.
+# This file does NOT trigger training. T5.2 implements the script. T5.3 submits the Slurm job.
+# Source-of-truth for execution rules: docs/plans/training_datamove1_plan.md §15.
+
+config_name: dry_run_v1
+config_purpose: pipeline_smoke_test_only
+status: ready_for_t5_2
+config_schema_version: "1"
+generated_by: T5.1 (training_datamove1_plan.md §15)
+
+# --- Versioning (must match libs/common/versions.py and configs/training/dataset_version.yaml) ---
+dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+degradation_version: degradation_v1
+degradation_freeze_status: datamove1_pinned_degradation_v1
+degradation_freeze_evidence:
+  - libs/common/versions.py
+  - reports/training/baseline_degraded_wer.md
+  - reports/training/metricgan_plus_wer.md
+metrics_version: metrics_v1
+enhancer_version: null              # set at T8.1 export
+enhancement_version: null           # not applicable to dry-run
+
+# --- Determinism ---
+seed: 1234
+deterministic: true
+torch_deterministic: true
+cuda_deterministic: true
+
+# --- Compute target (smallest safe defaults; T5.3 may override resources) ---
+hardware:
+  target: cpu_first
+  device: cpu
+  num_workers: 0
+  pin_memory: false
+  precision: float32
+  gpu_optional: true
+
+# --- Manifests (filtered, public-demo-excluded) ---
+manifests:
+  clean_filtered_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered.jsonl
+  clean_filtered_manifest_sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  clean_filtered_manifest_records: 2693
+  degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl
+  degraded_manifest_sha256: c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c
+  degraded_manifest_records: 13465
+  excluded_ids_source: configs/training/reserved_public_demo_examples.yaml
+  reserved_demo_ids_must_be_absent: true
+
+# --- Dry-run sampling (small subset only) ---
+dry_run_sampling:
+  train_records: 50
+  val_records: 25
+  per_family_val_cap: 5
+  shuffle_seed: 1234
+
+# --- Training schedule (smallest safe; gate is artifact contract, not convergence) ---
+training:
+  steps: 100
+  batch_size: 2
+  grad_accum_steps: 1
+  optimizer: adam
+  learning_rate: 1.0e-4
+  warmup_steps: 0
+  loss: l1            # placeholder; finalised when an enhancer architecture is selected
+  log_every_steps: 10
+  val_every_steps: 50
+  save_every_steps: 100
+  max_wall_minutes: 30
+
+# --- Model placeholder ---
+# Plan §15: smallest safe dry-run settings; architecture is a placeholder for T5.2.
+# MetricGAN+ pretrained is NOT selected for deployment (tier null_or_negative;
+# see reports/training/metricgan_plus_wer.md). Do not pick MetricGAN+ as the
+# trainable enhancer.
+model:
+  architecture: placeholder_for_t5_2_or_later
+  notes: "T5.1 is config-only. The architecture and parameter count are filled by T5.2 when the enhancer code path is implemented. MetricGAN+ pretrained must not be selected as the trainable enhancer; it is documented as a negative pretrained baseline only."
+
+# --- Reference ASR for validation (training plan §16, openai-whisper) ---
+asr:
+  framework: openai-whisper
+  model: base.en
+  whisper_version: "20250625"
+  decode_options:
+    language: en
+    task: transcribe
+    beam_size: 1
+    temperature: 0.0
+
+# --- Output paths (all OUTSIDE the repository, under ASR_TRAINING_ROOT) ---
+paths:
+  artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs
+  run_dir_template: "{artifact_root}/t5_3_dry_run_{slurm_job_id}"
+  config_snapshot: "{run_dir}/config.yaml"
+  metrics_csv: "{run_dir}/metrics.csv"
+  wer_by_degradation_csv: "{run_dir}/wer_by_degradation.csv"
+  loss_curve_png: "{run_dir}/loss_curve.png"
+  val_wer_curve_png: "{run_dir}/val_wer_curve.png"
+  run_summary_md: "{run_dir}/run_summary.md"
+  log_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs
+  cache_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache
+
+# --- Required artifact contract (the dry-run is "done" when all of these are produced) ---
+required_artifacts:
+  - config.yaml
+  - metrics.csv
+  - wer_by_degradation.csv
+  - loss_curve.png
+  - val_wer_curve.png
+  - run_summary.md
+
+# --- Reproducibility metadata to be written by T5.2 into run_summary.md ---
+record_in_run_summary:
+  - run_id
+  - git_commit
+  - branch
+  - config_path
+  - dataset_version
+  - degradation_version
+  - metrics_version
+  - enhancer_version
+  - slurm_job_id
+  - output_path
+  - summary_metrics
+  - known_failures
+
+# --- Scope guards (assertions enforced by T5.2 at startup) ---
+guards:
+  refuse_if_artifact_root_inside_repo: true
+  refuse_if_reserved_demo_id_present: true
+  refuse_if_dataset_version_mismatch_libs_common: true
+  refuse_if_degradation_version_mismatch_libs_common: true
+  refuse_if_metrics_version_mismatch_libs_common: true
+  refuse_if_steps_gt: 200
+  refuse_if_run_dir_writable_inside_repo: true
+
+# --- Prior baselines (read-only context; not consumed by training) ---
+prior_baselines:
+  t3_1_clean:
+    mean_per_record_wer: 0.0645
+    mean_per_record_word_accuracy: 0.9361
+    report: reports/training/baseline_clean_wer.md
+  t3_2_degraded_macro:
+    mean_per_record_wer: 0.1843
+    mean_per_record_word_accuracy: 0.8213
+    report: reports/training/baseline_degraded_wer.md
+  t4_2_metricgan_plus_pretrained_macro:
+    tier: null_or_negative
+    mean_per_record_wer: 0.4310
+    mean_per_record_word_accuracy: 0.5892
+    report: reports/training/metricgan_plus_wer.md
+    deployment_decision: not_selected

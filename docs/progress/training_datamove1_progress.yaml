@@ -1,9 +1,9 @@
 branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
-current_phase: 3
-current_task: "T5.1"
-last_completed_task: "T4.3"
+current_phase: 5
+current_task: "T5.2"
+last_completed_task: "T5.1"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -946,6 +946,72 @@ t4_3_evidence:
     stash_untouched: true
     codex_directory_staged: false
   result_commit: "b6ecd71c02ce577cf9e4c1d80b7f1b1bec6c5048"
+t5_1_evidence:
+  scope: "documentation/config only"
+  config_path: configs/training/dry_run.yaml
+  config_sha256: "3b6773f67182786c082281904f9ab290b0456498e9ad19347e11a540a7185379"
+  config_size_bytes: 5696
+  dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+  degradation_version: degradation_v1
+  degradation_freeze_status: datamove1_pinned_degradation_v1
+  metrics_version: metrics_v1
+  enhancer_version: null
+  enhancement_version: null
+  steps: 100
+  seed: 1234
+  deterministic: true
+  clean_filtered_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered.jsonl
+  clean_filtered_manifest_sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl
+  degraded_manifest_sha256: c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c
+  reserved_demo_ids_source: configs/training/reserved_public_demo_examples.yaml
+  artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs
+  artifact_root_outside_repo: true
+  metricgan_plus_role_in_config: prior_baseline_only_not_selected
+  validation_checks:
+    yaml_safe_load_dry_run: pass
+    yaml_safe_load_progress_yaml: pass
+    dataset_version_matches_dataset_version_yaml: pass
+    metrics_version_matches_libs_common: pass
+    degradation_version_matches_libs_common: pass
+    clean_manifest_sha_matches_dataset_version_yaml: pass
+    degraded_manifest_sha_matches_t3_2a_evidence: pass
+    enhancer_version_is_null: pass
+    steps_equals_100: pass
+    artifact_root_outside_repo: pass
+    reserved_demo_examples_referenced: pass
+    clean_manifest_is_filtered: pass
+    degraded_manifest_is_filtered_degraded: pass
+  slurm_jobs: none
+  training_run: false
+  whisper_run: false
+  enhancement_run: false
+  fine_tuning_run: false
+  rp5_run: false
+  scripts_modified: false
+  slurm_scripts_modified: false
+  manifests_modified: false
+  baseline_reports_modified: false
+  metricgan_plus_wer_md_modified: false
+  model_card_modified: false
+  libs_common_versions_modified: false
+  configs_dataset_version_yaml_modified: false
+  configs_public_examples_excluded_yaml_modified: false
+  configs_reserved_public_demo_examples_yaml_modified: false
+  demo_files_modified: false
+  rp_files_modified: false
+  demo_trackers_modified: false
+  enhanced_audio_modified: false
+  run_artifacts_modified: false
+  stash_untouched: true
+  codex_directory_staged: false
+  trackers_advanced_after_content_written: true
+  current_task_after: "T5.2"
+  last_completed_task_after: "T5.1"
+  t5_2_started: false
+  blocked: false
+  blocker: null
+  result_commit: PENDING_RESULT_COMMIT
 tasks:
   "T0.1": done
   "T0.2": done
@@ -968,7 +1034,7 @@ tasks:
   "T4.1": done
   "T4.2": done
   "T4.3": done
-  "T5.1": pending
+  "T5.1": done
   "T5.2": pending
   "T5.3": pending
   "T6.1": pending
