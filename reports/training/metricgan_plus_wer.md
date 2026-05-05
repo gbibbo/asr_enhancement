@@ -27,7 +27,7 @@ family. Tier classification: **`null_or_negative`**.
 | MaxRSS (batch) | `908608K` (~887 MB) |
 | Execution node | `aisurrey05` |
 | Code commit at run | `8a40b4fc840127801b5255d6d230841a7b06f3ae` |
-| Result commit | `PENDING_RESULT_COMMIT` |
+| Result commit | `8baa2ccc7798a54162b0c5659154864f316fb144` |
 | Date (UTC) | `2026-05-04T23:55:47.996392Z` |
 | Whisper model | `base.en` (openai-whisper `20250625`) |
 | Metrics version | `metrics_v1` |

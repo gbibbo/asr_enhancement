@@ -875,7 +875,7 @@ t4_2_evidence:
       model_card_modified: false
     next_gate: T4.3
     next_gate_description: "Update docs/model_card.md with MetricGAN+ pretrained evaluation summary and activate B6.5 RP5 validation request"
-    result_commit: "PENDING_RESULT_COMMIT"
+    result_commit: "8baa2ccc7798a54162b0c5659154864f316fb144"
 tasks:
   "T0.1": done
   "T0.2": done
