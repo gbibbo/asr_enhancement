@@ -1099,7 +1099,7 @@ t5_2_evidence:
   t5_3_started: false
   blocked: false
   blocker: null
-  result_commit: "PENDING_RESULT_COMMIT"
+  result_commit: "b682f7260685861e757c860adfe7892be398f91b"
 tasks:
   "T0.1": done
   "T0.2": done
