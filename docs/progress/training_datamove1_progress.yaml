@@ -1011,7 +1011,7 @@ t5_1_evidence:
   t5_2_started: false
   blocked: false
   blocker: null
-  result_commit: PENDING_RESULT_COMMIT
+  result_commit: "c02234cf4388158a0f4f17dcd006b90d438f36bc"
 tasks:
   "T0.1": done
   "T0.2": done
