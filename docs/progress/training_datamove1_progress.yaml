@@ -1106,7 +1106,7 @@ t5_3_evidence:
   prep_commit_subject: "T5.3 prep: add Slurm dry-run job script"
   fix_commit: "fed825a8d982d5b82f2a69e5bd03d5e6d9c5a0e4"
   fix_commit_subject: "T5.3: fix dry-run runtime git metadata capture"
-  result_commit: "PENDING_RESULT_COMMIT"
+  result_commit: "abca15d9b13bf1ae7023db780058d4d603a87133"
   diagnostic_run:
     job_id: "2128437"
     status: failed_gate_metadata_only
