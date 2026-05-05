@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 6
-current_task: "T6.1"
-last_completed_task: "T5.3"
+current_task: "T6.2"
+last_completed_task: "T6.1"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -1230,6 +1230,74 @@ t5_3_evidence:
   last_completed_task_after: "T5.3"
   blocked: false
   blocker: null
+t6_1_evidence:
+  scope: "Phase 6 full training config (training_datamove1_plan.md §16). Config-only task: no Slurm submitted, no training, no Whisper, no enhancement."
+  config_path: configs/training/full_training.yaml
+  config_sha256: f2afba26fc0449e2d822f65dc8128369f9302f7b419f5c2c6a8e2c44f83fedea
+  schema_reused_from: configs/training/dry_run.yaml
+  validate_only_command: "python3 scripts/training/train_enhancer.py --config configs/training/full_training.yaml --validate-only"
+  validate_only_exit_code: 0
+  validate_only_stdout: "OK: guards passed (train=2693 val=13465 families=5 clean_sha_ok=True degraded_sha_ok=True)"
+  dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+  degradation_version: degradation_v1
+  metrics_version: metrics_v1
+  clean_filtered_manifest_sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  degraded_manifest_sha256: c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c
+  excluded_ids_source: configs/training/reserved_public_demo_examples.yaml
+  reserved_demo_ids_must_be_absent: true
+  model_architecture: placeholder_for_t6_2_or_later
+  enhancer_version: null
+  metricgan_plus_role: prior_negative_baseline_only
+  metricgan_plus_tier: null_or_negative
+  metricgan_plus_deployment_decision: not_selected
+  training_schedule:
+    steps: 20000
+    batch_size: 8
+    val_every_steps: 1000
+    save_every_steps: 2500
+    max_wall_minutes: 720
+  hardware:
+    target: gpu_preferred
+    gpu_optional: true
+    cpu_fallback: true
+  guards:
+    refuse_if_artifact_root_inside_repo: true
+    refuse_if_reserved_demo_id_present: true
+    refuse_if_dataset_version_mismatch_libs_common: true
+    refuse_if_degradation_version_mismatch_libs_common: true
+    refuse_if_metrics_version_mismatch_libs_common: true
+    refuse_if_steps_gt: 100000
+    refuse_if_run_dir_writable_inside_repo: true
+  output_paths_outside_repo: true
+  artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs
+  run_dir_template: "{artifact_root}/t6_2_full_training_{slurm_job_id}"
+  t6_2_prerequisites:
+    - "model architecture not selected"
+    - "train-clean-100 present_empty"
+    - "train_enhancer.py requires architecture loader extension before full training"
+  slurm_jobs: none
+  training_run: false
+  whisper_run: false
+  enhancement_run: false
+  model_card_modified: false
+  scripts_modified: false
+  libs_audio_modified: false
+  libs_common_versions_modified: false
+  configs_dry_run_yaml_modified: false
+  reports_modified: false
+  tests_modified: false
+  slurm_jobs_modified: false
+  demo_files_modified: false
+  rp_files_modified: false
+  demo_trackers_modified: false
+  codex_directory_staged: false
+  stash_untouched: true
+  current_task_after: "T6.2"
+  last_completed_task_after: "T6.1"
+  t6_2_started: false
+  blocked: false
+  blocker: null
+  result_commit: PENDING_RESULT_COMMIT
 tasks:
   "T0.1": done
   "T0.2": done
@@ -1255,7 +1323,7 @@ tasks:
   "T5.1": done
   "T5.2": done
   "T5.3": done
-  "T6.1": pending
+  "T6.1": done
   "T6.2": pending
   "T6.3": pending
   "T7.1": pending

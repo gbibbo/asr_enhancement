@@ -1,0 +1,178 @@
+# T6.1 — full training config
+# Purpose: declare the deterministic configuration for the Phase 6 first full
+# training run. This file does NOT trigger training. T6.2 submits the Slurm
+# job. T6.3 generates the summary.
+# Source-of-truth: docs/plans/training_datamove1_plan.md §16.
+# Schema mirrors configs/training/dry_run.yaml so the existing validator in
+# scripts/training/train_enhancer.py (--validate-only) accepts it without script
+# changes.
+
+config_name: full_training_v1
+config_purpose: first_full_training_run
+status: ready_for_t6_2
+config_schema_version: "1"
+generated_by: T6.1 (training_datamove1_plan.md §16)
+
+# --- Versioning (must match libs/common/versions.py and configs/training/dataset_version.yaml) ---
+dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+degradation_version: degradation_v1
+degradation_freeze_status: datamove1_pinned_degradation_v1
+degradation_freeze_evidence:
+  - libs/common/versions.py
+  - reports/training/baseline_degraded_wer.md
+  - reports/training/metricgan_plus_wer.md
+metrics_version: metrics_v1
+enhancer_version: null              # set at T8.1 export
+enhancement_version: null
+
+# --- Determinism ---
+seed: 1234
+deterministic: true
+torch_deterministic: true
+cuda_deterministic: true
+
+# --- Compute target (conservative first full training; GPU preferred) ---
+hardware:
+  target: gpu_preferred
+  device: cuda
+  cpu_fallback: true                # plan §16 decision rule for missing GPU
+  num_workers: 2
+  pin_memory: true
+  precision: float32
+  gpu_optional: true
+
+# --- Manifests (filtered, public-demo-excluded) ---
+manifests:
+  clean_filtered_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered.jsonl
+  clean_filtered_manifest_sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  clean_filtered_manifest_records: 2693
+  degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl
+  degraded_manifest_sha256: c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c
+  degraded_manifest_records: 13465
+  excluded_ids_source: configs/training/reserved_public_demo_examples.yaml
+  reserved_demo_ids_must_be_absent: true
+
+# --- Schema-required `dry_run_sampling` block. Full training does NOT subsample;
+# the values below intentionally cover the full filtered manifests so the
+# train_enhancer.py validator's deterministic subset checks pass with the entire
+# dataset. The values are NOT a sampling instruction for T6.2 — full training in
+# T6.2 must consume the complete clean and degraded manifests. ---
+dry_run_sampling:
+  train_records: 2693               # full filtered clean manifest
+  val_records: 13465                # full degraded manifest (5 families × 2693)
+  per_family_val_cap: 2693          # use all degraded records per family
+  shuffle_seed: 1234
+
+# --- Training schedule (conservative GPU target; plan §16) ---
+training:
+  steps: 20000
+  batch_size: 8
+  grad_accum_steps: 1
+  optimizer: adam
+  learning_rate: 1.0e-4
+  warmup_steps: 500
+  loss: l1                          # placeholder; finalised when enhancer architecture is selected
+  log_every_steps: 100
+  val_every_steps: 1000
+  save_every_steps: 2500
+  max_wall_minutes: 720             # 12h ceiling
+
+# --- Model placeholder. Architecture selection deferred to T6.2. ---
+model:
+  architecture: placeholder_for_t6_2_or_later
+  notes: "T6.1 is config-only. The actual enhancer architecture and parameter count are filled by T6.2 once the enhancer code path is implemented in scripts/training/train_enhancer.py. MetricGAN+ pretrained must NOT be selected as the trainable enhancer (tier null_or_negative; see reports/training/metricgan_plus_wer.md). T6.2 must also resolve the train-clean-100 'present_empty' status before submitting full training."
+
+# --- Reference ASR for validation (plan §16; openai-whisper) ---
+asr:
+  framework: openai-whisper
+  model: base.en
+  whisper_version: "20250625"
+  decode_options:
+    language: en
+    task: transcribe
+    beam_size: 1
+    temperature: 0.0
+
+# --- Output paths (all OUTSIDE the repository, under ASR_TRAINING_ROOT) ---
+paths:
+  artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs
+  run_dir_template: "{artifact_root}/t6_2_full_training_{slurm_job_id}"
+  config_snapshot: "{run_dir}/config.yaml"
+  metrics_csv: "{run_dir}/metrics.csv"
+  wer_by_degradation_csv: "{run_dir}/wer_by_degradation.csv"
+  loss_curve_png: "{run_dir}/loss_curve.png"
+  val_wer_curve_png: "{run_dir}/val_wer_curve.png"
+  run_summary_md: "{run_dir}/run_summary.md"
+  checkpoints_dir: "{run_dir}/checkpoints"
+  log_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs
+  cache_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache
+
+# --- Required artifact contract (the full-training run is "done" when all of these are produced) ---
+required_artifacts:
+  - config.yaml
+  - metrics.csv
+  - wer_by_degradation.csv
+  - loss_curve.png
+  - val_wer_curve.png
+  - run_summary.md
+  - checkpoints/
+
+# --- Reproducibility metadata to be written by T6.2 into run_summary.md ---
+record_in_run_summary:
+  - run_id
+  - git_commit
+  - branch
+  - config_path
+  - dataset_version
+  - degradation_version
+  - metrics_version
+  - enhancer_version
+  - slurm_job_id
+  - output_path
+  - summary_metrics
+  - known_failures
+
+# --- Scope guards (assertions enforced by train_enhancer.py at startup) ---
+guards:
+  refuse_if_artifact_root_inside_repo: true
+  refuse_if_reserved_demo_id_present: true
+  refuse_if_dataset_version_mismatch_libs_common: true
+  refuse_if_degradation_version_mismatch_libs_common: true
+  refuse_if_metrics_version_mismatch_libs_common: true
+  refuse_if_steps_gt: 100000
+  refuse_if_run_dir_writable_inside_repo: true
+
+# --- Checkpoint policy (T7 selection rule; plan §17) ---
+checkpoint_policy:
+  save_every_steps: 2500
+  keep_last_n: 5
+  selection_primary_metric: average_word_accuracy_over_official_degradations
+  tiebreaker_1: best_worst_case_degradation
+  tiebreaker_2: most_recent_checkpoint
+  selection_owner_task: T7.1
+
+# --- Validation policy ---
+validation_policy:
+  val_every_steps: 1000
+  per_family_records_cap: 2693      # full validation set per family
+  metric: word_accuracy
+  reference_asr: openai-whisper.base.en
+
+# --- Prior baselines (read-only context; not consumed by training). MetricGAN+
+# appears here ONLY as a prior negative baseline; deployment_decision is
+# not_selected, tier is null_or_negative. ---
+prior_baselines:
+  t3_1_clean:
+    mean_per_record_wer: 0.0645
+    mean_per_record_word_accuracy: 0.9361
+    report: reports/training/baseline_clean_wer.md
+  t3_2_degraded_macro:
+    mean_per_record_wer: 0.1843
+    mean_per_record_word_accuracy: 0.8213
+    report: reports/training/baseline_degraded_wer.md
+  t4_2_metricgan_plus_pretrained_macro:
+    tier: null_or_negative
+    mean_per_record_wer: 0.4310
+    mean_per_record_word_accuracy: 0.5892
+    report: reports/training/metricgan_plus_wer.md
+    deployment_decision: not_selected
