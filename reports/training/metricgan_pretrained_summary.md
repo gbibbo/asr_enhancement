@@ -88,7 +88,7 @@ Observed Δ macro Word Accuracy: **−0.2321** → **`null_or_negative`**.
 | T4.2d full Elapsed                  | `06:47:48` |
 | T4.2 result commit                  | `8baa2ccc7798a54162b0c5659154864f316fb144` |
 | T4.2 backfill commit                | `fb763464f82728f6847a6a6693356eb12956f72a` |
-| T4.3 result commit                  | `PENDING_RESULT_COMMIT` |
+| T4.3 result commit                  | `b6ecd71c02ce577cf9e4c1d80b7f1b1bec6c5048` |
 | Reserved public examples (excluded) | 10, see [`configs/training/reserved_public_demo_examples.yaml`](../../configs/training/reserved_public_demo_examples.yaml) |
 | Canonical T4.2 evidence report      | [`reports/training/metricgan_plus_wer.md`](metricgan_plus_wer.md) |
 

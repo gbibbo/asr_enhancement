@@ -890,8 +890,9 @@ to 0.5892 (enhanced); tier `null_or_negative`.
 - `stash@{0}` untouched.
 - `.codex/` not staged.
 
-Result commit: `PENDING_RESULT_COMMIT` (backfilled in a follow-up commit:
-`PENDING_RESULT_COMMIT`).
+Result commit: `b6ecd71c02ce577cf9e4c1d80b7f1b1bec6c5048` (hash backfilled
+in the immediately following commit on this branch; see
+`docs(training): backfill T4.3 result_commit hash`).
 
 ## Next task
 

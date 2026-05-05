@@ -945,8 +945,7 @@ t4_3_evidence:
     metricgan_plus_wer_md_modified: false
     stash_untouched: true
     codex_directory_staged: false
-  result_commit: "PENDING_RESULT_COMMIT"
-  backfill_commit: "PENDING_RESULT_COMMIT"
+  result_commit: "b6ecd71c02ce577cf9e4c1d80b7f1b1bec6c5048"
 tasks:
   "T0.1": done
   "T0.2": done
