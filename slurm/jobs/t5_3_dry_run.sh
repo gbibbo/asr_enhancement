@@ -48,9 +48,11 @@ mkdir -p \
   "$CACHE_ROOT"
 
 # Capture git state in the shell before entering Apptainer (git is not in the
-# container). train_enhancer.py also re-reads HEAD itself, but recording it in
-# the log keeps the evidence self-contained.
+# container). train_enhancer.py reads GIT_COMMIT_AT_RUN / GIT_BRANCH_AT_RUN
+# from the environment first and falls back to its own `git` subprocess only
+# for local non-Slurm runs.
 GIT_COMMIT_AT_RUN=$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo "unknown")
+GIT_BRANCH_AT_RUN=$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 GIT_STATUS_SHORT_AT_RUN=$(git -C "$REPO" status --short 2>/dev/null || echo "")
 
 echo "=== T5.3 dry-run on Slurm ==="
@@ -64,6 +66,7 @@ echo "Cache root:           $CACHE_ROOT"
 echo "Slurm job id:         $JOBID"
 echo "Expected run dir:     $RUN_DIR"
 echo "Git commit at run:    $GIT_COMMIT_AT_RUN"
+echo "Git branch at run:    $GIT_BRANCH_AT_RUN"
 echo "Git status (short):   ${GIT_STATUS_SHORT_AT_RUN:-clean}"
 echo "============================="
 
@@ -79,6 +82,7 @@ apptainer exec \
   --env ASR_ARTIFACTS_ROOT="$TRAIN_ROOT/artifacts" \
   --env ASR_CACHE_ROOT="$CACHE_ROOT" \
   --env GIT_COMMIT_AT_RUN="$GIT_COMMIT_AT_RUN" \
+  --env GIT_BRANCH_AT_RUN="$GIT_BRANCH_AT_RUN" \
   --env GIT_STATUS_SHORT_AT_RUN="$GIT_STATUS_SHORT_AT_RUN" \
   "$CONTAINER" \
   python3 -s "$REPO/scripts/training/train_enhancer.py" \

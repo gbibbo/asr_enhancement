@@ -1,11 +1,15 @@
 """T5.2 — static tests for scripts/training/train_enhancer.py.
 
 These tests do not import torch, whisper, SpeechBrain, or enhancement code.
-They only invoke the script via subprocess in --validate-only mode and
-verify exit codes and output text. They do not create any run artifacts.
+They invoke the script via subprocess in --validate-only mode and verify
+exit codes and output text, plus a lightweight in-process check of the
+GIT_COMMIT_AT_RUN / GIT_BRANCH_AT_RUN env-var fallback added in T5.3 so
+that Slurm/Apptainer runs do not depend on `git` being installed inside
+the container. They do not create any run artifacts.
 """
 from __future__ import annotations
 
+import importlib
 import shutil
 import subprocess
 import sys
@@ -16,6 +20,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "scripts" / "training" / "train_enhancer.py"
 CONFIG = REPO_ROOT / "configs" / "training" / "dry_run.yaml"
+SCRIPT_DIR = REPO_ROOT / "scripts" / "training"
 
 
 def _run(cmd: list[str]) -> subprocess.CompletedProcess:
@@ -59,3 +64,56 @@ def test_tampered_steps_too_high_blocks(tmp_path: Path) -> None:
         # subdir was created from this test invocation.
         suspicious = [p for p in artifact_root.iterdir() if "VALIDATE_ONLY" in p.name]
         assert not suspicious, f"validate-only must not create run dirs: {suspicious}"
+
+
+def _import_train_enhancer():
+    """Import scripts/training/train_enhancer.py as a module without touching
+    torch / whisper / matplotlib (none are imported at module load time).
+    """
+    if str(SCRIPT_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPT_DIR))
+    if "train_enhancer" in sys.modules:
+        return importlib.reload(sys.modules["train_enhancer"])
+    return importlib.import_module("train_enhancer")
+
+
+def test_resolve_git_value_prefers_env_over_subprocess(monkeypatch) -> None:
+    """T5.3 fix: GIT_COMMIT_AT_RUN / GIT_BRANCH_AT_RUN env vars must be
+    preferred over the `git` subprocess. This is what allows the Slurm
+    Apptainer run to record real git metadata without `git` being
+    installed inside the container.
+    """
+    te = _import_train_enhancer()
+    monkeypatch.setenv("GIT_COMMIT_AT_RUN", "deadbeefcafe1234")
+    monkeypatch.setenv("GIT_BRANCH_AT_RUN", "feature/test-branch-name")
+    assert (
+        te._resolve_git_value("GIT_COMMIT_AT_RUN", "rev-parse", "HEAD")
+        == "deadbeefcafe1234"
+    )
+    assert (
+        te._resolve_git_value(
+            "GIT_BRANCH_AT_RUN", "rev-parse", "--abbrev-ref", "HEAD"
+        )
+        == "feature/test-branch-name"
+    )
+
+
+def test_resolve_git_value_empty_env_falls_through(monkeypatch) -> None:
+    """An empty env var must be treated as absent, not adopted as the value."""
+    te = _import_train_enhancer()
+    monkeypatch.setenv("GIT_COMMIT_AT_RUN", "")
+    val = te._resolve_git_value("GIT_COMMIT_AT_RUN", "rev-parse", "HEAD")
+    assert val != "", "empty env var must not be returned as the git value"
+
+
+def test_resolve_git_value_unknown_when_no_env_and_no_git(monkeypatch) -> None:
+    """If the env var is unset and `git` is not on PATH, the helper must
+    return the literal string 'unknown' (matching the in-container case
+    where git is missing). Verifies the failure mode is graceful, not a
+    crash.
+    """
+    te = _import_train_enhancer()
+    monkeypatch.delenv("GIT_COMMIT_AT_RUN", raising=False)
+    monkeypatch.setenv("PATH", "")
+    val = te._resolve_git_value("GIT_COMMIT_AT_RUN", "rev-parse", "HEAD")
+    assert val == "unknown", f"expected 'unknown' fallback, got {val!r}"

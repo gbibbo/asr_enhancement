@@ -118,6 +118,21 @@ def _git(*args: str) -> str:
         return "unknown"
 
 
+def _resolve_git_value(env_var: str, *git_args: str) -> str:
+    """Return the runtime git value, preferring an env var over `git` subprocess.
+
+    Slurm/Apptainer jobs must not rely on `git` being installed inside the
+    container. The driving Slurm script captures the git state on the
+    submitting host and exports it as `GIT_COMMIT_AT_RUN` /
+    `GIT_BRANCH_AT_RUN`; this helper reads those first and falls back to
+    `_git(...)` for local non-Slurm runs. Empty string is treated as "absent".
+    """
+    val = os.environ.get(env_var)
+    if val:
+        return val
+    return _git(*git_args)
+
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -810,8 +825,10 @@ def _run_dry_run(
     runtime_meta = {
         "run_id": run_id,
         "slurm_job_id": slurm_job_id,
-        "git_commit": _git("rev-parse", "HEAD"),
-        "branch": _git("rev-parse", "--abbrev-ref", "HEAD"),
+        "git_commit": _resolve_git_value("GIT_COMMIT_AT_RUN", "rev-parse", "HEAD"),
+        "branch": _resolve_git_value(
+            "GIT_BRANCH_AT_RUN", "rev-parse", "--abbrev-ref", "HEAD"
+        ),
         "config_path": str(config_path),
         "dataset_version": cfg.get("dataset_version"),
         "degradation_version": DEGRADATION_VERSION,
