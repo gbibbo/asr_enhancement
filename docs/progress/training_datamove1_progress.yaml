@@ -2647,7 +2647,7 @@ t8_1_evidence:
     blocker: null
     t8_1_closed: true
     next_gate: T8.2_model_card
-  result_commit: null
+  result_commit: "4deffa180bb14569c6cbe9ffb067d1c8e12238d6"
 tasks:
   "T0.1": done
   "T0.2": done

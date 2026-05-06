@@ -2085,9 +2085,9 @@ Not applied retroactively to T6.2 / T6.3 / T7.1 / T7.2 jobs.
 - `t8_1_closed: true`
 - `next_gate: T8.2_model_card`
 
-Result commit: hash backfilled in the immediately following commit
-on this branch (see `T8.1: backfill explicit-skip result_commit
-hash`).
+Result commit: `4deffa180bb14569c6cbe9ffb067d1c8e12238d6` (hash
+backfilled in the immediately following commit on this branch; see
+`T8.1: backfill explicit-skip result_commit hash`).
 
 ## Next task
 
