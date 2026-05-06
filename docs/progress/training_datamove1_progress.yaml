@@ -1754,7 +1754,7 @@ t6_2d_evidence:
   blocker: null
   t6_2_closed: false
   next_gate: T6.2_full_training_slurm_submission_per_user_decision
-  result_commit: ""
+  result_commit: "2aaa225e16b8e79e0caded5e7f5f6e092e10915a"
 tasks:
   "T0.1": done
   "T0.2": done
