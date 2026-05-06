@@ -2126,7 +2126,7 @@ t6_3a_smoke_evidence:
   t6_3a_smoke_closed: true
   t6_3_closed: false
   next_gate: T6.3b_full_post_hoc_whisper_evaluation
-  result_commit: ""
+  result_commit: "a726d57c73667b89d10ba47b99ae0b9499f8f054"
 tasks:
   "T0.1": done
   "T0.2": done
