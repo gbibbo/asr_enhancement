@@ -4,8 +4,8 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T3
 Current phase: Phase 6
-Current task: Task T7.1
-Last completed task: T6.3
+Current task: Task T8.2
+Last completed task: T8.1
 Blocked: false
 Blocker: none
 
@@ -41,6 +41,7 @@ Blocker: none
 - T6.3a (post-hoc Whisper smoke subgate; T6.3 remains open): the new `--eval-checkpoint` mode executed on real CUDA hardware for the first time via `slurm/jobs/t6_3_post_hoc_whisper_smoke.sh` against `configs/training/full_training.yaml`, loading the T6.2 `latest.pt` checkpoint (step 20 000) and transcribing 1 record per family with openai-whisper on CUDA (5 transcriptions total). Prep commit `45295895db15bde521d171eb8828618571275dcf`. Slurm `2129005` COMPLETED 0:0 in `00:00:18` on aisurrey26 in partition `a100`; AllocTRES `cpu=4,gres/gpu:nvidia_a100-sxm4-80gb=1,gres/gpu=1,mem=16G,node=1`; submit `2026-05-06T19:07:28`, dispatch `2026-05-06T19:41:29` (~34 min queue wait). Logs at `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_3_post_hoc_whisper_smoke_2129005.{out,err}`. Eval out dir: `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_3_post_hoc_whisper_smoke_2129005/`. Verify JSON at `.../artifacts/t6_3_post_hoc_whisper_smoke_verify_2129005.json` returns `validation_passed: true` with `errors=[]`. Eval artifacts present and non-empty: `wer_by_degradation.csv` (327 B, 5 family rows with `note=t6_3_post_hoc_whisper`), `per_record_predictions.jsonl` (1 285 B, 5 lines), `eval_metadata.json` (2 763 B), `run_summary.md` (1 575 B). Checkpoint evidence: `checkpoint_path` points to T6.2 `latest.pt`; `checkpoint_step=20000`, `checkpoint_model_architecture=spectral_unet_small_v1`, `checkpoint_parameter_count=403201`; T6.2 source checkpoint and T6.2 source run_dir unchanged (mtimes preserved). Evaluation scope: `eval_per_family_cap=1`, `total_expected_transcriptions=5`, `total_completed_transcriptions=5`, `temp_wavs_written=5`, `temp_dir_cleaned=true`, `val_enhanced_tmp_absent=true`, `missing_transcript_count=0`, `per_record_predictions_count=5` (line count match). Per-family WER/WA: broadband_hiss 0.200/0.800, cafe_background 0.200/0.800, far_field_room 0.300/0.700, muffled 0.400/0.600, phone_call 0.100/0.900. Macro WER 0.24 / macro WA 0.76; `all_wer_wa_finite=true`, `no_placeholder_notes=true`. Whisper/GPU evidence: `whisper_model=base.en`, `whisper_version=20250625`, `whisper_device=cuda`, `enhancer_device=cuda`, `gpu_used=true`, `apptainer_nv_used=true`, `expected_cuda=true`, `torch_cuda_is_available=true`, in-Apptainer guard line `OK: torch=2.1.0 cuda=12.1 device=NVIDIA A100-SXM4-80GB` confirmed; host `nvidia-smi` and in-Apptainer `torch.cuda.is_available()` guards both passed. Non-actions: `enhancement_run=false`, no enhancement-bank artifacts in eval_out_dir, T6.2 run artifacts not modified, `reports/training/full_training_summary.md` not created, T6.3b full eval not submitted. Stdout: clean; CUDA guards passed; Step 1 exit 0; Step 2 exit 0; `VALIDATION_PASSED True`. Stderr: benign Apptainer info/warnings plus the same `TypedStorage is deprecated` UserWarning emitted by torch checkpoint deserialisation in earlier T6.2 GPU runs; no traceback, no `BLOCKER:` line, no CUDA visibility failure. Note: the five hypotheses come from the same utterance (`1272-128104-0001`) under five degradation families, matching the prior smoke selection pattern (acceptable because this smoke validates the evaluation path, not generalisation; T6.3b runs the full 533-per-family scope). `docs/model_card.md`, `configs/training/{full_training,full_training_cpu_micro,full_training_cpu_whisper_smoke,full_training_gpu_micro,dry_run,dataset_version}.yaml`, `libs/audio/*`, `libs/common/versions.py`, `scripts/training/*`, existing Slurm jobs other than the two T6.3 jobs added in the prep commit, existing tests other than `tests/training/test_eval_only.py`, reports, demo/RP files, demo trackers all unmodified by this evidence step. `.codex/` unstaged. `stash@{0}` untouched. Trackers: `current_task` remains `T6.3`, `last_completed_task` remains `T6.2`, `tasks["T6.3"]` remains `pending`, `blocked: false`, `blocker: null`, `t6_3_closed: false`, `t6_3a_smoke_closed: true`. Next gate: T6.3b — full post-hoc Whisper evaluation (eval_per_family_cap=533, total transcriptions=2 665) per user decision. Result commit: `a726d57c73667b89d10ba47b99ae0b9499f8f054` (backfilled in the immediately following commit).
 - T6.3 (CLOSED; full-training summary): `reports/training/full_training_summary.md` committed (205 lines, sha256 `34d9aa0f645b203ff033915145bbcacb124e6fee089c5b267ad1c685b413d219`) at commit `62be0161eec1e8538f9109212762e36d911d585d`. Consolidates: T6.2 full-training Slurm run (job `2128952`, COMPLETED 0:0, 20 000 steps, GPU/CUDA confirmed, candidate checkpoints in `runs/t6_2_full_training_2128952/checkpoints/`); T6.3a post-hoc Whisper smoke (job `2129005`, COMPLETED 0:0 in 00:00:18 on aisurrey26, 5 transcriptions, smoke result commit `a726d57c73667b89d10ba47b99ae0b9499f8f054`, backfill `918ab84eecab145c4aaa49a7b97294714ce558e9`); T6.3b post-hoc Whisper full evaluation (job `2129017`, COMPLETED 0:0 in 00:08:34 on aisurrey24 partition `a100`; AllocTRES `cpu=8,gres/gpu:nvidia_a100-sxm4-80gb=1,gres/gpu=1,mem=32G,node=1`; 2 665/2 665 transcriptions; `validation_passed=true`; eval_out_dir `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_3_post_hoc_whisper_full_2129017/`; verify JSON `…/artifacts/t6_3_post_hoc_whisper_full_verify_2129017.json`). Per-family WER/WA over 533 records each: broadband_hiss 0.4147/0.5853, cafe_background 0.4700/0.5300, far_field_room 0.4847/0.5153, muffled 0.6302/0.3698, phone_call 0.3727/0.6273; macro WER 0.4745, macro WA 0.5255. Comparison vs baselines: T3.1 clean WA=0.9361, T3.2 degraded WA=0.8213, T4.2 MetricGAN+ pretrained WA=0.5892, T6.3 post-hoc on T6.2 latest.pt WA=0.5255; Δ macro WA vs T3.2 degraded = **−0.2958**. Tier classification per `reports/training/metricgan_plus_wer.md` rule (`null_or_negative` if Δ WA ≤ 0): **`null_or_negative`**. This is a **modelling outcome, not a pipeline failure** — the T6.3 gate evaluates whether the post-hoc evaluation pipeline produced finite, non-placeholder, contractual artifacts; by that criterion T6.3 passes. MetricGAN+ continues as a **prior negative baseline only**, not a deployment candidate; deployment decisions are owned by T7.1 / T7.2 / T8.1, not T6.3. Limitations recorded: T6.2 `run_summary.md` carries legacy "Dry-run training run summary" wording (verify JSON / metrics.csv / config.yaml runtime block / checkpoints / Slurm evidence are the source of truth — artifact intentionally not modified retroactively); plot PNGs are matplotlib placeholders; T6.3 evaluates `latest.pt` only (T7.1 may need additional per-checkpoint evaluations); T6.2 run_dir not modified; `docs/model_card.md` not modified. Heavy artifacts (post-hoc WAVs, per-record JSONL, eval CSV, full-eval verify JSON, T6.2 checkpoints) all remain outside Git under `$ASR_ARTIFACTS_ROOT` / `$TRAIN_ROOT/runs`. Workflow note carried forward: future Slurm jobs must include an automatic completion-notification strategy (preferred: native Slurm mail END/FAIL; fallback: lightweight session-side `sacct` watcher; last resort: explicit manual command); no retroactive edits to completed jobs. `docs/model_card.md`, `configs/training/{full_training,full_training_cpu_micro,full_training_cpu_whisper_smoke,full_training_gpu_micro,dry_run,dataset_version}.yaml`, `libs/audio/*`, `libs/common/versions.py`, `scripts/training/*`, existing Slurm jobs, existing tests, demo/RP files, demo trackers all unmodified by this closure step. `.codex/` unstaged. `stash@{0}` untouched. Trackers updated in this commit: `current_task → T7.1`, `last_completed_task → T6.3`, `tasks["T6.3"]: done`, `tasks["T7.1"]: pending`, `blocked: false`, `blocker: null`, `t6_3_closed: true`. Cut T3 still active per plan §7. current_task → T7.1. Next gate: T7.1 — checkpoint selection (consumes `reports/training/full_training_summary.md`, `runs/t6_3_post_hoc_whisper_full_2129017/wer_by_degradation.csv`, `runs/t6_3_post_hoc_whisper_full_2129017/per_record_predictions.jsonl`, and the candidate-checkpoint list under `runs/t6_2_full_training_2128952/checkpoints/`; applies `cfg.checkpoint_policy.selection_primary_metric: average_word_accuracy_over_official_degradations` plus configured tiebreakers; if the only post-hoc-evaluated candidate is `null_or_negative`, surface to user — no auto-export, no auto-model-card update). Result commit: `985e7be436aa906f9da5f349339f0e8856d2a023` (backfilled in the immediately following commit).
 - T6.2b (code/test subgate; T6.2 remains open): `spectral_unet_small_v1` trainer code path implemented and validated inside Apptainer via Slurm. Implementation prep commit `a4d022fcf9c4867ea0401ccdf501ec444326a6db` adds `scripts/training/{models,datasets,losses}.py`, extends `scripts/training/train_enhancer.py` (architecture registry dispatch, `training_split` SHA-256 verification on `--validate-only`, `save_checkpoint`/`load_checkpoint`/`_prune_old_checkpoints` helpers, `--resume`/`--force-fresh`/`--enable-whisper-val` CLI flags, `_run_training` skeleton wired through `cfg.model.architecture`, Whisper call site wired but OFF), and adds five new tests under `tests/training/`. Pytest install prep commit `c2113de9d5d54510cd4f51d9c5ced879b562b922` adds `slurm/jobs/t6_2b_install_pytest.sh` to install pytest 8.4.2 + explicit non-forbidden deps into the T1.2 prefix. Prior Slurm `2128605` failed because pytest was missing from Apptainer/`$PREFIX` (recorded for traceability only, not used for closure). Pytest install Slurm `2128611` COMPLETED 0:0 (47 s on aisurrey05): pytest 8.4.2 resolves from `$PREFIX`, torch 2.1.0 resolves from `/opt/conda`, forbidden-stack pre/post checks pass, verify JSON written. Pytest validation Slurm `2128618` COMPLETED 0:0 (17 s on aisurrey05): torch import OK; `--validate-only` on `dry_run.yaml` and `full_training.yaml` both pass (the latter also prints `OK: training_split verified (version=devclean_speaker_split_v1 train_clean=2160 val_clean=533 train_degraded=10800 val_degraded=2665 all_sha_ok=True)`); `python3 -s -m pytest -q tests/training/` reports `47 passed in 7.49s` with 0 skipped (the 30 torch-dependent tests ran inside Apptainer and all passed). No training run, no Whisper run, no enhancement run. `configs/training/*.yaml`, `docs/model_card.md`, `libs/common/versions.py`, `libs/audio/*`, `scripts/training/prepare_devclean_speaker_split.py`, existing tests, reports, demo/RP files, demo trackers all unmodified by T6.2b. `.codex/` unstaged. `stash@{0}` untouched. Trackers: `current_task` remains `T6.2`, `last_completed_task` remains `T6.1`, `tasks["T6.2"]` remains `pending`, `blocked: false`, `blocker: null`. Next gate: T6.2c — CPU micro-validation training via Slurm (still inside T6.2; not the closure of T6.2). Result commit: `a832b1b5555f9e08f298462e74ad6f75fffde2f0` (backfilled in the immediately following commit).
+- T8.1: export-or-explicit-skip gate closed with **explicit skip**. T7.2 verdict (`tier=framework_only`, `sub_status=framework_only_strict_negative`, `deployment_decision=not_selected_for_deployment`) authorises either export-as-reproducibility-framework-artifact or explicit skip; T8.1 records the explicit-skip path. No `scripts/training/export_enhancer.py` created; no `.pt` / `.onnx` / `.tar` / `.zip` / copied checkpoint produced under `$ASR_TRAINING_ROOT/exports/`, the repository, or anywhere else; no `ENHANCER_VERSION` registered (placeholder `None` in `libs/common/versions.py` preserved); no Slurm job submitted (`slurm_required_for_t8_1: false`, `slurm_notification_policy: not_applicable_no_slurm_job_submitted`). Two new Git-tracked decision artifacts: `reports/training/export_decision.md` (sha256 `bf8d18930e22523dcc0181806f60f24d5aec09135e4f495e995d056d0064abd4`) and `reports/training/export_decision.json` (sha256 `7cee47023b8adcad0c3105276f00819cc68d45a18707dc217c09880546b63678`). Selected-checkpoint identity: step `20000`, canonical `runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt`, alias `runs/t6_2_full_training_2128952/checkpoints/latest.pt`, sha256 `a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e`, both files `4916439` bytes (verified on disk), macro WA `0.5255416`, macro WER `0.4744584`, worst-case WA `0.369799` (`muffled`), Δ macro WA vs T3.2 degraded `-0.2957584`, Δ macro WA vs T4.2 MetricGAN+ pretrained `-0.0636584`. Tier carried verbatim from T7.2: `framework_only` / `framework_only_strict_negative` / `not_selected_for_deployment` / `reproducibility_and_framework_demonstration_only` / `metricgan_plus_role: prior_negative_baseline_only`. No ASR improvement is claimed; no positive deployment claim is made. Static validation: `export_decision.json` parses; selected-checkpoint cross-check against `reports/training/publishability_tier.json` and `reports/training/checkpoint_selection.json` passes for step / sha256 / canonical_path / alias_paths / macro_word_accuracy / macro_wer / worst_case_word_accuracy / worst_case_family / both deltas; on-disk SHA-256 of canonical and alias both equal the expected hash; both files are 4 916 439 bytes; no-claim grep finds no positive improvement / publicable / deployable claim. `docs/model_card.md`, `reports/training/publishability_tier.{md,json}`, `reports/training/checkpoint_selection.{md,json}`, `reports/training/full_training_summary.md`, `reports/training/baseline_summary.md`, `reports/training/metricgan_plus_wer.md`, `configs/`, `libs/`, `scripts/`, `slurm/jobs/`, external run artifacts, demo / RP files and trackers all unmodified by T8.1. `stash@{0}` (`WIP unrelated demo/B6.5.1 changes before T3.2 result commit`) untouched. Trackers updated in this commit: `current_task → T8.2`, `last_completed_task → T8.1`, `tasks["T8.1"]: done`, `tasks["T8.2"]: pending`, `blocked: false`, `blocker: null`, `t8_1_closed: true`, `next_gate: T8.2_model_card`. Cut T3 still active per plan §7. Report commit: `dc397eaec6c0651363f75b3b017efab2511263ec`.
 - T4.2 (closed via T4.2d): MetricGAN+ pretrained Whisper evaluation complete. Smoke job `2127690` (COMPLETED 0:0, 02:04 elapsed, 25/25 records, 0 failures). Full job `2127693` (COMPLETED 0:0, 06:47:48 elapsed, MaxRSS 908608K, aisurrey05, 13 465/13 465 records, 0 failures). Per-family enhanced (mean WER / mean WA): broadband_hiss 0.2666/0.7390, cafe_background 0.4716/0.5401, far_field_room 0.5920/0.4264, muffled 0.6657/0.3978, phone_call 0.1592/0.8429. Macro: WER 0.4310, WA 0.5892 (Δ vs T3.2 degraded: WER +0.2467 / WA −0.2321; Δ vs T3.1 clean: WER +0.3665 / WA −0.3469). macro == record_micro (abs diff ≤ 4.44e-16). MetricGAN+ pretrained **worsened** ASR on this benchmark; tier `null_or_negative`. Manifest SHAs unchanged; reserved demo IDs absent from manifest and predictions. Enhanced manifest SHA `544d6fa5…79c9`; degraded source SHA `c6f8745…0bbb7c`; enhancer_version `metricgan_plus_pretrained`; enhancement_version `enhancement_v1`; metrics_version `metrics_v1`; whisper `base.en` (`20250625`). Summary committed at `reports/training/metricgan_plus_wer.md`. `docs/model_card.md` not modified — deferred to T4.3. current_task → T4.3. Result commit: 8baa2ccc7798a54162b0c5659154864f316fb144.
 
 ## Current blocker
@@ -1928,17 +1929,174 @@ Result commit: `5f1b962f6d1fc5d9bc4b7255b6575576eef7526c` (hash
 backfilled in the immediately following commit on this branch; see
 `T7.2: backfill publishability tier result_commit hash`).
 
+## T8.1 closure evidence (2026-05-06)
+
+T8.1 owns the export-or-explicit-skip decision per plan §18. Under
+the T7.2 verdict (`tier: framework_only`,
+`sub_status: framework_only_strict_negative`,
+`deployment_decision: not_selected_for_deployment`,
+`selection_purpose: reproducibility_and_framework_demonstration_only`,
+`export_posture: export_may_proceed_only_as_reproducibility_framework_artifact_or_be_explicitly_skipped_in_T8.1`)
+T8.1 records the **explicit-skip** path: no export artifact is
+produced, no `scripts/training/export_enhancer.py` is created,
+`ENHANCER_VERSION` remains `None` in `libs/common/versions.py`, and
+no Slurm job is submitted. T8.1 does **not** modify
+`docs/model_card.md` (T8.2 owns it),
+`reports/training/publishability_tier.{md,json}`,
+`reports/training/checkpoint_selection.{md,json}`,
+`reports/training/full_training_summary.md`,
+`reports/training/baseline_summary.md`,
+`reports/training/metricgan_plus_wer.md`, `configs/`, `libs/`,
+`scripts/`, `slurm/jobs/`, or any external run artifact under
+`runs/t6_2_full_training_2128952/`,
+`runs/t6_3_post_hoc_whisper_full_2129017/`, or
+`runs/t7_1_post_hoc_whisper_step_*_*/`. T8.1 does **not** touch
+demo / RP files or trackers. `stash@{0}` (`WIP unrelated
+demo/B6.5.1 changes before T3.2 result commit`) remains present
+and untouched.
+
+Report commit:
+`dc397eaec6c0651363f75b3b017efab2511263ec` —
+`T8.1: record explicit-skip export decision`. Adds:
+
+- `reports/training/export_decision.md` (sha256
+  `bf8d18930e22523dcc0181806f60f24d5aec09135e4f495e995d056d0064abd4`);
+- `reports/training/export_decision.json` (sha256
+  `7cee47023b8adcad0c3105276f00819cc68d45a18707dc217c09880546b63678`).
+
+### Decision
+
+| Field | Value |
+|---|---|
+| `decision_path` | `explicit_skip` |
+| `export_performed` | `false` |
+| `enhancer_version` | `null` |
+| `exported_artifact_path` | `null` |
+| `exported_artifact_sha256` | `null` |
+
+### Selected checkpoint identity (frozen at T7.1; verified read-only at T8.1)
+
+| Field | Value |
+|---|---|
+| Step | `20000` |
+| Canonical path | `runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt` |
+| Alias path | `runs/t6_2_full_training_2128952/checkpoints/latest.pt` |
+| SHA-256 | `a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e` |
+| `checkpoint_step_0020000.pt` size on disk | `4916439` bytes |
+| `latest.pt` size on disk | `4916439` bytes |
+| `checkpoint_step_0020000_sha256_verified` | `true` |
+| `latest_pt_sha256_verified` | `true` |
+| `latest_pt_alias_matches_canonical` | `true` |
+| Macro Word Accuracy | `0.5255416` |
+| Macro WER | `0.4744584` |
+| Worst-case family Word Accuracy | `0.369799` (`muffled`) |
+| Δ macro WA vs T3.2 degraded | `-0.2957584` |
+| Δ macro WA vs T4.2 MetricGAN+ pretrained | `-0.0636584` |
+
+### Tier / deployment posture (carried verbatim from T7.2)
+
+| Field | Value |
+|---|---|
+| `tier` | `framework_only` |
+| `sub_status` | `framework_only_strict_negative` |
+| `deployment_decision` | `not_selected_for_deployment` |
+| `selection_purpose` | `reproducibility_and_framework_demonstration_only` |
+| `metricgan_plus_role` | `prior_negative_baseline_only` |
+| `no_asr_improvement_claimed` | `true` |
+| `no_positive_deployment_claim` | `true` |
+
+### Export decision rationale
+
+- T7.2 recorded `framework_only_strict_negative`.
+- All five evaluated candidates were below the T3.2 degraded
+  baseline on the §17 primary metric.
+- The selected checkpoint is **not selected for deployment**.
+- Export would risk creating a deployable-looking artifact under a
+  negative tier.
+- Reproducibility is preserved through the canonical checkpoint
+  path, alias path, SHA-256, and the existing T6.2 / T6.3 / T7.1 /
+  T7.2 evaluation and report artifacts.
+- T8.2 owns model-card documentation; T8.3 owns handoff.
+
+### Slurm policy
+
+T8.1 submitted no Slurm job:
+`slurm_required_for_t8_1: false`,
+`slurm_notification_policy: not_applicable_no_slurm_job_submitted`.
+
+Forward-looking rule (recorded for any future Slurm job from this
+branch — e.g. an export job for a future `publicable_*` checkpoint,
+retraining experiments, ablation evals): include either (a) native
+Slurm `--mail-type=END,FAIL --mail-user=<addr>` if the cluster mail
+relay is confirmed reliable, or (b) a session-side
+`./slurm/tools/on_submit.sh sacct -j <id>` /
+`squeue -u $USER` watcher polling at ≥30 s and reporting terminal
+state, or (c) an explicit "manual check" command stated up-front.
+Not applied retroactively to T6.2 / T6.3 / T7.1 / T7.2 jobs.
+
+### Non-actions during T8.1
+
+- No export artifact created.
+- No export directory created.
+- No checkpoint copied.
+- No `.onnx` / `.pt` / `.tar` / `.zip` artifact created.
+- `scripts/training/export_enhancer.py` not created.
+- `ENHANCER_VERSION` not updated.
+- `docs/model_card.md` not modified.
+- `reports/training/publishability_tier.{md,json}` not modified.
+- `reports/training/checkpoint_selection.{md,json}` not modified.
+- `reports/training/full_training_summary.md` not modified.
+- `reports/training/baseline_summary.md` not modified.
+- `reports/training/metricgan_plus_wer.md` not modified.
+- `configs/`, `libs/`, `scripts/`, `slurm/jobs/` not modified.
+- External run artifacts under
+  `runs/t6_2_full_training_2128952/`,
+  `runs/t6_3_post_hoc_whisper_full_2129017/`, and
+  `runs/t7_1_post_hoc_whisper_step_*_*/` not touched.
+- Demo / RP files and trackers not touched.
+- `stash@{0}` untouched.
+
+### Validation evidence
+
+- `export_decision_json_parse`: passed.
+- `selected_checkpoint_crosscheck_against_publishability_tier`:
+  passed (step / sha256 / canonical_path / alias_paths / macro_wa /
+  macro_wer / worst_case_wa / worst_case_family / both deltas).
+- `selected_checkpoint_crosscheck_against_checkpoint_selection`:
+  passed (same fields).
+- `on_disk_checkpoint_sha256_check`: passed (canonical SHA-256
+  equals
+  `a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e`,
+  size `4916439` bytes).
+- `on_disk_latest_sha256_check`: passed (alias `latest.pt` SHA-256
+  equals the canonical SHA-256, size `4916439` bytes).
+- `no_claim_audit`: passed (no positive ASR-improvement /
+  publicable_* / deployable / deployment-recommendation claim about
+  the T6.2-trained enhancer).
+- `git_status_after_report_commit`: clean.
+
+### Tracker state after T8.1
+
+- `current_task: "T8.2"`
+- `last_completed_task: "T8.1"`
+- `tasks["T8.1"]: done`
+- `tasks["T8.2"]: pending`
+- `blocked: false`, `blocker: null`
+- `t8_1_closed: true`
+- `next_gate: T8.2_model_card`
+
+Result commit: hash backfilled in the immediately following commit
+on this branch (see `T8.1: backfill explicit-skip result_commit
+hash`).
+
 ## Next task
 
-T8.1 — export selected enhancer per plan §18, **or** explicit skip
-documented in T8.1, given the T7.2 verdict
-(`tier: framework_only`, `sub_status:
-framework_only_strict_negative`,
-`deployment_decision: not_selected_for_deployment`,
-`selection_purpose:
-reproducibility_and_framework_demonstration_only`,
-`export_posture:
-export_may_proceed_only_as_reproducibility_framework_artifact_or_be_explicitly_skipped_in_T8.1`).
-T7.2 does not pre-decide between export-as-framework-artifact and
-explicit skip; that decision is owned by T8.1. T8.1 must not start
-unless the user explicitly authorises it. Cut T3 remains active.
+T8.2 — complete `docs/model_card.md` per plan §18 from the selected
+run summary and the T7.2 verdict. The model card must state
+`framework_only` / `framework_only_strict_negative` /
+`not_selected_for_deployment` /
+`reproducibility_and_framework_demonstration_only` and carry the
+no-ASR-improvement-claim posture forward; it must not describe the
+T6.2-trained enhancer as deployable, publicable, or as an
+ASR-improvement model. T8.2 must not start unless the user
+explicitly authorises it. Cut T3 remains active.

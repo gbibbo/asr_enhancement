@@ -2,10 +2,11 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 6
-current_task: "T8.1"
-last_completed_task: "T7.2"
+current_task: "T8.2"
+last_completed_task: "T8.1"
 blocked: false
 blocker: null
+next_gate: T8.2_model_card
 public_examples_exclusion_status: complete
 public_examples_exclusion_rerun_required: false
 public_examples_exclusion_rerun_after: null
@@ -2555,6 +2556,98 @@ t7_2_evidence:
     t7_2_closed: true
     next_gate: T8.1_export_or_explicit_skip
   result_commit: "5f1b962f6d1fc5d9bc4b7255b6575576eef7526c"
+t8_1_evidence:
+  scope: "T8.1 export-or-explicit-skip per plan §18 under T7.2 verdict (tier=framework_only, sub_status=framework_only_strict_negative, deployment_decision=not_selected_for_deployment). Decision: explicit skip — no export artifact produced, no scripts/training/export_enhancer.py created, no ENHANCER_VERSION registered, no Slurm job submitted, no docs/model_card.md edit (T8.2 owns), no T6.2 / T6.3 / T7.1 / T7.2 / baseline reports modified, no external run-artifact modification, no demo / RP files or trackers touched, stash@{0} untouched."
+  status: passed
+  closes_t8_1: true
+  report_commit: "dc397eaec6c0651363f75b3b017efab2511263ec"
+  export_decision_md: reports/training/export_decision.md
+  export_decision_json: reports/training/export_decision.json
+  export_decision_md_sha256: "bf8d18930e22523dcc0181806f60f24d5aec09135e4f495e995d056d0064abd4"
+  export_decision_json_sha256: "7cee47023b8adcad0c3105276f00819cc68d45a18707dc217c09880546b63678"
+  decision:
+    decision_path: explicit_skip
+    export_performed: false
+    enhancer_version: null
+    exported_artifact_path: null
+    exported_artifact_sha256: null
+  selected_checkpoint:
+    selected_step: 20000
+    canonical_checkpoint: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt
+    alias_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt
+    sha256: "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e"
+    checkpoint_step_0020000_size_bytes: 4916439
+    latest_pt_size_bytes: 4916439
+    checkpoint_step_0020000_sha256_verified: true
+    latest_pt_sha256_verified: true
+    latest_pt_alias_matches_canonical: true
+    macro_word_accuracy: 0.5255416
+    macro_wer: 0.4744584
+    worst_case_word_accuracy: 0.369799
+    worst_case_family: muffled
+    delta_macro_wa_vs_t3_2_degraded: -0.2957584
+    delta_macro_wa_vs_t4_2_metricgan_plus: -0.0636584
+  tier:
+    tier: framework_only
+    sub_status: framework_only_strict_negative
+    deployment_decision: not_selected_for_deployment
+    selection_purpose: reproducibility_and_framework_demonstration_only
+    metricgan_plus_role: prior_negative_baseline_only
+    no_asr_improvement_claimed: true
+    no_positive_deployment_claim: true
+  rationale:
+    - "T7.2 recorded framework_only_strict_negative."
+    - "All candidates were below the T3.2 degraded baseline."
+    - "The selected checkpoint is not selected for deployment."
+    - "Export would risk creating a deployable-looking artifact under a negative tier."
+    - "Reproducibility is preserved through the canonical checkpoint path, alias path, SHA-256, and evaluation/report artifacts."
+    - "T8.2 owns model-card documentation."
+  slurm_policy:
+    slurm_required_for_t8_1: false
+    slurm_notification_policy: not_applicable_no_slurm_job_submitted
+    future_slurm_notification_policy: "future Slurm submissions must use either confirmed native Slurm mail END,FAIL, or a session-side sacct/squeue watcher, or an explicit manual check command if neither is appropriate."
+  non_actions:
+    no_export_artifact_created: true
+    no_export_directory_created: true
+    no_checkpoint_copied: true
+    no_onnx_pt_tar_zip_artifact_created: true
+    scripts_training_export_enhancer_py_created: false
+    enhancer_version_updated: false
+    docs_model_card_modified: false
+    publishability_tier_md_modified: false
+    publishability_tier_json_modified: false
+    checkpoint_selection_md_modified: false
+    checkpoint_selection_json_modified: false
+    full_training_summary_modified: false
+    baseline_summary_modified: false
+    metricgan_plus_wer_modified: false
+    configs_modified: false
+    libs_modified: false
+    scripts_modified: false
+    slurm_jobs_modified: false
+    external_run_artifacts_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    stash_untouched: true
+  validation_evidence:
+    export_decision_json_parse: passed
+    selected_checkpoint_crosscheck_against_publishability_tier: passed
+    selected_checkpoint_crosscheck_against_checkpoint_selection: passed
+    on_disk_checkpoint_sha256_check: passed
+    on_disk_latest_sha256_check: passed
+    no_claim_audit: passed
+    git_status_after_report_commit: clean
+  closure:
+    current_task_after: "T8.2"
+    last_completed_task_after: "T8.1"
+    tasks_T8_1_status_after: done
+    tasks_T8_2_status_after: pending
+    blocked: false
+    blocker: null
+    t8_1_closed: true
+    next_gate: T8.2_model_card
+  result_commit: null
 tasks:
   "T0.1": done
   "T0.2": done
@@ -2585,6 +2678,6 @@ tasks:
   "T6.3": done
   "T7.1": done
   "T7.2": done
-  "T8.1": pending
+  "T8.1": done
   "T8.2": pending
   "T8.3": pending
