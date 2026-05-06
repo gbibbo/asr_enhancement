@@ -1485,6 +1485,111 @@ t6_2b_evidence:
   blocker: null
   next_gate: T6.2c_cpu_micro_validation_slurm
   result_commit: "a832b1b5555f9e08f298462e74ad6f75fffde2f0"
+t6_2c_evidence:
+  scope: "T6.2c CPU micro-validation training subgate. First Slurm job that exercises the real spectral_unet_small_v1 training path end-to-end on a CPU compute node over the T6.2a devclean_speaker_split_v1 split. Smoke artifacts and checkpoints written; in-Apptainer verify JSON returned validation_passed=true. T6.2c does NOT close T6.2; T6.2 remains pending. T6.2d (Whisper-enabled smoke validation OR direct full training, per user decision) is the next gate."
+  closes_t6_2: false
+  subgate_kind: cpu_micro_validation_only
+  config: configs/training/full_training_cpu_micro.yaml
+  slurm_job_script: slurm/jobs/t6_2c_cpu_micro_train.sh
+  prep_commit: "6756cd3bd0c6e9ebc249dbb1d60532893da90f53"
+  slurm_job:
+    job_id: "2128640"
+    state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:01:27"
+    node: aisurrey01
+    max_rss_batch: "2493140K"
+    submit_time_utc: "2026-05-06T02:32:32"
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_2c_cpu_micro_train_2128640.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_2c_cpu_micro_train_2128640.err
+  run_artifacts:
+    run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_2c_cpu_micro_2128640
+    verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t6_2c_cpu_micro_verify_2128640.json
+    validation_passed: true
+    artifact_sizes_bytes:
+      "config.yaml": 12100
+      "metrics.csv": 459
+      "wer_by_degradation.csv": 282
+      "loss_curve.png": 101
+      "val_wer_curve.png": 104
+      "run_summary.md": 1676
+    loss_curve_png_status: placeholder_no_matplotlib
+    val_wer_curve_png_status: placeholder_no_matplotlib
+  metrics:
+    metrics_csv_train_rows: 10
+    metrics_csv_val_rows: 1
+    metrics_finite: true
+    train_losses:
+      - 4.583193
+      - 1.655709
+      - 2.456904
+      - 2.385631
+      - 3.526923
+      - 3.441952
+      - 2.645172
+      - 2.500097
+      - 3.258104
+      - 2.896089
+    val_loss_step_10: 2.976823
+    train_note: no_whisper_t6_2b
+    val_note: placeholder_no_whisper_t6_2b
+  wer_by_degradation:
+    family_rows: 5
+    families:
+      - broadband_hiss
+      - cafe_background
+      - far_field_room
+      - muffled
+      - phone_call
+    wer_wa_values_policy: "placeholder_or_empty (Whisper not run; T6.2c contract)"
+  checkpoints:
+    files:
+      "checkpoint_step_0000005.pt": 4914263
+      "checkpoint_step_0000010.pt": 4914263
+      "latest.pt": 4914263
+    latest_checkpoint_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_2c_cpu_micro_2128640/checkpoints/latest.pt
+    latest_step: 10
+    metadata_check: pass
+    state_dict_roundtrip: pass
+    model_architecture: spectral_unet_small_v1
+    dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+    training_split_version: devclean_speaker_split_v1
+    parameter_count: 403201
+  runtime_posture:
+    cpu_only: true
+    gpu_used: false
+    apptainer_nv_used: false
+    whisper_run: false
+    enhancement_run: false
+    full_training_run: false
+    runtime_whisper_validation_enabled: false
+    torch_version: "2.1.0"
+    torch_cuda_is_available: false
+  non_actions:
+    slurm_jobs_other_than_t6_2c: false
+    training_run_full: false
+    whisper_run: false
+    enhancement_run: false
+    configs_modified: false
+    model_card_modified: false
+    libs_modified: false
+    scripts_modified: false
+    tests_modified: false
+    slurm_jobs_modified: false
+    reports_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    codex_directory_staged: false
+    stash_untouched: true
+  current_task_after: "T6.2"
+  last_completed_task_after: "T6.1"
+  tasks_T6_2_status_after: pending
+  blocked: false
+  blocker: null
+  t6_2_closed: false
+  next_gate: T6.2d_whisper_validation_or_full_training_per_user_decision
+  result_commit: PENDING_RESULT_COMMIT
 tasks:
   "T0.1": done
   "T0.2": done
