@@ -385,6 +385,61 @@ def _load_transcripts_by_utterance_id(jsonl_path: Path) -> dict[str, str]:
     return out
 
 
+def _resolve_training_device(
+    cfg: dict,
+    *,
+    cuda_available: bool,
+    expect_cuda: bool,
+) -> tuple[str, list[str]]:
+    """T6.2: resolve training device from cfg.hardware + ASR_EXPECT_CUDA env.
+
+    Pure function: takes `cuda_available` and `expect_cuda` as inputs (no
+    torch import here), so it can be unit-tested on the login node without
+    importing torch. Returns ``(device_str, errors)`` where:
+      * ``device_str`` is "cuda" or "cpu";
+      * ``errors`` is a non-empty list when the resolution is a hard
+        blocker (caller should `_blocker(...)` and exit non-zero).
+
+    Hard guard: when ``expect_cuda`` is True (set by the GPU Slurm jobs via
+    ``ASR_EXPECT_CUDA=1``), CUDA absence is a blocker even if the config
+    block would otherwise permit a CPU fallback. This prevents a GPU job
+    from silently degrading to CPU.
+
+    Without ``expect_cuda``: ``hardware.target=gpu_required`` requires
+    CUDA; ``hardware.target=gpu_preferred`` falls back to CPU when
+    ``hardware.cpu_fallback`` is True; otherwise CPU.
+    """
+    hw = cfg.get("hardware") or {}
+    target = str(hw.get("target", "cpu_only"))
+    cpu_fallback = bool(hw.get("cpu_fallback", False))
+
+    if expect_cuda and not cuda_available:
+        return "cpu", [
+            "ASR_EXPECT_CUDA=1 set but torch.cuda.is_available()=False inside Apptainer "
+            f"(hardware.target={target!r})"
+        ]
+
+    if target == "gpu_required":
+        if not cuda_available:
+            return "cpu", [
+                f"hardware.target=gpu_required but torch.cuda.is_available()=False"
+            ]
+        return "cuda", []
+
+    if target == "gpu_preferred":
+        if cuda_available:
+            return "cuda", []
+        if cpu_fallback:
+            return "cpu", []
+        return "cpu", [
+            "hardware.target=gpu_preferred and torch.cuda.is_available()=False, "
+            "but hardware.cpu_fallback=False"
+        ]
+
+    # cpu_only or unrecognised target: CPU.
+    return "cpu", []
+
+
 def _check_whisper_cli_consistency(
     cfg: dict, *, enable_whisper_val: bool
 ) -> list[str]:
@@ -1572,10 +1627,14 @@ def _maybe_run_whisper_validation(
                 offset = (total - crop_len) // 2
                 wav = wav[offset : offset + crop_len]
 
-            x = wav.view(1, 1, -1).float()
+            # Enhancer runs on whatever device the model is on (T6.2 device
+            # selection). Whisper is loaded with device="cpu" above, so the
+            # enhanced waveform is moved back to CPU before the tmp WAV save.
+            model_device = next(model.parameters()).device
+            x = wav.view(1, 1, -1).float().to(model_device, non_blocking=True)
             with torch.no_grad():
                 yhat = model(x)
-            enhanced = yhat.view(-1).clamp(-1.0, 1.0)
+            enhanced = yhat.view(-1).clamp(-1.0, 1.0).detach().cpu()
 
             tmp_wav = tmp_dir / f"{uid}__{family}.wav"
             _save_wav(tmp_wav, enhanced, int(sample_rate))
@@ -1700,6 +1759,23 @@ def _run_training(
             f"for architecture {arch!r}"
         )
 
+    # T6.2: device selection. The legacy CPU-only behaviour is preserved by
+    # `hardware.target=cpu_only` (T6.2c/T6.2d smokes). The GPU Slurm jobs
+    # (T6.2 preflight + full training) set `ASR_EXPECT_CUDA=1` to make CUDA
+    # absence a hard blocker, regardless of `hardware.cpu_fallback`.
+    expect_cuda = os.environ.get("ASR_EXPECT_CUDA") == "1"
+    cuda_available = bool(torch.cuda.is_available())
+    device_str, device_errors = _resolve_training_device(
+        cfg, cuda_available=cuda_available, expect_cuda=expect_cuda
+    )
+    if device_errors:
+        for e in device_errors:
+            print(f"BLOCKER: device-selection: {e}", file=sys.stderr)
+        return 2
+    device = torch.device(device_str)
+    model = model.to(device)
+    hardware_target = str((cfg.get("hardware") or {}).get("target", "cpu_only"))
+
     ts = cfg.get("training_split")
     if not isinstance(ts, dict):
         return _blocker("cfg.training_split missing; T6.2a split required for training")
@@ -1798,6 +1874,11 @@ def _run_training(
         "parameter_count": p_count,
         "training_split_version": cfg.get("training_split_version"),
         "whisper_validation_enabled": bool(enable_whisper_val),
+        "device": str(device),
+        "torch_cuda_is_available": cuda_available,
+        "hardware_target": hardware_target,
+        "expected_cuda": expect_cuda,
+        "gpu_used": str(device).startswith("cuda"),
     }
 
     train_iter = iter(train_loader)
@@ -1808,8 +1889,8 @@ def _run_training(
         except StopIteration:
             train_iter = iter(train_loader)
             batch = next(train_iter)
-        clean = batch["clean"]
-        degraded = batch["degraded"]
+        clean = batch["clean"].to(device, non_blocking=True)
+        degraded = batch["degraded"].to(device, non_blocking=True)
         opt.zero_grad()
         yhat = model(degraded)
         loss, _components = loss_fn(yhat, clean)
@@ -1835,8 +1916,10 @@ def _run_training(
             n_batches = 0
             with torch.no_grad():
                 for vb in val_loader:
-                    vyhat = model(vb["degraded"])
-                    vloss, _ = loss_fn(vyhat, vb["clean"])
+                    v_clean = vb["clean"].to(device, non_blocking=True)
+                    v_degraded = vb["degraded"].to(device, non_blocking=True)
+                    vyhat = model(v_degraded)
+                    vloss, _ = loss_fn(vyhat, v_clean)
                     total += float(vloss.item())
                     n_batches += 1
             val_loss = total / max(n_batches, 1)
