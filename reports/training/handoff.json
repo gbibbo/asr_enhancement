@@ -1,0 +1,241 @@
+{
+  "schema_version": "1",
+  "task": "T8.3",
+  "generated_at_utc": "2026-05-06T23:23:07Z",
+  "branch": "feature/training-datamove1-v1",
+  "integration_branch": "demo-rp5-v1",
+  "head_before_t8_3": "9354f4c21461939c33622d7fde89a82c1b847b9d",
+  "plan_reference": "docs/plans/training_datamove1_plan.md §18",
+  "inputs": {
+    "model_card_md": "docs/model_card.md",
+    "export_decision_md": "reports/training/export_decision.md",
+    "export_decision_json": "reports/training/export_decision.json",
+    "publishability_tier_md": "reports/training/publishability_tier.md",
+    "publishability_tier_json": "reports/training/publishability_tier.json",
+    "checkpoint_selection_md": "reports/training/checkpoint_selection.md",
+    "checkpoint_selection_json": "reports/training/checkpoint_selection.json",
+    "full_training_summary_md": "reports/training/full_training_summary.md",
+    "baseline_summary_md": "reports/training/baseline_summary.md",
+    "metricgan_plus_wer_md": "reports/training/metricgan_plus_wer.md",
+    "metricgan_pretrained_summary_md": "reports/training/metricgan_pretrained_summary.md",
+    "plan_md": "docs/plans/training_datamove1_plan.md",
+    "versions_py": "libs/common/versions.py"
+  },
+  "selection_frozen": true,
+  "asr": {
+    "model": "base.en",
+    "version": "20250625",
+    "device": "cuda"
+  },
+  "dataset_version": "librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8",
+  "training_split_version": "devclean_speaker_split_v1",
+  "metrics_version": "metrics_v1",
+  "degradation_version": "degradation_v1",
+  "eval_per_family_cap": 533,
+  "enhancer_architecture": "spectral_unet_small_v1",
+  "enhancer_parameter_count": 403201,
+  "selected_checkpoint": {
+    "step": 20000,
+    "canonical_path": "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt",
+    "alias_paths": [
+      "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt"
+    ],
+    "sha256": "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e",
+    "size_bytes": 4916439,
+    "alias_sha256_equals_canonical_sha256": true,
+    "macro_word_accuracy": 0.5255416,
+    "macro_wer": 0.4744584,
+    "worst_case_word_accuracy": 0.369799,
+    "worst_case_family": "muffled",
+    "delta_macro_wa_vs_t3_2_degraded": -0.2957584,
+    "delta_macro_wa_vs_t4_2_metricgan_plus": -0.0636584,
+    "role": "reproducibility_only_reference_not_a_deployment_artifact"
+  },
+  "tier_carried_forward": {
+    "tier": "framework_only",
+    "sub_status": "framework_only_strict_negative",
+    "deployment_decision": "not_selected_for_deployment",
+    "selection_purpose": "reproducibility_and_framework_demonstration_only",
+    "metricgan_plus_role": "prior_negative_baseline_only",
+    "t8_1_decision_path": "explicit_skip",
+    "export_posture": "export_may_proceed_only_as_reproducibility_framework_artifact_or_be_explicitly_skipped_in_T8.1"
+  },
+  "decision": {
+    "path": "no_artifact_handoff",
+    "export_performed": false,
+    "enhancer_version": null,
+    "exported_artifact_path": null,
+    "exported_artifact_sha256": null,
+    "deployable_artifact_handed_off": false,
+    "demo_pr_opened": false,
+    "libs_versions_modified": false,
+    "model_card_modified_in_t8_3": false,
+    "rationale": "T8.1 took the explicit_skip path under framework_only_strict_negative. No exported model artifact exists. ENHANCER_VERSION remains null in libs/common/versions.py. The selected checkpoint is retained on scratch as a reproducibility / framework reference only and is not a deployment artifact. The demo branch should keep its previous (pre-T8.3) enhancer choice in effect; demo / RP integration is not triggered by this branch. MetricGAN+ remains prior_negative_baseline_only. No ASR improvement is claimed. The selected checkpoint is not deployable. The enhancer is not recommended for deployment. This branch is not RP5-ready and not demo-ready."
+  },
+  "evidence_manifest": [
+    {
+      "path": "docs/model_card.md",
+      "sha256": "cce2356ac1b5d85143fd73b65f73c88cceef12c6fdb9a2c02bc2f69cf0968c93",
+      "size_bytes": 33084,
+      "role": "T8.2 closed model card (framework_only_strict_negative)",
+      "matches_t8_2_evidence": true
+    },
+    {
+      "path": "reports/training/export_decision.md",
+      "sha256": "bf8d18930e22523dcc0181806f60f24d5aec09135e4f495e995d056d0064abd4",
+      "size_bytes": 10044,
+      "role": "T8.1 explicit_skip export decision (Markdown)",
+      "matches_t8_2_evidence": true
+    },
+    {
+      "path": "reports/training/export_decision.json",
+      "sha256": "7cee47023b8adcad0c3105276f00819cc68d45a18707dc217c09880546b63678",
+      "size_bytes": 6893,
+      "role": "T8.1 explicit_skip export decision (JSON)",
+      "matches_t8_2_evidence": true
+    },
+    {
+      "path": "reports/training/publishability_tier.md",
+      "sha256": "03bb3bd9b8717dc7db4ebcc75c85b9839921327078a4d6671dcb4a0a5e26eb42",
+      "size_bytes": 8762,
+      "role": "T7.2 publishability tier assignment (Markdown)",
+      "matches_t8_2_evidence": true
+    },
+    {
+      "path": "reports/training/publishability_tier.json",
+      "sha256": "14d4a8b6034dea106f4b99816d6c84d5ecd7990c0ee889e90c8b722c5778640a",
+      "size_bytes": 6453,
+      "role": "T7.2 publishability tier assignment (JSON)",
+      "matches_t8_2_evidence": true
+    },
+    {
+      "path": "reports/training/checkpoint_selection.md",
+      "sha256": "1e2b99d79fdac1c031b1abb6e69a4913295026ae199a552b4f980a46a1a8373c",
+      "size_bytes": 4107,
+      "role": "T7.1 deterministic checkpoint selection (Markdown)",
+      "matches_t8_2_evidence": true
+    },
+    {
+      "path": "reports/training/checkpoint_selection.json",
+      "sha256": "756cd39c294f1edc373fdbe54e12c7da0409a5bc36dcf8ae46db8924ef6f5ec3",
+      "size_bytes": 9065,
+      "role": "T7.1 deterministic checkpoint selection (JSON)",
+      "matches_t8_2_evidence": true
+    },
+    {
+      "path": "reports/training/full_training_summary.md",
+      "sha256": "34d9aa0f645b203ff033915145bbcacb124e6fee089c5b267ad1c685b413d219",
+      "size_bytes": 13702,
+      "role": "T6.3 full-training summary",
+      "matches_t8_2_evidence": true
+    },
+    {
+      "path": "reports/training/baseline_summary.md",
+      "sha256": "46866753051b96c6bb5b5b4ffc0c5899684baa1c682311c9fd64bb0e44046027",
+      "size_bytes": 3228,
+      "role": "T3.3 baseline (clean + degraded) summary",
+      "matches_t8_2_evidence": false
+    },
+    {
+      "path": "reports/training/metricgan_plus_wer.md",
+      "sha256": "35ee596d13d822a666934026de7b0c3ee48539f91bd7d4003bc7cc11350155c4",
+      "size_bytes": 5806,
+      "role": "T4.2 MetricGAN+ pretrained WER report (prior_negative_baseline_only)",
+      "matches_t8_2_evidence": false
+    },
+    {
+      "path": "reports/training/metricgan_pretrained_summary.md",
+      "sha256": "bd27502e45ee6dcda43d06de61edbd60fc75004031d42ad9bb5f4bca62fb00d5",
+      "size_bytes": 9471,
+      "role": "T4.3 MetricGAN+ pretrained summary (prior_negative_baseline_only)",
+      "matches_t8_2_evidence": false
+    }
+  ],
+  "selected_checkpoint_off_git_reference": [
+    {
+      "path": "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt",
+      "sha256": "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e",
+      "size_bytes": 4916439,
+      "role": "reproducibility_only_canonical_reference_not_a_deployment_artifact"
+    },
+    {
+      "path": "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt",
+      "sha256": "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e",
+      "size_bytes": 4916439,
+      "role": "reproducibility_only_alias_reference_not_a_deployment_artifact"
+    }
+  ],
+  "posture": {
+    "do_not_modify_model_card": true,
+    "do_not_modify_publishability_tier": true,
+    "do_not_modify_checkpoint_selection": true,
+    "do_not_modify_export_decision": true,
+    "do_not_modify_full_training_summary": true,
+    "do_not_modify_baseline_summary": true,
+    "do_not_modify_metricgan_plus_wer": true,
+    "do_not_modify_metricgan_pretrained_summary": true,
+    "do_not_modify_external_run_artifacts": true,
+    "do_not_modify_configs": true,
+    "do_not_modify_libs": true,
+    "do_not_modify_scripts": true,
+    "do_not_modify_slurm_jobs": true,
+    "do_not_create_export_artifact": true,
+    "do_not_register_enhancer_version": true,
+    "do_not_modify_demo_files": true,
+    "do_not_modify_demo_trackers": true,
+    "do_not_open_demo_pr": true,
+    "stash_untouched": true
+  },
+  "no_claim": {
+    "no_asr_improvement_claimed": true,
+    "no_deployment_recommendation": true,
+    "no_publicable_claim": true,
+    "no_rp5_ready_claim": true,
+    "no_demo_ready_claim": true,
+    "metricgan_plus_role": "prior_negative_baseline_only"
+  },
+  "demo_branch_actions_required": {
+    "rp5_action_required": false,
+    "cache_prewarm_required": false,
+    "cache_validate_required": false,
+    "env_change_required": false,
+    "enhancer_version_bump_required": false,
+    "deployment_pr_required": false,
+    "model_release_publication_required": false,
+    "treat_selected_checkpoint_as_deployable": false,
+    "import_selected_checkpoint_into_runtime": false
+  },
+  "slurm_used": false,
+  "slurm_required_for_t8_3": false,
+  "slurm_notification_policy": "not_applicable_no_slurm_job_submitted",
+  "future_slurm_notification_rule": "Any future Slurm job from this branch (e.g. retraining experiments, ablation evals, or an export job for a future publicable_* checkpoint) must include either (a) native Slurm --mail-type=END,FAIL --mail-user=<addr> if the cluster mail relay is confirmed reliable, or (b) a session-side watcher polling ./slurm/tools/on_submit.sh sacct -j <id> / squeue -u $USER at >=30 s and reporting terminal state, or (c) an explicit manual check command stated up-front. Not applied retroactively to T6.2 / T6.3 / T7.1 / T7.2 / T8.1 / T8.2 jobs.",
+  "limitations": [
+    "Dev-clean only (533 records per family for the val_degraded subset; 2693 records per family for the T3.2 reference).",
+    "Single ASR model: openai-whisper base.en (20250625) only.",
+    "Single enhancer architecture: spectral_unet_small_v1, 403201 parameters, single 20000-step run with the configured loss/schedule.",
+    "Cropped 4-second val windows via _maybe_run_whisper_validation in the post-hoc Whisper eval mode.",
+    "ASR metrics only (WER and Word Accuracy via metrics_v1); no PESQ / STOI / MOS.",
+    "No fine-tuning of Whisper.",
+    "Single Whisper version; CUDA decode (fp16, beam_size=1, temperature=0.0).",
+    "Tier rule applied on macro Word Accuracy over the five official degradations only; per-family disaggregation reproduces the same null_or_negative direction.",
+    "Selection inputs are frozen: T8.3 does not amend reports/training/checkpoint_selection.{md,json}, reports/training/publishability_tier.{md,json}, reports/training/export_decision.{md,json}, reports/training/full_training_summary.md, reports/training/baseline_summary.md, reports/training/metricgan_plus_wer.md, reports/training/metricgan_pretrained_summary.md, docs/model_card.md, or any external run artifact."
+  ],
+  "what_this_report_does_not_claim": [
+    "That the T6.2-trained enhancer improves ASR over the T3.2 degraded baseline. It does not.",
+    "That the T6.2-trained enhancer is preferable to the T4.2 MetricGAN+ pretrained prior negative baseline. It is not at the macro level (delta -0.0636584).",
+    "That re-running selection on the same evidence would yield a different tier.",
+    "That the explicit-skip / no-artifact handoff precludes future re-training under a different architecture, loss, or schedule.",
+    "That T8.3 has decided anything for the demo branch beyond 'do nothing on RP5 from this branch's T8.3 closure'."
+  ],
+  "next_gate": "training_branch_complete_no_artifact_handoff",
+  "commit_a_scope": {
+    "commit_a_files": [
+      "reports/training/handoff.md",
+      "reports/training/handoff.json"
+    ],
+    "tracker_updated_in_commit_a": false,
+    "t8_3_closed_in_commit_a": false,
+    "tasks_T8_3_status_after_commit_a": "pending",
+    "stash_untouched": true
+  }
+}
