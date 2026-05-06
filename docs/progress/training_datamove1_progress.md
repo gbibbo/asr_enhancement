@@ -1804,9 +1804,9 @@ Tracker state after T7.1:
 - `t7_1_closed: true`
 - `next_gate: T7.2_publishability_tier_assignment`
 
-Result commit: backfilled in the immediately following commit on
-this branch; see
-`T7.1: backfill checkpoint selection result_commit hash`.
+Result commit: `5057c397ca72283c0e3d30fa31b368b2e1c49dce` (hash
+backfilled in the immediately following commit on this branch; see
+`T7.1: backfill checkpoint selection result_commit hash`).
 
 ## Next task
 

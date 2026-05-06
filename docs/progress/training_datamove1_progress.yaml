@@ -2488,7 +2488,7 @@ t7_1_evidence:
   blocker: null
   t7_1_closed: true
   next_gate: T7.2_publishability_tier_assignment
-  result_commit: null
+  result_commit: "5057c397ca72283c0e3d30fa31b368b2e1c49dce"
 tasks:
   "T0.1": done
   "T0.2": done
