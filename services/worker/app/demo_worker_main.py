@@ -6,10 +6,11 @@ import signal
 import sys
 import time
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-)
+# B12.1: JSON logging is configured inside main() (after DemoSettings is
+# loaded) via libs.observability.logging.configure_logging("demo-worker"),
+# which also installs a RotatingFileHandler when DEMO_LOG_TO_FILE is true.
+# Module-level log emits before configure_logging runs (e.g. an early
+# signal in tests) fall back to default Python logging.
 log = logging.getLogger("demo-worker")
 
 _shutdown = False
@@ -35,11 +36,18 @@ def main() -> None:
         default_enhancer_factory,
         process_upload_job,
     )
+    from libs.observability.log_rotation import build_rotating_file_handler
+    from libs.observability.logging import configure_logging
 
     signal.signal(signal.SIGTERM, _handle_signal)
     signal.signal(signal.SIGINT, _handle_signal)
 
     settings = DemoSettings()
+    file_handler = build_rotating_file_handler(settings, service="demo-worker")
+    configure_logging(
+        "demo-worker",
+        extra_handlers=[file_handler] if file_handler is not None else None,
+    )
     ensure_runtime_dirs(settings)
     init_schema(settings.demo_db_path)
 

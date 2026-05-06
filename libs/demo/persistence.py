@@ -353,6 +353,19 @@ def list_cache_entries(db_path: Path) -> list[dict]:
         conn.close()
 
 
+def count_cache_entries(db_path: Path) -> int:
+    """Return the number of rows in cache_entries.
+
+    Cheap counter for /admin/stats; avoids loading row contents.
+    """
+    conn = _open(db_path)
+    try:
+        row = conn.execute("SELECT COUNT(*) FROM cache_entries").fetchone()
+        return int(row[0])
+    finally:
+        conn.close()
+
+
 def delete_cache_entries(
     db_path: Path,
     *,

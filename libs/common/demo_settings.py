@@ -41,6 +41,22 @@ class DemoSettings(BaseSettings):
     demo_assemblyai_hard_cap_usd: float = 45.0
     demo_assemblyai_usd_per_second: float = 0.000103
 
+    # B12.1 logging + admin observability. Library default for file logging is
+    # False so unit tests stay stderr-only; the demo Compose file overrides to
+    # true so the RP5 runtime container actually rotates logs (B12.1 done-when
+    # 4). Filenames are built as f"{prefix}.{short_service}.log" where
+    # short_service is derived from the configure_logging(service=...) tag by
+    # stripping the leading "demo-" (so demo-api -> api, demo-worker -> worker).
+    demo_log_to_file: bool = False
+    demo_log_max_bytes: int = 10_485_760
+    demo_log_backup_count: int = 5
+    demo_log_filename_prefix: str = "demo"
+    demo_admin_recent_errors: int = 20
+    # Sampled internally by libs/demo/probes.read_disk_usage; the HTTP response
+    # only ever reports the constant scope label "demo_runtime_root" — the
+    # path itself is never exposed.
+    demo_admin_disk_usage_path: Optional[Path] = None
+
     @model_validator(mode="after")
     def fill_derived_paths(self) -> "DemoSettings":
         root = self.demo_runtime_root
@@ -59,4 +75,6 @@ class DemoSettings(BaseSettings):
             self.demo_artifacts_dir = root / "artifacts"
         if _unset(self.demo_logs_dir):
             self.demo_logs_dir = root / "logs"
+        if _unset(self.demo_admin_disk_usage_path):
+            self.demo_admin_disk_usage_path = root
         return self

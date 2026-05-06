@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import secrets
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -12,6 +14,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 
 from libs.common.demo_settings import DemoSettings
+from libs.demo.admin_stats import build_admin_stats
 from libs.demo.cache import build_cache_key
 from libs.demo.examples import get_safe_audio_path, load_examples
 from libs.demo.persistence import (
@@ -19,10 +22,8 @@ from libs.demo.persistence import (
     count_active_jobs,
     count_effective_session_assemblyai_uses,
     ensure_runtime_dirs,
-    get_admin_state_value,
     get_cache_entry,
     get_job,
-    get_jobs_stats,
     init_schema,
     set_admin_state,
     try_create_job,
@@ -43,17 +44,26 @@ from libs.demo.usage import (
     STATE_DAILY_QUOTA_REACHED,
     STATE_DISABLED,
     STATE_QUOTA_EXHAUSTED,
-    compute_admin_view,
     compute_public_view,
     rolling_24h_start_iso,
 )
+from libs.observability.error_buffer import build_error_buffer_handler
+from libs.observability.log_rotation import build_rotating_file_handler
 from libs.observability.logging import configure_logging
+
+
+_request_log = logging.getLogger("demo-api.request")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    configure_logging("demo-api")
     settings = DemoSettings()
+    error_buffer = build_error_buffer_handler(
+        service="demo-api", maxlen=settings.demo_admin_recent_errors
+    )
+    file_handler = build_rotating_file_handler(settings, service="demo-api")
+    extras = [h for h in (file_handler, error_buffer) if h is not None]
+    configure_logging("demo-api", extra_handlers=extras)
     ensure_runtime_dirs(settings)
     init_schema(settings.demo_db_path)
     set_admin_state(
@@ -62,10 +72,48 @@ async def lifespan(app: FastAPI):
         datetime.now(timezone.utc).isoformat(),
     )
     app.state.settings = settings
+    app.state.error_buffer = error_buffer
+    app.state.request_count_total = 0
+    app.state.cache_hit_count = 0
+    app.state.cache_miss_count = 0
     yield
 
 
 app = FastAPI(title="ASR Enhancement Demo", version="0.1.0", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def _demo_request_logger(request: Request, call_next):
+    start = time.perf_counter()
+    # Pre-increment so the request being served is included in the count
+    # the admin response sees (the response is built inside call_next, before
+    # the finally block runs).
+    try:
+        request.app.state.request_count_total = int(
+            getattr(request.app.state, "request_count_total", 0)
+        ) + 1
+    except Exception:  # noqa: BLE001 — never let log accounting raise.
+        pass
+    status_code = 500
+    try:
+        response = await call_next(request)
+        status_code = int(getattr(response, "status_code", 500))
+        return response
+    finally:
+        duration_ms = (time.perf_counter() - start) * 1000.0
+        # NOTE: do not log Authorization, Cookie, or X-Demo-Session-Id —
+        # those headers carry credentials/session identifiers and are
+        # explicitly excluded from the demo log surface (B10.2 / B12.1).
+        _request_log.info(
+            "demo.api.request",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": status_code,
+                "duration_ms": round(duration_ms, 3),
+            },
+        )
+
 
 _basic = HTTPBasic(auto_error=False)
 
@@ -204,11 +252,23 @@ async def run_cached(body: _RunCachedRequest, request: Request):
     )
     entry = get_cache_entry(settings.demo_db_path, cache_key)
     if entry:
+        try:
+            request.app.state.cache_hit_count = int(
+                getattr(request.app.state, "cache_hit_count", 0)
+            ) + 1
+        except Exception:  # noqa: BLE001
+            pass
         return {
             "status": "cache_hit",
             "result": json.loads(entry["result_json"]),
             "cache_key": cache_key,
         }
+    try:
+        request.app.state.cache_miss_count = int(
+            getattr(request.app.state, "cache_miss_count", 0)
+        ) + 1
+    except Exception:  # noqa: BLE001
+        pass
     return {"status": "cache_miss", "detail": "No cached result for this configuration."}
 
 
@@ -357,15 +417,10 @@ async def admin_stats(
     )
     if not (ok_user and ok_pass):
         raise _unauth
-    startup_iso = get_admin_state_value(settings.demo_db_path, "startup_time")
-    uptime = 0.0
-    if startup_iso:
-        delta = datetime.now(timezone.utc) - datetime.fromisoformat(startup_iso)
-        uptime = delta.total_seconds()
-    return {
-        "startup_time": startup_iso,
-        "uptime_seconds": uptime,
-        "queue_depth": count_active_jobs(settings.demo_db_path),
-        "jobs_by_status": get_jobs_stats(settings.demo_db_path),
-        "provider_state": compute_admin_view(settings.demo_db_path, settings),
-    }
+    return build_admin_stats(
+        settings=settings,
+        request_count_total=int(getattr(request.app.state, "request_count_total", 0)),
+        cache_hit_count=int(getattr(request.app.state, "cache_hit_count", 0)),
+        cache_miss_count=int(getattr(request.app.state, "cache_miss_count", 0)),
+        error_buffer_handler=getattr(request.app.state, "error_buffer", None),
+    )
