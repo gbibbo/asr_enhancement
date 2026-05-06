@@ -1635,21 +1635,190 @@ Result commit: `be36dfac9688f689d9d894fd9fced8f031573391` (hash backfilled in th
 immediately following commit on this branch; see
 `T6.2c: backfill CPU micro-validation result_commit hash`).
 
+## T7.1 closure evidence (2026-05-06)
+
+T7.1 owns deterministic checkpoint selection per plan §17. It runs
+the new selector `scripts/training/select_checkpoint.py` (added in
+prep commit `08e5bbd5aea65ea3c98f15fc83365fefddfaec4d`,
+`T7.1 prep: add checkpoint selection script and per-checkpoint Whisper eval job`)
+over per-family WER/WA from four T7.1 per-checkpoint Whisper
+evaluation Slurm jobs (steps 10000, 12500, 15000, 17500) plus the
+prior T6.3b post-hoc Whisper evaluation of `latest.pt` for step
+20000. T7.1 does **not** close T6.3 again, does **not** export the
+enhancer (T8.1 owns export), does **not** modify
+`docs/model_card.md` (T8.2 owns the model card), and does **not**
+start T7.2.
+
+Follow-up prep fix:
+`a70a70a07ee71f7f4a4468a28e8bff365010d40b` —
+`T7.1 prep: accept string scalar eval metrics in selector`. The
+real `eval_metadata.json` files emitted by
+`scripts/training/train_enhancer.py --eval-checkpoint` carry
+`per_family_mean_word_accuracy` and `per_family_mean_wer` as
+6-decimal string-formatted floats (e.g. `"0.580191"`); the prep
+commit's selector rejected them as non-numeric. The follow-up
+patches `_validate_finite` → `_coerce_finite_number` so int / float /
+numeric strings are all accepted, with `"nan"` / `"inf"` /
+non-numeric strings / non-scalar types still rejected, and threads
+the coerced floats through the per-family pipeline so the output
+JSON record carries numeric values. Adds regression tests over
+string-encoded fixtures and the four rejection cases.
+
+Selection report commit:
+`87a8c8ae91ab5a0af62e5ca96a6e156a9d525c17` —
+`T7.1: add checkpoint selection report and metadata`. Adds:
+
+- `reports/training/checkpoint_selection.md` (4107 B, sha256
+  `1e2b99d79fdac1c031b1abb6e69a4913295026ae199a552b4f980a46a1a8373c`);
+- `reports/training/checkpoint_selection.json` (9065 B, sha256
+  `756cd39c294f1edc373fdbe54e12c7da0409a5bc36dcf8ae46db8924ef6f5ec3`).
+
+### Per-checkpoint Whisper evaluations (Slurm A100, `apptainer exec --nv`, `--eval-per-family-cap=533`)
+
+| Step | Job ID | State | ExitCode | Elapsed | Node | Macro WA | Macro WER | Worst-case WA (muffled) |
+|---|---|---|---|---|---|---|---|---|
+| 10000 | 2129063 | COMPLETED | 0:0 | 00:07:25 | aisurrey21 | 0.512384 | 0.487616 | 0.370847 |
+| 12500 | 2129064 | COMPLETED | 0:0 | 00:09:55 | aisurrey24 | 0.510349 | 0.489651 | 0.367664 |
+| 15000 | 2129065 | COMPLETED | 0:0 | 00:07:15 | aisurrey21 | 0.514670 | 0.485330 | 0.369340 |
+| 17500 | 2129066 | COMPLETED | 0:0 | 00:09:57 | aisurrey24 | 0.511481 | 0.488519 | 0.367951 |
+| 20000 (T6.3b reuse) | 2129017 | COMPLETED | 0:0 | (reused) | aisurrey24 | 0.525541 | 0.474459 | 0.369799 |
+
+Step 20000 reuses T6.3b's `latest.pt` metrics, accepted because
+`sha256(latest.pt) == sha256(checkpoint_step_0020000.pt)`
+(`a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e`).
+
+Each candidate's verify JSON shows `validation_passed: true`,
+`errors: []`, 2665/2665 transcriptions, all five families present at
+`count=533`, finite/non-placeholder WER/WA, CUDA posture flags all
+true (`whisper_device=cuda`, `enhancer_device=cuda`, `gpu_used`,
+`apptainer_nv_used`, `expected_cuda`, `torch_cuda_is_available`),
+`enhancement_run=false`,
+`enhancement_bank_generation_artifacts_found=false`,
+`val_enhanced_tmp` absent. No traceback, no `BLOCKER` line, no CUDA
+visibility failure in any stdout/stderr. The T6.2 source
+`runs/t6_2_full_training_2128952/checkpoints/` retained their
+original mtimes and 4 916 439-byte sizes across all four T7.1 Slurm
+jobs.
+
+Notification strategy: session-side `sacct` watcher per submitted
+job at 90 s cadence, monitoring terminal states `COMPLETED`,
+`FAILED`, `CANCELLED`, `TIMEOUT`, `NODE_FAIL`, `OUT_OF_MEMORY`,
+`PREEMPTED`, `BOOT_FAIL`. All four watchers exited cleanly after
+reporting `COMPLETED`.
+
+### Selection rule application
+
+Selection rule (config: `configs/training/full_training.yaml`
+`checkpoint_policy`):
+
+- primary metric: `average_word_accuracy_over_official_degradations`;
+- tiebreaker 1: `best_worst_case_degradation`;
+- tiebreaker 2: `most_recent_checkpoint`.
+
+Ranking trace:
+
+| Rank | Step | Macro WA | Worst-case WA | Macro WER |
+|---|---|---|---|---|
+| 1 | 20000 | 0.525542 | 0.369799 | 0.474458 |
+| 2 | 15000 | 0.514670 | 0.369340 | 0.485330 |
+| 3 | 10000 | 0.512384 | 0.370847 | 0.487616 |
+| 4 | 17500 | 0.511481 | 0.367951 | 0.488519 |
+| 5 | 12500 | 0.510349 | 0.367664 | 0.489651 |
+
+Selected checkpoint:
+
+- step `20000`;
+- canonical path
+  `runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt`;
+- sha256
+  `a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e`;
+- alias paths:
+  `runs/t6_2_full_training_2128952/checkpoints/latest.pt`;
+- macro Word Accuracy `0.525542`, macro WER `0.474458`,
+  worst-case family Word Accuracy `0.369799` (muffled);
+- Δ macro WA vs T3.2 degraded baseline (0.8213): `−0.295758`;
+- `tier_at_selection: null_or_negative`;
+- `deployment_decision: not_selected_pending_review`;
+- `t7_2_required: true`;
+- `do_not_modify_model_card: true`.
+
+Per-family values for the selected checkpoint (step 20000, from
+T6.3b post-hoc Whisper full evaluation):
+
+| Family | mean WER | mean Word Accuracy |
+|---|---|---|
+| broadband_hiss | 0.414715 | 0.585285 |
+| cafe_background | 0.469957 | 0.530043 |
+| far_field_room | 0.484717 | 0.515283 |
+| muffled | 0.630201 | 0.369799 |
+| phone_call | 0.372702 | 0.627298 |
+
+### Quality outcome
+
+All five candidates are below the T3.2 degraded baseline macro WA
+0.8213 (deltas range from `−0.310951` at step 12500 to `−0.295758`
+at step 20000); the population is tier `null_or_negative`. This is
+a **modelling outcome, not a pipeline failure**. T7.1 still selects
+the best-available checkpoint deterministically and records the
+deployment decision as `not_selected_pending_review`. T7.2 owns
+publishability/deployment; T8.1 owns export; T8.2 owns the model
+card. MetricGAN+ remains a prior negative baseline only.
+
+### Selector output integrity
+
+`reports/training/checkpoint_selection.json` round-trips through
+`python3 -m json.tool` cleanly. All five
+`candidates[*].per_family_mean_word_accuracy` and
+`per_family_mean_wer` values are emitted as numeric floats (not
+stringified scalars), and all `macro_*`,
+`worst_case_word_accuracy`, and `delta_macro_wa_vs_t3_2_degraded`
+fields are floats. Verified via `isinstance(v, (int, float))` and
+`math.isfinite(v)` over every value.
+
+### Non-actions during T7.1
+
+- `runs/t6_2_full_training_2128952/` and its `checkpoints/`
+  directory byte-unchanged after the four T7.1 Slurm jobs.
+- T6.3 eval artifacts under
+  `runs/t6_3_post_hoc_whisper_full_2129017/` not modified.
+- T7.1 eval artifacts under
+  `runs/t7_1_post_hoc_whisper_step_*_*/` written by Slurm only;
+  not modified retroactively.
+- `docs/model_card.md` not modified.
+- `configs/training/*.yaml` not modified.
+- `libs/common/versions.py`, `libs/audio/*` not modified.
+- `scripts/training/train_enhancer.py` not modified.
+- Existing T6.2 / T6.3 Slurm jobs not modified.
+- Demo / RP files and trackers not touched.
+- `.codex/` not staged.
+- `stash@{0}` (`WIP unrelated demo/B6.5.1 changes before T3.2
+  result commit`) remains present and untouched.
+
+Tracker state after T7.1:
+
+- `current_task: "T7.2"`
+- `last_completed_task: "T7.1"`
+- `tasks["T7.1"]: done`
+- `tasks["T7.2"]: pending`
+- `blocked: false`, `blocker: null`
+- `t7_1_closed: true`
+- `next_gate: T7.2_publishability_tier_assignment`
+
+Result commit: backfilled in the immediately following commit on
+this branch; see
+`T7.1: backfill checkpoint selection result_commit hash`.
+
 ## Next task
 
-T6.2d — *decision gate* between two candidate scopes, to be planned
-separately:
-
-1. **Whisper-enabled smoke validation** — same micro split and
-   small step count, but with `--enable-whisper-val` so the
-   validation pass exercises the openai-whisper code path on a
-   tiny subset before any long full-training run; or
-2. **Direct full-training Slurm submission** per plan §16 T6.2
-   (`steps: 20000`, `batch_size: 8`, GPU-preferred with CPU
-   fallback per `configs/training/full_training.yaml`), which is
-   also the closure of T6.2.
-
-T6.2c does **not** select between these. T6.2 closure (the actual
-full training run with at least one candidate checkpoint per plan
-§16 Done-when 1) remains a later gate. Cut T3 remains active.
-T6.2d must not start unless the user explicitly authorises it.
+T7.2 — publishability tier assignment per plan §17. Reads the T7.1
+selection record at
+`reports/training/checkpoint_selection.json` (`selected_checkpoint`:
+step 20000, `tier_at_selection: null_or_negative`,
+`deployment_decision: not_selected_pending_review`) and decides the
+publishability tier (`publicable_strong` /
+`publicable_acceptable` / `framework_only`), feeding the deployment
+decision to T8.1 (export) and T8.2 (model card). Given the T7.1
+outcome (Δ macro WA = `−0.295758` vs T3.2 degraded), T7.2 is
+expected to land in `framework_only` unless a different decision
+rule is invoked. T7.2 must not start unless the user explicitly
+authorises it. Cut T3 remains active.
