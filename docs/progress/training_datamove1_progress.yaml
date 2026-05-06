@@ -2,11 +2,11 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 6
-current_task: "T8.2"
-last_completed_task: "T8.1"
+current_task: "T8.3"
+last_completed_task: "T8.2"
 blocked: false
 blocker: null
-next_gate: T8.2_model_card
+next_gate: T8.3_handoff
 public_examples_exclusion_status: complete
 public_examples_exclusion_rerun_required: false
 public_examples_exclusion_rerun_after: null
@@ -2648,6 +2648,94 @@ t8_1_evidence:
     t8_1_closed: true
     next_gate: T8.2_model_card
   result_commit: "4deffa180bb14569c6cbe9ffb067d1c8e12238d6"
+t8_2_evidence:
+  scope: "T8.2 model-card update per plan §18 from the closed T7.1 selection, T7.2 publishability tier, and T8.1 explicit-skip export decision. T8.2 edits docs/model_card.md only and records the framework_only_strict_negative outcome with no claim of ASR improvement, no claim of deployability, and no recommendation for deployment of either the T6.2-trained enhancer or MetricGAN+ pretrained. T8.2 does NOT modify reports/training/export_decision.{md,json}, reports/training/publishability_tier.{md,json}, reports/training/checkpoint_selection.{md,json}, reports/training/full_training_summary.md, reports/training/baseline_summary.md, reports/training/metricgan_plus_wer.md, configs/, libs/, scripts/, slurm/jobs/, or any external run artifact. T8.2 does NOT touch demo / RP files or trackers, does NOT touch stash@{0}, and does NOT start T8.3."
+  status: passed
+  closes_t8_2: true
+  model_card_commit: "f74871686f772203fe33078375a37c6a3b4501e4"
+  model_card_path: docs/model_card.md
+  model_card_sha256: "cce2356ac1b5d85143fd73b65f73c88cceef12c6fdb9a2c02bc2f69cf0968c93"
+  source_inputs:
+    export_decision_md: reports/training/export_decision.md
+    export_decision_json: reports/training/export_decision.json
+    export_decision_md_sha256: "bf8d18930e22523dcc0181806f60f24d5aec09135e4f495e995d056d0064abd4"
+    export_decision_json_sha256: "7cee47023b8adcad0c3105276f00819cc68d45a18707dc217c09880546b63678"
+    publishability_tier_md: reports/training/publishability_tier.md
+    publishability_tier_json: reports/training/publishability_tier.json
+    publishability_tier_md_sha256: "03bb3bd9b8717dc7db4ebcc75c85b9839921327078a4d6671dcb4a0a5e26eb42"
+    publishability_tier_json_sha256: "14d4a8b6034dea106f4b99816d6c84d5ecd7990c0ee889e90c8b722c5778640a"
+    checkpoint_selection_md: reports/training/checkpoint_selection.md
+    checkpoint_selection_json: reports/training/checkpoint_selection.json
+    checkpoint_selection_md_sha256: "1e2b99d79fdac1c031b1abb6e69a4913295026ae199a552b4f980a46a1a8373c"
+    checkpoint_selection_json_sha256: "756cd39c294f1edc373fdbe54e12c7da0409a5bc36dcf8ae46db8924ef6f5ec3"
+    full_training_summary_md: reports/training/full_training_summary.md
+    full_training_summary_md_sha256: "34d9aa0f645b203ff033915145bbcacb124e6fee089c5b267ad1c685b413d219"
+  model_card_outcome:
+    status_recorded: framework_only_strict_negative
+    tier: framework_only
+    sub_status: framework_only_strict_negative
+    deployment_decision: not_selected_for_deployment
+    selection_purpose: reproducibility_and_framework_demonstration_only
+    t8_1_decision_path: explicit_skip
+    export_performed: false
+    exported_artifact_path: null
+    exported_artifact_sha256: null
+    enhancer_version: null
+    ENHANCER_VERSION_unchanged: true
+    metricgan_plus_role: prior_negative_baseline_only
+  selected_checkpoint:
+    selected_step: 20000
+    canonical_checkpoint: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt
+    alias_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt
+    sha256: "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e"
+    macro_word_accuracy: 0.5255416
+    macro_wer: 0.4744584
+    delta_macro_wa_vs_t3_2_degraded: -0.2957584
+    delta_macro_wa_vs_t4_2_metricgan_plus: -0.0636584
+  validation_evidence:
+    placeholder_sweep: passed
+    selected_checkpoint_crosscheck: passed
+    model_card_sanity_check: passed
+    forbidden_claim_sweep: passed
+    no_positive_asr_improvement_claim: true
+    no_positive_deployment_claim: true
+    no_positive_metricgan_plus_selection_claim: true
+    docs_model_card_only_changed_in_model_card_commit: true
+  non_actions:
+    docs_progress_modified_during_model_card_commit: false
+    export_decision_md_modified: false
+    export_decision_json_modified: false
+    publishability_tier_md_modified: false
+    publishability_tier_json_modified: false
+    checkpoint_selection_md_modified: false
+    checkpoint_selection_json_modified: false
+    full_training_summary_modified: false
+    baseline_summary_modified: false
+    metricgan_plus_wer_modified: false
+    configs_modified: false
+    libs_modified: false
+    scripts_modified: false
+    slurm_jobs_modified: false
+    external_run_artifacts_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    stash_untouched: true
+    t8_3_started: false
+  slurm_policy:
+    slurm_required_for_t8_2: false
+    slurm_notification_policy: not_applicable_no_slurm_job_submitted
+    future_slurm_notification_policy: "future Slurm submissions must use either confirmed native Slurm mail END,FAIL, or a session-side sacct/squeue watcher, or an explicit manual check command if neither is appropriate."
+  closure:
+    current_task_after: "T8.3"
+    last_completed_task_after: "T8.2"
+    tasks_T8_2_status_after: done
+    tasks_T8_3_status_after: pending
+    blocked: false
+    blocker: null
+    t8_2_closed: true
+    next_gate: T8.3_handoff
+  result_commit: null
 tasks:
   "T0.1": done
   "T0.2": done
@@ -2679,5 +2767,5 @@ tasks:
   "T7.1": done
   "T7.2": done
   "T8.1": done
-  "T8.2": pending
+  "T8.2": done
   "T8.3": pending

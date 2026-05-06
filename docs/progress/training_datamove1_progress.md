@@ -4,8 +4,8 @@ Branch: feature/training-datamove1-v1
 Integration branch: demo-rp5-v1
 Current cut: T3
 Current phase: Phase 6
-Current task: Task T8.2
-Last completed task: T8.1
+Current task: Task T8.3
+Last completed task: T8.2
 Blocked: false
 Blocker: none
 
@@ -2089,14 +2089,153 @@ Result commit: `4deffa180bb14569c6cbe9ffb067d1c8e12238d6` (hash
 backfilled in the immediately following commit on this branch; see
 `T8.1: backfill explicit-skip result_commit hash`).
 
+## T8.2 closure evidence (2026-05-07)
+
+T8.2 owns the model-card update per plan §18 under the closed T7.1
+selection, T7.2 publishability tier, and T8.1 explicit-skip export
+decision. T8.2 records the **framework-only / strict-negative**
+outcome in `docs/model_card.md`: tier `framework_only`, sub-status
+`framework_only_strict_negative`, deployment decision
+`not_selected_for_deployment`, selection purpose
+`reproducibility_and_framework_demonstration_only`, T8.1 decision
+path `explicit_skip`, `export_performed: false`,
+`exported_artifact_path: null`, `exported_artifact_sha256: null`,
+`enhancer_version: null`, MetricGAN+ role
+`prior_negative_baseline_only`. The model card states explicitly
+that **no ASR improvement is claimed**, that the T6.2-trained
+enhancer is **not selected for deployment**, that the selected
+checkpoint is retained only as a reproducibility / framework
+reference, and that `ENHANCER_VERSION` remains `None` in
+`libs/common/versions.py`. T8.2 does **not** modify
+`reports/training/export_decision.{md,json}`,
+`reports/training/publishability_tier.{md,json}`,
+`reports/training/checkpoint_selection.{md,json}`,
+`reports/training/full_training_summary.md`,
+`reports/training/baseline_summary.md`,
+`reports/training/metricgan_plus_wer.md`, `configs/`, `libs/`,
+`scripts/`, `slurm/jobs/`, or any external run artifact under
+`runs/t6_2_full_training_2128952/`,
+`runs/t6_3_post_hoc_whisper_full_2129017/`, or
+`runs/t7_1_post_hoc_whisper_step_*_*/`. T8.2 does **not** touch
+demo / RP files or trackers. `stash@{0}` (`WIP unrelated
+demo/B6.5.1 changes before T3.2 result commit`) remains present
+and untouched. T8.3 is **not** started.
+
+Model-card commit:
+`f74871686f772203fe33078375a37c6a3b4501e4` —
+`T8.2: complete model card for framework-only strict-negative outcome`.
+
+| File | SHA-256 |
+|---|---|
+| `docs/model_card.md` (post-commit) | `cce2356ac1b5d85143fd73b65f73c88cceef12c6fdb9a2c02bc2f69cf0968c93` |
+
+### Source inputs (frozen, read-only)
+
+| File | SHA-256 |
+|---|---|
+| `reports/training/export_decision.md` | `bf8d18930e22523dcc0181806f60f24d5aec09135e4f495e995d056d0064abd4` |
+| `reports/training/export_decision.json` | `7cee47023b8adcad0c3105276f00819cc68d45a18707dc217c09880546b63678` |
+| `reports/training/publishability_tier.md` | `03bb3bd9b8717dc7db4ebcc75c85b9839921327078a4d6671dcb4a0a5e26eb42` |
+| `reports/training/publishability_tier.json` | `14d4a8b6034dea106f4b99816d6c84d5ecd7990c0ee889e90c8b722c5778640a` |
+| `reports/training/checkpoint_selection.md` | `1e2b99d79fdac1c031b1abb6e69a4913295026ae199a552b4f980a46a1a8373c` |
+| `reports/training/checkpoint_selection.json` | `756cd39c294f1edc373fdbe54e12c7da0409a5bc36dcf8ae46db8924ef6f5ec3` |
+| `reports/training/full_training_summary.md` | `34d9aa0f645b203ff033915145bbcacb124e6fee089c5b267ad1c685b413d219` |
+
+### Model-card outcome
+
+| Field | Value |
+|---|---|
+| `status_recorded` | `framework_only_strict_negative` |
+| `tier` | `framework_only` |
+| `sub_status` | `framework_only_strict_negative` |
+| `deployment_decision` | `not_selected_for_deployment` |
+| `selection_purpose` | `reproducibility_and_framework_demonstration_only` |
+| `t8_1_decision_path` | `explicit_skip` |
+| `export_performed` | `false` |
+| `exported_artifact_path` | `null` |
+| `exported_artifact_sha256` | `null` |
+| `enhancer_version` | `null` |
+| `ENHANCER_VERSION_unchanged` | `true` |
+| `metricgan_plus_role` | `prior_negative_baseline_only` |
+
+### Selected checkpoint identity recorded in the model card
+
+| Field | Value |
+|---|---|
+| `selected_step` | `20000` |
+| Canonical path | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt` |
+| Alias path | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt` |
+| SHA-256 | `a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e` |
+| Macro Word Accuracy | `0.5255416` |
+| Macro WER | `0.4744584` |
+| Δ macro WA vs T3.2 degraded | `-0.2957584` |
+| Δ macro WA vs T4.2 MetricGAN+ pretrained | `-0.0636584` |
+
+### Validation evidence
+
+- `placeholder_sweep`: passed (zero unresolved `<!-- PLACEHOLDER` markers in `docs/model_card.md`).
+- `selected_checkpoint_crosscheck`: passed (per-family WER/WA, macro WER/WA, deltas, SHA-256, canonical / alias paths, and step number all carried verbatim from `reports/training/checkpoint_selection.json`, `reports/training/publishability_tier.json`, `reports/training/export_decision.json`, and `reports/training/full_training_summary.md`).
+- `model_card_sanity_check`: passed (`framework_only_strict_negative`, `explicit_skip`, and `not_selected_for_deployment` all present in `docs/model_card.md`).
+- `forbidden_claim_sweep`: passed (every regex hit is either a negation, a §17 tier-rule definition row in a section where the assigned tier is explicitly `framework_only`, a "Not intended use" framing, or a hypothetical "future publicable enhancer" reference; no positive deployability / recommendation claim about the trained enhancer or MetricGAN+ remains).
+- `no_positive_asr_improvement_claim`: true.
+- `no_positive_deployment_claim`: true.
+- `no_positive_metricgan_plus_selection_claim`: true.
+- `docs_model_card_only_changed_in_model_card_commit`: true (the model-card commit's name-only listing is exactly `docs/model_card.md`; 252 insertions, 66 deletions).
+
+### Non-actions during T8.2
+
+- `docs/progress/training_datamove1_progress.{md,yaml}` not modified during the model-card commit (this closure commit is the first tracker update for T8.2).
+- `reports/training/export_decision.{md,json}` not modified.
+- `reports/training/publishability_tier.{md,json}` not modified.
+- `reports/training/checkpoint_selection.{md,json}` not modified.
+- `reports/training/full_training_summary.md` not modified.
+- `reports/training/baseline_summary.md` not modified.
+- `reports/training/metricgan_plus_wer.md` not modified.
+- `configs/`, `libs/`, `scripts/`, `slurm/jobs/` not modified.
+- External run artifacts under
+  `runs/t6_2_full_training_2128952/`,
+  `runs/t6_3_post_hoc_whisper_full_2129017/`, and
+  `runs/t7_1_post_hoc_whisper_step_*_*/` not touched.
+- Demo / RP files and trackers not touched.
+- `stash@{0}` untouched.
+- T8.3 not started.
+
+### Slurm policy
+
+T8.2 submitted no Slurm job:
+`slurm_required_for_t8_2: false`,
+`slurm_notification_policy: not_applicable_no_slurm_job_submitted`.
+
+Forward-looking rule (recorded for any future Slurm job from this
+branch — e.g. T8.3 retraining experiments, ablation evals, or an
+export job for a future `publicable_*` checkpoint): include either
+(a) native Slurm `--mail-type=END,FAIL --mail-user=<addr>` if the
+cluster mail relay is confirmed reliable, or (b) a session-side
+`./slurm/tools/on_submit.sh sacct -j <id>` /
+`squeue -u $USER` watcher polling at ≥30 s and reporting terminal
+state, or (c) an explicit "manual check" command stated up-front.
+Not applied retroactively to T6.2 / T6.3 / T7.1 / T7.2 / T8.1 jobs.
+
+### Tracker state after T8.2
+
+- `current_task: "T8.3"`
+- `last_completed_task: "T8.2"`
+- `tasks["T8.2"]: done`
+- `tasks["T8.3"]: pending`
+- `blocked: false`, `blocker: null`
+- `t8_2_closed: true`
+- `next_gate: T8.3_handoff`
+
+Result commit: backfilled in the immediately following commit on
+this branch (`T8.2: backfill model-card result_commit hash`).
+
 ## Next task
 
-T8.2 — complete `docs/model_card.md` per plan §18 from the selected
-run summary and the T7.2 verdict. The model card must state
-`framework_only` / `framework_only_strict_negative` /
-`not_selected_for_deployment` /
-`reproducibility_and_framework_demonstration_only` and carry the
-no-ASR-improvement-claim posture forward; it must not describe the
-T6.2-trained enhancer as deployable, publicable, or as an
-ASR-improvement model. T8.2 must not start unless the user
+T8.3 — handoff per plan §18. Under the current closure
+(`framework_only_strict_negative`, T8.1 `explicit_skip`,
+`export_performed: false`, `enhancer_version: null`,
+`exported_artifact_path: null`), T8.3 governs the handoff of the
+**decision and reproducibility references** to the demo branch, not
+of a deployable model. T8.3 must not treat the selected checkpoint
+as a deployable artifact and must not start unless the user
 explicitly authorises it. Cut T3 remains active.
