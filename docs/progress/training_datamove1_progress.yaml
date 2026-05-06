@@ -1867,7 +1867,7 @@ t6_2_gpu_preflight_evidence:
   t6_2_gpu_preflight_closed: true
   t6_2_closed: false
   next_gate: T6.2_24h_full_training_slurm_submission_per_user_decision
-  result_commit: ""
+  result_commit: "54875d6d8f2bb5facb5d586f0abcccfb6ca7f37f"
 tasks:
   "T0.1": done
   "T0.2": done
