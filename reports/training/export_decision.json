@@ -1,0 +1,117 @@
+{
+  "schema_version": "1",
+  "task": "T8.1",
+  "generated_at_utc": "2026-05-06T22:41:41Z",
+  "inputs": {
+    "publishability_tier_md": "reports/training/publishability_tier.md",
+    "publishability_tier_json": "reports/training/publishability_tier.json",
+    "checkpoint_selection_md": "reports/training/checkpoint_selection.md",
+    "checkpoint_selection_json": "reports/training/checkpoint_selection.json",
+    "full_training_summary_md": "reports/training/full_training_summary.md",
+    "baseline_summary_md": "reports/training/baseline_summary.md",
+    "metricgan_plus_wer_md": "reports/training/metricgan_plus_wer.md",
+    "plan_md": "docs/plans/training_datamove1_plan.md",
+    "config_path": "configs/training/full_training.yaml"
+  },
+  "selection_frozen": true,
+  "selection_frozen_sources": [
+    "reports/training/checkpoint_selection.md",
+    "reports/training/checkpoint_selection.json",
+    "reports/training/publishability_tier.md",
+    "reports/training/publishability_tier.json"
+  ],
+  "asr": {
+    "model": "base.en",
+    "version": "20250625",
+    "device": "cuda"
+  },
+  "dataset_version": "librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8",
+  "training_split_version": "devclean_speaker_split_v1",
+  "metrics_version": "metrics_v1",
+  "degradation_version": "degradation_v1",
+  "eval_per_family_cap": 533,
+  "selected_checkpoint": {
+    "step": 20000,
+    "canonical_path": "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt",
+    "alias_paths": [
+      "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt"
+    ],
+    "sha256": "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e",
+    "macro_word_accuracy": 0.5255416,
+    "macro_wer": 0.47445839999999995,
+    "worst_case_word_accuracy": 0.369799,
+    "worst_case_family": "muffled"
+  },
+  "references": {
+    "t3_2_degraded_macro_word_accuracy": 0.8213,
+    "t4_2_metricgan_plus_macro_word_accuracy": 0.5892
+  },
+  "deltas": {
+    "delta_macro_wa_vs_t3_2_degraded": -0.2957584,
+    "delta_macro_wa_vs_t4_2_metricgan_plus": -0.0636584
+  },
+  "tier_inputs": {
+    "tier": "framework_only",
+    "sub_status": "framework_only_strict_negative",
+    "defensible_reason_override_applied": false,
+    "deployment_decision": "not_selected_for_deployment",
+    "selection_purpose": "reproducibility_and_framework_demonstration_only",
+    "export_posture": "export_may_proceed_only_as_reproducibility_framework_artifact_or_be_explicitly_skipped_in_T8.1"
+  },
+  "decision": {
+    "path": "explicit_skip",
+    "export_performed": false,
+    "enhancer_version": null,
+    "exported_artifact_path": null,
+    "exported_artifact_sha256": null,
+    "rationale": "All five evaluated candidate checkpoints have delta_macro_wa_vs_t3_2_degraded <= 0; the selected checkpoint at step 20000 has delta -0.2957584 vs the T3.2 degraded baseline and -0.0636584 vs the T4.2 MetricGAN+ pretrained prior negative baseline. T7.2 already set deployment_decision=not_selected_for_deployment under sub_status=framework_only_strict_negative. Producing an export artifact would create a deployable-looking file under a tier where no ASR improvement is supported by metrics; explicit skip preserves an honest record. Reproducibility is already preserved by the canonical checkpoint and alias on scratch storage, both referenced by SHA-256 from reports/training/checkpoint_selection.json and reports/training/publishability_tier.json. ENHANCER_VERSION remains null in libs/common/versions.py because no enhancer is being shipped."
+  },
+  "metricgan_plus_role": "prior_negative_baseline_only",
+  "posture": {
+    "do_not_modify_model_card": true,
+    "do_not_modify_publishability_tier": true,
+    "do_not_modify_checkpoint_selection": true,
+    "do_not_modify_full_training_summary": true,
+    "do_not_modify_baseline_summary": true,
+    "do_not_modify_metricgan_plus_wer": true,
+    "do_not_modify_external_run_artifacts": true,
+    "do_not_modify_configs": true,
+    "do_not_modify_libs": true,
+    "do_not_modify_scripts": true,
+    "do_not_modify_slurm_jobs": true,
+    "do_not_create_export_artifact": true,
+    "do_not_register_enhancer_version": true,
+    "do_not_modify_demo_files": true,
+    "do_not_modify_demo_trackers": true,
+    "stash_untouched": true
+  },
+  "no_claim": {
+    "no_asr_improvement_claimed": true,
+    "no_deployment_recommendation": true,
+    "no_publicable_claim": true,
+    "metricgan_plus_role": "prior_negative_baseline_only"
+  },
+  "slurm_used": false,
+  "slurm_required_for_t8_1": false,
+  "slurm_notification_policy": "not_applicable_no_slurm_job_submitted",
+  "future_slurm_notification_rule": "Any future Slurm job from this branch (e.g. an export job for a future publicable_* checkpoint, retraining experiments, ablation evals) must include either (a) native Slurm --mail-type=END,FAIL --mail-user=<addr> if the cluster mail relay is confirmed reliable, or (b) a session-side watcher polling ./slurm/tools/on_submit.sh sacct -j <id> / squeue -u $USER at >=30 s and reporting terminal state, or (c) an explicit manual check command stated up-front. Not applied retroactively to T6.2 / T6.3 / T7.1 / T7.2 jobs.",
+  "limitations": [
+    "Dev-clean only (533 records per family for the val_degraded subset; 2693 records per family for the T3.2 reference).",
+    "Single ASR model: openai-whisper base.en (20250625) only.",
+    "Single enhancer architecture: spectral_unet_small_v1, 403201 parameters, single 20000-step run with the configured loss/schedule.",
+    "Cropped 4-second val windows via _maybe_run_whisper_validation in the post-hoc Whisper eval mode.",
+    "ASR metrics only (WER and Word Accuracy via metrics_v1); no PESQ / STOI / MOS.",
+    "No fine-tuning of Whisper.",
+    "Single Whisper version; CUDA decode (fp16, beam_size=1, temperature=0.0).",
+    "Tier rule applied on macro Word Accuracy over the five official degradations only; per-family disaggregation reproduces the same null_or_negative direction.",
+    "Selection inputs are frozen: T8.1 does not amend reports/training/checkpoint_selection.{md,json}, reports/training/publishability_tier.{md,json}, or any external run artifact."
+  ],
+  "what_this_report_does_not_claim": [
+    "That the T6.2-trained enhancer improves ASR over the T3.2 degraded baseline. It does not.",
+    "That the T6.2-trained enhancer is preferable to the T4.2 MetricGAN+ pretrained prior negative baseline. It is not at the macro level (delta -0.0636584).",
+    "That re-running selection on the same evidence would yield a different tier.",
+    "That the explicit skip precludes future re-training under a different architecture, loss, or schedule.",
+    "That T8.1 has decided anything for T8.2 or T8.3. T8.2 owns docs/model_card.md; T8.3 owns handoff."
+  ],
+  "next_gate": "T8.2_model_card"
+}
