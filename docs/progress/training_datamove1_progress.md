@@ -2229,13 +2229,171 @@ Not applied retroactively to T6.2 / T6.3 / T7.1 / T7.2 / T8.1 jobs.
 Result commit: backfilled in the immediately following commit on
 this branch (`T8.2: backfill model-card result_commit hash`).
 
+## T8.3 closure evidence (2026-05-07)
+
+T8.3 owns the framework / reproducibility no-artifact handoff per
+plan §18 under the closed T7.1 selection, T7.2 publishability tier,
+T8.1 explicit-skip export decision, and T8.2 model-card closure.
+T8.3 produces a written handoff in `reports/training/handoff.md`
+and `reports/training/handoff.json` that records, in writing, the
+no-artifact decision, the carried-forward
+`framework_only_strict_negative` tier and posture, the
+reproducibility-only references for the selected checkpoint and
+its evidence chain, the **prior_negative_baseline_only** role for
+MetricGAN+ pretrained, and the explicit "demo branch should do
+nothing on RP5" instruction. **No exported model artifact exists**,
+**ENHANCER_VERSION remains null** in `libs/common/versions.py`,
+**demo / RP integration is not triggered by this branch**,
+**MetricGAN+ remains prior_negative_baseline_only**, **no ASR
+improvement is claimed**, the selected checkpoint is **not
+deployable**, the enhancer is **not recommended for deployment**,
+and **this branch is not RP5-ready and not demo-ready**.
+
+T8.3 does **not** modify `reports/training/handoff.{md,json}`
+after Commit A, `docs/model_card.md`, `libs/common/versions.py`,
+`reports/training/export_decision.{md,json}`,
+`reports/training/publishability_tier.{md,json}`,
+`reports/training/checkpoint_selection.{md,json}`,
+`reports/training/full_training_summary.md`,
+`reports/training/baseline_summary.md`,
+`reports/training/metricgan_plus_wer.md`,
+`reports/training/metricgan_pretrained_summary.md`, `configs/`,
+`libs/`, `scripts/`, `slurm/`, or any external run artifact under
+`runs/t6_2_full_training_2128952/`,
+`runs/t6_3_post_hoc_whisper_full_2129017/`, or
+`runs/t7_1_post_hoc_whisper_step_*_*/`. T8.3 does **not** touch
+demo / RP files or trackers, does **not** open a pull request into
+`demo-rp5-v1`, does **not** export, does **not** register
+`ENHANCER_VERSION`, and does **not** touch `stash@{0}` (`WIP
+unrelated demo/B6.5.1 changes before T3.2 result commit`) or
+`.codex` if it appears.
+
+Handoff-report commit:
+`521dc4ae930de37222d85f9ff47101fc0ae01529` —
+`T8.3: add framework/reproducibility no-artifact handoff report`.
+
+| File | SHA-256 |
+|---|---|
+| `reports/training/handoff.md` (post-Commit A) | `1174fe2c6dcd238957315f0d96f63273e3af9f65b2e128b751bce8212eedc314` |
+| `reports/training/handoff.json` (post-Commit A) | `d1284807ad6c15dbc521d47fc2bdec2a32274b99d80a3e5b0dcdd9fa5b7c42d5` |
+
+### Source inputs (frozen, read-only — recomputed equal to T8.2 evidence)
+
+| File | SHA-256 |
+|---|---|
+| `docs/model_card.md` | `cce2356ac1b5d85143fd73b65f73c88cceef12c6fdb9a2c02bc2f69cf0968c93` |
+| `reports/training/export_decision.md` | `bf8d18930e22523dcc0181806f60f24d5aec09135e4f495e995d056d0064abd4` |
+| `reports/training/export_decision.json` | `7cee47023b8adcad0c3105276f00819cc68d45a18707dc217c09880546b63678` |
+| `reports/training/publishability_tier.md` | `03bb3bd9b8717dc7db4ebcc75c85b9839921327078a4d6671dcb4a0a5e26eb42` |
+| `reports/training/publishability_tier.json` | `14d4a8b6034dea106f4b99816d6c84d5ecd7990c0ee889e90c8b722c5778640a` |
+| `reports/training/checkpoint_selection.md` | `1e2b99d79fdac1c031b1abb6e69a4913295026ae199a552b4f980a46a1a8373c` |
+| `reports/training/checkpoint_selection.json` | `756cd39c294f1edc373fdbe54e12c7da0409a5bc36dcf8ae46db8924ef6f5ec3` |
+| `reports/training/full_training_summary.md` | `34d9aa0f645b203ff033915145bbcacb124e6fee089c5b267ad1c685b413d219` |
+| `reports/training/baseline_summary.md` | `46866753051b96c6bb5b5b4ffc0c5899684baa1c682311c9fd64bb0e44046027` |
+| `reports/training/metricgan_plus_wer.md` | `35ee596d13d822a666934026de7b0c3ee48539f91bd7d4003bc7cc11350155c4` |
+| `reports/training/metricgan_pretrained_summary.md` | `bd27502e45ee6dcda43d06de61edbd60fc75004031d42ad9bb5f4bca62fb00d5` |
+
+### Handoff decision
+
+| Field | Value |
+|---|---|
+| `path` | `no_artifact_handoff` |
+| `export_performed` | `false` |
+| `enhancer_version` | `null` |
+| `exported_artifact_path` | `null` |
+| `exported_artifact_sha256` | `null` |
+| `deployable_artifact_handed_off` | `false` |
+| `demo_pr_opened` | `false` |
+| `libs_versions_modified` | `false` |
+| `model_card_modified_in_t8_3` | `false` |
+| `metricgan_plus_role` | `prior_negative_baseline_only` |
+
+### Selected checkpoint identity (reproducibility reference only)
+
+| Field | Value |
+|---|---|
+| `selected_step` | `20000` |
+| Canonical path | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt` |
+| Alias path | `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt` |
+| SHA-256 | `a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e` |
+| Macro Word Accuracy | `0.5255416` |
+| Macro WER | `0.4744584` |
+| Δ macro WA vs T3.2 degraded | `-0.2957584` |
+| Δ macro WA vs T4.2 MetricGAN+ pretrained | `-0.0636584` |
+
+### Validation evidence
+
+- `json_parse`: passed.
+- `schema_sweep`: passed (20 keys checked across `decision`, `posture`, `no_claim`, and selected-checkpoint shapes in `reports/training/handoff.json`).
+- `required_phrase_sweep`: passed (whitespace-normalized; all 11 required phrases present in `reports/training/handoff.md`).
+- `forbidden_positive_claim_sweep`: passed (every regex hit sits inside a negation, disclaimer, or category-label context).
+- `cross_reference_link_sweep`: passed (9 markdown links in `reports/training/handoff.md`, all resolve to existing tracked files).
+- `selected_checkpoint_identity_recomputed`: passed (canonical and alias both hash to `a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e`; size 4 916 439 bytes each; alias SHA-256 equals canonical SHA-256).
+- `evidence_file_sha256_manifest_verified`: passed (every report SHA-256 in the manifest recomputed at T8.3 generation time; the seven files referenced by `t8_2_evidence.source_inputs` matched verbatim).
+- `ENHANCER_VERSION_none_check`: passed (`libs/common/versions.py` line 3: `ENHANCER_VERSION = None`).
+- `no_export_artifact_created`: true.
+- `no_slurm_job_submitted`: true.
+
+### Non-actions during T8.3
+
+- `docs/model_card.md` not modified.
+- `libs/common/versions.py` not modified.
+- `reports/training/handoff.md` not modified after Commit A.
+- `reports/training/handoff.json` not modified after Commit A.
+- `reports/training/export_decision.{md,json}` not modified.
+- `reports/training/publishability_tier.{md,json}` not modified.
+- `reports/training/checkpoint_selection.{md,json}` not modified.
+- `reports/training/full_training_summary.md` not modified.
+- `reports/training/baseline_summary.md` not modified.
+- `reports/training/metricgan_plus_wer.md` not modified.
+- `reports/training/metricgan_pretrained_summary.md` not modified.
+- `configs/`, `libs/`, `scripts/`, `slurm/` not modified.
+- External run artifacts under `runs/t6_2_full_training_2128952/`, `runs/t6_3_post_hoc_whisper_full_2129017/`, and `runs/t7_1_post_hoc_whisper_step_*_*/` not touched.
+- Demo / RP files and trackers not touched.
+- No pull request opened into `demo-rp5-v1`.
+- No export artifact created.
+- `ENHANCER_VERSION` not registered (remains `None`).
+- `stash@{0}` untouched.
+- `.codex` not touched (not present in this checkout's working tree at T8.3 closure time; would have been left untouched if it had been).
+
+### Slurm policy
+
+T8.3 submitted no Slurm job:
+`slurm_required_for_t8_3: false`,
+`slurm_notification_policy: not_applicable_no_slurm_job_submitted`.
+
+Forward-looking rule (recorded for any future Slurm job from this
+branch — e.g. retraining experiments, ablation evals, or an export
+job for a future `publicable_*` checkpoint): include either (a)
+native Slurm `--mail-type=END,FAIL --mail-user=<addr>` if the
+cluster mail relay is confirmed reliable, or (b) a session-side
+`./slurm/tools/on_submit.sh sacct -j <id>` /
+`squeue -u $USER` watcher polling at ≥30 s and reporting terminal
+state, or (c) an explicit "manual check" command stated up-front.
+Not applied retroactively to T6.2 / T6.3 / T7.1 / T7.2 / T8.1 /
+T8.2 jobs.
+
+### Tracker state after T8.3
+
+- `current_task: null`
+- `last_completed_task: "T8.3"`
+- `tasks["T8.3"]: done`
+- `blocked: false`, `blocker: null`
+- `t8_3_closed: true`
+- `next_gate: training_branch_complete_no_artifact_handoff`
+
+Result commit: backfilled in the immediately following commit on
+this branch (`T8.3: backfill no-artifact handoff result_commit hash`).
+
 ## Next task
 
-T8.3 — handoff per plan §18. Under the current closure
-(`framework_only_strict_negative`, T8.1 `explicit_skip`,
-`export_performed: false`, `enhancer_version: null`,
-`exported_artifact_path: null`), T8.3 governs the handoff of the
-**decision and reproducibility references** to the demo branch, not
-of a deployable model. T8.3 must not treat the selected checkpoint
-as a deployable artifact and must not start unless the user
-explicitly authorises it. Cut T3 remains active.
+Cut T3 is closed. The training branch is complete with respect to
+the deployable-artifact path under `framework_only_strict_negative`
+and T8.1 `explicit_skip`. No successor training task is scheduled
+by this branch. **Demo / RP integration is not triggered by this
+branch.** Future enhancer work (retraining under a different
+architecture, loss, or schedule) would be a new initiative on a
+fresh branch and is out of scope for this closure. The training
+branch is ready to be merged or archived per the demo branch's
+schedule, with no deployable-model handoff and no
+`ENHANCER_VERSION` change pending on the demo side.

@@ -2,11 +2,11 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 6
-current_task: "T8.3"
-last_completed_task: "T8.2"
+current_task: null
+last_completed_task: "T8.3"
 blocked: false
 blocker: null
-next_gate: T8.3_handoff
+next_gate: training_branch_complete_no_artifact_handoff
 public_examples_exclusion_status: complete
 public_examples_exclusion_rerun_required: false
 public_examples_exclusion_rerun_after: null
@@ -2736,6 +2736,113 @@ t8_2_evidence:
     t8_2_closed: true
     next_gate: T8.3_handoff
   result_commit: "a55d015ad6a79410f47c4a85a5e2be290cb06bbe"
+t8_3_evidence:
+  scope: "T8.3 framework / reproducibility no-artifact handoff per plan §18 under closed T7.1 selection, T7.2 publishability tier (framework_only / framework_only_strict_negative / not_selected_for_deployment), T8.1 explicit_skip export decision, and T8.2 model-card closure. T8.3 produces a written handoff in reports/training/handoff.md and reports/training/handoff.json that records, in writing, the no-artifact decision, the carried-forward framework_only_strict_negative tier and posture, the reproducibility-only references for the selected checkpoint and its evidence chain, the prior_negative_baseline_only role for MetricGAN+ pretrained, and the explicit 'demo branch should do nothing on RP5' instruction. T8.3 does NOT modify reports/training/handoff.{md,json} after Commit A, docs/model_card.md, libs/common/versions.py, reports/training/export_decision.{md,json}, reports/training/publishability_tier.{md,json}, reports/training/checkpoint_selection.{md,json}, reports/training/full_training_summary.md, reports/training/baseline_summary.md, reports/training/metricgan_plus_wer.md, reports/training/metricgan_pretrained_summary.md, configs/, libs/, scripts/, slurm/, or any external run artifact under runs/t6_2_full_training_2128952/, runs/t6_3_post_hoc_whisper_full_2129017/, or runs/t7_1_post_hoc_whisper_step_*_*/. T8.3 does NOT touch demo / RP files or trackers, does NOT open a demo PR, does NOT export, does NOT register ENHANCER_VERSION, and does NOT touch stash@{0} or .codex."
+  status: passed
+  closes_t8_3: true
+  handoff_report_commit: "521dc4ae930de37222d85f9ff47101fc0ae01529"
+  handoff_md_path: reports/training/handoff.md
+  handoff_md_sha256: "1174fe2c6dcd238957315f0d96f63273e3af9f65b2e128b751bce8212eedc314"
+  handoff_json_path: reports/training/handoff.json
+  handoff_json_sha256: "d1284807ad6c15dbc521d47fc2bdec2a32274b99d80a3e5b0dcdd9fa5b7c42d5"
+  decision:
+    path: no_artifact_handoff
+    export_performed: false
+    enhancer_version: null
+    exported_artifact_path: null
+    exported_artifact_sha256: null
+    deployable_artifact_handed_off: false
+    demo_pr_opened: false
+    libs_versions_modified: false
+    model_card_modified_in_t8_3: false
+    metricgan_plus_role: prior_negative_baseline_only
+  selected_checkpoint:
+    selected_step: 20000
+    canonical_checkpoint: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt
+    alias_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt
+    sha256: "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e"
+    macro_word_accuracy: 0.5255416
+    macro_wer: 0.4744584
+    delta_macro_wa_vs_t3_2_degraded: -0.2957584
+    delta_macro_wa_vs_t4_2_metricgan_plus: -0.0636584
+  handoff_posture:
+    framework_reproducibility_handoff_only: true
+    explicit_no_artifact_handoff: true
+    no_exported_model_artifact_exists: true
+    ENHANCER_VERSION_remains_null: true
+    demo_RP_integration_triggered: false
+    no_asr_improvement_claimed: true
+    selected_checkpoint_not_deployable: true
+    enhancer_not_recommended_for_deployment: true
+    branch_not_RP5_ready: true
+    branch_not_demo_ready: true
+  validation_evidence:
+    json_parse: passed
+    schema_sweep: passed
+    required_phrase_sweep: passed
+    forbidden_positive_claim_sweep: passed
+    cross_reference_link_sweep: passed
+    selected_checkpoint_identity_recomputed: passed
+    canonical_sha256_matches_expected: true
+    alias_sha256_matches_expected: true
+    canonical_alias_sha256_match: true
+    evidence_file_sha256_manifest_verified: passed
+    ENHANCER_VERSION_none_check: passed
+    no_export_artifact_created: true
+    no_slurm_job_submitted: true
+  evidence_manifest:
+    docs_model_card_md_sha256: "cce2356ac1b5d85143fd73b65f73c88cceef12c6fdb9a2c02bc2f69cf0968c93"
+    export_decision_md_sha256: "bf8d18930e22523dcc0181806f60f24d5aec09135e4f495e995d056d0064abd4"
+    export_decision_json_sha256: "7cee47023b8adcad0c3105276f00819cc68d45a18707dc217c09880546b63678"
+    publishability_tier_md_sha256: "03bb3bd9b8717dc7db4ebcc75c85b9839921327078a4d6671dcb4a0a5e26eb42"
+    publishability_tier_json_sha256: "14d4a8b6034dea106f4b99816d6c84d5ecd7990c0ee889e90c8b722c5778640a"
+    checkpoint_selection_md_sha256: "1e2b99d79fdac1c031b1abb6e69a4913295026ae199a552b4f980a46a1a8373c"
+    checkpoint_selection_json_sha256: "756cd39c294f1edc373fdbe54e12c7da0409a5bc36dcf8ae46db8924ef6f5ec3"
+    full_training_summary_md_sha256: "34d9aa0f645b203ff033915145bbcacb124e6fee089c5b267ad1c685b413d219"
+    baseline_summary_md_sha256: "46866753051b96c6bb5b5b4ffc0c5899684baa1c682311c9fd64bb0e44046027"
+    metricgan_plus_wer_md_sha256: "35ee596d13d822a666934026de7b0c3ee48539f91bd7d4003bc7cc11350155c4"
+    metricgan_pretrained_summary_md_sha256: "bd27502e45ee6dcda43d06de61edbd60fc75004031d42ad9bb5f4bca62fb00d5"
+  slurm_policy:
+    slurm_required_for_t8_3: false
+    slurm_notification_policy: not_applicable_no_slurm_job_submitted
+    future_slurm_notification_policy: "future Slurm submissions must use either confirmed native Slurm mail END,FAIL, or a session-side sacct/squeue watcher, or an explicit manual check command if neither is appropriate."
+  non_actions:
+    docs_model_card_modified: false
+    libs_versions_modified: false
+    handoff_md_modified_after_commit_a: false
+    handoff_json_modified_after_commit_a: false
+    export_decision_md_modified: false
+    export_decision_json_modified: false
+    publishability_tier_md_modified: false
+    publishability_tier_json_modified: false
+    checkpoint_selection_md_modified: false
+    checkpoint_selection_json_modified: false
+    full_training_summary_modified: false
+    baseline_summary_modified: false
+    metricgan_plus_wer_modified: false
+    metricgan_pretrained_summary_modified: false
+    configs_modified: false
+    libs_modified: false
+    scripts_modified: false
+    slurm_jobs_modified: false
+    external_run_artifacts_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    demo_pr_opened: false
+    export_artifact_created: false
+    enhancer_version_registered: false
+    stash_untouched: true
+    codex_touched: false
+  closure:
+    current_task_after: null
+    last_completed_task_after: "T8.3"
+    tasks_T8_3_status_after: done
+    blocked: false
+    blocker: null
+    t8_3_closed: true
+    next_gate: training_branch_complete_no_artifact_handoff
+  result_commit: null
 tasks:
   "T0.1": done
   "T0.2": done
@@ -2768,4 +2875,4 @@ tasks:
   "T7.2": done
   "T8.1": done
   "T8.2": done
-  "T8.3": pending
+  "T8.3": done
