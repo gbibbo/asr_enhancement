@@ -1385,7 +1385,7 @@ t6_2a_evidence:
   blocked: false
   blocker: null
   next_gate: T6.2b
-  result_commit: PENDING_RESULT_COMMIT
+  result_commit: "d2b6ac139d6f9bb0779ddc45b8df2edc4e3f0fdc"
 tasks:
   "T0.1": done
   "T0.2": done
