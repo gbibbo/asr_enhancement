@@ -1484,7 +1484,7 @@ t6_2b_evidence:
   blocked: false
   blocker: null
   next_gate: T6.2c_cpu_micro_validation_slurm
-  result_commit: PENDING_RESULT_COMMIT
+  result_commit: "a832b1b5555f9e08f298462e74ad6f75fffde2f0"
 tasks:
   "T0.1": done
   "T0.2": done
