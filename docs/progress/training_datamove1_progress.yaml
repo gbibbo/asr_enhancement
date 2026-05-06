@@ -1755,6 +1755,119 @@ t6_2d_evidence:
   t6_2_closed: false
   next_gate: T6.2_full_training_slurm_submission_per_user_decision
   result_commit: "2aaa225e16b8e79e0caded5e7f5f6e092e10915a"
+t6_2_gpu_preflight_evidence:
+  scope: "T6.2 GPU preflight subgate. First Slurm job that exercises the device-selection patch on real CUDA hardware (a100), running the real `_run_training` loop end-to-end against `configs/training/full_training_gpu_micro.yaml`. Validates `apptainer exec --nv`, `ASR_EXPECT_CUDA=1` enforcement, host and in-Apptainer CUDA guards, the six-artifact contract, and checkpoint metadata + state-dict roundtrip on GPU. T6.2 GPU preflight does NOT close T6.2; the 24-hour full-training Slurm submission is the next gate."
+  status: passed
+  closes_t6_2: false
+  subgate_kind: gpu_preflight_smoke_pre_full_training
+  purpose: "Validate the GPU device path, Apptainer --nv, ASR_EXPECT_CUDA, CUDA visibility, _run_training execution, checkpointing, and the six-artifact contract before the 24-hour full-training run."
+  config: configs/training/full_training_gpu_micro.yaml
+  slurm_job_script: slurm/jobs/t6_2_gpu_preflight.sh
+  prep_commit: "e5ab5501ca33790e094df0f764a262b694b1f009"
+  branch: feature/training-datamove1-v1
+  code_commit: "e5ab5501ca33790e094df0f764a262b694b1f009"
+  slurm_job:
+    job_id: "2128737"
+    state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:00:40"
+    node: aisurrey21
+    partition: a100
+    alloc_tres: "cpu=4,gres/gpu:nvidia_a100-sxm4-80gb=1,gres/gpu=1,mem=16G,node=1"
+    submit_time_utc: "2026-05-06T07:29:43"
+    start_time_utc: "2026-05-06T07:57:58"
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_2_gpu_preflight_2128737.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_2_gpu_preflight_2128737.err
+  run_artifacts:
+    run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_2_gpu_preflight_2128737
+    verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t6_2_gpu_preflight_verify_2128737.json
+    validation_passed: true
+    six_artifacts_present: true
+    artifact_sizes_bytes:
+      "config.yaml": 11763
+      "metrics.csv": 459
+      "wer_by_degradation.csv": 282
+      "loss_curve.png": 101
+      "val_wer_curve.png": 104
+      "run_summary.md": 1685
+    loss_curve_png_status: placeholder_no_matplotlib
+    val_wer_curve_png_status: placeholder_no_matplotlib
+    plot_note: "loss_curve.png and val_wer_curve.png are placeholder PNGs because matplotlib is not available in the container; this is accepted for this GPU preflight because metrics.csv and checkpoint validation passed and the six-artifact contract is satisfied."
+  gpu_runtime:
+    device: cuda
+    hardware_target: gpu_preferred
+    expected_cuda: true
+    torch_cuda_is_available: true
+    gpu_used: true
+    apptainer_nv_used: true
+    host_nvidia_smi_ran: true
+    in_apptainer_cuda_guard_passed: true
+    cuda_device: NVIDIA A100-SXM4-80GB
+    torch_version: "2.1.0"
+    cuda_version: "12.1"
+    asr_expect_cuda_enforced: true
+  training_evidence:
+    run_training_exercised: true
+    model_architecture: spectral_unet_small_v1
+    parameter_count: 403201
+    parameter_count_in_expected_range: true
+    dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+    training_split_version: devclean_speaker_split_v1
+  checkpoints:
+    files:
+      "checkpoint_step_0000005.pt": 4916567
+      "checkpoint_step_0000010.pt": 4916567
+      "latest.pt": 4916567
+    latest_checkpoint_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_2_gpu_preflight_2128737/checkpoints/latest.pt
+    latest_step: 10
+    metadata_check: pass
+    state_dict_roundtrip: pass
+  metrics:
+    metrics_finite: true
+    metrics_csv_train_rows: 10
+    metrics_csv_val_rows: 1
+  wer_by_degradation:
+    family_rows: 5
+    families:
+      - broadband_hiss
+      - cafe_background
+      - far_field_room
+      - muffled
+      - phone_call
+    wer_by_degradation_policy: "placeholder WER/WA accepted because Whisper validation was intentionally disabled; post-hoc WER belongs to T6.3."
+  non_actions:
+    whisper_validation_enabled: false
+    whisper_run: false
+    enhancement_run: false
+    val_enhanced_tmp_absent: true
+    enhancement_bank_generation_artifacts_found: false
+    enhancement_bank_generation_run_note: "enhancement_bank_generation_run was not emitted by the verifier, but enhancement_run=false plus absence of enhancement-bank artifacts confirms no enhancement-bank generation occurred."
+    full_training_run: false
+    configs_modified: false
+    model_card_modified: false
+    libs_modified: false
+    scripts_modified: false
+    tests_modified: false
+    slurm_jobs_modified: false
+    reports_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    codex_directory_staged: false
+    stash_untouched: true
+  logs_status:
+    stdout_status: "clean; guards succeeded; Step 1 exit 0; Step 2 exit 0; VALIDATION_PASSED True."
+    stderr_status: "benign Apptainer warnings only (NVIDIA_VISIBLE_DEVICES=all info, --writable-tmpfs info, Surrey 'Not mounting current directory' warning); no traceback, no BLOCKER line, no CUDA visibility failure."
+  reproducibility_note: "First 10 train losses are numerically close to the T6.2c CPU run under the same seed (e.g. step 1: 4.583184 GPU vs 4.583193 CPU; step 5: 3.527457 vs 3.526923), supporting functional correctness of the device-selection patch across CPU and CUDA code paths."
+  current_task_after: "T6.2"
+  last_completed_task_after: "T6.1"
+  tasks_T6_2_status_after: pending
+  blocked: false
+  blocker: null
+  t6_2_gpu_preflight_closed: true
+  t6_2_closed: false
+  next_gate: T6.2_24h_full_training_slurm_submission_per_user_decision
+  result_commit: ""
 tasks:
   "T0.1": done
   "T0.2": done
