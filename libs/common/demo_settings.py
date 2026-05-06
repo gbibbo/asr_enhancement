@@ -57,6 +57,25 @@ class DemoSettings(BaseSettings):
     # path itself is never exposed.
     demo_admin_disk_usage_path: Optional[Path] = None
 
+    # B12.2 email alerts. Disabled by default. All five SMTP fields plus
+    # demo_alert_email_to and demo_alert_email_from must be non-empty for real
+    # sends. Password is Optional[str] — never logged.
+    demo_alert_email_enabled: bool = False
+    demo_alert_email_to: Optional[str] = None
+    demo_alert_email_from: Optional[str] = None
+    demo_alert_smtp_host: Optional[str] = None
+    demo_alert_smtp_port: int = 587
+    demo_alert_smtp_username: Optional[str] = None
+    demo_alert_smtp_password: Optional[str] = None
+    demo_alert_smtp_use_starttls: bool = True
+    demo_alert_smtp_timeout_seconds: float = 10.0
+    demo_alert_disk_threshold_percent: float = 80.0
+    demo_alert_disk_cooldown_hours: float = 6.0
+    demo_alert_health_consecutive_failures: int = 3
+    demo_alert_health_cooldown_minutes: float = 30.0
+    demo_alert_health_url: str = "http://localhost:8001/demo/health"
+    demo_alert_health_state_file: Optional[Path] = None  # defaults via fill_derived_paths
+
     @model_validator(mode="after")
     def fill_derived_paths(self) -> "DemoSettings":
         root = self.demo_runtime_root
@@ -77,4 +96,6 @@ class DemoSettings(BaseSettings):
             self.demo_logs_dir = root / "logs"
         if _unset(self.demo_admin_disk_usage_path):
             self.demo_admin_disk_usage_path = root
+        if _unset(self.demo_alert_health_state_file):
+            self.demo_alert_health_state_file = root / "state" / "health_check.json"
         return self
