@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 6
-current_task: "T6.3"
-last_completed_task: "T6.2"
+current_task: "T7.1"
+last_completed_task: "T6.3"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -2127,6 +2127,165 @@ t6_3a_smoke_evidence:
   t6_3_closed: false
   next_gate: T6.3b_full_post_hoc_whisper_evaluation
   result_commit: "a726d57c73667b89d10ba47b99ae0b9499f8f054"
+t6_3_evidence:
+  scope: "T6.3 closure. Consolidates the T6.2 full-training Slurm run with the T6.3a post-hoc Whisper smoke and the T6.3b full post-hoc Whisper evaluation; produces reports/training/full_training_summary.md as the single committed report. T6.3 does NOT select a checkpoint, does NOT export the enhancer, and does NOT modify the model card; those are owned by T7.1, T8.1, and T8.2."
+  status: passed
+  closes_t6_3: true
+  subgate_kind: full_training_summary
+  prep_commit: "45295895db15bde521d171eb8828618571275dcf"
+  t6_3a_smoke_result_commit: "a726d57c73667b89d10ba47b99ae0b9499f8f054"
+  t6_3a_smoke_backfill_commit: "918ab84eecab145c4aaa49a7b97294714ce558e9"
+  t6_3_summary_report_commit: "62be0161eec1e8538f9109212762e36d911d585d"
+  summary_report_path: reports/training/full_training_summary.md
+  summary_report_lines: 205
+  summary_report_sha256: "34d9aa0f645b203ff033915145bbcacb124e6fee089c5b267ad1c685b413d219"
+  summary_report_created: true
+  summary_report_committed: true
+  t6_2_source_training_evidence:
+    full_training_job_id: "2128952"
+    full_training_run_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952
+    full_training_verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t6_2_full_training_verify_2128952.json
+    full_training_validation_passed: true
+    model_architecture: spectral_unet_small_v1
+    parameter_count: 403201
+    checkpoint_step: 20000
+    latest_checkpoint: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt
+    device: cuda
+    gpu_used: true
+    apptainer_nv_used: true
+    metrics_csv_train_rows: 200
+    metrics_csv_val_rows: 20
+    checkpoint_metadata_check: pass
+    checkpoint_state_dict_roundtrip: pass
+  t6_3a_smoke_evidence_summary:
+    smoke_job_id: "2129005"
+    smoke_status: passed
+    smoke_eval_per_family_cap: 1
+    smoke_total_completed_transcriptions: 5
+    smoke_validation_passed: true
+    smoke_whisper_device: cuda
+    smoke_enhancer_device: cuda
+    smoke_result_commit: "a726d57c73667b89d10ba47b99ae0b9499f8f054"
+    smoke_result_backfill_commit: "918ab84eecab145c4aaa49a7b97294714ce558e9"
+  t6_3b_full_post_hoc_evaluation_evidence:
+    full_eval_job_id: "2129017"
+    slurm_state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:08:34"
+    submit_time_utc: "2026-05-06T19:55:08"
+    dispatch_time_utc: "2026-05-06T20:15:23"
+    node: aisurrey24
+    partition: a100
+    alloc_tres: "cpu=8,gres/gpu:nvidia_a100-sxm4-80gb=1,gres/gpu=1,mem=32G,node=1"
+    eval_out_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_3_post_hoc_whisper_full_2129017
+    verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t6_3_post_hoc_whisper_full_verify_2129017.json
+    per_record_predictions_jsonl: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_3_post_hoc_whisper_full_2129017/per_record_predictions.jsonl
+    wer_by_degradation_csv: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_3_post_hoc_whisper_full_2129017/wer_by_degradation.csv
+    eval_metadata_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_3_post_hoc_whisper_full_2129017/eval_metadata.json
+    validation_passed: true
+    total_expected_transcriptions: 2665
+    total_completed_transcriptions: 2665
+    missing_transcript_count: 0
+    temp_wavs_written: 2665
+    temp_dir_cleaned: true
+    per_record_predictions_count: 2665
+    per_record_predictions_line_count_match: true
+    eval_per_family_cap: 533
+    selected_families:
+      - broadband_hiss
+      - cafe_background
+      - far_field_room
+      - muffled
+      - phone_call
+    per_family_counts:
+      broadband_hiss: 533
+      cafe_background: 533
+      far_field_room: 533
+      muffled: 533
+      phone_call: 533
+    per_family_mean_wer:
+      broadband_hiss: 0.414715
+      cafe_background: 0.469957
+      far_field_room: 0.484717
+      muffled: 0.630201
+      phone_call: 0.372702
+    per_family_mean_word_accuracy:
+      broadband_hiss: 0.585285
+      cafe_background: 0.530043
+      far_field_room: 0.515283
+      muffled: 0.369799
+      phone_call: 0.627298
+    macro_wer: 0.4744585841891681
+    macro_word_accuracy: 0.5255414158108319
+    whisper_model: base.en
+    whisper_version: "20250625"
+    whisper_device: cuda
+    enhancer_device: cuda
+    gpu_used: true
+    apptainer_nv_used: true
+    expected_cuda: true
+    torch_cuda_is_available: true
+    enhancement_run: false
+    enhancement_bank_generation_artifacts_found: false
+    val_enhanced_tmp_absent: true
+    errors: []
+  baseline_comparison:
+    t3_1_clean_baseline:
+      macro_wer: 0.0645
+      macro_word_accuracy: 0.9361
+    t3_2_degraded_baseline:
+      macro_wer: 0.1843
+      macro_word_accuracy: 0.8213
+    t4_2_metricgan_plus_pretrained:
+      macro_wer: 0.4310
+      macro_word_accuracy: 0.5892
+    t6_3_post_hoc_t6_2_latest_pt:
+      macro_wer: 0.4745
+      macro_word_accuracy: 0.5255
+    delta_macro_wa_vs_t3_2_degraded: -0.2958
+  tier_classification:
+    tier: null_or_negative
+    rule_source: reports/training/metricgan_plus_wer.md
+    reason: "delta_macro_wa_vs_t3_2_degraded <= 0"
+    modelling_outcome_note: "the trained enhancer performs worse than the unenhanced degraded baseline on Whisper WER/WA; this is a modelling outcome, not a pipeline failure."
+    metricgan_plus_status: "remains a prior negative baseline only; not selected."
+    deployment_decision_owner: "T7.1 / T7.2 / T8.1, not T6.3."
+  limitations_and_caveats:
+    - "T6.2 run_summary.md contains legacy dry-run wording; source of truth is verify JSON, metrics.csv, config.yaml runtime block, checkpoints, and Slurm evidence."
+    - "T6.2 plot PNGs are placeholders because matplotlib is unavailable in the container."
+    - "T6.3 evaluates latest.pt only, not every checkpoint_step_* candidate."
+    - "T7.1 owns checkpoint selection and may need additional per-checkpoint evaluation if not selecting latest.pt by policy."
+    - "T6.2 run_dir was not modified."
+    - "docs/model_card.md was not modified."
+  non_actions:
+    post_hoc_artifacts_committed_to_git: false
+    heavy_artifacts_remain_outside_git: true
+    t6_2_run_artifacts_modified: false
+    model_card_modified: false
+    configs_modified: false
+    libs_modified: false
+    scripts_modified: false
+    tests_modified: false
+    slurm_jobs_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    codex_directory_staged: false
+    stash_untouched: true
+  workflow_note_future_slurm_jobs:
+    requirement: "Future Slurm job plans/submissions must include an automatic completion-notification strategy before submission."
+    preferred: "native Slurm mail END,FAIL if the cluster mail relay is confirmed reliable."
+    fallback: "lightweight session-side watcher polling sacct/squeue at low frequency."
+    last_resort: "if neither is appropriate, state why and provide exact manual check command."
+    retroactive_edits: "no retroactive edits to completed jobs are required."
+  current_task_after: "T7.1"
+  last_completed_task_after: "T6.3"
+  tasks_T6_3_status_after: done
+  blocked: false
+  blocker: null
+  t6_3_closed: true
+  next_gate: T7.1_checkpoint_selection
+  result_commit: ""
 tasks:
   "T0.1": done
   "T0.2": done
@@ -2154,7 +2313,7 @@ tasks:
   "T5.3": done
   "T6.1": done
   "T6.2": done
-  "T6.3": pending
+  "T6.3": done
   "T7.1": pending
   "T7.2": pending
   "T8.1": pending
