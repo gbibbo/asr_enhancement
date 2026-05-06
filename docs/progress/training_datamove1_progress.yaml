@@ -2285,7 +2285,7 @@ t6_3_evidence:
   blocker: null
   t6_3_closed: true
   next_gate: T7.1_checkpoint_selection
-  result_commit: ""
+  result_commit: "985e7be436aa906f9da5f349339f0e8856d2a023"
 tasks:
   "T0.1": done
   "T0.2": done
