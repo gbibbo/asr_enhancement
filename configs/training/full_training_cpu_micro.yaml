@@ -1,0 +1,267 @@
+# T6.2c — CPU micro-validation training config.
+# Purpose: exercise the real spectral_unet_small_v1 training path inside
+# Apptainer on a CPU compute node before any full training is allowed. Not
+# the full training run. Not T6.2 closure.
+# Source-of-truth: docs/plans/training_datamove1_plan.md §16 (Phase 6) and
+# the T6.2c subgate plan agreed on 2026-05-06.
+#
+# Schema mirrors configs/training/full_training.yaml so the existing
+# `--validate-only` path in scripts/training/train_enhancer.py accepts it
+# without script changes. T6.2c does NOT enable Whisper validation.
+
+config_name: full_training_cpu_micro_v1
+config_purpose: cpu_micro_validation_pre_full_training
+status: ready_for_t6_2c
+config_schema_version: "1"
+generated_by: T6.2c (training_datamove1_plan.md §16; internal subgate)
+
+# --- Versioning (unchanged across T6.2a/T6.2b; matches libs/common/versions.py
+# and configs/training/dataset_version.yaml) ---
+dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+degradation_version: degradation_v1
+degradation_freeze_status: datamove1_pinned_degradation_v1
+degradation_freeze_evidence:
+  - libs/common/versions.py
+  - reports/training/baseline_degraded_wer.md
+  - reports/training/metricgan_plus_wer.md
+metrics_version: metrics_v1
+enhancer_version: null              # set at T8.1 export
+enhancement_version: null
+
+# --- Determinism ---
+seed: 1234
+deterministic: true
+torch_deterministic: true
+cuda_deterministic: true
+
+# --- CPU-only execution. No GPU, no --nv, no DataLoader workers. ---
+hardware:
+  target: cpu_only
+  device: cpu
+  cpu_fallback: true
+  num_workers: 0
+  pin_memory: false
+  precision: float32
+  gpu_optional: false
+
+# --- Manifests (filtered, public-demo-excluded). Same paths and SHAs as
+# configs/training/full_training.yaml. The validator's reserved-ID check
+# samples a tiny deterministic subset from these. ---
+manifests:
+  clean_filtered_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered.jsonl
+  clean_filtered_manifest_sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  clean_filtered_manifest_records: 2693
+  degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/librispeech_manifest_v1_filtered_degraded_v1.jsonl
+  degraded_manifest_sha256: c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c
+  degraded_manifest_records: 13465
+  excluded_ids_source: configs/training/reserved_public_demo_examples.yaml
+  reserved_demo_ids_must_be_absent: true
+
+# --- Schema-required `dry_run_sampling` block. NOT consumed by the real
+# training path (`_run_training` reads `training_split:` instead). Tiny
+# values here are only exercised by `--validate-only` to verify reserved
+# demo IDs remain absent from a small deterministic subsample. ---
+dry_run_sampling:
+  train_records: 10
+  val_records: 5
+  per_family_val_cap: 1
+  shuffle_seed: 1234
+
+# --- Micro training schedule. T6.2c CPU micro-validation only. ---
+training:
+  steps: 10
+  batch_size: 2
+  grad_accum_steps: 1
+  optimizer: adam
+  learning_rate: 1.0e-4
+  warmup_steps: 0
+  loss: l1                          # placeholder label; real loss is composite (see model.loss_plan)
+  log_every_steps: 1
+  val_every_steps: 10               # one val pass at step 10
+  save_every_steps: 5               # checkpoints at step 5 and step 10
+  max_wall_minutes: 25
+
+# --- Architecture decision (T6.2a). Implemented in T6.2b
+# (scripts/training/models.py + scripts/training/train_enhancer.py). T6.2c
+# instantiates this architecture for the first time on Slurm. ---
+model:
+  architecture: spectral_unet_small_v1
+  params:
+    sample_rate: 16000
+    n_fft: 512
+    hop_length: 128
+    win_length: 512
+    window: hann
+    target: bounded_log_mag_ratio_mask
+    parameter_budget: "0.2M-1.0M"
+    phase: degraded_pass_through
+  loss_plan:
+    primary: l1_log_magnitude
+    secondary: multi_resolution_stft
+    weights:
+      l1_log_mag: 1.0
+      mrstft: 0.5
+  notes: |
+    T6.2c CPU micro-validation. spectral_unet_small_v1 is instantiated
+    inside Apptainer on a CPU compute node for 10 steps with batch_size 2
+    over the T6.2a devclean_speaker_split_v1 split, using the composite
+    L1 log-magnitude + multi-resolution STFT loss implemented in
+    scripts/training/losses.py. MetricGAN+ pretrained must NOT be selected
+    as the trainable enhancer (tier null_or_negative; see
+    reports/training/metricgan_plus_wer.md). Whisper validation is OFF.
+
+# --- Training split (T6.2a, devclean_speaker_split_v1). Same paths and
+# SHA-256s as configs/training/full_training.yaml. _run_training consumes
+# this block via PairedDevCleanDataset; --validate-only verifies the
+# four manifest SHA-256s. ---
+training_split_version: devclean_speaker_split_v1
+training_split:
+  source_dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+  split_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1
+  builder_script: scripts/training/prepare_devclean_speaker_split.py
+  seed: 1234
+  val_fraction_target: 0.20
+  speaker_count_total: 40
+  train_speaker_count: 32
+  val_speaker_count: 8
+  speaker_overlap: []
+  reserved_demo_ids_count: 10
+  reserved_demo_ids_absent_in_train: true
+  reserved_demo_ids_absent_in_val: true
+  train_speakers_txt: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_speakers.txt
+  val_speakers_txt: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_speakers.txt
+  train_clean_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_clean_manifest.jsonl
+  train_clean_manifest_sha256: 440a6088b54d213ba90e445db5c680d27c628c7d310a1202a656325c8c59cf93
+  train_clean_records: 2160
+  val_clean_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_clean_manifest.jsonl
+  val_clean_manifest_sha256: f27eb704e6fd483945d9eada8905e50807a0e4e67d86a25ca76f24e07d6267e4
+  val_clean_records: 533
+  train_degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_degraded_manifest.jsonl
+  train_degraded_manifest_sha256: 5f354b5b7f277318fda444ea19f8e79d1dfdb97140537a0cc2e709a76129676a
+  train_degraded_records: 10800
+  val_degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_degraded_manifest.jsonl
+  val_degraded_manifest_sha256: 1aa72ef6130de3efb308709f5cb892b04be96a4bc859d47699547870c8c52632
+  val_degraded_records: 2665
+  per_family_train_counts:
+    broadband_hiss: 2160
+    cafe_background: 2160
+    far_field_room: 2160
+    muffled: 2160
+    phone_call: 2160
+  per_family_val_counts:
+    broadband_hiss: 533
+    cafe_background: 533
+    far_field_room: 533
+    muffled: 533
+    phone_call: 533
+  split_summary_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/split_summary.json
+  consumed_by: T6.2c
+  notes: |
+    Speaker-disjoint dev-clean split. dataset_version is unchanged from
+    T6.2a; the split is a derived training split identified by
+    training_split_version. T6.2c is the first Slurm job that consumes
+    this block end-to-end through PairedDevCleanDataset.
+
+# --- Reference ASR (NOT exercised in T6.2c; recorded for context only). ---
+asr:
+  framework: openai-whisper
+  model: base.en
+  whisper_version: "20250625"
+  decode_options:
+    language: en
+    task: transcribe
+    beam_size: 1
+    temperature: 0.0
+
+# --- Output paths. Run dir is scoped under /runs/_smoke/ to keep the
+# T6.2c output off the main training runs path. All paths are absolute and
+# OUTSIDE the repository, under ASR_TRAINING_ROOT. ---
+paths:
+  artifact_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs
+  run_dir_template: "{artifact_root}/_smoke/t6_2c_cpu_micro_{slurm_job_id}"
+  config_snapshot: "{run_dir}/config.yaml"
+  metrics_csv: "{run_dir}/metrics.csv"
+  wer_by_degradation_csv: "{run_dir}/wer_by_degradation.csv"
+  loss_curve_png: "{run_dir}/loss_curve.png"
+  val_wer_curve_png: "{run_dir}/val_wer_curve.png"
+  run_summary_md: "{run_dir}/run_summary.md"
+  checkpoints_dir: "{run_dir}/checkpoints"
+  log_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs
+  cache_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache
+
+# --- Required artifact contract. Same six artifacts as the full-training
+# contract; verified by the post-run Apptainer block in
+# slurm/jobs/t6_2c_cpu_micro_train.sh. ---
+required_artifacts:
+  - config.yaml
+  - metrics.csv
+  - wer_by_degradation.csv
+  - loss_curve.png
+  - val_wer_curve.png
+  - run_summary.md
+  - checkpoints/
+
+# --- Reproducibility metadata recorded by train_enhancer.py into the
+# `runtime:` block appended to config.yaml inside the run dir. ---
+record_in_run_summary:
+  - run_id
+  - git_commit
+  - branch
+  - config_path
+  - dataset_version
+  - degradation_version
+  - metrics_version
+  - enhancer_version
+  - slurm_job_id
+  - output_path
+  - summary_metrics
+  - known_failures
+
+# --- Scope guards. refuse_if_steps_gt is tightened to 100 so this config
+# can never be repurposed for full training. ---
+guards:
+  refuse_if_artifact_root_inside_repo: true
+  refuse_if_reserved_demo_id_present: true
+  refuse_if_dataset_version_mismatch_libs_common: true
+  refuse_if_degradation_version_mismatch_libs_common: true
+  refuse_if_metrics_version_mismatch_libs_common: true
+  refuse_if_steps_gt: 100
+  refuse_if_run_dir_writable_inside_repo: true
+
+# --- Checkpoint policy. With save_every_steps=5 and steps=10, two
+# checkpoints are written (step 5, step 10) plus latest.pt. keep_last_n
+# is small enough that no pruning is triggered. ---
+checkpoint_policy:
+  save_every_steps: 5
+  keep_last_n: 3
+  selection_primary_metric: average_word_accuracy_over_official_degradations
+  tiebreaker_1: best_worst_case_degradation
+  tiebreaker_2: most_recent_checkpoint
+  selection_owner_task: T7.1
+
+# --- Validation policy. T6.2c does NOT enable Whisper validation; recorded
+# here so the schema mirrors full_training.yaml. ---
+validation_policy:
+  val_every_steps: 10
+  per_family_records_cap: 533
+  metric: word_accuracy
+  reference_asr: openai-whisper.base.en
+  whisper_validation_enabled: false
+
+# --- Prior baselines (read-only context; not consumed by training).
+# MetricGAN+ remains a prior negative baseline only. ---
+prior_baselines:
+  t3_1_clean:
+    mean_per_record_wer: 0.0645
+    mean_per_record_word_accuracy: 0.9361
+    report: reports/training/baseline_clean_wer.md
+  t3_2_degraded_macro:
+    mean_per_record_wer: 0.1843
+    mean_per_record_word_accuracy: 0.8213
+    report: reports/training/baseline_degraded_wer.md
+  t4_2_metricgan_plus_pretrained_macro:
+    tier: null_or_negative
+    mean_per_record_wer: 0.4310
+    mean_per_record_word_accuracy: 0.5892
+    report: reports/training/metricgan_plus_wer.md
+    deployment_decision: not_selected
