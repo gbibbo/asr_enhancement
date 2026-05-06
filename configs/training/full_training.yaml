@@ -77,10 +77,102 @@ training:
   save_every_steps: 2500
   max_wall_minutes: 720             # 12h ceiling
 
-# --- Model placeholder. Architecture selection deferred to T6.2. ---
+# --- Model architecture decision (recorded at T6.2a; implemented at T6.2b). ---
+# T6.2a only RECORDS the decision; the model is not instantiated by this
+# config. T6.2b will add an architecture registry to
+# scripts/training/train_enhancer.py with `spectral_unet_small_v1` as the
+# first allowlisted entry, plus a paired audio dataset, loss, validation,
+# and checkpointing. The current `--validate-only` path must keep passing
+# against this file — that is the T6.2a gate.
 model:
-  architecture: placeholder_for_t6_2_or_later
-  notes: "T6.1 is config-only. The actual enhancer architecture and parameter count are filled by T6.2 once the enhancer code path is implemented in scripts/training/train_enhancer.py. MetricGAN+ pretrained must NOT be selected as the trainable enhancer (tier null_or_negative; see reports/training/metricgan_plus_wer.md). T6.2 must also resolve the train-clean-100 'present_empty' status before submitting full training."
+  architecture: spectral_unet_small_v1
+  params:
+    sample_rate: 16000
+    n_fft: 512
+    hop_length: 128
+    win_length: 512
+    window: hann
+    target: bounded_log_mag_ratio_mask
+    parameter_budget: "0.2M-1.0M"
+    phase: degraded_pass_through
+  loss_plan:
+    primary: l1_log_magnitude
+    secondary: multi_resolution_stft
+    weights:
+      l1_log_mag: 1.0
+      mrstft: 0.5
+  notes: |
+    T6.2a records the architecture decision only. The model is NOT
+    instantiated by this config. T6.2b extends
+    scripts/training/train_enhancer.py with a registry, the
+    spectral_unet_small_v1 implementation (small log-magnitude / bounded
+    ratio-mask predictor with degraded-phase reconstruction, ~0.2-1.0M
+    params, PyTorch primitives only), the paired
+    `training_split.{train,val}_*_manifest` dataset, the L1 log-magnitude
+    + multi-resolution STFT loss, real openai-whisper validation, and
+    checkpoint save/resume. MetricGAN+ pretrained must NOT be selected
+    as the trainable enhancer (tier null_or_negative; see
+    reports/training/metricgan_plus_wer.md). The current
+    train_enhancer.py validator MUST still accept this file under
+    --validate-only.
+
+# --- Training split (T6.2a, devclean_speaker_split_v1). ---
+# Derived from the existing frozen dev-clean manifests. dataset_version is
+# UNCHANGED (the source manifests are untouched). The training split is
+# identified by `training_split_version` and consumed by T6.2b's trainer.
+# All paths are absolute, outside the repository, under $ASR_TRAINING_ROOT.
+# The current train_enhancer.py validator does NOT consume this block; it
+# is recorded for T6.2b and for reproducibility.
+training_split_version: devclean_speaker_split_v1
+training_split:
+  source_dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+  split_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1
+  builder_script: scripts/training/prepare_devclean_speaker_split.py
+  seed: 1234
+  val_fraction_target: 0.20
+  speaker_count_total: 40
+  train_speaker_count: 32
+  val_speaker_count: 8
+  speaker_overlap: []
+  reserved_demo_ids_count: 10
+  reserved_demo_ids_absent_in_train: true
+  reserved_demo_ids_absent_in_val: true
+  train_speakers_txt: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_speakers.txt
+  val_speakers_txt: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_speakers.txt
+  train_clean_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_clean_manifest.jsonl
+  train_clean_manifest_sha256: 440a6088b54d213ba90e445db5c680d27c628c7d310a1202a656325c8c59cf93
+  train_clean_records: 2160
+  val_clean_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_clean_manifest.jsonl
+  val_clean_manifest_sha256: f27eb704e6fd483945d9eada8905e50807a0e4e67d86a25ca76f24e07d6267e4
+  val_clean_records: 533
+  train_degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_degraded_manifest.jsonl
+  train_degraded_manifest_sha256: 5f354b5b7f277318fda444ea19f8e79d1dfdb97140537a0cc2e709a76129676a
+  train_degraded_records: 10800
+  val_degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_degraded_manifest.jsonl
+  val_degraded_manifest_sha256: 1aa72ef6130de3efb308709f5cb892b04be96a4bc859d47699547870c8c52632
+  val_degraded_records: 2665
+  per_family_train_counts:
+    broadband_hiss: 2160
+    cafe_background: 2160
+    far_field_room: 2160
+    muffled: 2160
+    phone_call: 2160
+  per_family_val_counts:
+    broadband_hiss: 533
+    cafe_background: 533
+    far_field_room: 533
+    muffled: 533
+    phone_call: 533
+  split_summary_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/split_summary.json
+  consumed_by: T6.2b
+  notes: |
+    Deterministic dev-clean speaker-disjoint split. dataset_version is
+    NOT bumped: the underlying source manifests are unchanged frozen
+    artifacts. The split is a derived training split. T6.2b will switch
+    the trainer to consume training_split.{train,val}_*_manifest. Until
+    then the existing `manifests:` block (full filtered clean and
+    degraded manifests) remains the validator's source of truth and the
+    --validate-only contract.
 
 # --- Reference ASR for validation (plan §16; openai-whisper) ---
 asr:

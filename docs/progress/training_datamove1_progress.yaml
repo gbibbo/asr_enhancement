@@ -1298,6 +1298,94 @@ t6_1_evidence:
   blocked: false
   blocker: null
   result_commit: "4e4b619e828fb36c7cc4b994cbe464dce6e3efd3"
+t6_2a_evidence:
+  status: complete
+  scope: "T6.2a — architecture and data-policy decision gate. Records spectral_unet_small_v1 as the trainable enhancer architecture and devclean_speaker_split_v1 as the deterministic dev-clean speaker-disjoint training split. T6.2a does NOT modify scripts/training/train_enhancer.py, configs/training/dry_run.yaml, configs/training/dataset_version.yaml, docs/model_card.md, libs/, demo/RP files, or demo trackers. No Slurm, no training, no Whisper, no enhancement. T6.2 multi-gate sequence continues at T6.2b (extend train_enhancer.py)."
+  data_policy: devclean_speaker_split_v1
+  architecture_decision: spectral_unet_small_v1
+  source_dataset_version: librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8
+  dataset_version_bumped: false
+  configs_dataset_version_yaml_modified: false
+  configs_dry_run_yaml_modified: false
+  full_training_yaml_patched: true
+  full_training_yaml_validate_only_command: "python3 scripts/training/train_enhancer.py --config configs/training/full_training.yaml --validate-only"
+  full_training_yaml_validate_only_exit_code: 0
+  full_training_yaml_validate_only_stdout: "OK: guards passed (train=2693 val=13465 families=5 clean_sha_ok=True degraded_sha_ok=True)"
+  source_clean_manifest_sha256: dc6674bcf7a82db070ec490ede4624e326d7405b95a9e360f57f542f39a5f80b
+  source_clean_manifest_records: 2693
+  source_degraded_manifest_sha256: c6f87452f146760077a7c281f9cb7b6bd9c4ebd22e65927a6109344cba0dbb7c
+  source_degraded_manifest_records: 13465
+  split_seed: 1234
+  split_val_fraction_target: 0.20
+  split_artifacts:
+    split_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1
+    builder_script: scripts/training/prepare_devclean_speaker_split.py
+    train_speakers_txt: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_speakers.txt
+    val_speakers_txt: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_speakers.txt
+    train_clean_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_clean_manifest.jsonl
+    train_clean_manifest_sha256: 440a6088b54d213ba90e445db5c680d27c628c7d310a1202a656325c8c59cf93
+    train_clean_records: 2160
+    val_clean_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_clean_manifest.jsonl
+    val_clean_manifest_sha256: f27eb704e6fd483945d9eada8905e50807a0e4e67d86a25ca76f24e07d6267e4
+    val_clean_records: 533
+    train_degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/train_degraded_manifest.jsonl
+    train_degraded_manifest_sha256: 5f354b5b7f277318fda444ea19f8e79d1dfdb97140537a0cc2e709a76129676a
+    train_degraded_records: 10800
+    val_degraded_manifest: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/val_degraded_manifest.jsonl
+    val_degraded_manifest_sha256: 1aa72ef6130de3efb308709f5cb892b04be96a4bc859d47699547870c8c52632
+    val_degraded_records: 2665
+    split_summary_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/splits/devclean_speaker_split_v1/split_summary.json
+    speaker_count_total: 40
+    train_speaker_count: 32
+    val_speaker_count: 8
+    speaker_overlap: []
+    reserved_demo_ids_count: 10
+    reserved_demo_ids_absent_in_train: true
+    reserved_demo_ids_absent_in_val: true
+    per_family_train_counts:
+      broadband_hiss: 2160
+      cafe_background: 2160
+      far_field_room: 2160
+      muffled: 2160
+      phone_call: 2160
+    per_family_val_counts:
+      broadband_hiss: 533
+      cafe_background: 533
+      far_field_room: 533
+      muffled: 533
+      phone_call: 533
+  metricgan_plus_role: prior_negative_baseline_only
+  metricgan_plus_tier: null_or_negative
+  metricgan_plus_deployment_decision: not_selected
+  scripts_train_enhancer_py_modified: false
+  libs_audio_modified: false
+  libs_common_versions_modified: false
+  reports_modified: false
+  model_card_modified: false
+  slurm_jobs_modified: false
+  slurm_templates_modified: false
+  demo_files_modified: false
+  rp_files_modified: false
+  demo_trackers_modified: false
+  codex_directory_staged: false
+  stash_untouched: true
+  slurm_jobs: none
+  training_run: false
+  whisper_run: false
+  enhancement_run: false
+  tests_added:
+    - tests/training/test_prepare_devclean_speaker_split.py
+  tests_run:
+    - "python3 -m pytest -q tests/training/test_prepare_devclean_speaker_split.py (9 passed)"
+    - "python3 -m pytest -q tests/training/test_train_enhancer_validate_only.py (5 passed)"
+    - "python3 -m pytest -q tests/training/ (14 passed)"
+  current_task_after: "T6.2"
+  last_completed_task_after: "T6.1"
+  tasks_T6_2_status_after: pending
+  blocked: false
+  blocker: null
+  next_gate: T6.2b
+  result_commit: PENDING_RESULT_COMMIT
 tasks:
   "T0.1": done
   "T0.2": done
