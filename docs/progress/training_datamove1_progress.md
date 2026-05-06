@@ -1808,17 +1808,137 @@ Result commit: `5057c397ca72283c0e3d30fa31b368b2e1c49dce` (hash
 backfilled in the immediately following commit on this branch; see
 `T7.1: backfill checkpoint selection result_commit hash`).
 
+## T7.2 closure evidence (2026-05-06)
+
+T7.2 owns publishability tier assignment per plan §17. It is
+**synthesis only** over the already-committed T7.1 selection record
+and the T3.2 / T4.2 / T6.3 baselines. T7.2 does **not** run any new
+evaluation, does **not** submit any Slurm job, does **not** amend
+`reports/training/checkpoint_selection.{md,json}`, does **not**
+modify `docs/model_card.md` (T8.2 owns it), does **not** modify any
+external run artifact under
+`runs/t6_2_full_training_2128952/`,
+`runs/t6_3_post_hoc_whisper_full_2129017/`, or
+`runs/t7_1_post_hoc_whisper_step_*_*/`, and does **not** start
+T8.1. T7.2 decides publishability and deployment posture only;
+T8.1 owns the export-or-explicit-skip decision.
+
+Report commit:
+`0eb2a1646872141b3906e03a78ea7b66a15bc9b6` —
+`T7.2: add publishability tier report`. Adds:
+
+- `reports/training/publishability_tier.md` (sha256
+  `03bb3bd9b8717dc7db4ebcc75c85b9839921327078a4d6671dcb4a0a5e26eb42`);
+- `reports/training/publishability_tier.json` (sha256
+  `14d4a8b6034dea106f4b99816d6c84d5ecd7990c0ee889e90c8b722c5778640a`).
+
+### Tier rule application
+
+Tier rule (plan §17, primary metric: Δ macro Word Accuracy vs T3.2
+degraded):
+
+- `publicable_strong` if Δ ≥ +0.05;
+- `publicable_acceptable` if 0 < Δ < +0.05;
+- `framework_only` if Δ ≤ 0.
+
+Selected checkpoint (step 20000, sha256
+`a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e`,
+canonical
+`runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt`,
+alias
+`runs/t6_2_full_training_2128952/checkpoints/latest.pt`): macro
+Word Accuracy `0.5255416`, macro WER `0.4744584`, worst-case family
+Word Accuracy `0.369799` (`muffled`); Δ macro WA vs T3.2 degraded
+(0.8213): `−0.2957584`; Δ macro WA vs T4.2 MetricGAN+ pretrained
+(0.5892): `−0.0636584`. All five evaluated candidates fall under
+`framework_only`; the population is strictly `null_or_negative` on
+both the macro and per-family levels.
+
+| Field | Value |
+|---|---|
+| `tier` | `framework_only` |
+| `sub_status` | `framework_only_strict_negative` |
+| `defensible_reason_override_applied` | `false` |
+| `deployment_decision` | `not_selected_for_deployment` |
+| `selection_purpose` | `reproducibility_and_framework_demonstration_only` |
+| `export_posture` | `export_may_proceed_only_as_reproducibility_framework_artifact_or_be_explicitly_skipped_in_T8.1` |
+| `metricgan_plus_role` | `prior_negative_baseline_only` |
+
+### Evidence consistency
+
+- `python3 -c "import json; json.load(...)"` parses
+  `reports/training/publishability_tier.json` cleanly.
+- Selected-checkpoint fields (`step`, `sha256`,
+  `macro_word_accuracy`, `macro_wer`, `worst_case_word_accuracy`,
+  canonical and alias paths, Δ vs T3.2) match
+  `reports/training/checkpoint_selection.json` bit-for-bit.
+- `t3_2_degraded_macro_word_accuracy = 0.8213` confirmed in
+  `reports/training/baseline_summary.md`.
+- `t4_2_metricgan_plus_macro_word_accuracy = 0.5892` confirmed in
+  `reports/training/metricgan_plus_wer.md`.
+- Per-candidate macro WA and worst-case WA reproduce from
+  `checkpoint_selection.json` for all five steps; every row is
+  classified `framework_only`.
+- Verdict rule check: `delta_macro_wa_vs_t3_2_degraded ≤ 0`
+  ⇒ `tier == "framework_only"`.
+
+### Slurm policy
+
+T7.2 submitted no Slurm job: `slurm_required_for_t7_2: false`,
+`slurm_notification_policy: not_applicable_no_slurm_job_submitted`.
+
+Forward-looking rule (recorded for future Slurm jobs from this
+branch): include either (a) native Slurm
+`--mail-type=END,FAIL --mail-user=<addr>` if the cluster mail
+relay is confirmed reliable, or (b) a session-side
+`./slurm/tools/on_submit.sh sacct -j <id>` /
+`squeue -u $USER` watcher polling at ≥30 s and reporting terminal
+state, or (c) an explicit "manual check" command stated up-front.
+Not applied retroactively to T6.2 / T6.3 / T7.1 jobs.
+
+### Non-actions during T7.2
+
+- `docs/model_card.md` not modified.
+- `reports/training/checkpoint_selection.md` and
+  `reports/training/checkpoint_selection.json` not modified.
+- `reports/training/full_training_summary.md`,
+  `reports/training/baseline_summary.md`, and
+  `reports/training/metricgan_plus_wer.md` not modified.
+- `configs/training/*.yaml`, `libs/`, `scripts/`, and `slurm/jobs/`
+  not modified.
+- External run artifacts under
+  `runs/t6_2_full_training_2128952/`,
+  `runs/t6_3_post_hoc_whisper_full_2129017/`, and
+  `runs/t7_1_post_hoc_whisper_step_*_*/` not touched.
+- Demo / RP files and trackers not touched.
+- `stash@{0}` (`WIP unrelated demo/B6.5.1 changes before T3.2
+  result commit`) remains present and untouched.
+
+### Tracker state after T7.2
+
+- `current_task: "T8.1"`
+- `last_completed_task: "T7.2"`
+- `tasks["T7.2"]: done`
+- `tasks["T8.1"]: pending`
+- `blocked: false`, `blocker: null`
+- `t7_2_closed: true`
+- `next_gate: T8.1_export_or_explicit_skip`
+
+Result commit: backfilled in the immediately following commit on
+this branch; see
+`T7.2: backfill publishability tier result_commit hash`.
+
 ## Next task
 
-T7.2 — publishability tier assignment per plan §17. Reads the T7.1
-selection record at
-`reports/training/checkpoint_selection.json` (`selected_checkpoint`:
-step 20000, `tier_at_selection: null_or_negative`,
-`deployment_decision: not_selected_pending_review`) and decides the
-publishability tier (`publicable_strong` /
-`publicable_acceptable` / `framework_only`), feeding the deployment
-decision to T8.1 (export) and T8.2 (model card). Given the T7.1
-outcome (Δ macro WA = `−0.295758` vs T3.2 degraded), T7.2 is
-expected to land in `framework_only` unless a different decision
-rule is invoked. T7.2 must not start unless the user explicitly
-authorises it. Cut T3 remains active.
+T8.1 — export selected enhancer per plan §18, **or** explicit skip
+documented in T8.1, given the T7.2 verdict
+(`tier: framework_only`, `sub_status:
+framework_only_strict_negative`,
+`deployment_decision: not_selected_for_deployment`,
+`selection_purpose:
+reproducibility_and_framework_demonstration_only`,
+`export_posture:
+export_may_proceed_only_as_reproducibility_framework_artifact_or_be_explicitly_skipped_in_T8.1`).
+T7.2 does not pre-decide between export-as-framework-artifact and
+explicit skip; that decision is owned by T8.1. T8.1 must not start
+unless the user explicitly authorises it. Cut T3 remains active.

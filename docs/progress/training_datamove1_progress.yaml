@@ -2,8 +2,8 @@ branch: feature/training-datamove1-v1
 integration_branch: demo-rp5-v1
 current_cut: T3
 current_phase: 6
-current_task: "T7.2"
-last_completed_task: "T7.1"
+current_task: "T8.1"
+last_completed_task: "T7.2"
 blocked: false
 blocker: null
 public_examples_exclusion_status: complete
@@ -2489,6 +2489,72 @@ t7_1_evidence:
   t7_1_closed: true
   next_gate: T7.2_publishability_tier_assignment
   result_commit: "5057c397ca72283c0e3d30fa31b368b2e1c49dce"
+t7_2_evidence:
+  scope: "T7.2 publishability tier assignment per plan §17. Synthesis only over already-committed T7.1 evidence and T3.2 / T4.2 / T6.3 baselines. No new evaluation, no Slurm, no checkpoint_selection.* amendment, no docs/model_card.md edit (T8.2 owns), no external run-artifact modification, no T8.1 export. Decides publishability/deployment posture; T8.1 owns export-or-explicit-skip."
+  status: passed
+  closes_t7_2: true
+  report_commit: "0eb2a1646872141b3906e03a78ea7b66a15bc9b6"
+  publishability_tier_md: reports/training/publishability_tier.md
+  publishability_tier_json: reports/training/publishability_tier.json
+  publishability_tier_md_sha256: "03bb3bd9b8717dc7db4ebcc75c85b9839921327078a4d6671dcb4a0a5e26eb42"
+  publishability_tier_json_sha256: "14d4a8b6034dea106f4b99816d6c84d5ecd7990c0ee889e90c8b722c5778640a"
+  selected_checkpoint:
+    selected_step: 20000
+    canonical_checkpoint: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt
+    alias_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt
+    sha256: "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e"
+    macro_word_accuracy: 0.5255416
+    macro_wer: 0.4744584
+    worst_case_word_accuracy: 0.369799
+    worst_case_family: muffled
+    delta_macro_wa_vs_t3_2_degraded: -0.2957584
+    delta_macro_wa_vs_t4_2_metricgan_plus: -0.0636584
+  tier:
+    tier: framework_only
+    sub_status: framework_only_strict_negative
+    defensible_reason_override_applied: false
+    deployment_decision: not_selected_for_deployment
+    selection_purpose: reproducibility_and_framework_demonstration_only
+    export_posture: export_may_proceed_only_as_reproducibility_framework_artifact_or_be_explicitly_skipped_in_T8.1
+    metricgan_plus_role: prior_negative_baseline_only
+  evidence_consistency:
+    checkpoint_selection_json_crosscheck: passed
+    baseline_summary_crosscheck: passed
+    metricgan_plus_crosscheck: passed
+    json_parse: passed
+    verdict_rule_check: passed
+    all_candidates_framework_only: true
+    all_candidates_null_or_negative: true
+  slurm_policy:
+    slurm_required_for_t7_2: false
+    slurm_notification_policy: not_applicable_no_slurm_job_submitted
+    future_slurm_notification_policy: "future Slurm submissions must use either confirmed native Slurm mail END,FAIL, or a session-side sacct/squeue watcher, or an explicit manual check command if neither is appropriate."
+  non_actions:
+    docs_model_card_modified: false
+    checkpoint_selection_md_modified: false
+    checkpoint_selection_json_modified: false
+    full_training_summary_modified: false
+    baseline_summary_modified: false
+    metricgan_plus_wer_modified: false
+    configs_modified: false
+    libs_modified: false
+    scripts_modified: false
+    slurm_jobs_modified: false
+    external_run_artifacts_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    stash_untouched: true
+  closure:
+    current_task_after: "T8.1"
+    last_completed_task_after: "T7.2"
+    tasks_T7_2_status_after: done
+    tasks_T8_1_status_after: pending
+    blocked: false
+    blocker: null
+    t7_2_closed: true
+    next_gate: T8.1_export_or_explicit_skip
+  result_commit: null
 tasks:
   "T0.1": done
   "T0.2": done
@@ -2518,7 +2584,7 @@ tasks:
   "T6.2": done
   "T6.3": done
   "T7.1": done
-  "T7.2": pending
+  "T7.2": done
   "T8.1": pending
   "T8.2": pending
   "T8.3": pending
