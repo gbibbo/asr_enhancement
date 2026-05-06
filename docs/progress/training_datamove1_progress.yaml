@@ -2842,7 +2842,7 @@ t8_3_evidence:
     blocker: null
     t8_3_closed: true
     next_gate: training_branch_complete_no_artifact_handoff
-  result_commit: null
+  result_commit: "980c47998422ecda24cab893582a248fd0e79f68"
 tasks:
   "T0.1": done
   "T0.2": done
