@@ -50,6 +50,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+# Make sibling helper modules (models.py, datasets.py, losses.py) importable
+# under their flat names. They are imported lazily inside _run_training so that
+# this module's import path stays torch-free (the --validate-only contract on
+# the datamove1 login node depends on it).
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
 from libs.audio.metrics import (  # noqa: E402  (intentional after sys.path)
     normalize_text,
     word_accuracy,
@@ -87,6 +95,23 @@ EXPECTED_GUARD_KEYS = (
     "refuse_if_steps_gt",
     "refuse_if_run_dir_writable_inside_repo",
 )
+
+# T6.2b: training_split SHA verification (cfg.training_split block).
+# Path/SHA pairs verified at --validate-only and at PairedDevCleanDataset
+# construction. Keys mirror configs/training/full_training.yaml's
+# training_split: block. The block is OPTIONAL — dry_run.yaml has no
+# training_split: and the verification is skipped silently for that config.
+TRAINING_SPLIT_PATH_SHA_PAIRS = (
+    ("train_clean_manifest", "train_clean_manifest_sha256"),
+    ("val_clean_manifest", "val_clean_manifest_sha256"),
+    ("train_degraded_manifest", "train_degraded_manifest_sha256"),
+    ("val_degraded_manifest", "val_degraded_manifest_sha256"),
+)
+
+# T6.2b: parameter budget for trainable architectures (asserted at training
+# startup; the same bound is asserted by tests/training/test_architecture_registry.py).
+TRAINABLE_PARAM_COUNT_MIN = 200_000
+TRAINABLE_PARAM_COUNT_MAX = 1_000_000
 
 
 # -----------------------------------------------------------------------------
@@ -447,6 +472,41 @@ def _check_reserved_absent(
 
 
 # -----------------------------------------------------------------------------
+# T6.2b: training_split SHA verification (login-node, no torch).
+# -----------------------------------------------------------------------------
+def _verify_training_split_shas(cfg: dict) -> list[str]:
+    """If `cfg.training_split` is present, verify each of the four split
+    manifests exists and that their SHA-256s match the values declared in
+    the config. Returns a list of error strings (empty on success or when
+    no `training_split:` block is present in `cfg`).
+    """
+    ts = cfg.get("training_split")
+    if not isinstance(ts, dict):
+        return []
+    errors: list[str] = []
+    for path_key, sha_key in TRAINING_SPLIT_PATH_SHA_PAIRS:
+        path_val = ts.get(path_key)
+        sha_val = ts.get(sha_key)
+        if not path_val:
+            errors.append(f"training_split.{path_key}: missing in config")
+            continue
+        if not sha_val:
+            errors.append(f"training_split.{sha_key}: missing in config")
+            continue
+        p = Path(path_val)
+        if not p.exists():
+            errors.append(f"training_split.{path_key}: file not found: {p}")
+            continue
+        actual = _sha256_of_file(p)
+        if actual != sha_val:
+            errors.append(
+                f"training_split.{path_key}: sha256 mismatch: "
+                f"expected={sha_val} actual={actual} path={p}"
+            )
+    return errors
+
+
+# -----------------------------------------------------------------------------
 # validate-only path
 # -----------------------------------------------------------------------------
 def cmd_validate_only(cfg: dict) -> int:
@@ -528,6 +588,27 @@ def cmd_validate_only(cfg: dict) -> int:
         f"families={len(EXPECTED_FAMILIES)} "
         f"clean_sha_ok=True degraded_sha_ok=True)"
     )
+
+    # T6.2b: also verify the four training_split manifests when the cfg has
+    # the block (full_training.yaml). dry_run.yaml has no training_split:
+    # block, so this is silent on the dry-run path.
+    ts_errors = _verify_training_split_shas(cfg)
+    if ts_errors:
+        for e in ts_errors:
+            print(f"BLOCKER: {e}", file=sys.stderr)
+        return 2
+    ts = cfg.get("training_split")
+    if isinstance(ts, dict):
+        ts_version = cfg.get("training_split_version") or "unknown"
+        print(
+            "OK: training_split verified "
+            f"(version={ts_version} "
+            f"train_clean={ts.get('train_clean_records')} "
+            f"val_clean={ts.get('val_clean_records')} "
+            f"train_degraded={ts.get('train_degraded_records')} "
+            f"val_degraded={ts.get('val_degraded_records')} "
+            f"all_sha_ok=True)"
+        )
     return 0
 
 
@@ -920,6 +1001,461 @@ def _run_dry_run(
 
 
 # -----------------------------------------------------------------------------
+# T6.2b: checkpoint save/load helpers (lazy torch import).
+# -----------------------------------------------------------------------------
+def save_checkpoint(
+    *,
+    path: Path,
+    model: "object",
+    optimizer: "object | None",
+    scheduler: "object | None",
+    step: int,
+    cfg: dict,
+    config_path: Path,
+    config_sha256: str,
+    run_id: str,
+    slurm_job_id: str,
+    parameter_count: int,
+) -> Path:
+    """Atomically write a checkpoint .pt file containing model state +
+    metadata to `path`. Imports torch lazily."""
+    import numpy as np  # type: ignore
+    import torch  # type: ignore
+
+    payload = {
+        "step": int(step),
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict() if optimizer is not None else None,
+        "scheduler_state_dict": (
+            scheduler.state_dict()
+            if scheduler is not None and hasattr(scheduler, "state_dict")
+            else None
+        ),
+        "rng": {
+            "torch": torch.get_rng_state(),
+            "numpy": np.random.get_state(),
+            "python": random.getstate(),
+        },
+        "config_path": str(config_path),
+        "config_sha256": config_sha256,
+        "dataset_version": cfg.get("dataset_version"),
+        "degradation_version": cfg.get("degradation_version"),
+        "metrics_version": cfg.get("metrics_version"),
+        "training_split_version": cfg.get("training_split_version"),
+        "model_architecture": (cfg.get("model") or {}).get("architecture"),
+        "model_params": (cfg.get("model") or {}).get("params") or {},
+        "parameter_count": int(parameter_count),
+        "git_commit": _resolve_git_value("GIT_COMMIT_AT_RUN", "rev-parse", "HEAD"),
+        "branch": _resolve_git_value("GIT_BRANCH_AT_RUN", "rev-parse", "--abbrev-ref", "HEAD"),
+        "run_id": run_id,
+        "slurm_job_id": slurm_job_id,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    torch.save(payload, tmp)
+    tmp.replace(path)
+    return path
+
+
+def load_checkpoint(
+    path: Path,
+    *,
+    model: "object | None" = None,
+    optimizer: "object | None" = None,
+    scheduler: "object | None" = None,
+    map_location: str = "cpu",
+    restore_rng: bool = True,
+) -> dict:
+    """Load a checkpoint; optionally restore model/optimizer/scheduler/RNG.
+    Returns the full payload dict. Imports torch lazily."""
+    import numpy as np  # type: ignore
+    import torch  # type: ignore
+
+    payload = torch.load(str(path), map_location=map_location)
+    if model is not None and payload.get("model_state_dict") is not None:
+        model.load_state_dict(payload["model_state_dict"])
+    if optimizer is not None and payload.get("optimizer_state_dict") is not None:
+        optimizer.load_state_dict(payload["optimizer_state_dict"])
+    if (
+        scheduler is not None
+        and payload.get("scheduler_state_dict") is not None
+        and hasattr(scheduler, "load_state_dict")
+    ):
+        scheduler.load_state_dict(payload["scheduler_state_dict"])
+    if restore_rng:
+        rng = payload.get("rng") or {}
+        if "torch" in rng:
+            try:
+                torch.set_rng_state(rng["torch"])
+            except Exception:
+                pass
+        if "numpy" in rng:
+            try:
+                np.random.set_state(rng["numpy"])
+            except Exception:
+                pass
+        if "python" in rng:
+            try:
+                random.setstate(rng["python"])
+            except Exception:
+                pass
+    return payload
+
+
+def _prune_old_checkpoints(checkpoints_dir: Path, keep_last_n: int) -> None:
+    """Delete `checkpoint_step_*.pt` beyond the most recent `keep_last_n`."""
+    if keep_last_n <= 0:
+        return
+    items = sorted(checkpoints_dir.glob("checkpoint_step_*.pt"))
+    if len(items) <= keep_last_n:
+        return
+    for old in items[: len(items) - keep_last_n]:
+        try:
+            old.unlink()
+        except OSError:
+            pass
+
+
+CHECKPOINT_METADATA_KEYS = (
+    "step",
+    "model_state_dict",
+    "config_path",
+    "config_sha256",
+    "dataset_version",
+    "degradation_version",
+    "metrics_version",
+    "training_split_version",
+    "model_architecture",
+    "model_params",
+    "parameter_count",
+    "git_commit",
+    "branch",
+    "run_id",
+    "slurm_job_id",
+)
+
+
+# -----------------------------------------------------------------------------
+# T6.2b: real training loop scaffold (wired, NOT exercised by --validate-only).
+# -----------------------------------------------------------------------------
+def _maybe_run_whisper_validation(*, enable_whisper_val: bool) -> None:
+    """T6.2b: Whisper validation is OFF by default. T6.2c (CPU
+    micro-validation Slurm) is the gate that may enable it. This function
+    is wired here so the call site exists but does nothing in T6.2b.
+    """
+    if not enable_whisper_val:
+        return
+    # Intentionally not implemented in T6.2b. T6.2c will lazy-import whisper
+    # here and run inference on the val DataLoader.
+    return
+
+
+def _run_training(
+    cfg: dict,
+    *,
+    config_path: Path,
+    config_text: str,
+    run_dir: Path,
+    run_id: str,
+    slurm_job_id: str,
+    resume_path: Path | None,
+    force_fresh: bool,
+    enable_whisper_val: bool,
+    max_steps_override: int | None,
+    seed_override: int | None,
+    no_plots: bool,
+) -> int:
+    """Real `spectral_unet_small_v1` training loop.
+
+    Wired by main() for `cfg.model.architecture` other than
+    `placeholder_for_t5_2_or_later`. T6.2b does NOT execute this path —
+    closure depends on `--validate-only` and pytest only. The function is
+    written so T6.2c (CPU micro-validation Slurm) can call it without
+    further code changes.
+    """
+    run_dir.mkdir(parents=True, exist_ok=True)
+    checkpoints_dir = run_dir / "checkpoints"
+    checkpoints_dir.mkdir(parents=True, exist_ok=True)
+
+    latest_path = checkpoints_dir / "latest.pt"
+    if resume_path is None and not force_fresh:
+        existing = list(checkpoints_dir.glob("checkpoint_step_*.pt"))
+        if existing or latest_path.exists():
+            return _blocker(
+                f"checkpoints_dir already populated: {checkpoints_dir}. "
+                f"Pass --resume <path> to resume or --force-fresh to start over."
+            )
+
+    # Lazy heavy imports.
+    import numpy as np  # type: ignore  # noqa: F401  (used by RNG restore)
+    import torch  # type: ignore
+    from torch.utils.data import DataLoader  # type: ignore
+
+    from datasets import PairedDevCleanDataset  # type: ignore  (sibling module)
+    from losses import CompositeReconstructionLoss  # type: ignore
+    from models import build_model, parameter_count as _param_count  # type: ignore
+
+    seed = int(seed_override if seed_override is not None else cfg.get("seed", 1234))
+    torch.manual_seed(seed)
+    random.seed(seed)
+
+    arch = (cfg.get("model") or {}).get("architecture") or ""
+    params = (cfg.get("model") or {}).get("params") or {}
+    model = build_model(arch, params)
+    p_count = _param_count(model)
+    if not (TRAINABLE_PARAM_COUNT_MIN <= p_count <= TRAINABLE_PARAM_COUNT_MAX):
+        return _blocker(
+            f"parameter_count {p_count} outside "
+            f"[{TRAINABLE_PARAM_COUNT_MIN}, {TRAINABLE_PARAM_COUNT_MAX}] "
+            f"for architecture {arch!r}"
+        )
+
+    ts = cfg.get("training_split")
+    if not isinstance(ts, dict):
+        return _blocker("cfg.training_split missing; T6.2a split required for training")
+
+    sample_rate = int(params.get("sample_rate", 16000))
+    train_ds = PairedDevCleanDataset(
+        clean_manifest=Path(ts["train_clean_manifest"]),
+        degraded_manifest=Path(ts["train_degraded_manifest"]),
+        clean_sha256=ts["train_clean_manifest_sha256"],
+        degraded_sha256=ts["train_degraded_manifest_sha256"],
+        mode="train",
+        sample_rate=sample_rate,
+        seed=seed,
+    )
+    val_ds = PairedDevCleanDataset(
+        clean_manifest=Path(ts["val_clean_manifest"]),
+        degraded_manifest=Path(ts["val_degraded_manifest"]),
+        clean_sha256=ts["val_clean_manifest_sha256"],
+        degraded_sha256=ts["val_degraded_manifest_sha256"],
+        mode="val",
+        sample_rate=sample_rate,
+        seed=seed,
+    )
+
+    hw = cfg.get("hardware") or {}
+    bs = int(cfg["training"]["batch_size"])
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=bs,
+        shuffle=True,
+        num_workers=int(hw.get("num_workers", 0)),
+        pin_memory=bool(hw.get("pin_memory", False)),
+        drop_last=True,
+        collate_fn=PairedDevCleanDataset.collate,
+    )
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=bs,
+        shuffle=False,
+        num_workers=int(hw.get("num_workers", 0)),
+        pin_memory=bool(hw.get("pin_memory", False)),
+        drop_last=False,
+        collate_fn=PairedDevCleanDataset.collate,
+    )
+
+    loss_fn = CompositeReconstructionLoss(
+        l1_log_mag_w=1.0,
+        mrstft_w=0.5,
+        n_fft=int(params.get("n_fft", 512)),
+        hop_length=int(params.get("hop_length", 128)),
+        win_length=int(params.get("win_length", 512)),
+    )
+    opt = torch.optim.Adam(
+        model.parameters(),
+        lr=float(cfg["training"]["learning_rate"]),
+    )
+
+    config_sha = _sha256_of_text(config_text)
+    start_step = 1
+    if resume_path is not None:
+        ck = load_checkpoint(resume_path, model=model, optimizer=opt)
+        start_step = int(ck.get("step", 0)) + 1
+
+    cfg_steps = int(cfg["training"]["steps"])
+    steps_total = int(max_steps_override if max_steps_override is not None else cfg_steps)
+    log_every = int(cfg["training"]["log_every_steps"])
+    val_every = int(cfg["training"]["val_every_steps"])
+    save_every = int(cfg["training"].get("save_every_steps", 1000))
+    keep_last_n = int((cfg.get("checkpoint_policy") or {}).get("keep_last_n", 5))
+
+    metric_rows: list[dict] = []
+    train_steps_log: list[int] = []
+    train_losses_log: list[float] = []
+    val_steps_log: list[int] = []
+    val_losses_log: list[float] = []
+
+    runtime_meta = {
+        "run_id": run_id,
+        "slurm_job_id": slurm_job_id,
+        "git_commit": _resolve_git_value("GIT_COMMIT_AT_RUN", "rev-parse", "HEAD"),
+        "branch": _resolve_git_value(
+            "GIT_BRANCH_AT_RUN", "rev-parse", "--abbrev-ref", "HEAD"
+        ),
+        "config_path": str(config_path),
+        "config_sha256": config_sha,
+        "dataset_version": cfg.get("dataset_version"),
+        "degradation_version": DEGRADATION_VERSION,
+        "metrics_version": METRICS_VERSION,
+        "enhancer_version": ENHANCER_VERSION,
+        "output_path": str(run_dir),
+        "start_time": _now_iso(),
+        "torch_available": True,
+        "architecture": arch,
+        "parameter_count": p_count,
+        "training_split_version": cfg.get("training_split_version"),
+        "whisper_validation_enabled": bool(enable_whisper_val),
+    }
+
+    train_iter = iter(train_loader)
+    model.train()
+    for step in range(start_step, steps_total + 1):
+        try:
+            batch = next(train_iter)
+        except StopIteration:
+            train_iter = iter(train_loader)
+            batch = next(train_iter)
+        clean = batch["clean"]
+        degraded = batch["degraded"]
+        opt.zero_grad()
+        yhat = model(degraded)
+        loss, _components = loss_fn(yhat, clean)
+        loss.backward()
+        opt.step()
+        loss_val = float(loss.detach().cpu().item())
+        if step % log_every == 0 or step == steps_total:
+            train_steps_log.append(step)
+            train_losses_log.append(loss_val)
+            metric_rows.append(
+                {
+                    "step": step,
+                    "phase": "train",
+                    "loss": f"{loss_val:.6f}",
+                    "wer": "",
+                    "word_accuracy": "",
+                    "note": "no_whisper_t6_2b",
+                }
+            )
+        if step % val_every == 0 or step == steps_total:
+            model.eval()
+            total = 0.0
+            n_batches = 0
+            with torch.no_grad():
+                for vb in val_loader:
+                    vyhat = model(vb["degraded"])
+                    vloss, _ = loss_fn(vyhat, vb["clean"])
+                    total += float(vloss.item())
+                    n_batches += 1
+            model.train()
+            val_loss = total / max(n_batches, 1)
+            val_steps_log.append(step)
+            val_losses_log.append(val_loss)
+            metric_rows.append(
+                {
+                    "step": step,
+                    "phase": "val",
+                    "loss": f"{val_loss:.6f}",
+                    "wer": "",
+                    "word_accuracy": "",
+                    "note": "placeholder_no_whisper_t6_2b",
+                }
+            )
+            _maybe_run_whisper_validation(enable_whisper_val=enable_whisper_val)
+        if step % save_every == 0 or step == steps_total:
+            ckpt_path = checkpoints_dir / f"checkpoint_step_{step:07d}.pt"
+            save_checkpoint(
+                path=ckpt_path,
+                model=model,
+                optimizer=opt,
+                scheduler=None,
+                step=step,
+                cfg=cfg,
+                config_path=config_path,
+                config_sha256=config_sha,
+                run_id=run_id,
+                slurm_job_id=slurm_job_id,
+                parameter_count=p_count,
+            )
+            # latest.pt: copy bytes atomically (avoids torch.save reentrancy).
+            tmp_latest = checkpoints_dir / "latest.pt.tmp"
+            tmp_latest.write_bytes(ckpt_path.read_bytes())
+            tmp_latest.replace(latest_path)
+            _prune_old_checkpoints(checkpoints_dir, keep_last_n)
+
+    runtime_meta["end_time"] = _now_iso()
+    runtime_meta["steps_executed"] = steps_total
+
+    # Emit the same artifact contract the dry-run path produces (T5.2/T6.1).
+    config_snapshot = run_dir / "config.yaml"
+    metrics_csv = run_dir / "metrics.csv"
+    wer_csv = run_dir / "wer_by_degradation.csv"
+    loss_png = run_dir / "loss_curve.png"
+    val_png = run_dir / "val_wer_curve.png"
+    summary_md = run_dir / "run_summary.md"
+
+    _write_config_snapshot(config_snapshot, config_text, runtime_meta)
+    _write_metrics_csv(metrics_csv, metric_rows)
+    family_rows = [
+        {
+            "family": fam,
+            "count": 0,
+            "mean_wer": "",
+            "mean_word_accuracy": "",
+            "note": "placeholder_no_whisper_t6_2b",
+        }
+        for fam in EXPECTED_FAMILIES
+    ]
+    _write_wer_by_degradation_csv(wer_csv, family_rows)
+
+    if no_plots:
+        loss_png.write_bytes(_placeholder_png_bytes("loss_curve_no_plots"))
+        val_png.write_bytes(_placeholder_png_bytes("val_wer_curve_no_plots"))
+        loss_status = "placeholder"
+        val_status = "placeholder"
+    else:
+        loss_status = _write_loss_curve(loss_png, train_steps_log, train_losses_log)
+        val_status = _write_val_wer_curve(val_png, val_steps_log, val_losses_log)
+
+    artifact_status = {
+        "config.yaml": "complete",
+        "metrics.csv": "complete",
+        "wer_by_degradation.csv": "placeholder (no Whisper)",
+        "loss_curve.png": loss_status,
+        "val_wer_curve.png": val_status,
+        "run_summary.md": "complete",
+    }
+    summary_metrics = {
+        "final_train_loss": (
+            f"{train_losses_log[-1]:.6f}" if train_losses_log else "n/a"
+        ),
+        "final_val_loss": (
+            f"{val_losses_log[-1]:.6f}" if val_losses_log else "n/a"
+        ),
+        "parameter_count": p_count,
+        "architecture": arch,
+        "training_split_version": cfg.get("training_split_version"),
+    }
+    runtime_meta["summary_metrics"] = summary_metrics
+    runtime_meta["known_failures"] = []
+
+    _write_run_summary(
+        summary_md,
+        cfg=cfg,
+        runtime_meta=runtime_meta,
+        artifact_status=artifact_status,
+        summary_metrics=summary_metrics,
+        known_failures=[],
+    )
+
+    missing = [name for name in REQUIRED_ARTIFACTS if not (run_dir / name).exists()]
+    if missing:
+        return _blocker(f"artifact contract incomplete: missing {missing}")
+    print(f"OK: training run wrote {len(REQUIRED_ARTIFACTS)} artifacts to {run_dir}")
+    return 0
+
+
+# -----------------------------------------------------------------------------
 # CLI
 # -----------------------------------------------------------------------------
 def _parse_args(argv: list[str]) -> argparse.Namespace:
@@ -972,6 +1508,24 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="Skip matplotlib and write placeholder PNGs only.",
     )
+    # T6.2b: real-architecture path flags. None of these are exercised in
+    # T6.2b closure; they exist so T6.2c can call the same script.
+    p.add_argument(
+        "--resume",
+        type=Path,
+        default=None,
+        help="Path to a checkpoint .pt to resume training from.",
+    )
+    p.add_argument(
+        "--force-fresh",
+        action="store_true",
+        help="Allow starting a fresh run when checkpoints already exist in run_dir.",
+    )
+    p.add_argument(
+        "--enable-whisper-val",
+        action="store_true",
+        help="Enable openai-whisper validation passes (T6.2c gate; OFF in T6.2b).",
+    )
     return p.parse_args(argv)
 
 
@@ -1021,14 +1575,35 @@ def main(argv: list[str] | None = None) -> int:
 
     run_dir = _resolve_run_dir(cfg, slurm_job_id, run_id, smoke=args.smoke_mode)
 
-    return _run_dry_run(
+    # T6.2b: dispatch by cfg.model.architecture.
+    # - "placeholder_for_t5_2_or_later" (dry_run.yaml) -> existing dry-run path
+    # - any other registered architecture (e.g. "spectral_unet_small_v1" in
+    #   full_training.yaml) -> _run_training. T6.2b does not exercise this
+    #   branch; T6.2c (CPU micro-validation Slurm) does.
+    arch = (cfg.get("model") or {}).get("architecture") or ""
+    if str(arch).lower().startswith("placeholder"):
+        return _run_dry_run(
+            cfg,
+            config_path=config_path,
+            config_text=config_text,
+            run_dir=run_dir,
+            run_id=run_id,
+            slurm_job_id=slurm_job_id,
+            smoke=args.smoke_mode,
+            max_steps_override=args.max_steps,
+            seed_override=args.seed,
+            no_plots=args.no_plots,
+        )
+    return _run_training(
         cfg,
         config_path=config_path,
         config_text=config_text,
         run_dir=run_dir,
         run_id=run_id,
         slurm_job_id=slurm_job_id,
-        smoke=args.smoke_mode,
+        resume_path=args.resume,
+        force_fresh=bool(args.force_fresh),
+        enable_whisper_val=bool(args.enable_whisper_val),
         max_steps_override=args.max_steps,
         seed_override=args.seed,
         no_plots=args.no_plots,
