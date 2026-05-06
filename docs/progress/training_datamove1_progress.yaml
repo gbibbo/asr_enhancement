@@ -2003,7 +2003,7 @@ t6_2_evidence:
   blocker: null
   t6_2_closed: true
   next_gate: T6.3_full_training_summary
-  result_commit: ""
+  result_commit: "84baf4a2877e99ef04f6bd9eb794f724f2eb457f"
 tasks:
   "T0.1": done
   "T0.2": done
