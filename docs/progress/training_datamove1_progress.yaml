@@ -2554,7 +2554,7 @@ t7_2_evidence:
     blocker: null
     t7_2_closed: true
     next_gate: T8.1_export_or_explicit_skip
-  result_commit: null
+  result_commit: "5f1b962f6d1fc5d9bc4b7255b6575576eef7526c"
 tasks:
   "T0.1": done
   "T0.2": done

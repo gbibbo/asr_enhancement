@@ -1924,9 +1924,9 @@ Not applied retroactively to T6.2 / T6.3 / T7.1 jobs.
 - `t7_2_closed: true`
 - `next_gate: T8.1_export_or_explicit_skip`
 
-Result commit: backfilled in the immediately following commit on
-this branch; see
-`T7.2: backfill publishability tier result_commit hash`.
+Result commit: `5f1b962f6d1fc5d9bc4b7255b6575576eef7526c` (hash
+backfilled in the immediately following commit on this branch; see
+`T7.2: backfill publishability tier result_commit hash`).
 
 ## Next task
 
