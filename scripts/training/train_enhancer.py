@@ -91,6 +91,9 @@ EXPECTED_FAMILIES = (
 # T6.2b/T6.2c "no_whisper" placeholder note).
 WHISPER_SMOKE_NOTE = "whisper_smoke_t6_2d"
 
+# T6.3: per-row note for the post-hoc Whisper evaluation (smoke + full).
+T6_3_POST_HOC_NOTE = "t6_3_post_hoc_whisper"
+
 EXPECTED_GUARD_KEYS = (
     "refuse_if_artifact_root_inside_repo",
     "refuse_if_reserved_demo_id_present",
@@ -460,6 +463,59 @@ def _check_whisper_cli_consistency(
             "--enable-whisper-val passed on CLI but config "
             "validation_policy.whisper_validation_enabled is false or absent"
         )
+    return errors
+
+
+def _check_eval_paths(
+    *,
+    eval_checkpoint: Path,
+    eval_out_dir: Path,
+) -> list[str]:
+    """T6.3: login-node-safe path-policy checks for `--eval-checkpoint` mode.
+
+    Pure (no torch). Verifies:
+      * the eval checkpoint path exists and is a regular file;
+      * the eval checkpoint path is OUTSIDE the repo (heavy artifacts must
+        not be tracked);
+      * `eval_out_dir` is OUTSIDE the repo (artifacts root invariant);
+      * `eval_out_dir` is OUTSIDE the T6.2 run_dir from which the checkpoint
+        was loaded — the existing T6.2/T6.2c/T6.2d run-dir contents are
+        frozen and must not be modified retroactively.
+
+    Returns an empty list on success, else a list of blocker strings.
+    """
+    errors: list[str] = []
+    ck = Path(eval_checkpoint)
+    out = Path(eval_out_dir)
+
+    if not ck.exists():
+        errors.append(f"--eval-checkpoint not found: {ck}")
+    elif not ck.is_file():
+        errors.append(f"--eval-checkpoint is not a regular file: {ck}")
+
+    if _is_inside_repo(ck):
+        errors.append(f"--eval-checkpoint must be outside the repo: {ck}")
+
+    if _is_inside_repo(out):
+        errors.append(f"--eval-out-dir must be outside the repo: {out}")
+
+    # Forbid eval_out_dir living inside the source-checkpoint's run_dir
+    # (latest.pt → checkpoints/latest.pt → run_dir = ck.parent.parent).
+    if ck.exists():
+        try:
+            ck_run_dir = ck.resolve().parent.parent
+            out_resolved = out.resolve() if out.exists() else out.absolute()
+            try:
+                out_resolved.relative_to(ck_run_dir)
+                errors.append(
+                    f"--eval-out-dir must be outside the T6.2 run_dir "
+                    f"({ck_run_dir}); got {out_resolved}"
+                )
+            except ValueError:
+                pass
+        except Exception:
+            pass
+
     return errors
 
 
@@ -1438,6 +1494,10 @@ def _maybe_run_whisper_validation(
     model: Any = None,
     sample_rate: int = 16000,
     run_dir: Path | None = None,
+    whisper_load_device: str = "cpu",
+    per_family_cap_override: int | None = None,
+    note_string: str = WHISPER_SMOKE_NOTE,
+    predictions_path: Path | None = None,
 ) -> dict[str, Any]:
     """T6.2d: real Whisper-enabled smoke validation on a 1-per-family subset.
 
@@ -1507,12 +1567,17 @@ def _maybe_run_whisper_validation(
     asr_block = cfg.get("asr") or {}
     whisper_model_name = str(asr_block.get("model") or "base.en")
     decode_opts_cfg = asr_block.get("decode_options") or {}
+    # T6.3: fp16 is enabled when Whisper runs on CUDA (Whisper's default
+    # behaviour) and disabled on CPU (Whisper requires fp32 there). The
+    # T6.2d inline smoke continues to call us with whisper_load_device="cpu"
+    # so its decode_kwargs are byte-identical to before.
+    use_fp16 = str(whisper_load_device).startswith("cuda")
     decode_kwargs: dict[str, Any] = {
         "language": str(decode_opts_cfg.get("language", "en")),
         "task": str(decode_opts_cfg.get("task", "transcribe")),
         "beam_size": int(decode_opts_cfg.get("beam_size", 1)),
         "temperature": float(decode_opts_cfg.get("temperature", 0.0)),
-        "fp16": False,
+        "fp16": use_fp16,
     }
 
     cache_root_s = os.environ.get("ASR_CACHE_ROOT")
@@ -1524,7 +1589,11 @@ def _maybe_run_whisper_validation(
 
     ts = cfg.get("training_split") or {}
     vp = cfg.get("validation_policy") or {}
-    per_family_cap = int(vp.get("per_family_records_cap", 1))
+    per_family_cap = int(
+        per_family_cap_override
+        if per_family_cap_override is not None
+        else vp.get("per_family_records_cap", 1)
+    )
 
     val_deg_path = Path(ts["val_degraded_manifest"])
     val_clean_path = Path(ts["val_clean_manifest"])
@@ -1561,7 +1630,7 @@ def _maybe_run_whisper_validation(
 
     whisper_model = whisper.load_model(
         whisper_model_name,
-        device="cpu",
+        device=str(whisper_load_device),
         download_root=download_root,
     )
 
@@ -1608,6 +1677,7 @@ def _maybe_run_whisper_validation(
         _wavfile.write(str(path), int(target_sr), arr)
 
     family_wers: dict[str, list[float]] = {f: [] for f in EXPECTED_FAMILIES}
+    per_record_entries: list[dict[str, Any]] = []
     n_written = 0
     n_transcribed = 0
     temp_dir_cleaned = False
@@ -1628,8 +1698,8 @@ def _maybe_run_whisper_validation(
                 wav = wav[offset : offset + crop_len]
 
             # Enhancer runs on whatever device the model is on (T6.2 device
-            # selection). Whisper is loaded with device="cpu" above, so the
-            # enhanced waveform is moved back to CPU before the tmp WAV save.
+            # selection). The enhanced waveform is moved to CPU before the
+            # tmp WAV save (the file always lives on the host filesystem).
             model_device = next(model.parameters()).device
             x = wav.view(1, 1, -1).float().to(model_device, non_blocking=True)
             with torch.no_grad():
@@ -1647,13 +1717,33 @@ def _maybe_run_whisper_validation(
             hypothesis = str(transcribe_result.get("text") or "")
             reference = transcripts.get(uid, "")
             wer = float(word_error_rate(reference, hypothesis))
+            wa = float(word_accuracy(wer))
             family_wers[family].append(wer)
+            if predictions_path is not None:
+                per_record_entries.append(
+                    {
+                        "utterance_id": uid,
+                        "family": family,
+                        "reference": reference,
+                        "hypothesis": hypothesis,
+                        "wer": wer,
+                        "word_accuracy": wa,
+                    }
+                )
     finally:
         try:
             shutil.rmtree(tmp_dir, ignore_errors=False)
             temp_dir_cleaned = not tmp_dir.exists()
         except Exception:
             temp_dir_cleaned = False
+        if predictions_path is not None:
+            try:
+                predictions_path.parent.mkdir(parents=True, exist_ok=True)
+                with predictions_path.open("w", encoding="utf-8") as _pf:
+                    for _entry in per_record_entries:
+                        _pf.write(json.dumps(_entry, ensure_ascii=False) + "\n")
+            except Exception:
+                pass
 
     family_rows: list[dict] = []
     for fam in EXPECTED_FAMILIES:
@@ -1665,7 +1755,7 @@ def _maybe_run_whisper_validation(
                     "count": 0,
                     "mean_wer": "",
                     "mean_word_accuracy": "",
-                    "note": WHISPER_SMOKE_NOTE,
+                    "note": note_string,
                 }
             )
             continue
@@ -1677,7 +1767,7 @@ def _maybe_run_whisper_validation(
                 "count": len(wers),
                 "mean_wer": f"{mean_wer:.6f}",
                 "mean_word_accuracy": f"{mean_wa:.6f}",
-                "note": WHISPER_SMOKE_NOTE,
+                "note": note_string,
             }
         )
 
@@ -1694,9 +1784,379 @@ def _maybe_run_whisper_validation(
             "temp_wavs_written": n_written,
             "whisper_transcriptions_completed": n_transcribed,
             "temp_dir_cleaned": temp_dir_cleaned,
+            "per_record_predictions_count": len(per_record_entries),
+            "whisper_device": str(whisper_load_device),
         }
     )
     return result
+
+
+def cmd_eval_only(
+    cfg: dict,
+    *,
+    config_path: Path,
+    eval_checkpoint: Path,
+    eval_out_dir: Path,
+    eval_per_family_cap: int | None,
+    whisper_device: str,
+    validate_only: bool,
+    run_id: str,
+    slurm_job_id: str,
+) -> int:
+    """T6.3 post-hoc evaluation entry point.
+
+    Two phases:
+      * validate_only=True: login-node-safe pre-flight. No torch import,
+        no whisper import. Verifies path policy (checkpoint exists outside
+        repo, eval_out_dir outside repo + outside the source-checkpoint's
+        run_dir), version/SHA guards relevant to evaluation, JSONL manifest
+        parse, and per-family transcript availability. Exits 0/2.
+      * validate_only=False: lazy-imports torch + whisper, loads the
+        checkpoint, builds the enhancer onto `device`, and calls
+        `_maybe_run_whisper_validation` with the requested per-family cap
+        and Whisper device. Writes:
+          - eval_out_dir/wer_by_degradation.csv
+          - eval_out_dir/per_record_predictions.jsonl
+          - eval_out_dir/run_summary.md
+          - eval_out_dir/eval_metadata.json
+        T6.2 source-run artifacts are NOT modified.
+
+    Whisper inline consistency rule from T6.2d does NOT apply here: this
+    is a separate post-hoc evaluation mode with its own Whisper path.
+    """
+    # ---------- Path-policy guards (login-node-safe). ----------
+    path_errors = _check_eval_paths(
+        eval_checkpoint=eval_checkpoint, eval_out_dir=eval_out_dir
+    )
+    if path_errors:
+        for e in path_errors:
+            print(f"BLOCKER: eval-paths: {e}", file=sys.stderr)
+        return 2
+
+    # ---------- Light schema/version guards (login-node-safe). ----------
+    schema_errors = _validate_schema(cfg)
+    if schema_errors:
+        for e in schema_errors:
+            print(f"BLOCKER: schema: {e}", file=sys.stderr)
+        return 2
+    ver_errors = _check_versions_match_libs_common(cfg)
+    if ver_errors:
+        for e in ver_errors:
+            print(f"BLOCKER: versions: {e}", file=sys.stderr)
+        return 2
+    dv_errors = _check_dataset_version_against_yaml(cfg)
+    if dv_errors:
+        for e in dv_errors:
+            print(f"BLOCKER: dataset_version: {e}", file=sys.stderr)
+        return 2
+    ts_errors = _verify_training_split_shas(cfg)
+    if ts_errors:
+        for e in ts_errors:
+            print(f"BLOCKER: training_split: {e}", file=sys.stderr)
+        return 2
+
+    # Reserved demo IDs absent from the val degraded subset that the eval
+    # will iterate over (deterministic, no shuffle).
+    ts = cfg.get("training_split") or {}
+    val_deg_path_s = ts.get("val_degraded_manifest")
+    val_clean_path_s = ts.get("val_clean_manifest")
+    if not val_deg_path_s or not val_clean_path_s:
+        return _blocker(
+            "training_split.{val_degraded_manifest,val_clean_manifest} "
+            "required for --eval-checkpoint"
+        )
+    val_deg_path = Path(val_deg_path_s)
+    val_clean_path = Path(val_clean_path_s)
+    if not val_deg_path.exists():
+        return _blocker(f"val_degraded_manifest not found: {val_deg_path}")
+    if not val_clean_path.exists():
+        return _blocker(f"val_clean_manifest not found: {val_clean_path}")
+
+    vp = cfg.get("validation_policy") or {}
+    cap = int(
+        eval_per_family_cap
+        if eval_per_family_cap is not None
+        else vp.get("per_family_records_cap", 1)
+    )
+    if cap < 1:
+        return _blocker(f"--eval-per-family-cap must be >= 1; got {cap}")
+
+    try:
+        val_deg_rows = _read_jsonl(val_deg_path)
+    except json.JSONDecodeError as exc:
+        return _blocker(f"val_degraded_manifest invalid JSONL: {exc}")
+    eval_subset = _select_whisper_smoke_subset(val_deg_rows, cap)
+    families_found = {r.get("family") for r in eval_subset}
+    missing_families = [f for f in EXPECTED_FAMILIES if f not in families_found]
+    if missing_families:
+        return _blocker(
+            f"eval subset missing families: {missing_families} "
+            f"(per_family_cap={cap})"
+        )
+    expected_total = cap * len(EXPECTED_FAMILIES)
+    if len(eval_subset) != expected_total:
+        return _blocker(
+            f"eval subset size {len(eval_subset)} != "
+            f"per_family_cap × families = {expected_total}"
+        )
+
+    manifests = cfg.get("manifests") or {}
+    reserved_yaml = REPO_ROOT / str(manifests.get("excluded_ids_source", ""))
+    if reserved_yaml.exists():
+        try:
+            reserved = _load_reserved_ids(reserved_yaml)
+        except Exception as exc:
+            return _blocker(f"reserved demo IDs: {exc}")
+        leak_errors = _check_reserved_absent(eval_subset, reserved, "eval_subset")
+        if leak_errors:
+            for e in leak_errors:
+                print(f"BLOCKER: {e}", file=sys.stderr)
+            return 2
+
+    try:
+        transcripts = _load_transcripts_by_utterance_id(val_clean_path)
+    except json.JSONDecodeError as exc:
+        return _blocker(f"val_clean_manifest invalid JSONL: {exc}")
+    missing_tx = [
+        r.get("utterance_id")
+        for r in eval_subset
+        if not (transcripts.get(str(r.get("utterance_id"))) or "").strip()
+    ]
+    if missing_tx:
+        return _blocker(f"eval records missing transcript: {missing_tx[:10]}")
+
+    if str(whisper_device) not in ("cuda", "cpu"):
+        return _blocker(
+            f"--whisper-device must be 'cuda' or 'cpu'; got {whisper_device!r}"
+        )
+
+    if validate_only:
+        print(
+            "OK: eval-only pre-flight verified "
+            f"(checkpoint={eval_checkpoint} "
+            f"eval_out_dir={eval_out_dir} "
+            f"per_family_cap={cap} "
+            f"expected_transcriptions={expected_total} "
+            f"whisper_device={whisper_device})"
+        )
+        return 0
+
+    # ---------- Heavy mode: torch, whisper, real evaluation. ----------
+    eval_out_dir.mkdir(parents=True, exist_ok=True)
+
+    import torch  # type: ignore
+
+    # The same hard CUDA guard the GPU Slurm jobs export.
+    expect_cuda = os.environ.get("ASR_EXPECT_CUDA") == "1"
+    cuda_available = bool(torch.cuda.is_available())
+    if expect_cuda and not cuda_available:
+        return _blocker(
+            "ASR_EXPECT_CUDA=1 set but torch.cuda.is_available()=False "
+            "inside Apptainer"
+        )
+    enhancer_target = "cuda" if cuda_available else "cpu"
+    if str(whisper_device) == "cuda" and not cuda_available:
+        return _blocker(
+            "--whisper-device=cuda requested but torch.cuda.is_available()=False"
+        )
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from models import build_model, parameter_count as _param_count  # type: ignore
+
+    payload = load_checkpoint(
+        eval_checkpoint, model=None, optimizer=None, scheduler=None, restore_rng=False
+    )
+    arch = str(payload.get("model_architecture") or "")
+    params = payload.get("model_params") or {}
+    cfg_arch = str((cfg.get("model") or {}).get("architecture") or "")
+    if arch != cfg_arch:
+        return _blocker(
+            f"checkpoint model_architecture={arch!r} does not match "
+            f"cfg.model.architecture={cfg_arch!r}"
+        )
+    cfg_dv = cfg.get("dataset_version")
+    ck_dv = payload.get("dataset_version")
+    if ck_dv != cfg_dv:
+        return _blocker(
+            f"checkpoint dataset_version={ck_dv!r} != cfg.dataset_version={cfg_dv!r}"
+        )
+    cfg_tsv = cfg.get("training_split_version")
+    ck_tsv = payload.get("training_split_version")
+    if ck_tsv != cfg_tsv:
+        return _blocker(
+            f"checkpoint training_split_version={ck_tsv!r} != "
+            f"cfg.training_split_version={cfg_tsv!r}"
+        )
+
+    model = build_model(arch, params)
+    p_count = int(_param_count(model))
+    if not (TRAINABLE_PARAM_COUNT_MIN <= p_count <= TRAINABLE_PARAM_COUNT_MAX):
+        return _blocker(
+            f"parameter_count {p_count} outside "
+            f"[{TRAINABLE_PARAM_COUNT_MIN}, {TRAINABLE_PARAM_COUNT_MAX}]"
+        )
+    state_dict = payload.get("model_state_dict")
+    if state_dict is None:
+        return _blocker("checkpoint payload missing model_state_dict")
+    model.load_state_dict(state_dict)
+    model.eval()
+    enhancer_device_obj = torch.device(enhancer_target)
+    model = model.to(enhancer_device_obj)
+
+    sample_rate = int((params.get("sample_rate") or 16000))
+    predictions_path = eval_out_dir / "per_record_predictions.jsonl"
+    start_iso = _now_iso()
+    eval_result = _maybe_run_whisper_validation(
+        enable_whisper_val=True,
+        cfg=cfg,
+        model=model,
+        sample_rate=sample_rate,
+        run_dir=eval_out_dir,
+        whisper_load_device=str(whisper_device),
+        per_family_cap_override=cap,
+        note_string=T6_3_POST_HOC_NOTE,
+        predictions_path=predictions_path,
+    )
+    end_iso = _now_iso()
+
+    # Write per-family CSV (reuse the existing T5.2 writer for shape parity).
+    wer_csv = eval_out_dir / "wer_by_degradation.csv"
+    _write_wer_by_degradation_csv(wer_csv, eval_result.get("family_rows") or [])
+
+    # Compose evaluation metadata for the Slurm verifier to read.
+    metadata = {
+        "phase": "t6_3_post_hoc_whisper",
+        "validation_passed_locally": True,
+        "errors": [],
+        "checkpoint_path": str(Path(eval_checkpoint).resolve()),
+        "checkpoint_step": int(payload.get("step", -1)),
+        "checkpoint_model_architecture": arch,
+        "checkpoint_parameter_count": p_count,
+        "checkpoint_dataset_version": ck_dv,
+        "checkpoint_training_split_version": ck_tsv,
+        "config_path": str(Path(config_path).resolve()),
+        "eval_per_family_cap": cap,
+        "total_expected_transcriptions": expected_total,
+        "total_completed_transcriptions": int(
+            eval_result.get("whisper_transcriptions_completed") or 0
+        ),
+        "temp_wavs_written": int(eval_result.get("temp_wavs_written") or 0),
+        "temp_dir_cleaned": bool(eval_result.get("temp_dir_cleaned")),
+        "missing_transcript_count": int(
+            eval_result.get("missing_transcript_count") or 0
+        ),
+        "selected_families": eval_result.get("selected_families"),
+        "selected_utterance_ids": eval_result.get("selected_utterance_ids"),
+        "per_family_counts": {
+            row["family"]: int(row.get("count") or 0)
+            for row in (eval_result.get("family_rows") or [])
+        },
+        "per_family_mean_wer": {
+            row["family"]: row.get("mean_wer", "")
+            for row in (eval_result.get("family_rows") or [])
+        },
+        "per_family_mean_word_accuracy": {
+            row["family"]: row.get("mean_word_accuracy", "")
+            for row in (eval_result.get("family_rows") or [])
+        },
+        "macro_wer": eval_result.get("mean_wer"),
+        "macro_word_accuracy": eval_result.get("mean_word_accuracy"),
+        "per_record_predictions_count": int(
+            eval_result.get("per_record_predictions_count") or 0
+        ),
+        "per_record_predictions_path": str(predictions_path),
+        "whisper_model": eval_result.get("whisper_model"),
+        "whisper_version": eval_result.get("whisper_version"),
+        "whisper_device": str(whisper_device),
+        "enhancer_device": str(enhancer_device_obj),
+        "gpu_used": bool(str(enhancer_device_obj).startswith("cuda")),
+        "apptainer_nv_used": bool(str(whisper_device) == "cuda" or str(enhancer_device_obj).startswith("cuda")),
+        "expected_cuda": expect_cuda,
+        "torch_cuda_is_available": cuda_available,
+        "torch_version": getattr(torch, "__version__", "unknown"),
+        "enhancement_run": False,
+        "run_id": run_id,
+        "slurm_job_id": slurm_job_id,
+        "git_commit": _resolve_git_value("GIT_COMMIT_AT_RUN", "rev-parse", "HEAD"),
+        "branch": _resolve_git_value(
+            "GIT_BRANCH_AT_RUN", "rev-parse", "--abbrev-ref", "HEAD"
+        ),
+        "start_time": start_iso,
+        "end_time": end_iso,
+        "eval_out_dir": str(eval_out_dir),
+        "wer_by_degradation_csv": str(wer_csv),
+    }
+    metadata_path = eval_out_dir / "eval_metadata.json"
+    metadata_path.write_text(
+        json.dumps(metadata, indent=2, sort_keys=True, default=str), encoding="utf-8"
+    )
+
+    # Short, eval-specific run_summary.md (NOT the full-training run summary;
+    # that is `reports/training/full_training_summary.md` written by hand
+    # later in T6.3 from these artifacts).
+    summary_lines = [
+        "# T6.3 post-hoc Whisper evaluation summary\n",
+        f"Status: phase={metadata['phase']}; checkpoint_step="
+        f"{metadata['checkpoint_step']}; per_family_cap={cap}; "
+        f"expected_transcriptions={expected_total}; "
+        f"completed_transcriptions={metadata['total_completed_transcriptions']}.\n",
+        "## Reproducibility metadata\n",
+        f"- run_id: `{run_id}`",
+        f"- slurm_job_id: `{slurm_job_id}`",
+        f"- git_commit: `{metadata['git_commit']}`",
+        f"- branch: `{metadata['branch']}`",
+        f"- checkpoint_path: `{metadata['checkpoint_path']}`",
+        f"- config_path: `{metadata['config_path']}`",
+        f"- dataset_version: `{ck_dv}`",
+        f"- training_split_version: `{ck_tsv}`",
+        f"- whisper_model: `{metadata['whisper_model']}`",
+        f"- whisper_version: `{metadata['whisper_version']}`",
+        f"- whisper_device: `{metadata['whisper_device']}`",
+        f"- enhancer_device: `{metadata['enhancer_device']}`",
+        f"- gpu_used: `{metadata['gpu_used']}`",
+        f"- expected_cuda: `{metadata['expected_cuda']}`",
+        "",
+        "## Macro metrics\n",
+        f"- mean_wer: `{metadata['macro_wer']}`",
+        f"- mean_word_accuracy: `{metadata['macro_word_accuracy']}`",
+        "",
+        "## Per-family",
+        "",
+        "| family | count | mean_wer | mean_word_accuracy |",
+        "|---|---|---|---|",
+    ]
+    for row in eval_result.get("family_rows") or []:
+        summary_lines.append(
+            f"| {row['family']} | {row.get('count', 0)} | "
+            f"{row.get('mean_wer', '')} | {row.get('mean_word_accuracy', '')} |"
+        )
+    summary_lines.append("")
+    summary_lines.append("## Notes\n")
+    summary_lines.append(
+        "- This is a T6.3 post-hoc evaluation artifact. The T6.2 source "
+        "run_dir is unchanged."
+    )
+    summary_lines.append(
+        "- This evaluates the latest checkpoint only. Checkpoint selection "
+        "across multiple candidates is owned by T7.1."
+    )
+    summary_lines.append(
+        f"- Metrics implementation: libs.audio.metrics ({METRICS_VERSION}); "
+        f"degradation: {DEGRADATION_VERSION}."
+    )
+    (eval_out_dir / "run_summary.md").write_text(
+        "\n".join(summary_lines) + "\n", encoding="utf-8"
+    )
+
+    print(
+        f"OK: eval-only completed "
+        f"(transcriptions={metadata['total_completed_transcriptions']}/"
+        f"{expected_total} families={len(EXPECTED_FAMILIES)} "
+        f"macro_wer={metadata['macro_wer']} "
+        f"macro_wa={metadata['macro_word_accuracy']} "
+        f"out={eval_out_dir})"
+    )
+    return 0
 
 
 def _run_training(
@@ -2173,6 +2633,36 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="Enable openai-whisper validation passes (T6.2c gate; OFF in T6.2b).",
     )
+    # T6.3: post-hoc evaluation mode. Mutually exclusive with the inline
+    # training Whisper consistency rule (--enable-whisper-val).
+    p.add_argument(
+        "--eval-checkpoint",
+        type=Path,
+        default=None,
+        help="Path to a T6.2 checkpoint .pt; enables post-hoc eval-only mode "
+        "(T6.3). Mutually exclusive with --enable-whisper-val.",
+    )
+    p.add_argument(
+        "--eval-out-dir",
+        type=Path,
+        default=None,
+        help="Output directory for T6.3 post-hoc evaluation artifacts; must be "
+        "outside the repo and outside the source checkpoint's run_dir.",
+    )
+    p.add_argument(
+        "--eval-per-family-cap",
+        type=int,
+        default=None,
+        help="Per-family records cap for T6.3 post-hoc evaluation. Defaults to "
+        "cfg.validation_policy.per_family_records_cap.",
+    )
+    p.add_argument(
+        "--whisper-device",
+        choices=("cuda", "cpu"),
+        default="cpu",
+        help="Whisper device for T6.3 post-hoc evaluation (default: cpu). "
+        "T6.2d inline smoke continues to use cpu unconditionally.",
+    )
     return p.parse_args(argv)
 
 
@@ -2193,6 +2683,39 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.artifact_root is not None:
         cfg.setdefault("paths", {})["artifact_root"] = str(args.artifact_root)
+
+    # T6.3: --eval-checkpoint dispatches to a separate post-hoc evaluation
+    # path. Mutual exclusion with --enable-whisper-val keeps the inline
+    # T6.2d consistency rule unambiguous.
+    if args.eval_checkpoint is not None:
+        if args.enable_whisper_val:
+            return _blocker(
+                "--eval-checkpoint and --enable-whisper-val are mutually "
+                "exclusive: eval-checkpoint mode uses its own Whisper path"
+            )
+        if args.eval_out_dir is None:
+            return _blocker(
+                "--eval-out-dir is required when --eval-checkpoint is set"
+            )
+        slurm_job_id_eval = os.environ.get("SLURM_JOB_ID", "local")
+        if args.run_id:
+            run_id_eval = args.run_id
+        elif slurm_job_id_eval != "local":
+            run_id_eval = f"t6_3_eval_{slurm_job_id_eval}"
+        else:
+            ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            run_id_eval = f"t6_3_eval_local_{ts}_{uuid.uuid4().hex[:8]}"
+        return cmd_eval_only(
+            cfg,
+            config_path=config_path,
+            eval_checkpoint=args.eval_checkpoint,
+            eval_out_dir=args.eval_out_dir,
+            eval_per_family_cap=args.eval_per_family_cap,
+            whisper_device=str(args.whisper_device),
+            validate_only=bool(args.validate_only),
+            run_id=run_id_eval,
+            slurm_job_id=slurm_job_id_eval,
+        )
 
     if args.validate_only:
         return cmd_validate_only(
