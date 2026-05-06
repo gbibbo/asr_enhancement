@@ -86,6 +86,11 @@ EXPECTED_FAMILIES = (
     "phone_call",
 )
 
+# T6.2d: per-row note recorded in metrics.csv and wer_by_degradation.csv when
+# the Whisper-enabled smoke validation path actually ran (as opposed to the
+# T6.2b/T6.2c "no_whisper" placeholder note).
+WHISPER_SMOKE_NOTE = "whisper_smoke_t6_2d"
+
 EXPECTED_GUARD_KEYS = (
     "refuse_if_artifact_root_inside_repo",
     "refuse_if_reserved_demo_id_present",
@@ -339,6 +344,132 @@ def _deterministic_val_subset(
     return out
 
 
+def _select_whisper_smoke_subset(
+    degraded_records: list[dict],
+    per_family_cap: int,
+) -> list[dict]:
+    """T6.2d: deterministic, no-shuffle Whisper smoke subset.
+
+    Iterates `degraded_records` in manifest order and takes the first
+    `per_family_cap` rows of each `EXPECTED_FAMILIES` family, returning
+    them in the canonical family order. Distinct from
+    `_deterministic_val_subset` (which RNG-shuffles per family) — for the
+    Whisper smoke we want stability across runs without depending on a
+    seed.
+    """
+    by_family: dict[str, list[dict]] = {f: [] for f in EXPECTED_FAMILIES}
+    for r in degraded_records:
+        fam = r.get("family")
+        if fam in by_family and len(by_family[fam]) < per_family_cap:
+            by_family[fam].append(r)
+    out: list[dict] = []
+    for fam in EXPECTED_FAMILIES:
+        out.extend(by_family[fam])
+    return out
+
+
+def _load_transcripts_by_utterance_id(jsonl_path: Path) -> dict[str, str]:
+    """T6.2d: load utterance_id -> transcript mapping from a JSONL manifest.
+
+    Used for the Whisper smoke to pull reference text from the val clean
+    manifest by utterance_id. Records without a `transcript` field map to
+    the empty string and are detected as missing by the smoke pre-flight.
+    """
+    out: dict[str, str] = {}
+    for row in _read_jsonl(jsonl_path):
+        uid = row.get("utterance_id")
+        if not uid:
+            continue
+        tx = row.get("transcript")
+        out[str(uid)] = str(tx) if tx else ""
+    return out
+
+
+def _check_whisper_cli_consistency(
+    cfg: dict, *, enable_whisper_val: bool
+) -> list[str]:
+    """T6.2d: cheap (no torch/whisper/torchaudio/matplotlib) check that the
+    CLI flag and the config block agree on whether Whisper validation is
+    enabled. Mismatches are blockers — silent disagreement is forbidden.
+    """
+    errors: list[str] = []
+    vp = cfg.get("validation_policy") or {}
+    config_flag = bool(vp.get("whisper_validation_enabled", False))
+    if config_flag and not enable_whisper_val:
+        errors.append(
+            "config validation_policy.whisper_validation_enabled=true "
+            "but --enable-whisper-val not passed on CLI"
+        )
+    if enable_whisper_val and not config_flag:
+        errors.append(
+            "--enable-whisper-val passed on CLI but config "
+            "validation_policy.whisper_validation_enabled is false or absent"
+        )
+    return errors
+
+
+def _check_whisper_smoke_pre_flight(cfg: dict) -> list[str]:
+    """T6.2d: login-node-safe pre-flight (no torch/whisper/torchaudio
+    /matplotlib) for the Whisper-enabled smoke. Verifies that:
+
+      * `cfg.training_split.val_degraded_manifest` exists, parses as JSONL,
+        and yields a 1-per-family subset covering all `EXPECTED_FAMILIES`;
+      * `cfg.training_split.val_clean_manifest` exists, parses as JSONL,
+        and contains a non-empty `transcript` for each selected smoke
+        utterance_id (no silent skipping — even one missing transcript is
+        a blocker).
+
+    Returns an empty list on success, else a list of blocker strings.
+    """
+    errors: list[str] = []
+    ts = cfg.get("training_split") or {}
+    vp = cfg.get("validation_policy") or {}
+    per_family_cap = int(vp.get("per_family_records_cap", 1))
+
+    val_deg_path_s = ts.get("val_degraded_manifest")
+    val_clean_path_s = ts.get("val_clean_manifest")
+    if not val_deg_path_s:
+        errors.append("training_split.val_degraded_manifest missing")
+    if not val_clean_path_s:
+        errors.append("training_split.val_clean_manifest missing")
+    if errors:
+        return errors
+
+    val_deg_path = Path(val_deg_path_s)
+    val_clean_path = Path(val_clean_path_s)
+    if not val_deg_path.exists():
+        return [f"val_degraded_manifest not found: {val_deg_path}"]
+    if not val_clean_path.exists():
+        return [f"val_clean_manifest not found: {val_clean_path}"]
+
+    try:
+        val_rows = _read_jsonl(val_deg_path)
+    except json.JSONDecodeError as exc:
+        return [f"val_degraded_manifest invalid JSONL: {exc}"]
+    smoke_subset = _select_whisper_smoke_subset(val_rows, per_family_cap)
+    families_found = {r.get("family") for r in smoke_subset}
+    missing_families = [f for f in EXPECTED_FAMILIES if f not in families_found]
+    if missing_families:
+        return [
+            f"whisper smoke subset missing families: {missing_families} "
+            f"(per_family_records_cap={per_family_cap})"
+        ]
+
+    try:
+        transcripts = _load_transcripts_by_utterance_id(val_clean_path)
+    except json.JSONDecodeError as exc:
+        return [f"val_clean_manifest invalid JSONL: {exc}"]
+
+    missing_tx = [
+        r.get("utterance_id")
+        for r in smoke_subset
+        if not (transcripts.get(str(r.get("utterance_id"))) or "").strip()
+    ]
+    if missing_tx:
+        return [f"whisper smoke records missing transcript: {missing_tx}"]
+    return []
+
+
 # -----------------------------------------------------------------------------
 # Guard enforcement
 # -----------------------------------------------------------------------------
@@ -509,8 +640,23 @@ def _verify_training_split_shas(cfg: dict) -> list[str]:
 # -----------------------------------------------------------------------------
 # validate-only path
 # -----------------------------------------------------------------------------
-def cmd_validate_only(cfg: dict) -> int:
-    """Strict pre-flight on datamove1. No run dir created."""
+def cmd_validate_only(cfg: dict, *, enable_whisper_val: bool = False) -> int:
+    """Strict pre-flight on datamove1. No run dir created.
+
+    `enable_whisper_val` (T6.2d) reflects the CLI flag. When set, this
+    function additionally enforces config/CLI agreement and runs a
+    login-node-safe Whisper-smoke pre-flight (manifest parse, family
+    coverage, transcript presence) without importing torch, whisper,
+    torchaudio, or matplotlib.
+    """
+    consistency_errors = _check_whisper_cli_consistency(
+        cfg, enable_whisper_val=enable_whisper_val
+    )
+    if consistency_errors:
+        for e in consistency_errors:
+            print(f"BLOCKER: whisper-cli-consistency: {e}", file=sys.stderr)
+        return 2
+
     schema_errors = _validate_schema(cfg)
     if schema_errors:
         for e in schema_errors:
@@ -609,6 +755,24 @@ def cmd_validate_only(cfg: dict) -> int:
             f"val_degraded={ts.get('val_degraded_records')} "
             f"all_sha_ok=True)"
         )
+
+    # T6.2d: Whisper smoke pre-flight runs only when the CLI flag is set
+    # AND the config block agrees (the consistency check above already
+    # ensures that). This block remains login-node-safe (no torch/whisper).
+    if enable_whisper_val:
+        smoke_errors = _check_whisper_smoke_pre_flight(cfg)
+        if smoke_errors:
+            for e in smoke_errors:
+                print(f"BLOCKER: whisper-smoke-pre-flight: {e}", file=sys.stderr)
+            return 2
+        vp = cfg.get("validation_policy") or {}
+        per_family_cap = int(vp.get("per_family_records_cap", 1))
+        print(
+            "OK: whisper-smoke pre-flight verified "
+            f"(per_family_records_cap={per_family_cap} "
+            f"families={len(EXPECTED_FAMILIES)} "
+            f"transcripts_present=True)"
+        )
     return 0
 
 
@@ -693,9 +857,20 @@ def _write_loss_curve(path: Path, steps: list[int], losses: list[float]) -> str:
 
 
 def _write_val_wer_curve(
-    path: Path, val_steps: list[int], val_wers: list[float]
+    path: Path,
+    val_steps: list[int],
+    val_wers: list[float],
+    *,
+    whisper_enabled: bool = False,
 ) -> str:
-    """Write the val WER curve PNG. Returns 'complete' or 'placeholder'."""
+    """Write the val WER curve PNG. Returns 'complete' or 'placeholder'.
+
+    `whisper_enabled=True` (T6.2d) switches the y-axis label and title to
+    real Whisper-smoke wording; the values plotted are then expected to be
+    actual WER values, not validation losses. With `whisper_enabled=False`
+    the legacy placeholder/no-Whisper wording is preserved (used by T5.3
+    and T6.2c so those paths reproduce identically).
+    """
     try:
         import matplotlib  # type: ignore
 
@@ -705,8 +880,12 @@ def _write_val_wer_curve(
         fig, ax = plt.subplots(figsize=(6, 4))
         ax.plot(val_steps, val_wers, marker="s", color="tab:red", linewidth=1.0)
         ax.set_xlabel("step")
-        ax.set_ylabel("val WER (placeholder, no Whisper)")
-        ax.set_title("Dry-run val WER curve")
+        if whisper_enabled:
+            ax.set_ylabel("val WER (Whisper smoke)")
+            ax.set_title("Val WER curve (Whisper smoke)")
+        else:
+            ax.set_ylabel("val WER (placeholder, no Whisper)")
+            ax.set_title("Dry-run val WER curve")
         ax.grid(True, alpha=0.3)
         fig.tight_layout()
         fig.savefig(path, dpi=120)
@@ -725,12 +904,22 @@ def _write_run_summary(
     artifact_status: dict[str, str],
     summary_metrics: dict[str, Any],
     known_failures: list[str],
+    whisper_enabled: bool = False,
 ) -> None:
     lines: list[str] = []
-    lines.append("# Dry-run training run summary\n")
-    lines.append("Status: dry-run artifact contract proof. Not a training result.\n")
+    if whisper_enabled:
+        lines.append("# T6.2d Whisper-enabled CPU smoke validation run summary\n")
+        lines.append(
+            "Status: Whisper-enabled CPU smoke validation. Not full training. "
+            "Not T6.2 closure.\n"
+        )
+    else:
+        lines.append("# Dry-run training run summary\n")
+        lines.append(
+            "Status: dry-run artifact contract proof. Not a training result.\n"
+        )
     lines.append("## Reproducibility metadata\n")
-    for key in (
+    summary_keys: tuple[str, ...] = (
         "run_id",
         "git_commit",
         "branch",
@@ -741,7 +930,14 @@ def _write_run_summary(
         "enhancer_version",
         "slurm_job_id",
         "output_path",
-    ):
+    )
+    if whisper_enabled:
+        summary_keys = summary_keys + (
+            "whisper_validation_enabled",
+            "whisper_model",
+            "whisper_version",
+        )
+    for key in summary_keys:
         lines.append(f"- {key}: `{runtime_meta.get(key)}`")
     lines.append("")
     lines.append("## Summary metrics\n")
@@ -760,17 +956,59 @@ def _write_run_summary(
         lines.append("- (none recorded)")
     lines.append("")
     lines.append("## Notes\n")
-    lines.append(
-        "- WER and Word Accuracy values are PLACEHOLDERS. Whisper is not run "
-        "during T5.2/T5.3 (Phase 5 dry-run); the artifact contract is the gate, "
-        "not convergence."
-    )
-    lines.append(
-        "- The trainable enhancer is a small placeholder (identity-init Conv1d). "
-        "MetricGAN+ pretrained is documented separately under "
-        "`prior_baselines` (tier null_or_negative, deployment_decision "
-        "not_selected) and must NOT be selected as a trainable enhancer."
-    )
+    if whisper_enabled:
+        asr_block = cfg.get("asr") or {}
+        decode_options = asr_block.get("decode_options") or {}
+        vp = cfg.get("validation_policy") or {}
+        per_family_cap = vp.get("per_family_records_cap")
+        lines.append(
+            "- This run is the **T6.2d Whisper-enabled CPU smoke validation**, "
+            "not full training. WER and Word Accuracy values recorded here are "
+            "real Whisper smoke values produced on a tiny subset, not "
+            "convergence evidence. Production WER is the responsibility of "
+            "T6.3+."
+        )
+        lines.append(
+            f"- Whisper validation ran on cropped 4-second val windows "
+            f"(reusing the existing val DataLoader output), "
+            f"{per_family_cap} record per family across "
+            f"{len(EXPECTED_FAMILIES)} families "
+            f"({', '.join(EXPECTED_FAMILIES)})."
+        )
+        lines.append(
+            f"- ASR: framework=`{asr_block.get('framework')}`, "
+            f"model=`{asr_block.get('model')}`, "
+            f"whisper_version=`{asr_block.get('whisper_version')}`."
+        )
+        if decode_options:
+            opts = ", ".join(f"{k}={v}" for k, v in sorted(decode_options.items()))
+            lines.append(f"- Decode options: {opts}.")
+        lines.append(
+            f"- Selected utterance_ids: "
+            f"`{runtime_meta.get('selected_utterance_ids')}`; "
+            f"selected families: `{runtime_meta.get('selected_families')}`; "
+            f"missing_transcript_count: "
+            f"`{runtime_meta.get('missing_transcript_count')}`."
+        )
+        lines.append(
+            f"- Temporary enhanced WAVs written: "
+            f"`{runtime_meta.get('temp_wavs_written')}`; "
+            f"Whisper transcriptions completed: "
+            f"`{runtime_meta.get('whisper_transcriptions_completed')}`; "
+            f"temp_dir_cleaned: `{runtime_meta.get('temp_dir_cleaned')}`."
+        )
+    else:
+        lines.append(
+            "- WER and Word Accuracy values are PLACEHOLDERS. Whisper is not run "
+            "during T5.2/T5.3 (Phase 5 dry-run); the artifact contract is the "
+            "gate, not convergence."
+        )
+        lines.append(
+            "- The trainable enhancer is a small placeholder (identity-init Conv1d). "
+            "MetricGAN+ pretrained is documented separately under "
+            "`prior_baselines` (tier null_or_negative, deployment_decision "
+            "not_selected) and must NOT be selected as a trainable enhancer."
+        )
     lines.append(
         f"- Metrics implementation: libs.audio.metrics ({METRICS_VERSION}); "
         f"degradation: {DEGRADATION_VERSION}; enhancer_version: {ENHANCER_VERSION}."
@@ -1138,16 +1376,268 @@ CHECKPOINT_METADATA_KEYS = (
 # -----------------------------------------------------------------------------
 # T6.2b: real training loop scaffold (wired, NOT exercised by --validate-only).
 # -----------------------------------------------------------------------------
-def _maybe_run_whisper_validation(*, enable_whisper_val: bool) -> None:
-    """T6.2b: Whisper validation is OFF by default. T6.2c (CPU
-    micro-validation Slurm) is the gate that may enable it. This function
-    is wired here so the call site exists but does nothing in T6.2b.
+def _maybe_run_whisper_validation(
+    *,
+    enable_whisper_val: bool,
+    cfg: dict | None = None,
+    model: Any = None,
+    sample_rate: int = 16000,
+    run_dir: Path | None = None,
+) -> dict[str, Any]:
+    """T6.2d: real Whisper-enabled smoke validation on a 1-per-family subset.
+
+    With `enable_whisper_val=False`, returns immediately with `ran=False`
+    and no other side effects (T6.2b/T6.2c contract preserved).
+
+    With `enable_whisper_val=True`, runs:
+      1. select 1 record per `EXPECTED_FAMILIES` family from the val
+         degraded manifest (deterministic, no shuffle);
+      2. load reference transcripts from the val clean manifest by
+         utterance_id; missing transcripts ⇒ raise (no silent skip);
+      3. for each selected record, load the degraded WAV, take a centered
+         4-second crop matching the val DataLoader, run the enhancer,
+         write the enhanced cropped WAV to `run_dir/val_enhanced_tmp/`;
+      4. transcribe each tmp WAV with openai-whisper (CPU, cache under
+         `$ASR_CACHE_ROOT/whisper`) using the cfg.asr decode options;
+      5. compute per-utterance WER via libs.audio.metrics, aggregate per
+         family, populate the return dict;
+      6. delete the tmp dir in a `finally` block — the six-artifact
+         contract must not gain a seventh artifact, so survival metadata
+         (counts, ids, families) is recorded in the returned dict and
+         propagated to the runtime block of config.yaml plus the
+         external verify JSON.
+
+    Heavy imports (whisper, torch, torchaudio, scipy) are lazy.
     """
+    result: dict[str, Any] = {
+        "ran": False,
+        "family_rows": [],
+        "mean_wer": None,
+        "mean_word_accuracy": None,
+        "selected_utterance_ids": [],
+        "selected_families": [],
+        "missing_transcript_count": 0,
+        "temp_wavs_written": 0,
+        "whisper_transcriptions_completed": 0,
+        "temp_dir_cleaned": False,
+        "whisper_model": None,
+        "whisper_version": None,
+    }
     if not enable_whisper_val:
-        return
-    # Intentionally not implemented in T6.2b. T6.2c will lazy-import whisper
-    # here and run inference on the val DataLoader.
-    return
+        return result
+    if cfg is None or model is None or run_dir is None:
+        raise RuntimeError(
+            "_maybe_run_whisper_validation: cfg/model/run_dir required when "
+            "enable_whisper_val is True"
+        )
+
+    import importlib
+    import importlib.metadata
+    import shutil
+
+    import torch  # type: ignore
+
+    try:
+        import whisper  # type: ignore
+    except Exception as exc:
+        raise RuntimeError(f"whisper import failed: {exc!r}") from exc
+
+    whisper_version = getattr(whisper, "__version__", None)
+    if whisper_version is None:
+        try:
+            whisper_version = importlib.metadata.version("openai-whisper")
+        except Exception:
+            whisper_version = "unknown"
+
+    asr_block = cfg.get("asr") or {}
+    whisper_model_name = str(asr_block.get("model") or "base.en")
+    decode_opts_cfg = asr_block.get("decode_options") or {}
+    decode_kwargs: dict[str, Any] = {
+        "language": str(decode_opts_cfg.get("language", "en")),
+        "task": str(decode_opts_cfg.get("task", "transcribe")),
+        "beam_size": int(decode_opts_cfg.get("beam_size", 1)),
+        "temperature": float(decode_opts_cfg.get("temperature", 0.0)),
+        "fp16": False,
+    }
+
+    cache_root_s = os.environ.get("ASR_CACHE_ROOT")
+    if not cache_root_s:
+        raise RuntimeError(
+            "ASR_CACHE_ROOT not set; required for whisper cache resolution"
+        )
+    download_root = str(Path(cache_root_s) / "whisper")
+
+    ts = cfg.get("training_split") or {}
+    vp = cfg.get("validation_policy") or {}
+    per_family_cap = int(vp.get("per_family_records_cap", 1))
+
+    val_deg_path = Path(ts["val_degraded_manifest"])
+    val_clean_path = Path(ts["val_clean_manifest"])
+    val_rows = _read_jsonl(val_deg_path)
+    smoke_subset = _select_whisper_smoke_subset(val_rows, per_family_cap)
+    families_found = {r.get("family") for r in smoke_subset}
+    missing_families = [f for f in EXPECTED_FAMILIES if f not in families_found]
+    if missing_families:
+        raise RuntimeError(
+            f"whisper smoke subset missing families: {missing_families}"
+        )
+
+    transcripts = _load_transcripts_by_utterance_id(val_clean_path)
+    missing_tx = [
+        r.get("utterance_id")
+        for r in smoke_subset
+        if not (transcripts.get(str(r.get("utterance_id"))) or "").strip()
+    ]
+    if missing_tx:
+        raise RuntimeError(
+            f"whisper smoke records missing transcript: {missing_tx}"
+        )
+
+    selected_uids = [str(r["utterance_id"]) for r in smoke_subset]
+    selected_families = [str(r["family"]) for r in smoke_subset]
+    result["selected_utterance_ids"] = selected_uids
+    result["selected_families"] = selected_families
+    result["missing_transcript_count"] = 0
+    result["whisper_model"] = whisper_model_name
+    result["whisper_version"] = whisper_version
+
+    tmp_dir = run_dir / "val_enhanced_tmp"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+
+    whisper_model = whisper.load_model(
+        whisper_model_name,
+        device="cpu",
+        download_root=download_root,
+    )
+
+    def _load_mono(path: Path, target_sr: int) -> Any:
+        try:
+            import torchaudio  # type: ignore
+
+            wav, sr = torchaudio.load(str(path))
+            if wav.dim() == 2:
+                wav = wav.mean(dim=0)
+            if int(sr) != target_sr:
+                raise RuntimeError(
+                    f"sample_rate mismatch: {sr} vs {target_sr} for {path}"
+                )
+            return wav.contiguous().float()
+        except Exception:
+            import numpy as _np  # type: ignore
+            import scipy.io.wavfile as _wavfile  # type: ignore
+
+            sr, data = _wavfile.read(str(path))
+            if int(sr) != target_sr:
+                raise RuntimeError(
+                    f"sample_rate mismatch: {sr} vs {target_sr} for {path}"
+                )
+            if data.dtype.kind == "i":
+                max_v = float(2 ** (8 * data.dtype.itemsize - 1))
+                arr = data.astype(_np.float32) / max_v
+            elif data.dtype.kind == "u":
+                max_v = float(2 ** (8 * data.dtype.itemsize))
+                arr = (data.astype(_np.float32) - max_v / 2) / (max_v / 2)
+            else:
+                arr = data.astype(_np.float32)
+            if arr.ndim == 2:
+                arr = arr.mean(axis=1)
+            return torch.from_numpy(arr).float()
+
+    def _save_wav(path: Path, samples: Any, target_sr: int) -> None:
+        import numpy as _np  # type: ignore
+        import scipy.io.wavfile as _wavfile  # type: ignore
+
+        if hasattr(samples, "detach"):
+            samples = samples.detach().cpu().numpy()
+        arr = _np.asarray(samples, dtype=_np.float32)
+        _wavfile.write(str(path), int(target_sr), arr)
+
+    family_wers: dict[str, list[float]] = {f: [] for f in EXPECTED_FAMILIES}
+    n_written = 0
+    n_transcribed = 0
+    temp_dir_cleaned = False
+    crop_len = 4 * int(sample_rate)  # PairedDevCleanDataset's val crop length
+    try:
+        for rec in smoke_subset:
+            uid = str(rec["utterance_id"])
+            family = str(rec["family"])
+            degraded_path = Path(rec["degraded_audio_path"])
+
+            wav = _load_mono(degraded_path, int(sample_rate))
+            total = int(wav.shape[-1])
+            if total < crop_len:
+                pad = crop_len - total
+                wav = torch.nn.functional.pad(wav, (0, pad))
+            else:
+                offset = (total - crop_len) // 2
+                wav = wav[offset : offset + crop_len]
+
+            x = wav.view(1, 1, -1).float()
+            with torch.no_grad():
+                yhat = model(x)
+            enhanced = yhat.view(-1).clamp(-1.0, 1.0)
+
+            tmp_wav = tmp_dir / f"{uid}__{family}.wav"
+            _save_wav(tmp_wav, enhanced, int(sample_rate))
+            n_written += 1
+
+            transcribe_result = whisper_model.transcribe(
+                str(tmp_wav), **decode_kwargs
+            )
+            n_transcribed += 1
+            hypothesis = str(transcribe_result.get("text") or "")
+            reference = transcripts.get(uid, "")
+            wer = float(word_error_rate(reference, hypothesis))
+            family_wers[family].append(wer)
+    finally:
+        try:
+            shutil.rmtree(tmp_dir, ignore_errors=False)
+            temp_dir_cleaned = not tmp_dir.exists()
+        except Exception:
+            temp_dir_cleaned = False
+
+    family_rows: list[dict] = []
+    for fam in EXPECTED_FAMILIES:
+        wers = family_wers[fam]
+        if not wers:
+            family_rows.append(
+                {
+                    "family": fam,
+                    "count": 0,
+                    "mean_wer": "",
+                    "mean_word_accuracy": "",
+                    "note": WHISPER_SMOKE_NOTE,
+                }
+            )
+            continue
+        mean_wer = sum(wers) / len(wers)
+        mean_wa = float(word_accuracy(mean_wer))
+        family_rows.append(
+            {
+                "family": fam,
+                "count": len(wers),
+                "mean_wer": f"{mean_wer:.6f}",
+                "mean_word_accuracy": f"{mean_wa:.6f}",
+                "note": WHISPER_SMOKE_NOTE,
+            }
+        )
+
+    flat_wers = [w for fam in EXPECTED_FAMILIES for w in family_wers[fam]]
+    overall_wer = sum(flat_wers) / len(flat_wers) if flat_wers else None
+    overall_wa = float(word_accuracy(overall_wer)) if overall_wer is not None else None
+
+    result.update(
+        {
+            "ran": True,
+            "family_rows": family_rows,
+            "mean_wer": overall_wer,
+            "mean_word_accuracy": overall_wa,
+            "temp_wavs_written": n_written,
+            "whisper_transcriptions_completed": n_transcribed,
+            "temp_dir_cleaned": temp_dir_cleaned,
+        }
+    )
+    return result
 
 
 def _run_training(
@@ -1285,8 +1775,10 @@ def _run_training(
     train_losses_log: list[float] = []
     val_steps_log: list[int] = []
     val_losses_log: list[float] = []
+    val_wer_log: list[float] = []  # T6.2d: real WER values when whisper enabled
+    whisper_result: dict[str, Any] = {"ran": False}
 
-    runtime_meta = {
+    runtime_meta: dict[str, Any] = {
         "run_id": run_id,
         "slurm_job_id": slurm_job_id,
         "git_commit": _resolve_git_value("GIT_COMMIT_AT_RUN", "rev-parse", "HEAD"),
@@ -1347,21 +1839,38 @@ def _run_training(
                     vloss, _ = loss_fn(vyhat, vb["clean"])
                     total += float(vloss.item())
                     n_batches += 1
-            model.train()
             val_loss = total / max(n_batches, 1)
             val_steps_log.append(step)
             val_losses_log.append(val_loss)
-            metric_rows.append(
-                {
-                    "step": step,
-                    "phase": "val",
-                    "loss": f"{val_loss:.6f}",
-                    "wer": "",
-                    "word_accuracy": "",
-                    "note": "placeholder_no_whisper_t6_2b",
-                }
-            )
-            _maybe_run_whisper_validation(enable_whisper_val=enable_whisper_val)
+            val_row: dict[str, Any] = {
+                "step": step,
+                "phase": "val",
+                "loss": f"{val_loss:.6f}",
+                "wer": "",
+                "word_accuracy": "",
+                "note": "placeholder_no_whisper_t6_2b",
+            }
+            if enable_whisper_val:
+                # T6.2d: real Whisper-enabled smoke validation. Errors are
+                # not swallowed — a failure here is the point of the gate.
+                whisper_result = _maybe_run_whisper_validation(
+                    enable_whisper_val=True,
+                    cfg=cfg,
+                    model=model,
+                    sample_rate=sample_rate,
+                    run_dir=run_dir,
+                )
+                if whisper_result.get("ran"):
+                    mw = whisper_result.get("mean_wer")
+                    mwa = whisper_result.get("mean_word_accuracy")
+                    if mw is not None:
+                        val_row["wer"] = f"{float(mw):.6f}"
+                        val_row["note"] = WHISPER_SMOKE_NOTE
+                        val_wer_log.append(float(mw))
+                    if mwa is not None:
+                        val_row["word_accuracy"] = f"{float(mwa):.6f}"
+            model.train()
+            metric_rows.append(val_row)
         if step % save_every == 0 or step == steps_total:
             ckpt_path = checkpoints_dir / f"checkpoint_step_{step:07d}.pt"
             save_checkpoint(
@@ -1386,6 +1895,30 @@ def _run_training(
     runtime_meta["end_time"] = _now_iso()
     runtime_meta["steps_executed"] = steps_total
 
+    whisper_ran = bool(whisper_result.get("ran"))
+    if whisper_ran:
+        # T6.2d: surface Whisper-smoke survival metadata into the runtime
+        # block of config.yaml. No new artifact is added — the six-artifact
+        # contract is preserved.
+        runtime_meta["whisper_model"] = whisper_result.get("whisper_model")
+        runtime_meta["whisper_version"] = whisper_result.get("whisper_version")
+        runtime_meta["selected_utterance_ids"] = whisper_result.get(
+            "selected_utterance_ids"
+        )
+        runtime_meta["selected_families"] = whisper_result.get("selected_families")
+        runtime_meta["temp_wavs_written"] = whisper_result.get("temp_wavs_written")
+        runtime_meta["whisper_transcriptions_completed"] = whisper_result.get(
+            "whisper_transcriptions_completed"
+        )
+        runtime_meta["temp_dir_cleaned"] = whisper_result.get("temp_dir_cleaned")
+        runtime_meta["missing_transcript_count"] = whisper_result.get(
+            "missing_transcript_count"
+        )
+        runtime_meta["whisper_mean_wer"] = whisper_result.get("mean_wer")
+        runtime_meta["whisper_mean_word_accuracy"] = whisper_result.get(
+            "mean_word_accuracy"
+        )
+
     # Emit the same artifact contract the dry-run path produces (T5.2/T6.1).
     config_snapshot = run_dir / "config.yaml"
     metrics_csv = run_dir / "metrics.csv"
@@ -1396,16 +1929,22 @@ def _run_training(
 
     _write_config_snapshot(config_snapshot, config_text, runtime_meta)
     _write_metrics_csv(metrics_csv, metric_rows)
-    family_rows = [
-        {
-            "family": fam,
-            "count": 0,
-            "mean_wer": "",
-            "mean_word_accuracy": "",
-            "note": "placeholder_no_whisper_t6_2b",
-        }
-        for fam in EXPECTED_FAMILIES
-    ]
+
+    if whisper_ran and whisper_result.get("family_rows"):
+        family_rows = whisper_result["family_rows"]
+        wer_csv_status = "complete (whisper smoke)"
+    else:
+        family_rows = [
+            {
+                "family": fam,
+                "count": 0,
+                "mean_wer": "",
+                "mean_word_accuracy": "",
+                "note": "placeholder_no_whisper_t6_2b",
+            }
+            for fam in EXPECTED_FAMILIES
+        ]
+        wer_csv_status = "placeholder (no Whisper)"
     _write_wer_by_degradation_csv(wer_csv, family_rows)
 
     if no_plots:
@@ -1415,17 +1954,30 @@ def _run_training(
         val_status = "placeholder"
     else:
         loss_status = _write_loss_curve(loss_png, train_steps_log, train_losses_log)
-        val_status = _write_val_wer_curve(val_png, val_steps_log, val_losses_log)
+        if whisper_ran and val_wer_log:
+            # Plot real WER values; align step labels with the steps that ran
+            # whisper validation (the tail of val_steps_log).
+            wer_steps = val_steps_log[-len(val_wer_log) :]
+            val_status = _write_val_wer_curve(
+                val_png, wer_steps, val_wer_log, whisper_enabled=True
+            )
+        else:
+            val_status = _write_val_wer_curve(
+                val_png,
+                val_steps_log,
+                val_losses_log,
+                whisper_enabled=False,
+            )
 
     artifact_status = {
         "config.yaml": "complete",
         "metrics.csv": "complete",
-        "wer_by_degradation.csv": "placeholder (no Whisper)",
+        "wer_by_degradation.csv": wer_csv_status,
         "loss_curve.png": loss_status,
         "val_wer_curve.png": val_status,
         "run_summary.md": "complete",
     }
-    summary_metrics = {
+    summary_metrics: dict[str, Any] = {
         "final_train_loss": (
             f"{train_losses_log[-1]:.6f}" if train_losses_log else "n/a"
         ),
@@ -1436,6 +1988,17 @@ def _run_training(
         "architecture": arch,
         "training_split_version": cfg.get("training_split_version"),
     }
+    if whisper_ran:
+        mw = whisper_result.get("mean_wer")
+        mwa = whisper_result.get("mean_word_accuracy")
+        summary_metrics["whisper_mean_wer"] = (
+            f"{float(mw):.6f}" if mw is not None else "n/a"
+        )
+        summary_metrics["whisper_mean_word_accuracy"] = (
+            f"{float(mwa):.6f}" if mwa is not None else "n/a"
+        )
+        summary_metrics["whisper_model"] = whisper_result.get("whisper_model")
+        summary_metrics["whisper_version"] = whisper_result.get("whisper_version")
     runtime_meta["summary_metrics"] = summary_metrics
     runtime_meta["known_failures"] = []
 
@@ -1446,6 +2009,7 @@ def _run_training(
         artifact_status=artifact_status,
         summary_metrics=summary_metrics,
         known_failures=[],
+        whisper_enabled=whisper_ran,
     )
 
     missing = [name for name in REQUIRED_ARTIFACTS if not (run_dir / name).exists()]
@@ -1548,7 +2112,9 @@ def main(argv: list[str] | None = None) -> int:
         cfg.setdefault("paths", {})["artifact_root"] = str(args.artifact_root)
 
     if args.validate_only:
-        return cmd_validate_only(cfg)
+        return cmd_validate_only(
+            cfg, enable_whisper_val=bool(args.enable_whisper_val)
+        )
 
     schema_errors = _validate_schema(cfg)
     if schema_errors:
