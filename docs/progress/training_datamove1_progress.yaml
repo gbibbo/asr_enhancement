@@ -2735,7 +2735,7 @@ t8_2_evidence:
     blocker: null
     t8_2_closed: true
     next_gate: T8.3_handoff
-  result_commit: null
+  result_commit: "a55d015ad6a79410f47c4a85a5e2be290cb06bbe"
 tasks:
   "T0.1": done
   "T0.2": done
