@@ -94,11 +94,28 @@ def _load_json(path: Path, what: str) -> dict:
         _die(f"{what} unparseable JSON ({path}): {exc!s}")
 
 
-def _validate_finite(value, label):
-    if not isinstance(value, (int, float)) or isinstance(value, bool):
+def _coerce_finite_number(value, label) -> float:
+    """Accept int, float, or numeric string (e.g. "0.580191") and return a
+    finite float. Reject bool, None, list/dict/other non-scalar types,
+    non-numeric strings, "nan"/"inf"/"-inf" (any case), and ±inf / NaN
+    floats. The selector mutates eval_metadata per-family values through
+    this function so that downstream arithmetic and the emitted JSON
+    record carry numeric floats, never stringified scalars.
+    """
+    if isinstance(value, bool):
         _die(f"{label} not numeric: {value!r}")
-    if not math.isfinite(value):
+    if isinstance(value, (int, float)):
+        f = float(value)
+    elif isinstance(value, str):
+        try:
+            f = float(value)
+        except (TypeError, ValueError):
+            _die(f"{label} not numeric: {value!r}")
+    else:
+        _die(f"{label} not numeric: {value!r}")
+    if not math.isfinite(f):
         _die(f"{label} non-finite: {value!r}")
+    return f
 
 
 def _tier_for(delta_wa: float) -> str:
@@ -252,17 +269,27 @@ def main(argv=None) -> int:
                 _die(f"step {step}: per_family_mean_word_accuracy missing family {fam!r}")
             if fam not in per_fam_wer:
                 _die(f"step {step}: per_family_mean_wer missing family {fam!r}")
-            _validate_finite(per_fam_wa[fam], f"step {step} per_family_mean_word_accuracy[{fam}]")
-            _validate_finite(per_fam_wer[fam], f"step {step} per_family_mean_wer[{fam}]")
+        coerced_wa = {
+            fam: _coerce_finite_number(
+                per_fam_wa[fam], f"step {step} per_family_mean_word_accuracy[{fam}]"
+            )
+            for fam in EXPECTED_FAMILIES
+        }
+        coerced_wer = {
+            fam: _coerce_finite_number(
+                per_fam_wer[fam], f"step {step} per_family_mean_wer[{fam}]"
+            )
+            for fam in EXPECTED_FAMILIES
+        }
 
         if "macro_word_accuracy" in meta:
-            _validate_finite(meta["macro_word_accuracy"], f"step {step} macro_word_accuracy")
+            _coerce_finite_number(meta["macro_word_accuracy"], f"step {step} macro_word_accuracy")
         if "macro_wer" in meta:
-            _validate_finite(meta["macro_wer"], f"step {step} macro_wer")
+            _coerce_finite_number(meta["macro_wer"], f"step {step} macro_wer")
 
-        recomputed_macro_wa = sum(per_fam_wa[f] for f in EXPECTED_FAMILIES) / len(EXPECTED_FAMILIES)
-        recomputed_macro_wer = sum(per_fam_wer[f] for f in EXPECTED_FAMILIES) / len(EXPECTED_FAMILIES)
-        worst_case_wa = min(per_fam_wa[f] for f in EXPECTED_FAMILIES)
+        recomputed_macro_wa = sum(coerced_wa[f] for f in EXPECTED_FAMILIES) / len(EXPECTED_FAMILIES)
+        recomputed_macro_wer = sum(coerced_wer[f] for f in EXPECTED_FAMILIES) / len(EXPECTED_FAMILIES)
+        worst_case_wa = min(coerced_wa[f] for f in EXPECTED_FAMILIES)
 
         ck_path_meta_str = meta.get("checkpoint_path")
         if not ck_path_meta_str:
@@ -307,8 +334,8 @@ def main(argv=None) -> int:
             "canonical_path": str(canonical_paths[step]),
             "sha256": on_disk_shas[step],
             "alias_paths": ([str(latest_path)] if step == 20000 else []),
-            "per_family_mean_word_accuracy": dict(per_fam_wa),
-            "per_family_mean_wer": dict(per_fam_wer),
+            "per_family_mean_word_accuracy": coerced_wa,
+            "per_family_mean_wer": coerced_wer,
             "macro_word_accuracy": recomputed_macro_wa,
             "macro_wer": recomputed_macro_wer,
             "worst_case_word_accuracy": worst_case_wa,
