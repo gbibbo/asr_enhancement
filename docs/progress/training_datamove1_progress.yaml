@@ -1386,6 +1386,105 @@ t6_2a_evidence:
   blocker: null
   next_gate: T6.2b
   result_commit: "d2b6ac139d6f9bb0779ddc45b8df2edc4e3f0fdc"
+t6_2b_evidence:
+  scope: "T6.2b code/test subgate. Implements the spectral_unet_small_v1 trainer code path required by T6.2a. Validates inside Apptainer via Slurm. T6.2b does NOT close T6.2; T6.2 remains pending. T6.2c (CPU micro-validation Slurm) is the next gate."
+  closes_t6_2: false
+  subgate_kind: code_test_only
+  architecture: spectral_unet_small_v1
+  registry_added: true
+  paired_dataset_added: true
+  composite_loss_added: true
+  checkpoint_helpers_added: true
+  resume_plumbing_added: true
+  whisper_validation_enabled: false
+  whisper_validation_deferred_to_later_gate: true
+  configs_modified: false
+  model_card_modified: false
+  reports_modified: false
+  libs_modified: false
+  scripts_modified:
+    - scripts/training/train_enhancer.py
+  scripts_added:
+    - scripts/training/models.py
+    - scripts/training/datasets.py
+    - scripts/training/losses.py
+  tests_added:
+    - tests/training/test_train_enhancer_validate_only_full_training.py
+    - tests/training/test_architecture_registry.py
+    - tests/training/test_paired_dataset.py
+    - tests/training/test_losses.py
+    - tests/training/test_checkpoint_roundtrip.py
+  slurm_jobs_added:
+    - slurm/jobs/t6_2b_pytest_apptainer.sh
+    - slurm/jobs/t6_2b_install_pytest.sh
+  prep_commits:
+    t6_2b_prep_commit: "a4d022fcf9c4867ea0401ccdf501ec444326a6db"
+    pytest_install_prep_commit: "c2113de9d5d54510cd4f51d9c5ced879b562b922"
+  prior_failed_validation:
+    job_id: "2128605"
+    status: failed
+    reason: "pytest was not available inside Apptainer or $PREFIX"
+    used_for_closure: false
+  pytest_install_job:
+    job_id: "2128611"
+    state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:00:47"
+    node: aisurrey05
+    max_rss_batch: "27264K"
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_2b_install_pytest_2128611.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_2b_install_pytest_2128611.err
+    verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t6_2b_pytest_install_verify_2128611.json
+    pytest_version: "8.4.2"
+    pytest_origin: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/python_env/site-packages-py310/pytest/__init__.py
+    torch_version: "2.1.0"
+    torch_origin: /opt/conda/lib/python3.10/site-packages/torch/__init__.py
+    forbidden_stack_pre_check: pass
+    forbidden_stack_post_check: pass
+  pytest_validation_job:
+    job_id: "2128618"
+    state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:00:17"
+    node: aisurrey05
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_2b_pytest_2128618.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_2b_pytest_2128618.err
+    torch_import: pass
+    torch_version: "2.1.0"
+    dry_run_validate_only: pass
+    full_training_validate_only: pass
+    full_training_training_split_verified: true
+    pytest_result: pass
+    pytest_total_passed: 47
+    pytest_total_skipped: 0
+    torch_dependent_tests_run: true
+    torch_dependent_tests_passed: true
+    torch_dependent_tests_count: 30
+  non_actions:
+    slurm_jobs_other_than_t6_2b: false
+    training_run: false
+    whisper_run: false
+    enhancement_run: false
+    configs_modified: false
+    model_card_modified: false
+    libs_modified: false
+    prepare_devclean_speaker_split_modified: false
+    dry_run_yaml_modified: false
+    full_training_yaml_modified: false
+    dataset_version_yaml_modified: false
+    reports_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    codex_directory_staged: false
+    stash_untouched: true
+  current_task_after: "T6.2"
+  last_completed_task_after: "T6.1"
+  tasks_T6_2_status_after: pending
+  blocked: false
+  blocker: null
+  next_gate: T6.2c_cpu_micro_validation_slurm
+  result_commit: PENDING_RESULT_COMMIT
 tasks:
   "T0.1": done
   "T0.2": done
