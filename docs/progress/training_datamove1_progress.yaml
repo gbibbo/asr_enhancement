@@ -2004,6 +2004,129 @@ t6_2_evidence:
   t6_2_closed: true
   next_gate: T6.3_full_training_summary
   result_commit: "84baf4a2877e99ef04f6bd9eb794f724f2eb457f"
+t6_3a_smoke_evidence:
+  scope: "T6.3a post-hoc Whisper smoke subgate. First Slurm job that exercises the new --eval-checkpoint mode end-to-end on real CUDA hardware (a100), loading the T6.2 latest.pt checkpoint, transcribing 1 record per family with openai-whisper on CUDA, and writing the post-hoc artifacts (wer_by_degradation.csv, per_record_predictions.jsonl, eval_metadata.json, run_summary.md) outside the T6.2 source run_dir. T6.3a does NOT close T6.3; the 2,665-record T6.3b full post-hoc Whisper evaluation is the next gate."
+  status: passed
+  closes_t6_3: false
+  subgate_kind: post_hoc_whisper_smoke
+  purpose: "Validate --eval-checkpoint mode, checkpoint loading, eval_out_dir policy, CUDA Whisper path, per-record JSONL writer, eval_metadata schema, WER/WA computation, temp WAV cleanup, and verify JSON before the full 2,665-record post-hoc evaluation."
+  config: configs/training/full_training.yaml
+  slurm_job_script: slurm/jobs/t6_3_post_hoc_whisper_smoke.sh
+  prep_commit: "45295895db15bde521d171eb8828618571275dcf"
+  branch: feature/training-datamove1-v1
+  code_commit: "45295895db15bde521d171eb8828618571275dcf"
+  slurm_job:
+    job_id: "2129005"
+    state: COMPLETED
+    exit_code: "0:0"
+    elapsed: "00:00:18"
+    submit_time_utc: "2026-05-06T19:07:28"
+    dispatch_time_utc: "2026-05-06T19:41:29"
+    node: aisurrey26
+    partition: a100
+    alloc_tres: "cpu=4,gres/gpu:nvidia_a100-sxm4-80gb=1,gres/gpu=1,mem=16G,node=1"
+    stdout_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_3_post_hoc_whisper_smoke_2129005.out
+    stderr_log: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/asr_t6_3_post_hoc_whisper_smoke_2129005.err
+  paths:
+    eval_out_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_3_post_hoc_whisper_smoke_2129005
+    verify_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/artifacts/t6_3_post_hoc_whisper_smoke_verify_2129005.json
+    per_record_predictions_jsonl: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_3_post_hoc_whisper_smoke_2129005/per_record_predictions.jsonl
+    wer_by_degradation_csv: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_3_post_hoc_whisper_smoke_2129005/wer_by_degradation.csv
+    eval_metadata_json: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/_smoke/t6_3_post_hoc_whisper_smoke_2129005/eval_metadata.json
+  validation_passed: true
+  errors: []
+  checkpoint_evidence:
+    checkpoint_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt
+    checkpoint_step: 20000
+    checkpoint_model_architecture: spectral_unet_small_v1
+    checkpoint_parameter_count: 403201
+    source_checkpoint_modified: false
+    source_t6_2_run_dir_modified: false
+  evaluation_scope:
+    eval_per_family_cap: 1
+    total_expected_transcriptions: 5
+    total_completed_transcriptions: 5
+    selected_families:
+      - broadband_hiss
+      - cafe_background
+      - far_field_room
+      - muffled
+      - phone_call
+    per_family_counts:
+      broadband_hiss: 1
+      cafe_background: 1
+      far_field_room: 1
+      muffled: 1
+      phone_call: 1
+    missing_transcript_count: 0
+    temp_wavs_written: 5
+    temp_dir_cleaned: true
+    val_enhanced_tmp_absent: true
+    per_record_predictions_count: 5
+    per_record_predictions_line_count_match: true
+  wer_wa:
+    per_family_mean_wer:
+      broadband_hiss: 0.200
+      cafe_background: 0.200
+      far_field_room: 0.300
+      muffled: 0.400
+      phone_call: 0.100
+    per_family_mean_word_accuracy:
+      broadband_hiss: 0.800
+      cafe_background: 0.800
+      far_field_room: 0.700
+      muffled: 0.600
+      phone_call: 0.900
+    macro_wer: 0.24
+    macro_word_accuracy: 0.76
+    all_wer_wa_finite: true
+    no_placeholder_notes: true
+    note: "five hypotheses come from the same utterance under five degradation families, matching the prior smoke selection pattern; acceptable because this smoke validates the evaluation path, not generalisation."
+  whisper_gpu:
+    whisper_model: base.en
+    whisper_version: "20250625"
+    whisper_device: cuda
+    enhancer_device: cuda
+    gpu_used: true
+    apptainer_nv_used: true
+    expected_cuda: true
+    torch_cuda_is_available: true
+    cuda_device: NVIDIA A100-SXM4-80GB
+    torch_version: "2.1.0"
+    cuda_version: "12.1"
+    host_cuda_guard_passed: true
+    in_apptainer_cuda_guard_passed: true
+  non_actions:
+    enhancement_run: false
+    enhancement_bank_generation_artifacts_found: false
+    enhancement_bank_generation_run_note: "no enhancement bank generation occurred."
+    t6_2_run_artifacts_modified: false
+    full_training_summary_report_created: false
+    t6_3b_full_eval_submitted: false
+    configs_modified: false
+    model_card_modified: false
+    libs_modified: false
+    scripts_modified: false
+    tests_modified: false
+    slurm_jobs_modified: false
+    reports_modified: false
+    demo_files_modified: false
+    rp_files_modified: false
+    demo_trackers_modified: false
+    codex_directory_staged: false
+    stash_untouched: true
+  logs_status:
+    stdout_status: "clean; CUDA guards passed; Step 1 exit 0; Step 2 exit 0; VALIDATION_PASSED True."
+    stderr_status: "benign Apptainer warnings plus the same TypedStorage deprecation UserWarning emitted by torch checkpoint deserialisation in T6.2c/T6.2d/T6.2 GPU preflight; no traceback, no BLOCKER line, no CUDA visibility failure."
+  current_task_after: "T6.3"
+  last_completed_task_after: "T6.2"
+  tasks_T6_3_status_after: pending
+  blocked: false
+  blocker: null
+  t6_3a_smoke_closed: true
+  t6_3_closed: false
+  next_gate: T6.3b_full_post_hoc_whisper_evaluation
+  result_commit: ""
 tasks:
   "T0.1": done
   "T0.2": done
