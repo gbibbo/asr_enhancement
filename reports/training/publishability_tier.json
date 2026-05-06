@@ -1,0 +1,141 @@
+{
+  "schema_version": "1",
+  "task": "T7.2",
+  "generated_at_utc": "2026-05-06T22:26:49Z",
+  "inputs": {
+    "checkpoint_selection_md": "reports/training/checkpoint_selection.md",
+    "checkpoint_selection_json": "reports/training/checkpoint_selection.json",
+    "full_training_summary_md": "reports/training/full_training_summary.md",
+    "baseline_summary_md": "reports/training/baseline_summary.md",
+    "metricgan_plus_wer_md": "reports/training/metricgan_plus_wer.md",
+    "plan_md": "docs/plans/training_datamove1_plan.md",
+    "config_path": "configs/training/full_training.yaml"
+  },
+  "selection_frozen": true,
+  "selection_frozen_sources": [
+    "reports/training/checkpoint_selection.md",
+    "reports/training/checkpoint_selection.json"
+  ],
+  "asr": {
+    "model": "base.en",
+    "version": "20250625",
+    "device": "cuda"
+  },
+  "dataset_version": "librispeech_devclean_v1_excl10_sha256_dc6674bcf7a8",
+  "training_split_version": "devclean_speaker_split_v1",
+  "metrics_version": "metrics_v1",
+  "degradation_version": "degradation_v1",
+  "eval_per_family_cap": 533,
+  "selected_checkpoint": {
+    "step": 20000,
+    "canonical_path": "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/checkpoint_step_0020000.pt",
+    "alias_paths": [
+      "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/t6_2_full_training_2128952/checkpoints/latest.pt"
+    ],
+    "sha256": "a6ae240a1b210ad551d8b6b9dd38c9de4c25bb65daf7218a46014452a4939b5e",
+    "macro_word_accuracy": 0.5255416,
+    "macro_wer": 0.47445839999999995,
+    "worst_case_word_accuracy": 0.369799,
+    "worst_case_family": "muffled"
+  },
+  "tier_rule": {
+    "source": "docs/plans/training_datamove1_plan.md §17",
+    "primary_metric": "delta_macro_word_accuracy_vs_t3_2_degraded",
+    "publicable_strong_threshold_delta_wa_inclusive": 0.05,
+    "publicable_acceptable_band": "0 < delta_wa < 0.05",
+    "framework_only_threshold_delta_wa_inclusive": 0.0,
+    "labels": {
+      "publicable_strong": "delta_macro_wa >= 0.05",
+      "publicable_acceptable": "0 < delta_macro_wa < 0.05",
+      "framework_only": "delta_macro_wa <= 0"
+    }
+  },
+  "references": {
+    "t3_2_degraded_macro_word_accuracy": 0.8213,
+    "t4_2_metricgan_plus_macro_word_accuracy": 0.5892
+  },
+  "deltas": {
+    "delta_macro_wa_vs_t3_2_degraded": -0.2957584,
+    "delta_macro_wa_vs_t4_2_metricgan_plus": -0.0636584
+  },
+  "candidates_tier_table": [
+    {
+      "step": 10000,
+      "macro_word_accuracy": 0.5123842,
+      "worst_case_word_accuracy": 0.370847,
+      "worst_case_family": "muffled",
+      "delta_macro_wa_vs_t3_2_degraded": -0.3089158,
+      "delta_macro_wa_vs_t4_2_metricgan_plus": -0.0768158,
+      "tier": "framework_only"
+    },
+    {
+      "step": 12500,
+      "macro_word_accuracy": 0.5103489999999999,
+      "worst_case_word_accuracy": 0.367664,
+      "worst_case_family": "muffled",
+      "delta_macro_wa_vs_t3_2_degraded": -0.310951,
+      "delta_macro_wa_vs_t4_2_metricgan_plus": -0.078851,
+      "tier": "framework_only"
+    },
+    {
+      "step": 15000,
+      "macro_word_accuracy": 0.5146698000000001,
+      "worst_case_word_accuracy": 0.36934,
+      "worst_case_family": "muffled",
+      "delta_macro_wa_vs_t3_2_degraded": -0.3066302,
+      "delta_macro_wa_vs_t4_2_metricgan_plus": -0.0745302,
+      "tier": "framework_only"
+    },
+    {
+      "step": 17500,
+      "macro_word_accuracy": 0.5114806,
+      "worst_case_word_accuracy": 0.367951,
+      "worst_case_family": "muffled",
+      "delta_macro_wa_vs_t3_2_degraded": -0.3098194,
+      "delta_macro_wa_vs_t4_2_metricgan_plus": -0.0777194,
+      "tier": "framework_only"
+    },
+    {
+      "step": 20000,
+      "macro_word_accuracy": 0.5255416,
+      "worst_case_word_accuracy": 0.369799,
+      "worst_case_family": "muffled",
+      "delta_macro_wa_vs_t3_2_degraded": -0.2957584,
+      "delta_macro_wa_vs_t4_2_metricgan_plus": -0.0636584,
+      "tier": "framework_only"
+    }
+  ],
+  "verdict": {
+    "tier": "framework_only",
+    "sub_status": "framework_only_strict_negative",
+    "defensible_reason_override_applied": false,
+    "rationale": "All five evaluated candidate checkpoints have delta_macro_wa_vs_t3_2_degraded <= 0; selected checkpoint at step 20000 has delta -0.2957584. Every per-family Word Accuracy is also below the T3.2 degraded baseline. MetricGAN+ pretrained is also null_or_negative (delta -0.2321). No metric basis exists to override the default framework_only verdict."
+  },
+  "deployment": {
+    "decision": "not_selected_for_deployment",
+    "purpose": "reproducibility_and_framework_demonstration_only",
+    "export_posture": "export_may_proceed_only_as_reproducibility_framework_artifact_or_be_explicitly_skipped_in_T8.1"
+  },
+  "metricgan_plus_role": "prior_negative_baseline_only",
+  "posture": {
+    "do_not_modify_model_card": true,
+    "do_not_modify_checkpoint_selection": true,
+    "do_not_modify_external_run_artifacts": true
+  },
+  "slurm_used": false,
+  "slurm_required_for_t7_2": false,
+  "slurm_notification_policy": "not_applicable_no_slurm_job_submitted",
+  "future_slurm_notification_rule": "Any future Slurm job from this branch must include either (a) native Slurm --mail-type=END,FAIL --mail-user=<addr> if mail relay is reliable, or (b) a session-side sacct/squeue watcher polling at >=30 s and reporting terminal state, or (c) an explicit manual check command stated up-front. Not applied retroactively to T6.2 / T6.3 / T7.1 jobs.",
+  "limitations": [
+    "Dev-clean only (533 records per family for the val_degraded subset; 2693 for T3.2 reference).",
+    "Single ASR model: openai-whisper base.en (20250625) only.",
+    "Single enhancer architecture: spectral_unet_small_v1, 403201 parameters, single 20000-step run with the configured loss/schedule.",
+    "Cropped 4-second val windows via _maybe_run_whisper_validation in the post-hoc Whisper eval mode.",
+    "ASR metrics only (WER and Word Accuracy via metrics_v1); no PESQ / STOI / MOS.",
+    "No fine-tuning of Whisper.",
+    "Single Whisper version; CUDA decode (fp16, beam_size=1, temperature=0.0).",
+    "Tier rule is applied on macro WA over the five official degradations only; per-family disaggregation reproduces the same null_or_negative direction.",
+    "Selection inputs are frozen: T7.2 does not amend reports/training/checkpoint_selection.{md,json} or any external run artifact."
+  ],
+  "next_gate": "T8.1_export_or_explicit_skip"
+}
