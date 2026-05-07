@@ -1,0 +1,367 @@
+project: robust_asr_lora_router
+branch: feature/robust-asr-lora-router-datamove1-v1
+source_branch: feature/training-datamove1-v1
+project_status: IN_PROGRESS
+current_phase: P0
+current_task: P0.2
+last_completed_task: P0.1
+
+blocked: false
+blocker: null
+
+lora_status: NOT_STARTED
+router_status: NOT_STARTED
+system_status: NOT_STARTED
+
+normalization_version: null
+features_version: null
+router_version: null
+lora_version: null
+deterministic_selector_version: null
+degradation_version: null
+metrics_version: null
+
+training_selection_baseline: whisper_base_ct2_int8
+product_baseline: whisper_base_ct2_int8
+
+artifact_root: artifacts/robust_asr
+handoff_root: artifacts/robust_asr/handoff
+
+markers: []
+
+claims_enabled:
+  ood_real: true
+  cloud_tradeoff: true
+  positive_lora: pending
+  positive_system: pending
+
+session_log:
+  current_session_id: null
+  continue_without_per_task_plan_approval: false
+  continue_without_per_task_closure_approval: false
+  continue_through_gates: false
+  parallel_sessions_active: []
+
+state_transport:
+  latest_state_capsule: docs/progress/robust_asr_state_capsule.md
+  latest_planning_report: null
+  latest_execution_report: reports/robust_asr/task_reports/P0.1_bootstrap.md
+  latest_phase_gate_report: null
+  latest_supplemental_evidence_report: null
+  latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P0.1
+      phase: null
+      decision: APPROVE_PLAN
+      accepted_report_commit: null
+      next_expected_task: P0.2
+      required_fix: null
+      rationale: "P0.0 passed with source and RP5 branch references resolved, so P0.1 is authorized as the bootstrap transition task."
+  last_accepted_report_commit: null
+  expected_next_task: P0.2
+  last_tracker_mismatch: null
+
+phase_summary:
+  P0: null
+  P1: null
+  P2: null
+  P3: null
+  P4: null
+  P5: null
+  P6: null
+  P7: null
+  P8: null
+  P9: null
+  P10: null
+
+orchestrator_approvals:
+  P0: null
+  P1: null
+  P2: null
+  P3: null
+  P4: null
+  P5: null
+  P6: null
+  P7: null
+  P8: null
+  P9: null
+  P10: null
+
+profile:
+  active_profile_path: docs/profiles/CLAUDE.robust_asr.md
+  active_profile_sha256: fede63ffc53e6025cfe3d78ace672d59d94d0b8832e2b0e3390296790a2c7fb6
+  claude_md_block_sha256: fede63ffc53e6025cfe3d78ace672d59d94d0b8832e2b0e3390296790a2c7fb6
+  claude_md_block_installed: true
+  gitattributes_merge_ours_set: false
+
+repo_integration:
+  source_branch_lineage_verified: true
+  legacy_trackers_classified: false
+  legacy_plans_classified: false
+  claude_md_preserved_outside_block: true
+  reuse_policy_path: configs/robust_asr/reuse_policy_v1.yaml
+  repo_integration_policy_path: reports/robust_asr/repo_integration_policy.md
+  touch_policy_path: reports/robust_asr/touch_policy.md
+  unclassified_paths_default_no_touch: true
+  existing_repo_root_confirmed: /mnt/fast/nobackup/users/gb0048/asr_enhancement
+
+evidence:
+  P0.0:
+    base_commit: 1c59842d97081e16404f910460ddf8af6b65569b
+    branch_state: source_local_and_origin_synced
+    rp5_branch_state: present
+    rp5_origin_sha: 184eb87f30a8501d1128e34762b80030c2bff748
+    marker: null
+    unblock_condition: null
+
+artifacts:
+  state_capsule:
+    path: docs/progress/robust_asr_state_capsule.md
+    sha256: null
+    produced_by_task: P0.1
+  task_reports_root:
+    path: reports/robust_asr/task_reports
+    sha256: null
+    produced_by_task: P0.1
+  repository_inventory:
+    path: reports/robust_asr/repository_inventory.md
+    sha256: null
+    produced_by_task: P0.1
+  asset_inventory:
+    path: reports/robust_asr/asset_inventory.md
+    sha256: null
+    produced_by_task: P0.2
+  repo_integration_policy:
+    path: reports/robust_asr/repo_integration_policy.md
+    sha256: null
+    produced_by_task: P0.2
+  touch_policy:
+    path: reports/robust_asr/touch_policy.md
+    sha256: null
+    produced_by_task: P0.2
+  reuse_policy_config:
+    path: configs/robust_asr/reuse_policy_v1.yaml
+    sha256: null
+    produced_by_task: P0.2
+  validate_report_shape_script:
+    path: scripts/robust_asr/validate_report_shape.py
+    sha256: null
+    produced_by_task: P0.2
+    last_emit: null
+  report_shape_fixtures:
+    path: artifacts/robust_asr/state_packets/report_shape_fixtures
+    sha256: null
+    produced_by_task: P0.2
+    schemas_covered:
+      - prebootstrap_inventory_report
+      - planning_report
+      - execution_report
+      - phase_gate_report
+      - approval_packet
+      - supplemental_evidence_report
+  runtime_smoke_report:
+    path: reports/robust_asr/runtime_smoke.md
+    sha256: null
+    produced_by_task: P0.3
+  runtime_contract_fixture:
+    path: reports/robust_asr/runtime_contract_smoke.md
+    sha256: null
+    produced_by_task: P0.4
+    contract_skeleton_validation_passed: false
+    contract_final_validation_passed: false
+  model_card_template:
+    path: docs/reports/robust_asr/model_card_lora.md
+    sha256: null
+    produced_by_task: P0.5
+  router_card_template:
+    path: docs/reports/robust_asr/router_card.md
+    sha256: null
+    produced_by_task: P0.5
+  manifest_summary:
+    path: reports/robust_asr/manifest_summary.md
+    sha256: null
+    produced_by_task: P1.3
+  baseline_table:
+    path: artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet
+    sha256: null
+    rows: null
+    produced_by_task: P2.1
+  baseline_report:
+    path: reports/robust_asr/baseline_whisper_base.md
+    sha256: null
+    produced_by_task: P2.1
+  lora_smoke_report:
+    path: reports/robust_asr/lora/lora_smoke_report.md
+    sha256: null
+    produced_by_task: P3.1
+  decision_a_report:
+    path: reports/robust_asr/lora/decision_a_smoke.md
+    sha256: null
+    produced_by_task: P3.2
+  full_lora_table:
+    path: artifacts/robust_asr/eval_tables/whisper_lora_fp16.parquet
+    sha256: null
+    rows: null
+    produced_by_task: P4.2
+  full_lora_report:
+    path: reports/robust_asr/lora/full_lora_eval.md
+    sha256: null
+    produced_by_task: P4.2
+  lora_int8_table:
+    path: artifacts/robust_asr/eval_tables/whisper_lora_ct2_int8.parquet
+    sha256: null
+    rows: null
+    produced_by_task: P4.3
+  preservation_report:
+    path: reports/robust_asr/lora/lora_ct2_int8_preservation.md
+    sha256: null
+    produced_by_task: P4.3
+  assemblyai_table:
+    path: artifacts/robust_asr/eval_tables/assemblyai.parquet
+    sha256: null
+    rows: null
+    produced_by_task: P5.1
+  oracle_table:
+    path: artifacts/robust_asr/oracle/oracle_table.parquet
+    sha256: null
+    rows: null
+    produced_by_task: P6.1
+  selector_evidence_table:
+    path: artifacts/robust_asr/router/selector_evidence.parquet
+    sha256: null
+    rows: null
+    produced_by_task: P6.1
+  router_features:
+    path: artifacts/robust_asr/router/router_features.parquet
+    sha256: null
+    produced_by_task: P6.2
+  router_matrices:
+    train: null
+    val: null
+    test_locked: null
+    produced_by_task: P6.2
+  router_package:
+    path: artifacts/robust_asr/router/selected_router
+    sha256: null
+    kind: null
+    produced_by_task: P7.3
+  system_eval_report:
+    path: reports/robust_asr/system/system_eval.md
+    sha256: null
+    produced_by_task: P8.1
+  demo_examples_manifest:
+    path: artifacts/robust_asr/demo/demo_examples_manifest.json
+    sha256: null
+    produced_by_task: P8.2
+  final_runtime_contract:
+    path: artifacts/robust_asr/runtime_contract/final_response_schema.json
+    sha256: null
+    produced_by_task: P9.0
+  handoff_package:
+    path: artifacts/robust_asr/handoff
+    sha256: null
+    tag: null
+    produced_by_task: P9.1
+  rp5_runtime_spec:
+    path: artifacts/robust_asr/handoff/rp5_runtime_spec.md
+    sha256: null
+    produced_by_task: P9.2
+  final_verification:
+    path: reports/robust_asr/final_verification.md
+    sha256: null
+    produced_by_task: P10.1
+  final_asset_audit:
+    path: reports/robust_asr/final_asset_audit.md
+    sha256: null
+    produced_by_task: P10.2
+  plan_tracker_consistency:
+    path: reports/robust_asr/plan_tracker_consistency.md
+    sha256: null
+    produced_by_task: P10.3
+
+decisions:
+  Decision_A_smoke:
+    outcome: null
+    decided_at_task: P3.2
+  Decision_B_lora_full:
+    outcome: null
+    preservation_outcome: null
+    include_lora_in_router: null
+    decided_at_task: P4.2
+  Decision_C_router_choice:
+    kind: null
+    selected_impl: null
+    decided_at_task: P7.1
+  Decision_D_positive_system:
+    outcome: null
+    decided_at_task: P8.1
+
+tasks:
+  P0.0:
+    status: PASS
+    commit: null
+    files_changed: []
+    commands_run:
+      - "git fetch origin"
+      - "git rev-parse --verify feature/training-datamove1-v1"
+      - "git rev-parse --verify origin/feature/training-datamove1-v1"
+      - "git rev-parse --verify origin/feature/demo-runtime-rp5-v1"
+    key_outputs:
+      - "prebootstrap_status: PASS"
+      - "source_local_sha: 1c59842d97081e16404f910460ddf8af6b65569b"
+      - "rp5_origin_sha: 184eb87f30a8501d1128e34762b80030c2bff748"
+    marker: null
+    next_task: P0.1
+  P0.1:
+    status: PASS
+    commit: null
+    files_changed:
+      - docs/profiles/CLAUDE.robust_asr.md
+      - CLAUDE.md
+      - reports/robust_asr/repository_inventory.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+      - reports/robust_asr/task_reports/P0.1_bootstrap.md
+      - configs/robust_asr/.gitkeep
+      - docs/reports/robust_asr/.gitkeep
+      - reports/robust_asr/lora/.gitkeep
+      - reports/robust_asr/router/.gitkeep
+      - reports/robust_asr/system/.gitkeep
+      - reports/robust_asr/demo/.gitkeep
+      - reports/robust_asr/leakage/.gitkeep
+      - artifacts/robust_asr/manifests/.gitkeep
+      - artifacts/robust_asr/eval_tables/.gitkeep
+      - artifacts/robust_asr/oracle/.gitkeep
+      - artifacts/robust_asr/router/candidates/.gitkeep
+      - artifacts/robust_asr/router/selected_router/.gitkeep
+      - artifacts/robust_asr/lora_smoke/.gitkeep
+      - artifacts/robust_asr/lora_full/.gitkeep
+      - artifacts/robust_asr/lora_merged_fp16/.gitkeep
+      - artifacts/robust_asr/lora_ct2_int8/.gitkeep
+      - artifacts/robust_asr/runtime_smoke/.gitkeep
+      - artifacts/robust_asr/runtime_contract/.gitkeep
+      - artifacts/robust_asr/demo/.gitkeep
+      - artifacts/robust_asr/handoff/.gitkeep
+      - artifacts/robust_asr/state_packets/report_shape_fixtures/.gitkeep
+      - scripts/robust_asr/.gitkeep
+      - tests/robust_asr/.gitkeep
+    commands_run:
+      - "git fetch origin"
+      - "git checkout feature/training-datamove1-v1"
+      - "git pull --ff-only origin feature/training-datamove1-v1"
+      - "git checkout -b feature/robust-asr-lora-router-datamove1-v1"
+      - "mkdir -p <dirs> && touch <dirs>/.gitkeep"
+      - "python3 write_profile_and_claude_md.py"
+      - "python3 write_remaining_files.py"
+      - "git add <staged files>"
+      - "git commit -m 'robust_asr P0.1: branch, profile, tracker bootstrap'"
+      - "git push -u origin feature/robust-asr-lora-router-datamove1-v1"
+    key_outputs:
+      - "target branch created and pushed"
+      - "ROBUST_ASR_PROFILE block installed in CLAUDE.md"
+      - "tracker initialized at current_task: P0.2"
+      - "profile_sha256: fede63ffc53e6025cfe3d78ace672d59d94d0b8832e2b0e3390296790a2c7fb6"
+    marker: null
+    next_task: P0.2

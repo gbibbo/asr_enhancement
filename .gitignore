@@ -49,7 +49,8 @@ htmlcov/
 
 # Training runtime artifacts (Task T0.4)
 runs/
-artifacts/
+artifacts/*
+!artifacts/robust_asr
 checkpoints/
 data/
 .cache/
