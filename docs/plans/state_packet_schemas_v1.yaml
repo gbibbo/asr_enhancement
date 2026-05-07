@@ -1,0 +1,413 @@
+# State packet schemas v1
+#
+# Binding source for the literal shape of every report exchanged between
+# Claude Code (agent) and ChatGPT web (orchestrator) in the robust_asr
+# plan family.
+#
+# Both plans reference this file:
+#   docs/plans/robust_asr_orchestrator_plan_v3_4_7.md (Section 5)
+#   docs/plans/robust_asr_agent_plan_v3_4_7.md       (Section 0)
+#
+# If a plan and this file disagree on field names, field order, section
+# names, or required values, Claude Code records PLAN_CONFLICT in the
+# tracker and stops. Resolution requires editing this file and the
+# affected plan(s) in the same commit, with a CHANGE_SCOPE Approval
+# Packet recorded in state_transport.latest_approval_packet.
+#
+# Conventions:
+#   - required: true  -> field must always appear, non-null.
+#   - required: false -> field may be null, but the section must exist.
+#   - "type" values are conceptual, not jsonschema. The point is the
+#     literal shape exchanged in chat, not runtime validation.
+
+schema_version: 1
+schema_owner: docs/plans/robust_asr_*_plan_v3_4_7.md
+applies_to_plans:
+  - docs/plans/robust_asr_orchestrator_plan_v3_4_7.md
+  - docs/plans/robust_asr_agent_plan_v3_4_7.md
+
+
+# -----------------------------------------------------------------------
+# state_packet
+# -----------------------------------------------------------------------
+# The minimum self-contained state Claude Code attaches to every
+# Planning Report, Execution Report, Phase Gate Report, and Supplemental
+# Evidence Report. ChatGPT web reads this section instead of inferring
+# state from the uploaded zip.
+state_packet:
+  description: >
+    Self-contained state snapshot. Reused as the STATE SNAPSHOT,
+    STATE BEFORE, and STATE AFTER section content of the reports below.
+  fields:
+    repo_root:                       { type: string,            required: true }
+    branch:                          { type: string,            required: true }
+    head_commit:                     { type: string,            required: true }
+    working_tree_status:             { type: string,            required: true,
+                                       notes: "clean | dirty + summary line" }
+    current_phase:                   { type: string,            required: true,
+                                       notes: "P0..P10" }
+    current_task:                    { type: string,            required: true }
+    last_completed_task:             { type: string_or_null,    required: true }
+    active_markers:                  { type: list_of_strings,   required: true }
+    session_log_overrides:           { type: object,            required: true,
+                                       notes: "All three continue_* flags from tracker.session_log" }
+    phase_summary_state:             { type: object,            required: true,
+                                       notes: "tracker.phase_summary at packet time" }
+    orchestrator_approvals_state:    { type: object,            required: true,
+                                       notes: "tracker.orchestrator_approvals at packet time" }
+    first_pending_task:              { type: string,            required: true }
+    requested_task_matches_tracker:  { type: bool,              required: true }
+    latest_task_report_path:         { type: string_or_null,    required: true }
+    latest_state_capsule_path:       { type: string,            required: true }
+
+
+# -----------------------------------------------------------------------
+# planning_report
+# -----------------------------------------------------------------------
+# Returned by Claude Code in PLANNING mode. Read by ChatGPT web before
+# issuing APPROVE_PLAN, REVISE_PLAN, or STOP_SCOPE_CONFLICT.
+planning_report:
+  description: >
+    Pre-execution plan for exactly one task. Section order is binding.
+    Sections must appear in the order listed below.
+  sections:
+    - name: STATE SNAPSHOT
+      content: state_packet
+
+    - name: TRACKER-DERIVED NEXT TASK
+      fields:
+        first_pending_task:             { type: string, required: true }
+        preconditions_satisfied:        { type: bool,   required: true }
+        requested_task_matches_tracker: { type: bool,   required: true }
+
+    - name: TASK SCOPE
+      fields:
+        task_id:      { type: string,          required: true }
+        task_title:   { type: string,          required: true }
+        in_scope:     { type: list_of_strings, required: true }
+        out_of_scope: { type: list_of_strings, required: true }
+
+    - name: PRECONDITIONS
+      fields:
+        preconditions_list:        { type: list_of_strings, required: true,
+                                     notes: "Verbatim from this task's Section 9 entry" }
+        each_precondition_status:  { type: list_of_bool,    required: true,
+                                     notes: "Index-aligned with preconditions_list" }
+
+    - name: PLANNED FILE CHANGES
+      fields:
+        expected_paths:           { type: list_of_strings, required: true }
+        expected_no_touch_paths:  { type: list_of_strings, required: true }
+        touch_policy_rows_used:   { type: list_of_strings, required: true,
+                                    notes: "Each row is task_id from touch_policy.md" }
+
+    - name: LEGACY_REUSE_AND_TOUCH_POLICY
+      fields:
+        reuse_policy_path:              { type: string,            required: true,
+                                          notes: "Always configs/robust_asr/reuse_policy_v1.yaml after P0.2" }
+        reused_existing_assets:         { type: list_of_objects,   required: true,
+                                          notes: "Each: { path, reuse_policy_row, permitted_use, allowed_tasks_includes_current }" }
+        forbidden_legacy_paths_checked: { type: list_of_strings,   required: true,
+                                          notes: "Paths confirmed not modified by this plan" }
+        no_unapproved_reuse:            { type: bool,              required: true }
+
+    - name: COMMANDS TO RUN
+      fields:
+        commands:           { type: list_of_strings, required: true }
+        slurm_jobs_if_any:  { type: list_of_strings, required: false }
+
+    - name: VERIFICATION BLOCK
+      fields:
+        exact_commands:             { type: list_of_strings, required: true }
+        required_stdout_sentinels:  { type: list_of_strings, required: true }
+        required_artifacts:         { type: list_of_strings, required: true }
+
+    - name: EXPECTED TRACKER UPDATE
+      fields:
+        status_on_success:    { type: string,         required: true,
+                                notes: "PASS | PARTIAL | FAIL | HALTED | SKIPPED_BY_DECISION_A | SKIPPED_BY_OUTCOME_E" }
+        next_task_on_success: { type: string,         required: true }
+        marker_on_failure:    { type: string_or_null, required: true }
+
+    - name: STOP CONDITION
+      fields:
+        when_claude_must_stop: { type: string, required: true }
+
+    - name: RISKS_OR_BLOCKERS
+      fields:
+        items: { type: list_of_strings, required: true,
+                 notes: "Deterministic handling only. Each item must name a marker, an exit code, or an explicit decision rule." }
+
+
+# -----------------------------------------------------------------------
+# execution_report
+# -----------------------------------------------------------------------
+# Returned by Claude Code in EXECUTION mode after running an approved
+# task. Read by ChatGPT web before issuing CLOSE_TASK, FIX_BEFORE_CLOSE,
+# PHASE_APPROVE, PHASE_REJECT, or CHANGE_SCOPE.
+execution_report:
+  description: >
+    Post-execution evidence for exactly one task. Section order is binding.
+  sections:
+    - name: STATE BEFORE
+      content: state_packet
+      notes: "State packet captured before any file edit for this task."
+
+    - name: TASK EXECUTED
+      fields:
+        task_id:    { type: string, required: true }
+        task_title: { type: string, required: true }
+        outcome:    { type: string, required: true,
+                      notes: "PASS | PARTIAL | FAIL | HALTED | SKIPPED_BY_DECISION_A | SKIPPED_BY_OUTCOME_E" }
+
+    - name: FILES CHANGED
+      fields:
+        git_diff_stat:               { type: string,          required: true }
+        changed_paths:               { type: list_of_strings, required: true }
+        no_unrelated_paths_touched:  { type: bool,            required: true }
+
+    - name: REUSE_AND_SCOPE RESULTS
+      fields:
+        reused_existing_assets:         { type: list_of_objects,  required: true,
+                                          notes: "Same shape as in Planning Report" }
+        reuse_policy_rows_used:         { type: list_of_strings,  required: true }
+        forbidden_legacy_paths_touched: { type: list_of_strings,  required: true,
+                                          notes: "Must be empty list. Non-empty triggers FIX_BEFORE_CLOSE." }
+        no_unapproved_reuse:            { type: bool,             required: true }
+
+    - name: COMMANDS RUN
+      fields:
+        exact_commands:        { type: list_of_strings, required: true }
+        exit_codes:            { type: list_of_int,     required: true,
+                                 notes: "Index-aligned with exact_commands" }
+        stdout_sentinels:      { type: list_of_strings, required: true }
+        slurm_job_ids_if_any:  { type: list_of_strings, required: false }
+
+    - name: VERIFICATION RESULTS
+      fields:
+        command_results:    { type: list_of_objects, required: true,
+                              notes: "Each: { command, exit_code, sentinel_observed }" }
+        artifact_checks:    { type: list_of_objects, required: true,
+                              notes: "Each: { path, exists, size_bytes, sha256 }" }
+        row_counts_if_any:  { type: object,          required: false }
+        checksums_if_any:   { type: object,          required: false }
+
+    - name: ARTIFACTS CREATED
+      fields:
+        artifacts: { type: list_of_objects, required: true,
+                     notes: "Each: { path, sha256, size_bytes, large_artifact, committed_to_git }" }
+
+    - name: TRACKER UPDATE
+      fields:
+        tracker_paths_changed:   { type: list_of_strings, required: true }
+        tracker_excerpt_for_task: { type: string,         required: true,
+                                     notes: "Verbatim YAML for tracker.tasks[task_id] and any decisions[*] updated" }
+        state_capsule_updated:   { type: bool,            required: true }
+
+    - name: COMMIT AND PUSH
+      fields:
+        commit_hash:      { type: string, required: true }
+        pushed_to_origin: { type: bool,   required: true }
+
+    - name: STATE AFTER
+      content: state_packet
+      additional_fields:
+        next_tracker_derived_task: { type: string, required: true }
+      notes: "State packet captured after commit and push."
+
+    - name: GATE STATUS
+      fields:
+        phase_gate_reached: { type: bool,            required: true }
+        phase_gate_result:  { type: string_or_null,  required: true,
+                              notes: "PASS | FAIL | null. Non-null only when phase_gate_reached == true." }
+
+
+# -----------------------------------------------------------------------
+# phase_gate_report
+# -----------------------------------------------------------------------
+# Returned by Claude Code at every phase gate (P0..P10). ChatGPT web
+# returns PHASE_APPROVE, PHASE_REJECT, or CHANGE_SCOPE.
+phase_gate_report:
+  description: >
+    Phase-level evidence summarizing all tasks in the closing phase plus
+    the binary predicate result from agent plan Section 8.
+  sections:
+    - name: STATE SNAPSHOT
+      content: state_packet
+
+    - name: PHASE GATE EVIDENCE
+      fields:
+        phase:                          { type: string,            required: true,
+                                          notes: "P0..P10" }
+        predicate_result:               { type: string,            required: true,
+                                          notes: "PASS | FAIL" }
+        predicate_inputs:               { type: object,            required: true,
+                                          notes: "Each line of the Section 8 predicate, with observed value" }
+        active_branch_in_outcome_table: { type: string_or_null,    required: true,
+                                          notes: "Row label from orchestrator plan Section 3, e.g. 'GLOBAL x OK x OK'" }
+        decisions_set_during_phase:     { type: object,            required: true,
+                                          notes: "Decision_A_smoke, Decision_B_lora_full, Decision_C_router_choice, Decision_D where applicable" }
+
+    - name: COMMIT REFERENCE
+      fields:
+        commit_hash:      { type: string, required: true }
+        pushed_to_origin: { type: bool,   required: true }
+
+    - name: NEXT EXPECTED PHASE
+      fields:
+        next_phase_first_task:        { type: string,           required: true,
+                                        notes: "From agent plan Section 0.1 transition table" }
+        markers_carried_forward:      { type: list_of_strings,  required: true }
+        claims_enabled_state:         { type: object,           required: true,
+                                        notes: "tracker.claims_enabled at gate time" }
+
+
+# -----------------------------------------------------------------------
+# approval_packet
+# -----------------------------------------------------------------------
+# Sent by ChatGPT web in chat. Recorded by Claude Code under
+# state_transport.latest_approval_packet in the live tracker before any
+# further action.
+approval_packet:
+  description: >
+    Single binding decision from the orchestrator. The packet must be
+    wrapped in exactly one top-level ORCHESTRATOR_DECISION mapping. The
+    agent must record the complete wrapped mapping in the tracker before
+    opening, closing, or advancing.
+  wrapper:
+    name: ORCHESTRATOR_DECISION
+    required: true
+    only_top_level_key_allowed: true
+    fields:
+      scope:                  { type: string,         required: true,
+                                notes: "task | phase | scope_change" }
+      task_id:                { type: string_or_null, required: true }
+      phase:                  { type: string_or_null, required: true }
+      decision:               { type: string,         required: true,
+                                notes: "APPROVE_PLAN | REVISE_PLAN | STOP_SCOPE_CONFLICT | CLOSE_TASK | FIX_BEFORE_CLOSE | PHASE_APPROVE | PHASE_REJECT | CHANGE_SCOPE" }
+      accepted_report_commit: { type: string_or_null, required: true }
+      next_expected_task:     { type: string_or_null, required: true }
+      required_fix:           { type: string_or_null, required: true,
+                                notes: "Non-null only when decision == FIX_BEFORE_CLOSE or REVISE_PLAN" }
+      rationale:              { type: string,         required: true,
+                                notes: "One sentence." }
+
+
+# -----------------------------------------------------------------------
+# supplemental_evidence_report
+# -----------------------------------------------------------------------
+# Returned by Claude Code in SUPPLEMENTAL_EVIDENCE mode. Read-only
+# inspection commands only. No file edits, no tracker updates, no
+# commits, no new tasks.
+supplemental_evidence_report:
+  description: >
+    Read-only response to an orchestrator request for more evidence.
+    Must not change repository state in any way.
+  sections:
+    - name: STATE SNAPSHOT
+      content: state_packet
+
+    - name: REQUEST CONTEXT
+      fields:
+        requested_by_orchestrator: { type: bool,   required: true }
+        question:                  { type: string, required: true }
+
+    - name: READ_ONLY COMMANDS RUN
+      fields:
+        exact_commands:         { type: list_of_strings, required: true }
+        exit_codes:             { type: list_of_int,     required: true }
+        stdout:                 { type: list_of_strings, required: true,
+                                  notes: "Trimmed if very long; trimming must be marked." }
+        any_writes_attempted:   { type: bool,            required: true,
+                                  notes: "Must be false. True triggers PLAN_CONFLICT." }
+
+    - name: FINDINGS
+      fields:
+        observations:        { type: list_of_strings, required: true }
+        unanswered_aspects:  { type: list_of_strings, required: false }
+
+
+# -----------------------------------------------------------------------
+# prebootstrap_inventory_report
+# -----------------------------------------------------------------------
+# Returned by Claude Code in BOOTSTRAP_NO_TRACKER mode for P0.0 only.
+# This report exists in chat only - no files are written by P0.0.
+# P0.1 reads this report to materialize repository_inventory.md, create
+# the tracker, and activate PENDING_RP5_INTEGRATION when needed.
+prebootstrap_inventory_report:
+  description: >
+    Read-only inventory returned by P0.0 before any tracker exists in the
+    repository. The report does not include a state_packet because the
+    tracker does not yet exist. P0.1 consumes this report to bootstrap
+    the tracker, materialize repository_inventory.md, and activate
+    PENDING_RP5_INTEGRATION when rp5_branch_state == missing.
+  sections:
+    - name: BOOTSTRAP CONTEXT
+      fields:
+        repo_root:              { type: string,         required: true }
+        tracker_exists:         { type: bool,           required: true,
+                                  notes: "True only if docs/progress/robust_asr_progress.yaml is already present. False is the expected case for first-run." }
+        plans_readable:         { type: bool,           required: true,
+                                  notes: "Both robust_asr orchestrator and agent plan files exist and are readable." }
+        schemas_file_readable:  { type: bool,           required: true,
+                                  notes: "docs/plans/state_packet_schemas_v1.yaml exists and parses." }
+        any_files_written:      { type: bool,           required: true,
+                                  notes: "Must be false. True triggers PLAN_CONFLICT." }
+
+    - name: SOURCE BRANCH STATE
+      fields:
+        source_branch_name:   { type: string,         required: true,
+                                notes: "Always feature/training-datamove1-v1." }
+        local_ref_resolved:   { type: bool,           required: true }
+        origin_ref_resolved:  { type: bool,           required: true }
+        local_head_sha:       { type: string_or_null, required: true }
+        origin_head_sha:      { type: string_or_null, required: true }
+        error_if_any:         { type: string_or_null, required: true,
+                                notes: "Verbatim error from the first failing git rev-parse step. Null when both refs resolved." }
+
+    - name: RP5 BRANCH STATE
+      fields:
+        rp5_branch_name:    { type: string,         required: true,
+                              notes: "Always feature/demo-runtime-rp5-v1." }
+        rp5_branch_state:   { type: string,         required: true,
+                              notes: "present | missing" }
+        rp5_origin_sha:     { type: string_or_null, required: true,
+                              notes: "Non-null only when rp5_branch_state == present." }
+        rp5_error_if_any:   { type: string_or_null, required: true,
+                              notes: "Verbatim error from git rev-parse when rp5_branch_state == missing. Non-blocking for P0." }
+
+    - name: REPOSITORY OBSERVATIONS
+      fields:
+        remote_origin_url:      { type: string,           required: true }
+        working_tree_status:    { type: string,           required: true,
+                                  notes: "Verbatim git status --short output. Empty string when clean." }
+        top_level_directories:  { type: list_of_strings,  required: true }
+        legacy_trackers_seen:   { type: list_of_strings,  required: true,
+                                  notes: "Existing trackers found at standard paths. Inventory only - none are imported." }
+        legacy_plans_seen:      { type: list_of_strings,  required: true,
+                                  notes: "Existing plans found at standard paths. Inventory only - none override the new plans." }
+
+    - name: PREBOOTSTRAP DECISION
+      fields:
+        prebootstrap_status:        { type: string,         required: true,
+                                      notes: "PASS | HALTED" }
+        next_task:                  { type: string_or_null, required: true,
+                                      notes: "P0.1 on PASS. Null on HALTED. P0.1 is the only legal next task before the tracker exists." }
+        marker_to_record_in_p0_1:   { type: string_or_null, required: true,
+                                      notes: "PENDING_RP5_INTEGRATION when prebootstrap_status == PASS and rp5_branch_state == missing. Null on HALTED because P0.1 is not legal from a halted prebootstrap report." }
+        rationale:                  { type: string,         required: true,
+                                      notes: "One sentence summarizing why this status was chosen." }
+
+
+# -----------------------------------------------------------------------
+# drift_handling
+# -----------------------------------------------------------------------
+drift_handling:
+  rule: >
+    If this file and either plan disagree on field names, field order,
+    section names, section order, or required values, Claude Code records
+    PLAN_CONFLICT in the tracker and stops.
+  recovery: >
+    Resolution requires editing this file and the affected plan(s) in
+    the same commit, with a CHANGE_SCOPE Approval Packet recorded in
+    state_transport.latest_approval_packet.
