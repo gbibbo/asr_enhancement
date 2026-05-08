@@ -6,11 +6,27 @@ Status: IN_PROGRESS
 
 ## Current state
 
-- Phase: P0 (Bootstrap and skeleton)
+- Phase: P0 (Bootstrap and skeleton) — PHASE_APPROVED
 - Current task: P1.1
 - Last completed: P0.5 (model_card and router_card templates PASS; 30 and 24 TODO_FILLED_IN placeholders respectively)
 - Active markers: none
 - Blocked: false
+
+## P0 phase gate
+
+- ORCHESTRATOR_DECISION: scope=phase phase=P0 decision=PHASE_APPROVE
+  accepted_report_commit=`d0ba20c532477a94f359b55c03dc6c835529c1fa`
+  next_expected_task=P1.1.
+- Rationale: P0.0 through P0.5 PASS; required artifacts and sentinels
+  present (OK_REPORT_SHAPE, BUILD_OK_8db5364c, OK_APPTAINER_INSPECT,
+  OK_RUNTIME_SMOKE, OK_CONTRACT_SKELETON, OK_CARD_TEMPLATES); runtime
+  smoke and contract skeleton passed; model/router card placeholder
+  counts exceed minima; no blockers or active markers.
+- Tracker: `phase_summary.P0=PASS`; `orchestrator_approvals.P0=PHASE_APPROVE`;
+  `state_transport.last_accepted_report_commit` advanced
+  `40406fc3` → `d0ba20c5`; `state_transport.expected_next_task=P1.1`.
+- `current_task=P1.1`, `last_completed_task=P0.5`, `blocked=false`,
+  `markers=[]` unchanged.
 
 ## Completed tasks
 

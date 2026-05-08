@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P0.5 (PASS — model card and router card templates; current_task -> P1.1)
+Updated by: P0 phase gate (PHASE_APPROVE recorded; current_task=P1.1, last_completed_task=P0.5)
 Date: 2026-05-08
 
 ## Branch
@@ -23,9 +23,9 @@ active_markers: []
 latest_execution_report: reports/robust_asr/task_reports/P0.5_card_templates.md
 latest_planning_report: reports/robust_asr/task_reports/P0.5_card_templates.md
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.5 decision=APPROVE_PLAN accepted_report_commit=40406fc3 next_expected_task=P1.1 (templates only; no scope change; no compute)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.4 decision=APPROVE_EXECUTION accepted_report_commit=40406fc3 next_expected_task=P0.5 (P0.4 runtime contract skeleton PASS; OK_CONTRACT_SKELETON; 19/19 assertions; 20/20 pytest)
-last_accepted_report_commit: 40406fc31ad167500bf8ce317286f5c2b5eeb96f
+latest_approval_packet: ORCHESTRATOR_DECISION scope=phase phase=P0 decision=PHASE_APPROVE accepted_report_commit=d0ba20c5 next_expected_task=P1.1 (P0 gate PASS; P0.0..P0.5 PASS; sentinels and artifacts present; no blockers/markers)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.5 decision=APPROVE_EXECUTION accepted_report_commit=d0ba20c5 next_expected_task=P0_GATE (P0.5 PASS; OK_CARD_TEMPLATES; 30/24 placeholders; sections 9/9)
+last_accepted_report_commit: d0ba20c532477a94f359b55c03dc6c835529c1fa
 
 ## Key artifacts created in P0.2
 
@@ -211,17 +211,35 @@ last_accepted_report_commit: 40406fc31ad167500bf8ce317286f5c2b5eeb96f
   instruction). `state_transport.expected_next_task=P0.5` (held until
   orchestrator reviews the P0.5 Execution Report).
 
+## P0 phase gate (PHASE_APPROVE)
+
+- ORCHESTRATOR_DECISION: scope=phase phase=P0 decision=PHASE_APPROVE
+  accepted_report_commit=`d0ba20c532477a94f359b55c03dc6c835529c1fa`
+  next_expected_task=P1.1.
+- Rationale: P0 phase gate PASS. P0.0..P0.5 PASS; required artifacts
+  and sentinels present (OK_REPORT_SHAPE, BUILD_OK_8db5364c,
+  OK_APPTAINER_INSPECT, OK_RUNTIME_SMOKE, OK_CONTRACT_SKELETON,
+  OK_CARD_TEMPLATES); runtime smoke and contract skeleton passed;
+  model/router card placeholder counts (30, 24) exceed minima
+  (10, 8); no blockers or active markers.
+- Tracker mutations: `phase_summary.P0=PASS`;
+  `orchestrator_approvals.P0=PHASE_APPROVE`;
+  `state_transport.last_accepted_report_commit` advanced
+  `40406fc3` → `d0ba20c5`;
+  `state_transport.expected_next_task=P1.1`.
+- Held: `current_task=P1.1`, `last_completed_task=P0.5`,
+  `blocked=false`, `markers=[]`.
+
 ## Next expected Claude prompt
 
 Task: P1.1 Data root inventory and dataset configs
 Phase: P1
-Preconditions: P0.5 PASS (current_task == P1.1); markers=[];
-P0 gate predicate evaluable (Section 8).
-Mode: await ORCHESTRATOR_DECISION on P0.5 Execution Report; then
-PLANNING for P1.1 (or for P0 phase-gate, if orchestrator opts to
-record the gate first).
+Preconditions: P0 PHASE_APPROVE recorded; current_task == P1.1;
+last_completed_task == P0.5; markers=[]; blocked=false.
+Mode: await ORCHESTRATOR_DECISION APPROVE_PLAN for P1.1, then return
+a P1.1 Planning Report and stop.
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
-current_task=P1.1 and last_completed_task=P0.5, await orchestrator
-APPROVE_EXECUTION on the P0.5 report and APPROVE_PLAN for P1.1, then
-return a P1.1 Planning Report and stop.
+current_task=P1.1, last_completed_task=P0.5, phase_summary.P0=PASS,
+orchestrator_approvals.P0=PHASE_APPROVE, then await
+APPROVE_PLAN(P1.1).

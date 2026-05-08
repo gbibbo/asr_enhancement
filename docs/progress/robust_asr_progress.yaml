@@ -50,6 +50,26 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: null
+      phase: P0
+      decision: PHASE_APPROVE
+      accepted_report_commit: d0ba20c532477a94f359b55c03dc6c835529c1fa
+      next_expected_task: P1.1
+      required_fix: null
+      rationale: "P0 phase gate PASS. P0.0 through P0.5 are PASS; required artifacts and sentinels are present; runtime smoke and contract skeleton passed; model/router card placeholder counts exceed minima; no blockers or active markers."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P0.5
+      phase: null
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: d0ba20c532477a94f359b55c03dc6c835529c1fa
+      next_expected_task: P0_GATE
+      required_fix: null
+      rationale: "P0.5 passed. Model/router card templates exist, placeholder counts exceed requirements, section checks passed, OK_CARD_TEMPLATES recorded."
+  prior_approval_packet_2:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.5
       phase: null
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P1.1
       required_fix: null
       rationale: "P0.5 plan accepted; templates only, no scope change, no compute. accepted_report_commit references the P0.4 acceptance commit (40406fc) per orchestrator instruction."
-  prior_approval_packet:
+  prior_approval_packet_3:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.4
@@ -68,7 +88,7 @@ state_transport:
       next_expected_task: P0.5
       required_fix: null
       rationale: "P0.4 runtime contract skeleton PASS. OK_CONTRACT_SKELETON, all 19 assertions PASS, 20/20 pytest, current_task -> P0.5."
-  prior_approval_packet_2:
+  prior_approval_packet_4:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P0.4
@@ -78,7 +98,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: "Authorize P0.4 runtime contract schema module, validator, tests, and optional Slurm contract smoke job."
       rationale: "P0.4 requires libs/common/runtime_contract.py, but current reuse policy classifies libs/common/** as read-only. P0.4 also needs explicit touch_policy authorization for validator and tests."
-  prior_approval_packet_3:
+  prior_approval_packet_5:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rerun-2
@@ -88,7 +108,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "P0.3 runtime smoke passed against the new env-isolated robust_asr image. BLOCKED_RUNTIME cleared. P0.4 is now the next tracker-derived task."
-  prior_approval_packet_4:
+  prior_approval_packet_6:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rerun-2
@@ -98,32 +118,12 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  prior_approval_packet_5:
-    ORCHESTRATOR_DECISION:
-      scope: scope_change
-      task_id: P0.3-rerun-2-scope-change
-      phase: null
-      decision: APPROVE_EXECUTION
-      accepted_report_commit: efed06e690255a1838741acc5ebd8ffb4f2c4599
-      next_expected_task: P0.3
-      required_fix: null
-      rationale: "Env isolation edit (PYTHONNOUSERSITE=1 + clear PYTHONPATH/PYTHONUSERBASE + PIP_USER=0) accepted."
-  prior_approval_packet_6:
-    ORCHESTRATOR_DECISION:
-      scope: task
-      task_id: P0.3-rebuild
-      phase: null
-      decision: APPROVE_EXECUTION
-      accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
-      next_expected_task: P0.3
-      required_fix: null
-      rationale: Runtime image rebuild succeeded at the new authorized path. BLOCKED_RUNTIME remains active until the official P0.3 runtime smoke rerun exits 0.
-  last_accepted_report_commit: 40406fc31ad167500bf8ce317286f5c2b5eeb96f
-  expected_next_task: P0.5
+  last_accepted_report_commit: d0ba20c532477a94f359b55c03dc6c835529c1fa
+  expected_next_task: P1.1
   last_tracker_mismatch: null
 
 phase_summary:
-  P0: null
+  P0: PASS
   P1: null
   P2: null
   P3: null
@@ -136,7 +136,7 @@ phase_summary:
   P10: null
 
 orchestrator_approvals:
-  P0: null
+  P0: PHASE_APPROVE
   P1: null
   P2: null
   P3: null
