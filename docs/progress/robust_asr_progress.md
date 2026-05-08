@@ -14,9 +14,27 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234 (held; P1.2 CHANGE_SCOPE + APPROVE_PLAN(P1.2) reference 8185501 but do not advance the accepted commit)
+- state_transport.last_accepted_report_commit: 8185501955f5bb5ecf44c926fcabdc8f27ae2af9 (advanced from 587b7483 by APPROVE_EXECUTION(P1.2-scope-change); APPROVE_PLAN(P1.2) does not further advance)
 - state_transport.expected_next_task: P1.3
 - latest_approval_packet: APPROVE_PLAN(P1.2) on `8185501…` (next P1.3)
+
+## Tracker fix — last_accepted_report_commit advanced 587b7483 -> 8185501
+
+- The P1.2 PASS Execution Report recorded
+  `state_transport.last_accepted_report_commit=587b7483…`,
+  but `APPROVE_EXECUTION(P1.2-scope-change)` had accepted commit
+  `8185501955f5bb5ecf44c926fcabdc8f27ae2af9`, which should have
+  advanced the accepted commit at P1.2 commit time.
+- Corrected: `state_transport.last_accepted_report_commit` set to
+  `8185501955f5bb5ecf44c926fcabdc8f27ae2af9`. No code, no test, no
+  task-status change. P1.2 PASS state held.
+- Held: `current_task=P1.3`, `last_completed_task=P1.2`,
+  `tasks.P1.2.status=PASS`, `markers=[BLOCKED_OOD_PUBLIC]`,
+  `blocked=false`, `claims_enabled.ood_real=false`,
+  `state_transport.expected_next_task=P1.3`,
+  `latest_approval_packet`=APPROVE_PLAN(P1.2) on `8185501…`,
+  `prior_approval_packet`=APPROVE_EXECUTION(P1.2-scope-change) on
+  `8185501…`.
 
 ## P1.2 PASS — eval schema, normalization, metrics, leakage tests
 

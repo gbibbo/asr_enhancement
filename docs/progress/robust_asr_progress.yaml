@@ -188,7 +188,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234
+  last_accepted_report_commit: 8185501955f5bb5ecf44c926fcabdc8f27ae2af9
   expected_next_task: P1.3
   last_tracker_mismatch: null
 

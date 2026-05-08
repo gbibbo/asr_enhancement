@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P1.2 PASS (eval schema, normalization, metrics, leakage tests). APPROVE_EXECUTION(P1.2-scope-change) and APPROVE_PLAN(P1.2) recorded against commit 8185501. NORMALIZATION_VERSION=normalization_v1 frozen. 41/41 P1.2 pytest PASS; OK_EVAL_SCHEMA; OK_REPORT_SHAPE; 20/20 P0.4 non-regression PASS. current_task advanced P1.2 -> P1.3; last_completed_task P1.1 -> P1.2; current_phase=P1 held; markers=[BLOCKED_OOD_PUBLIC] held; claims_enabled.ood_real=false held; state_transport.last_accepted_report_commit STAYS 587b7483 (per orchestrator instruction; not advanced to the P1.2 commit).
+Updated by: Tracker fix — state_transport.last_accepted_report_commit advanced 587b7483 -> 8185501 (APPROVE_EXECUTION(P1.2-scope-change) accepted commit). No code, tests, or task-status changes. P1.2 PASS state held. current_task=P1.3; last_completed_task=P1.2; current_phase=P1; markers=[BLOCKED_OOD_PUBLIC]; claims_enabled.ood_real=false; expected_next_task=P1.3.
 Date: 2026-05-08
 
 ## Branch
@@ -28,7 +28,7 @@ latest_planning_report: reports/robust_asr/task_reports/P1.2_eval_schema.md
 latest_phase_gate_report: null
 latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.2 phase=P1 decision=APPROVE_PLAN accepted_report_commit=8185501 next_expected_task=P1.3 (P1.2 plan accepted on the scope-change commit; implement eval schema, normalization, metrics, validator, three pytest files; do not advance last_accepted_report_commit)
 prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.2-scope-change phase=P1 decision=APPROVE_EXECUTION accepted_report_commit=8185501 next_expected_task=P1.2 (P1.2 scope-change accepted; reuse_policy_v1.yaml libs/common/** override rows and rewritten touch_policy P1.2 row are now binding)
-last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234   # held; APPROVE_EXECUTION(P1.2-scope-change) and APPROVE_PLAN(P1.2) reference 8185501 but per orchestrator instruction the accepted commit is not advanced
+last_accepted_report_commit: 8185501955f5bb5ecf44c926fcabdc8f27ae2af9   # advanced from 587b7483 by APPROVE_EXECUTION(P1.2-scope-change) at commit 8185501; APPROVE_PLAN(P1.2) does not further advance the accepted commit
 
 ## Key artifacts created in P0.2
 
@@ -415,6 +415,9 @@ introduced.
   to `P1.2_scope_change`.
   `state_transport.last_accepted_report_commit` STAYS `587b7483…`
   (P1.1 APPROVE_EXECUTION acceptance; CHANGE_SCOPE does not advance).
+  Note: subsequently advanced to `8185501…` by
+  APPROVE_EXECUTION(P1.2-scope-change); see "Tracker fix" section
+  below.
 - Held: `current_task=P1.2`, `last_completed_task=P1.1`,
   `current_phase=P1`, `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`,
   `claims_enabled.ood_real=false`, `phase_summary.P0=PASS`,
@@ -485,8 +488,29 @@ introduced.
   `blocked=false` held, `claims_enabled.ood_real=false` held,
   `normalization_version=normalization_v1`,
   `metrics_version=metrics_v1` held,
-  `state_transport.last_accepted_report_commit` STAYS `587b7483…`
-  (per orchestrator instruction; not advanced to the P1.2 commit),
+  `state_transport.last_accepted_report_commit` recorded as `587b7483…`
+  at P1.2 PASS commit time, then corrected to
+  `8185501955f5bb5ecf44c926fcabdc8f27ae2af9` by the subsequent tracker
+  fix (APPROVE_EXECUTION(P1.2-scope-change) accepted commit). See
+  "Tracker fix" section below.
+  `state_transport.expected_next_task=P1.3`,
+  `latest_approval_packet`=APPROVE_PLAN(P1.2) on `8185501…`,
+  `prior_approval_packet`=APPROVE_EXECUTION(P1.2-scope-change) on
+  `8185501…`.
+
+## Tracker fix — state_transport.last_accepted_report_commit advanced
+
+- The P1.2 PASS Execution Report wrote
+  `state_transport.last_accepted_report_commit=587b7483…`,
+  but `APPROVE_EXECUTION(P1.2-scope-change)` had accepted
+  commit `8185501955f5bb5ecf44c926fcabdc8f27ae2af9`, which should
+  have advanced the accepted commit at P1.2 commit time.
+- Tracker corrected: `state_transport.last_accepted_report_commit`
+  set to `8185501955f5bb5ecf44c926fcabdc8f27ae2af9`. No code, no
+  test, no task-status change. P1.2 PASS state held.
+- Held: `current_task=P1.3`, `last_completed_task=P1.2`,
+  `current_phase=P1`, `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`,
+  `claims_enabled.ood_real=false`, `tasks.P1.2.status=PASS`,
   `state_transport.expected_next_task=P1.3`,
   `latest_approval_packet`=APPROVE_PLAN(P1.2) on `8185501…`,
   `prior_approval_packet`=APPROVE_EXECUTION(P1.2-scope-change) on
@@ -512,5 +536,6 @@ Next session: read docs/progress/robust_asr_progress.yaml, confirm
 current_task=P1.3, last_completed_task=P1.2, current_phase=P1,
 markers=[BLOCKED_OOD_PUBLIC], blocked=false,
 latest_approval_packet=APPROVE_PLAN(P1.2) on 8185501,
-state_transport.last_accepted_report_commit=587b7483 (held),
+state_transport.last_accepted_report_commit=8185501 (advanced by
+APPROVE_EXECUTION(P1.2-scope-change)),
 then await APPROVE_EXECUTION(P1.2) followed by APPROVE_PLAN(P1.3).
