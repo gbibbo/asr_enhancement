@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P0.3-rebuild (PASS — BLOCKED_RUNTIME persists pending rerun)
+Updated by: P0.3-rerun (HALTED — user-site shadowing; BLOCKED_RUNTIME persists; CHANGE_SCOPE required)
 Date: 2026-05-08
 
 ## Branch
@@ -20,11 +20,12 @@ active_markers: [BLOCKED_RUNTIME]
 
 ## Latest reports
 
-latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_image_rebuild.md
+latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
 latest_planning_report: null
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3-rebuild decision=APPROVE_PLAN accepted_report_commit=5ca1885 (Option A scope-change accepted; rebuild approved)
-last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
+latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3-rerun decision=APPROVE_PLAN accepted_report_commit=805cddf (rebuild execution accepted; rerun plan approved; outcome HALTED on user-site shadowing)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3-rebuild decision=APPROVE_EXECUTION accepted_report_commit=805cddf (image build accepted)
+last_accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
 
 ## Key artifacts created in P0.2
 
@@ -51,6 +52,26 @@ last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
 - current_task remains P0.3; last_completed_task remains P0.2;
   expected_next_task remains P0.3.
 - P0.3 runtime smoke NOT executed; no Slurm submission.
+
+## P0.3-rerun HALTED (user-site shadowing; BLOCKED_RUNTIME persists)
+
+- Slurm job 2129640 against new image: FAILED 1:0 in 10 s on aisurrey01.
+- Container Python 3.11.15 OK; ctranslate2/faster_whisper/pytest/lightgbm OK.
+- transformers/peft FAIL — shadowed transformers ≥4.50 + tokenizers 0.21.4 incompatibility.
+- Root cause: auto-bound /mnt/fast/nobackup exposes user-site
+  /mnt/fast/nobackup/users/gb0048/.local/lib/python3.11/site-packages
+  and python_userbase/ shadow the SIF dist-packages. SIF itself is
+  correct (build log 2129639 confirms torch 2.5.1+cu121, transformers
+  4.49.0, tokenizers 0.21.4, numpy 1.26.4).
+- Fix: --env PYTHONNOUSERSITE=1 (+ clear PYTHONUSERBASE/PYTHONPATH) on
+  apptainer exec in slurm/jobs/p0_3_runtime_smoke.sh. CHANGE_SCOPE
+  required.
+- Tracker: tasks['P0.3-rerun']=HALTED added. tasks.P0.3.status STAYS HALTED.
+  current_task STAYS P0.3, last_completed_task STAYS P0.2,
+  blocked STAYS true, markers STAYS [BLOCKED_RUNTIME].
+  state_transport.last_accepted_report_commit advanced to 805cddf...
+  (P0.3-rebuild APPROVE_EXECUTION); NOT advanced to the rerun commit.
+  expected_next_task rolled back to P0.3 (rerun-2 still parent of P0.3).
 
 ## P0.3-rebuild PASS (BLOCKED_RUNTIME still active; awaiting rerun)
 
@@ -118,14 +139,16 @@ last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
 
 ## Next expected Claude prompt
 
-Task: P0.3-rerun
+Task: P0.3-rerun-2 (env-fix CHANGE_SCOPE then re-rerun)
 Phase: P0
-Preconditions: tasks["P0.3-rebuild"].status == PASS;
-artifacts.runtime_image_v1 populated; BLOCKED_RUNTIME still active.
-Mode: PLANNING then EXECUTION
+Preconditions: tasks["P0.3-rerun"].status == HALTED with marker
+BLOCKED_RUNTIME; user-site shadowing diagnosis recorded;
+artifacts.runtime_image_v1 unchanged (sha256 8db5364c...).
+Mode: PLANNING (CHANGE_SCOPE proposal) then EXECUTION
 
-The next session must start with the session-open ritual:
-read docs/progress/robust_asr_progress.yaml, confirm current_task=P0.3
-with BLOCKED_RUNTIME and the new image SHA in
-artifacts.runtime_image_v1, await orchestrator APPROVE_PLAN for the
-P0.3-rerun sub-task, then return a P0.3-rerun Planning Report and stop.
+Next session: read docs/progress/robust_asr_progress.yaml, confirm
+current_task=P0.3 with BLOCKED_RUNTIME and the rerun-HALTED diagnosis,
+await orchestrator CHANGE_SCOPE Approval Packet authorizing additional
+--env flags on apptainer exec, then plan and execute P0.3-rerun-2
+(re-edit slurm/jobs/p0_3_runtime_smoke.sh to add the env flags and
+re-submit; same image sha256 reused).

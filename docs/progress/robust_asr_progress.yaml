@@ -7,7 +7,7 @@ current_task: P0.3
 last_completed_task: P0.2
 
 blocked: true
-blocker: "BLOCKED_RUNTIME — Apptainer image provides Python 3.10.13 (Decision rule 2 requires 3.11) and ctranslate2/faster_whisper/pytest are not installed (Decision rule 4). Clear by rebuilding the image and rerunning P0.3."
+blocker: "BLOCKED_RUNTIME — P0.3-rerun (job 2129640) against new image (sha256 8db5364c...) FAILED: Python 3.11.15 OK and ctranslate2/faster_whisper/pytest/lightgbm now import, but transformers and peft fail with 'tokenizers>=0.22 required, found 0.21.4'. Root cause: auto-bound /mnt/fast/nobackup exposes user-site packages from /mnt/fast/nobackup/users/gb0048/.local/lib/python3.11/site-packages and python_userbase/ that shadow the SIF's /usr/local/lib/python3.11/dist-packages (runtime sees torch 2.9.1+cu128, transformers 4.50+, numpy 2.3.5 instead of the SIF's pinned torch 2.5.1+cu121, transformers 4.49.0, numpy 1.26.4). Fix requires `--env PYTHONNOUSERSITE=1` plus clearing PYTHONUSERBASE/PYTHONPATH on apptainer exec in slurm/jobs/p0_3_runtime_smoke.sh — out of P0.3-rerun's single-line CONTAINER repoint scope; requires CHANGE_SCOPE."
 
 lora_status: NOT_STARTED
 router_status: NOT_STARTED
@@ -45,20 +45,30 @@ session_log:
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
   latest_planning_report: null
-  latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_image_rebuild.md
+  latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
       scope: task
-      task_id: P0.3-rebuild
+      task_id: P0.3-rerun
       phase: null
       decision: APPROVE_PLAN
-      accepted_report_commit: 5ca1885e6d6e1edfac5ef5d5d203de9b08f2751d
+      accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
+      next_expected_task: P0.4
+      required_fix: null
+      rationale: "P0.3-rebuild Execution Report accepted (commit 805cddf); the rerun plan is approved. Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun commit. (Outcome of rerun: HALTED on user-site shadowing; CHANGE_SCOPE required.)"
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P0.3-rebuild
+      phase: null
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
       next_expected_task: P0.3
       required_fix: null
-      rationale: Option A scope-change accepted; new robust_asr SIF path is authorized and the rebuild sub-task is approved for execution. BLOCKED_RUNTIME stays active until the subsequent P0.3 rerun PASSes.
-  last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
+      rationale: Runtime image rebuild succeeded at the new authorized path. BLOCKED_RUNTIME remains active until the official P0.3 runtime smoke rerun exits 0.
+  last_accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
   expected_next_task: P0.3
   last_tracker_mismatch: null
 
@@ -164,10 +174,11 @@ artifacts:
       - supplemental_evidence_report
   runtime_smoke_report:
     path: reports/robust_asr/runtime_smoke.md
-    sha256: e0426e887fb1382220e470cd2bfe781a8f7370853507470e5742540c226316db
-    produced_by_task: P0.3
+    sha256: 6facda278c807a1906c2417aabfb7b33c8ae306e8f141d990f4ec89269ebac5c
+    produced_by_task: P0.3-rerun
     outcome: HALTED
     marker: BLOCKED_RUNTIME
+    blocker_summary: "user-site shadowing on auto-bound /mnt/fast/nobackup; SIF correct but PYTHONNOUSERSITE not set"
   runtime_image_v1:
     path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
     sha256: 8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713
@@ -470,7 +481,7 @@ tasks:
       - "Successful imports: torch 2.5.1+cu121, transformers 5.0.0.dev0, peft 0.18.1, librosa 0.11.0, numpy 1.26.0, pandas 2.3.3, pyarrow 23.0.0, yaml 6.0"
       - "Router fallback: lightgbm/xgboost missing; sklearn HistGradientBoostingRegressor available (informational, superseded by HALTED)"
     marker: BLOCKED_RUNTIME
-    next_task: P0.3-rerun   # repointed image now built; rerun after orchestrator approval
+    next_task: P0.3-rerun-2   # P0.3-rerun HALTED on user-site shadowing; env-fix CHANGE_SCOPE required
     blocker: "BLOCKED_RUNTIME — Apptainer image provides Python 3.10.13 (Decision rule 2 requires 3.11) and ctranslate2/faster_whisper/pytest are not installed (Decision rule 4)."
     slurm:
       job_id: "2129637"
@@ -526,3 +537,49 @@ tasks:
       attempts:
         - {job_id: "2129638", state: FAILED,    exit_code: "1:0", elapsed_s: 720,  host: aisurrey01.surrey.ac.uk, partition: 2080ti, reason: "recipe quoting bug at line 39 (`<4.50.0` interpreted as input redirect by dash)"}
         - {job_id: "2129639", state: COMPLETED, exit_code: "0:0", elapsed_s: 519,  host: aisurrey01.surrey.ac.uk, partition: 2080ti, reason: "apptainer build --fakeroot rc=0; %test PASS"}
+  P0.3-rerun:
+    status: HALTED
+    parent_task_id: P0.3
+    commit: null   # filled at commit; see latest_execution_report
+    files_changed:
+      - slurm/jobs/p0_3_runtime_smoke.sh
+      - artifacts/robust_asr/runtime_smoke/runtime_smoke_job_metadata.json
+      - artifacts/robust_asr/runtime_smoke/stdout.txt
+      - artifacts/robust_asr/runtime_smoke/stderr.txt
+      - reports/robust_asr/runtime_smoke.md
+      - reports/robust_asr/task_reports/P0.3_runtime_smoke.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml: APPROVE_EXECUTION(P0.3-rebuild) → state_transport.last_accepted_report_commit advances to 805cddf...; APPROVE_PLAN(P0.3-rerun) recorded"
+      - "Edit slurm/jobs/p0_3_runtime_smoke.sh: CONTAINER repointed to /mnt/.../runtime/robust_asr_py311_cuda12.sif (single-line)"
+      - "./slurm/tools/on_submit.sh sbatch p0_3_runtime_smoke.sh (job 2129640; FAILED 1:0 in 10s)"
+      - "Inspect smoke output → confirmed user-site shadowing"
+      - "Probe filesystem → confirmed /mnt/fast/nobackup/users/gb0048/.local/lib/python3.11/site-packages/{transformers,numpy} and /mnt/fast/nobackup/scratch4weeks/gb0048/python_userbase/lib/python3.11/site-packages/transformers exist"
+      - "mv slurm out/err to stdout.txt/stderr.txt"
+      - "Write runtime_smoke_job_metadata.json (HALTED + diagnosis)"
+      - "Write reports/robust_asr/runtime_smoke.md (rerun HALTED report)"
+      - "Write reports/robust_asr/task_reports/P0.3_runtime_smoke.md (rerun HALTED execution report)"
+      - "Edit tracker (HALTED preserved; tasks['P0.3-rerun']=HALTED added; expected_next_task rolled back to P0.3 since rerun did not pass)"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "Slurm job 2129640: State=FAILED ExitCode=1:0 Elapsed=00:00:10 host=aisurrey01.surrey.ac.uk partition=2080ti"
+      - "Container Python 3.11.15 OK (Decision rule 2 cleared)"
+      - "ctranslate2 4.7.1, faster_whisper 1.2.1, lightgbm OK (the gaps that HALTED attempt 1 are gone)"
+      - "transformers/peft FAIL: tokenizers>=0.22 required, found 0.21.4 (Decision rule 4)"
+      - "Root cause: auto-bound /mnt/fast/nobackup exposes user-site torch 2.9.1+cu128, transformers 4.50+, numpy 2.3.5; SIF is correct (build log 2129639: torch-2.5.1+cu121, transformers-4.49.0, tokenizers-0.21.4 [compatible w/ 4.49], numpy-1.26.4)"
+      - "Fix path: --env PYTHONNOUSERSITE=1 + clear PYTHONUSERBASE/PYTHONPATH on apptainer exec; CHANGE_SCOPE required (rerun plan only authorized single-line CONTAINER repoint)"
+    marker: BLOCKED_RUNTIME
+    next_task: P0.3-rerun-2   # env-fix CHANGE_SCOPE then re-rerun
+    slurm:
+      job_id: "2129640"
+      job_name: robust_asr_p0_3_runtime_smoke
+      partition: 2080ti
+      state: FAILED
+      exit_code: "1:0"
+      submitted_at_utc: 2026-05-08T02:12:43Z
+      started_at_utc:   2026-05-08T03:12:45Z
+      completed_at_utc: 2026-05-08T03:12:55Z
+      elapsed_s: 10
+      host: aisurrey01.surrey.ac.uk

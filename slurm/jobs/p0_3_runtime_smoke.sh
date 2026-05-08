@@ -9,7 +9,7 @@
 set -euo pipefail
 
 REPO="/mnt/fast/nobackup/users/gb0048/asr_enhancement"
-CONTAINER="/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif"
+CONTAINER="/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif"
 
 cd "$REPO"
 

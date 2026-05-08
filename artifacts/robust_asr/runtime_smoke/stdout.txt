@@ -1,30 +1,30 @@
-PYTHON_VERSION=3.10.13
+PYTHON_VERSION=3.11.15
 HOST=aisurrey01.surrey.ac.uk
-IMPORT_OK torch 2.5.1+cu121
-IMPORT_OK transformers 5.0.0.dev0
-IMPORT_OK peft 0.18.1
-IMPORT_FAIL ctranslate2 ModuleNotFoundError("No module named 'ctranslate2'")
-IMPORT_FAIL faster_whisper ModuleNotFoundError("No module named 'faster_whisper'")
+IMPORT_OK torch 2.9.1+cu128
+IMPORT_FAIL transformers ImportError("tokenizers>=0.22.0,<=0.23.0 is required for a normal functioning of this module, but found tokenizers==0.21.4.\nTry: `pip install transformers -U` or `pip install -e '.[dev]'` if you're working with git main")
+IMPORT_FAIL peft ImportError("tokenizers>=0.22.0,<=0.23.0 is required for a normal functioning of this module, but found tokenizers==0.21.4.\nTry: `pip install transformers -U` or `pip install -e '.[dev]'` if you're working with git main")
+IMPORT_OK ctranslate2 4.7.1
+IMPORT_OK faster_whisper 1.2.1
 IMPORT_OK librosa 0.11.0
-IMPORT_OK numpy 1.26.0
-IMPORT_OK pandas 2.3.3
-IMPORT_OK pyarrow 23.0.0
-IMPORT_OK yaml 6.0
-IMPORT_FAIL pytest ModuleNotFoundError("No module named 'pytest'")
+IMPORT_OK numpy 2.3.5
+IMPORT_OK pandas 3.0.0
+IMPORT_OK pyarrow 24.0.0
+IMPORT_OK yaml 6.0.3
+IMPORT_OK pytest 9.0.3
 TORCH_CUDA_AVAILABLE=False
-ROUTER_PICK=sklearn.HistGradientBoostingRegressor FALLBACK_SKLEARN=True
+ROUTER_PICK=lightgbm FALLBACK_SKLEARN=False
 RUNTIME_SMOKE_RESULTS_BEGIN
 {
   "all_required_imports_ok": false,
   "host": "aisurrey01.surrey.ac.uk",
   "imports": {
     "ctranslate2": {
-      "error": "ModuleNotFoundError(\"No module named 'ctranslate2'\")",
-      "ok": false
+      "ok": true,
+      "version": "4.7.1"
     },
     "faster_whisper": {
-      "error": "ModuleNotFoundError(\"No module named 'faster_whisper'\")",
-      "ok": false
+      "ok": true,
+      "version": "1.2.1"
     },
     "librosa": {
       "ok": true,
@@ -32,42 +32,42 @@ RUNTIME_SMOKE_RESULTS_BEGIN
     },
     "numpy": {
       "ok": true,
-      "version": "1.26.0"
+      "version": "2.3.5"
     },
     "pandas": {
       "ok": true,
-      "version": "2.3.3"
+      "version": "3.0.0"
     },
     "peft": {
-      "ok": true,
-      "version": "0.18.1"
+      "error": "ImportError(\"tokenizers>=0.22.0,<=0.23.0 is required for a normal functioning of this module, but found tokenizers==0.21.4.\\nTry: `pip install transformers -U` or `pip install -e '.[dev]'` if you're working with git main\")",
+      "ok": false
     },
     "pyarrow": {
       "ok": true,
-      "version": "23.0.0"
+      "version": "24.0.0"
     },
     "pytest": {
-      "error": "ModuleNotFoundError(\"No module named 'pytest'\")",
-      "ok": false
+      "ok": true,
+      "version": "9.0.3"
     },
     "torch": {
       "ok": true,
-      "version": "2.5.1+cu121"
+      "version": "2.9.1+cu128"
     },
     "transformers": {
-      "ok": true,
-      "version": "5.0.0.dev0"
+      "error": "ImportError(\"tokenizers>=0.22.0,<=0.23.0 is required for a normal functioning of this module, but found tokenizers==0.21.4.\\nTry: `pip install transformers -U` or `pip install -e '.[dev]'` if you're working with git main\")",
+      "ok": false
     },
     "yaml": {
       "ok": true,
-      "version": "6.0"
+      "version": "6.0.3"
     }
   },
-  "platform": "Linux-5.14.0-427.42.1.el9_4.x86_64-x86_64-with-glibc2.31",
-  "python_3_11_ok": false,
-  "python_version": "3.10.13",
-  "router_fallback_sklearn": true,
-  "router_pick": "sklearn.HistGradientBoostingRegressor",
+  "platform": "Linux-5.14.0-427.42.1.el9_4.x86_64-x86_64-with-glibc2.35",
+  "python_3_11_ok": true,
+  "python_version": "3.11.15",
+  "router_fallback_sklearn": false,
+  "router_pick": "lightgbm",
   "smoke_ok": false,
   "torch_cuda_available": false
 }

@@ -11,7 +11,7 @@ Status: IN_PROGRESS
 - Last completed: P0.2 (asset inventory, reuse policy, touch policy, report shape validator)
 - Active markers: BLOCKED_RUNTIME
 - Blocked: true
-- Blocker: Apptainer image provides Python 3.10.13 (Decision rule 2 requires 3.11) and ctranslate2/faster_whisper/pytest are not installed (Decision rule 4). Clear by rebuilding the image and rerunning P0.3.
+- Blocker: P0.3-rerun (job 2129640) against the new image FAILED — Python 3.11.15 OK and ctranslate2/faster_whisper/pytest/lightgbm now import, but transformers and peft fail with `tokenizers>=0.22 required, found 0.21.4`. Root cause: auto-bound `/mnt/fast/nobackup` exposes user-site packages from `/mnt/fast/nobackup/users/gb0048/.local/lib/python3.11/site-packages/` and `python_userbase/` that shadow the SIF's `/usr/local/lib/python3.11/dist-packages` (runtime sees torch 2.9.1+cu128 / transformers 4.50+ / numpy 2.3.5 instead of the SIF's pinned versions). Fix: add `--env PYTHONNOUSERSITE=1` (and clear PYTHONUSERBASE/PYTHONPATH) to apptainer exec in slurm/jobs/p0_3_runtime_smoke.sh — out of P0.3-rerun's single-line CONTAINER repoint scope; CHANGE_SCOPE required.
 
 ## Completed tasks
 
@@ -50,6 +50,22 @@ Status: IN_PROGRESS
 - Awaiting orchestrator decision: rebuild image (likely a CHANGE_SCOPE
   if the new image lives at a different host path) and rerun P0.3.
 
+## P0.3-rerun sub-task (HALTED — BLOCKED_RUNTIME persists; CHANGE_SCOPE needed)
+
+- Slurm job 2129640 against new image: FAILED 1:0 in 10 s on aisurrey01.
+- Container Python 3.11.15 OK; lightgbm OK; ctranslate2/faster_whisper/pytest OK
+  (Decision rules 2/3 cleared; previous attempt 1 gaps gone).
+- transformers and peft FAIL — shadowed user-site transformers ≥4.50
+  needs tokenizers ≥0.22 but only tokenizers 0.21.4 is on the path.
+- Root cause: auto-bound `/mnt/fast/nobackup` exposes user-site packages
+  that shadow the SIF's correctly-pinned packages. SIF itself is correct
+  (build log 2129639: torch 2.5.1+cu121, transformers 4.49.0,
+  tokenizers 0.21.4 [compatible w/ 4.49], numpy 1.26.4).
+- Fix: add `--env PYTHONNOUSERSITE=1` (+ clear `PYTHONUSERBASE`/`PYTHONPATH`)
+  to the apptainer exec in `slurm/jobs/p0_3_runtime_smoke.sh`. CHANGE_SCOPE
+  required — the P0.3-rerun plan only authorized a single-line CONTAINER
+  repoint.
+
 ## P0.3-rebuild sub-task (PASS — BLOCKED_RUNTIME still active)
 
 - Slurm job 2129638 (attempt 1): FAILED 1:0 in 12 min — recipe quoting
@@ -72,7 +88,7 @@ Status: IN_PROGRESS
 
 ## Pending
 
-- P0.3-rerun: rerun `slurm/jobs/p0_3_runtime_smoke.sh` against the new image to clear BLOCKED_RUNTIME
+- P0.3-rerun-2: env-fix CHANGE_SCOPE (`--env PYTHONNOUSERSITE=1` + clear PYTHONUSERBASE/PYTHONPATH on apptainer exec) then re-run runtime smoke to clear BLOCKED_RUNTIME
 - P0.4: Runtime contract skeleton
 - P0.5: Model card and router card templates
 - P0 gate → P1 (schema, manifests, degradations)
