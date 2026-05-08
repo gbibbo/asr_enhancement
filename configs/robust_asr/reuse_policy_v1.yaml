@@ -287,6 +287,18 @@
   commit_allowed: false
   notes: versions.py; read for version constants
 
+# Specific override of libs/common/** (P0.4 scope-change). New file authored by
+# robust_asr; takes precedence over the libs/common/** read_only default.
+- path: libs/common/runtime_contract.py
+  class: robust_asr_owned_extension
+  permitted_use: write
+  allowed_tasks: [P0.4, P9.0]
+  validator: scripts/robust_asr/validate_runtime_contract.py
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: New runtime contract schema module created by P0.4 and finalized by P9.0.
+
 - path: libs/observability/**
   class: implementation_reuse
   permitted_use: read_only

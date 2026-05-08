@@ -50,6 +50,26 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P0.4
+      phase: null
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 0b47b76ee6fc90f8d5eb8c712991990f37b1b1c5
+      next_expected_task: P0.4
+      required_fix: "Authorize P0.4 runtime contract schema module, validator, tests, and optional Slurm contract smoke job."
+      rationale: "P0.4 requires libs/common/runtime_contract.py, but current reuse policy classifies libs/common/** as read-only. P0.4 also needs explicit touch_policy authorization for validator and tests."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P0.3-rerun-2
+      phase: null
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 0b47b76ee6fc90f8d5eb8c712991990f37b1b1c5
+      next_expected_task: P0.4
+      required_fix: null
+      rationale: "P0.3 runtime smoke passed against the new env-isolated robust_asr image. BLOCKED_RUNTIME cleared. P0.4 is now the next tracker-derived task."
+  prior_approval_packet_2:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rerun-2
       phase: null
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  prior_approval_packet:
+  prior_approval_packet_3:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P0.3-rerun-2-scope-change
@@ -68,7 +88,7 @@ state_transport:
       next_expected_task: P0.3
       required_fix: null
       rationale: "Env isolation edit (PYTHONNOUSERSITE=1 + clear PYTHONPATH/PYTHONUSERBASE + PIP_USER=0) accepted."
-  prior_approval_packet:
+  prior_approval_packet_4:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rebuild
@@ -78,7 +98,7 @@ state_transport:
       next_expected_task: P0.3
       required_fix: null
       rationale: Runtime image rebuild succeeded at the new authorized path. BLOCKED_RUNTIME remains active until the official P0.3 runtime smoke rerun exits 0.
-  last_accepted_report_commit: efed06e690255a1838741acc5ebd8ffb4f2c4599
+  last_accepted_report_commit: 0b47b76ee6fc90f8d5eb8c712991990f37b1b1c5
   expected_next_task: P0.4
   last_tracker_mismatch: null
 
@@ -158,14 +178,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 2fcabf62bd5300bc5968fe236815662ec030646aa8a57a0cab3c5f01248d566d
+    sha256: 02007645e2b9eb411d4831f1e29e2e02c32baeb045d4acc7fcdf9dea8dcbbaa1
     produced_by_task: P0.2
-    last_amended_by: P0.3_scope_change_option_A
+    last_amended_by: P0.4_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: 261c84f369186e2a918ddb502ad0d2b5179795eae654764dfb17bc5223ee69dd
+    sha256: e1e6c7c4f055a4b950ebe6415f474374c72632d5ba8ce1e5b79d9c351004145c
     produced_by_task: P0.2
-    last_amended_by: P0.3_scope_change_option_A
+    last_amended_by: P0.4_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
