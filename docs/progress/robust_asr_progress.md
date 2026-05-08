@@ -7,20 +7,89 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P2 (Whisper base baseline)
-- Current task: P2.1 (Whisper base CT2 INT8 evaluation)
+- Current task: P2.1 (Whisper base CT2 INT8 evaluation) — HALTED
 - Last completed: P1.4 (PASS — degradation_v1 generators and manifests; OK_DEGRADATION_V1; 0 BAD_OUTPUT)
 - Phase summary: P0=PASS, P1=PASS
-- Active markers: [BLOCKED_OOD_PUBLIC]
-- Blocked: false
+- Active markers: [BLOCKED_OOD_PUBLIC, MISSING_EVIDENCE]
+- Blocked: true
+- Blocker: "P2.1 HALTED: CT2 INT8 weights for whisper_base_ct2_int8 not present at any candidate_local_paths declared in configs/robust_asr/eval_manifests_v1.yaml; provenance not invented; awaiting CHANGE_SCOPE that authorizes a host model path and provenance source."
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (held; PHASE_APPROVE(P1) accepted on the same commit and does not further advance the cursor)
-- state_transport.expected_next_task: P2.1
-- latest_approval_packet: CHANGE_SCOPE(P2.1) on `22201db` (next P2.1)
-- prior_approval_packet: PHASE_APPROVE(P1) on `49b4bdc` (next P2.1)
+- state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (held; PHASE_APPROVE(P1) acceptance; not advanced to the P2.1 implementation commit per orchestrator instruction)
+- state_transport.expected_next_task: P2.1 (held — HALTED on MISSING_EVIDENCE)
+- latest_approval_packet: APPROVE_PLAN(P2.1) on `def8458` (next P2.2)
+- prior_approval_packet: APPROVE_EXECUTION(P2.1-scope-change) on `def8458` (next P2.1)
+- prior_approval_packet_p2_1_change_scope: CHANGE_SCOPE(P2.1) on `22201db` (next P2.1)
+- prior_approval_packet_p1_phase: PHASE_APPROVE(P1) on `49b4bdc` (next P2.1)
 - prior_approval_packet_p1_gate: APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE)
-- prior_approval_packet_p1_4_plan: APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE)
+
+## P2.1 HALTED — MISSING_EVIDENCE (CT2 INT8 weights absent)
+
+- ORCHESTRATOR_DECISIONs recorded by P2.1:
+  - `APPROVE_EXECUTION(P2.1-scope-change)` on
+    `accepted_report_commit=def84589316237a7e2239967ae93448ecacd63a2`,
+    `next_expected_task=P2.1`. Scope-change rows from CHANGE_SCOPE(P2.1)
+    (configs/robust_asr/** P2.1 allowed_tasks; rewritten touch_policy
+    P2.1 row) are now binding.
+  - `APPROVE_PLAN(P2.1)` on
+    `accepted_report_commit=def84589316237a7e2239967ae93448ecacd63a2`,
+    `next_expected_task=P2.2`. Implementation accepted on the
+    scope-change commit; `state_transport.last_accepted_report_commit`
+    is NOT advanced to the P2.1 implementation commit per orchestrator
+    instruction.
+- Implementation deliverables (sha256 in `tasks.P2.1.artifacts_added`):
+  - `configs/robust_asr/eval_manifests_v1.yaml`
+  - `scripts/robust_asr/run_backend_eval.py`
+    (Section 4.2 contract; CT2 weight probe; clean MISSING_EVIDENCE halt)
+  - `scripts/robust_asr/summarize_backend_eval.py`
+    (Section 4.2 contract; per-family WER/WA aggregation)
+  - `scripts/robust_asr/validate_eval_table.py`
+    (Section 4.1 contract; Section 3 schema tests 1..7)
+  - `slurm/jobs/p2_1_baseline.sh`
+    (apptainer --nv; --gres=gpu:1; cpus=4; mem=24G; time=03:00:00;
+    partition=2080ti; env-isolation matching P0.3-rerun-2 pattern)
+  - `reports/robust_asr/task_reports/P2.1_baseline.md`
+- Slurm job 2129649 FAILED 13:0 in 14 s on aisurrey04 (partition
+  2080ti). Container sha256 `8db5364c…` matches tracker. Sentinel
+  `MISSING_EVIDENCE` printed to stdout; the script exited 13 BEFORE
+  attempting any model load, network access, or row evaluation.
+- candidate_local_paths probed (none resolved):
+  `${ASR_CACHE_ROOT}/whisper_ct2_int8_base_en`,
+  `/mnt/.../scratch4weeks/.../runtime/whisper_models/Systran--faster-whisper-base.en`,
+  `${HF_HOME}/hub/models--Systran--faster-whisper-base.en`,
+  `${ASR_CACHE_ROOT}/huggingface/hub/models--Systran--faster-whisper-base.en`.
+- On host: `…/cache/whisper/` holds only `base.en.pt` + `tiny.en.pt`
+  (openai-whisper PyTorch checkpoints, not CT2 INT8); HF hub holds
+  only `models--speechbrain--metricgan-plus-voicebank/`. The cache
+  root is classified `no_touch` in `reuse_policy_v1.yaml`, so
+  populating CT2 INT8 weights requires a CHANGE_SCOPE that names the
+  destination host path and the provenance source.
+- Verifications (host Python):
+  - `validate_report_shape.py` → `OK_REPORT_SHAPE`, exit 0.
+  - `pytest -q tests/robust_asr/test_runtime_contract_skeleton.py
+    test_eval_schema.py test_normalization_metrics.py test_leakage.py
+    test_degradation_v1.py` → 85/85 PASS in 2.87 s (non-regression).
+  - `OK_BACKEND_EVAL`, `OK_BACKEND_SUMMARY`, `OK_EVAL_TABLE`: NOT
+    EMITTED (intended HALT).
+  - `artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet`,
+    `reports/robust_asr/baseline_whisper_base.md`: NOT WRITTEN.
+- Tracker mutations: `tasks.P2.1.status=HALTED`,
+  `tasks.P2.1.marker=MISSING_EVIDENCE`,
+  `tasks.P2.1.next_task=P2.1` (held); `markers` extended to
+  `[BLOCKED_OOD_PUBLIC, MISSING_EVIDENCE]`; `blocked=true`;
+  `blocker` set; `current_task=P2.1` held; `last_completed_task=P1.4`
+  held; `state_transport.last_accepted_report_commit` STAYS `49b4bdc`
+  per orchestrator instruction; `state_transport.expected_next_task=P2.1`
+  held. `latest_approval_packet`=APPROVE_PLAN(P2.1) on `def8458`;
+  `prior_approval_packet`=APPROVE_EXECUTION(P2.1-scope-change) on
+  `def8458`.
+- Unblock path: provide CT2 INT8 weights at one of the declared
+  candidate paths (Systran/faster-whisper-base.en snapshot; converted
+  openai-whisper base.en.pt via ct2-converters; or a vetted internal
+  mirror) under a CHANGE_SCOPE packet that records the host path and
+  provenance. After weights resolve, rerun `slurm/jobs/p2_1_baseline.sh`;
+  no code change needed in `run_backend_eval.py`.
 
 ## P2.1 scope change (no P2.1 implementation; baseline eval paths authorized)
 

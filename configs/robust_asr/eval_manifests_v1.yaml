@@ -1,0 +1,76 @@
+# Robust ASR — Eval Manifests v1
+#
+# Produced by: P2.1 (CHANGE_SCOPE def8458)
+# Date: 2026-05-08
+#
+# Declares the set of evaluation manifests consumed by
+# scripts/robust_asr/run_backend_eval.py. Per-manifest entries record:
+#   - path: parquet path under artifacts/robust_asr/manifests/
+#   - tier: id | ood_param | ood_real
+#   - condition_family_filter: optional restriction
+#   - source_split_filter: optional restriction
+#
+# OOD-real splits are gated by claims_enabled.ood_real. While
+# BLOCKED_OOD_PUBLIC is active and claims_enabled.ood_real=false, the
+# OOD-real manifests are listed with enabled=false; baseline eval skips
+# them. P1.3 already wrote SKIPPED_OOD_PUBLIC_DEFERRED notes; eval
+# tables exclude OOD-real rows accordingly.
+
+manifest_set: eval_manifests_v1
+schema_version: eval_schema_v1
+
+reference_normalization:
+  module: libs/common/normalization.py
+  version_constant: NORMALIZATION_VERSION
+
+reference_index:
+  source: librispeech_trans_files
+  description: >
+    Reference text resolved from LibriSpeech *.trans.txt files alongside
+    each .flac under the LibriSpeech root. utterance_id maps directly to
+    the trans file line key.
+
+manifests:
+  - name: degradation_v1_id_eval
+    path: artifacts/robust_asr/manifests/degradation_v1_id_eval.parquet
+    tier: id
+    enabled: true
+    notes: 5 families x 5323 LibriSpeech eval rows (validation 2703 + locked_test 2620).
+
+  - name: degradation_v1_ood_param_eval
+    path: artifacts/robust_asr/manifests/degradation_v1_ood_param_eval.parquet
+    tier: ood_param
+    enabled: true
+    notes: Same audio source, OOD parameter ranges per Section 3.
+
+  - name: ood_real_locked
+    path: artifacts/robust_asr/manifests/ood_real_locked.parquet
+    tier: ood_real
+    enabled: false
+    blocker: BLOCKED_OOD_PUBLIC
+    notes: Skipped while claims_enabled.ood_real=false.
+
+decode_defaults:
+  language: en
+  task: transcribe
+  beam_size: 5
+  best_of: 5
+  temperature: 0.0
+  condition_on_previous_text: false
+  vad_filter: false
+  word_timestamps: false
+
+backend_endpoints:
+  whisper_base_ct2_int8:
+    backend_kind: local_asr
+    local_only: true
+    third_party_provider: null
+    model_size: base.en
+    compute_type: int8
+    expected_repo: Systran/faster-whisper-base.en
+    candidate_local_paths:
+      - ${ASR_CACHE_ROOT}/whisper_ct2_int8_base_en
+      - /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/Systran--faster-whisper-base.en
+      - ${HF_HOME}/hub/models--Systran--faster-whisper-base.en
+      - ${ASR_CACHE_ROOT}/huggingface/hub/models--Systran--faster-whisper-base.en
+    halt_if_missing_marker: MISSING_EVIDENCE
