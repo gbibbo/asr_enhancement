@@ -277,6 +277,24 @@
   commit_allowed: false
   notes: Shared metrics.py, degradations.py, enhancement.py; read for eval and training
 
+# Specific override of libs/audio/** (P1.4 scope-change). P1.4 may append five
+# sample_<family> functions to libs/audio/degradations.py per Section 3 of the
+# v3.4.7 plan. Existing apply_degradation, DEGRADATION_FAMILIES, and the
+# DEGRADATION_VERSION value are preserved (additive change).
+- path: libs/audio/degradations.py
+  class: existing_runtime_code
+  permitted_use: append_functions_only
+  allowed_tasks: [P1.4]
+  validator: tests/robust_asr/test_degradation_v1.py
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: P1.4 narrow additive patch. Add sample_clean, sample_cafe_noise,
+         sample_phone_band, sample_far_field_room, sample_muffled_lowpass per
+         Section 3 sample_<family>(input_wav, output_wav, seed, params) -> dict
+         interface. Preserve existing apply_degradation, DEGRADATION_FAMILIES,
+         and DEGRADATION_VERSION value.
+
 - path: libs/common/**
   class: implementation_reuse
   permitted_use: read_only
@@ -391,7 +409,7 @@
 - path: slurm/jobs/**
   class: implementation_reuse
   permitted_use: read_only_with_robust_asr_writes
-  allowed_tasks: [P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
+  allowed_tasks: [P0.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
   validator: file_basename_matches_p<task_id>_*.sh
   checksum_required: false
   large_artifact: false
@@ -445,13 +463,32 @@
 - path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/**
   class: data_root
   permitted_use: read_only
-  allowed_tasks: [P1.1, P1.2, P1.3, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]
+  allowed_tasks: [P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]
   validator: none
   checksum_required: false
   large_artifact: true
   commit_allowed: false
   notes: Librispeech manifests and audio; read-only for eval and training; never committed.
          P1.1 added by scope-change for dataset root inventory (read-only ls/stat/find).
+         P1.4 added by scope-change for read access to LibriSpeech source audio inputs;
+         P1.4 write access is granted only on the degradation_v1/** subtree below.
+
+# Specific override of /mnt/.../datasets/** (P1.4 scope-change). P1.4 writes
+# generated degraded audio under the degradation_v1/** subtree only. The audio
+# files are large_artifact and never committed; manifests live under
+# artifacts/robust_asr/manifests/ and are committed there.
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/degradation_v1/**
+  class: data_root
+  permitted_use: read_write
+  allowed_tasks: [P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: P1.4 build_degradation_v1 audio outputs (clean identity links plus
+         four non-clean families x ID/OOD-param tiers x LibriSpeech splits).
+         Read-only for downstream eval/training tasks. Never committed; subject
+         to Section 5.8 budget (max 50 GB scratch).
 
 - path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/**
   class: data_root
@@ -510,7 +547,7 @@
 - path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
   class: container_image
   permitted_use: exec_only
-  allowed_tasks: [P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
+  allowed_tasks: [P0.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
   validator: sha256_recorded_in_runtime_smoke_job_metadata
   checksum_required: true
   large_artifact: true

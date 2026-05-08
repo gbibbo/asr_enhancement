@@ -14,10 +14,73 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5 (HELD per orchestrator instruction; APPROVE_PLAN(P1.3) on 7579602 does not advance the cursor)
+- state_transport.last_accepted_report_commit: d230971e8995484449095ae914b58c47c4d43b94 (advanced by APPROVE_EXECUTION(P1.3) on the P1.3 PARTIAL implementation commit; CHANGE_SCOPE(P1.4) accepted on the same commit and does not further advance the cursor)
 - state_transport.expected_next_task: P1.4
-- latest_approval_packet: APPROVE_PLAN(P1.3) on `7579602` (next P1.4)
-- prior_approval_packet: APPROVE_EXECUTION(P1.3-scope-change) on `7579602` (next P1.3)
+- latest_approval_packet: CHANGE_SCOPE(P1.4) on `d230971` (next P1.4)
+- prior_approval_packet: APPROVE_EXECUTION(P1.3) on `d230971` (next P1.4)
+- prior_approval_packet_00: APPROVE_PLAN(P1.3) on `7579602` (next P1.4)
+- prior_approval_packet_001: APPROVE_EXECUTION(P1.3-scope-change) on `7579602` (next P1.3)
+
+## P1.4 scope change (no implementation; reuse_policy + touch_policy amended)
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P1.4 phase=P1
+  decision=CHANGE_SCOPE
+  accepted_report_commit=`d230971e8995484449095ae914b58c47c4d43b94`
+  next_expected_task=P1.4.
+- Required fix: Authorize additive P1.4 degradation_v1 implementation,
+  Slurm job, runtime SIF exec, and scratch dataset writes.
+- `configs/robust_asr/reuse_policy_v1.yaml` amended:
+  - NEW override row for `libs/audio/degradations.py`
+    (class=existing_runtime_code, permitted_use=append_functions_only,
+    allowed_tasks=[P1.4], validator=tests/robust_asr/test_degradation_v1.py,
+    checksum_required=true, commit_allowed=true). Authorizes the five
+    Section 3 `sample_<family>` additions; preserves `apply_degradation`,
+    `DEGRADATION_FAMILIES`, and the `DEGRADATION_VERSION` value.
+  - `slurm/jobs/**` row: P1.4 added to `allowed_tasks`.
+  - `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif`
+    row: P1.4 added to `allowed_tasks` (exec_only).
+  - `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/**`
+    row: P1.4 added to `allowed_tasks` (read_only for source LibriSpeech audio).
+  - NEW override row for
+    `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/degradation_v1/**`
+    (class=data_root, permitted_use=read_write, allowed_tasks=[P1.4, P2.1, P3.1,
+    P4.1, P4.2, P4.3, P8.1], large_artifact, never committed). P1.4 audio outputs
+    land here under Section 5.8 budget (max 50 GB scratch).
+  - New sha256: `f0528f7d4d14638b3cfdc4ede17c25c347cd3b838e844399fdfaf36464d81757`,
+    last_amended_by=`P1.4_scope_change`.
+- `reports/robust_asr/touch_policy.md` P1.4 row REWRITTEN to authorize the
+  v3.4.7 P1.4 deliverables (`libs/audio/degradations.py` append-only narrow
+  patch, `configs/robust_asr/degradation_v1.yaml`,
+  `scripts/robust_asr/build_degradation_v1.py`,
+  `slurm/jobs/p1_4_build_degradation_v1.sh`,
+  `tests/robust_asr/test_degradation_v1.py`,
+  `artifacts/robust_asr/manifests/degradation_v1_*.parquet`,
+  `reports/robust_asr/degradation_v1_summary.md`,
+  `reports/robust_asr/task_reports/P1.4_degradation_v1.md`,
+  scope-change rows on policy files, three live trackers). External resources:
+  Slurm submit; Apptainer (exec) on the robust_asr SIF; LibriSpeech sources
+  (read-only); degradation_v1 scratch subtree (read_write).
+  New sha256: `ede82ac0889628c87eab523d9fbd238995f2b041272004a835931ca5fb501f66`,
+  last_amended_by=`P1.4_scope_change`.
+- Tracker mutations: `latest_approval_packet` replaced with the P1.4
+  CHANGE_SCOPE packet (prior P1.3 APPROVE_EXECUTION shifted to
+  `prior_approval_packet`; previous APPROVE_PLAN(P1.3) and
+  APPROVE_EXECUTION(P1.3-scope-change) shifted to `prior_approval_packet_00`
+  and `prior_approval_packet_001`); `artifacts.reuse_policy_config.sha256`
+  and `artifacts.touch_policy.sha256` updated; both `last_amended_by` set
+  to `P1.4_scope_change`.
+  `state_transport.last_accepted_report_commit` advanced
+  `b049f94 -> d230971` per the APPROVE_EXECUTION(P1.3) packet; CHANGE_SCOPE
+  does not further advance.
+- Held: `current_task=P1.4`, `last_completed_task=P1.3`,
+  `current_phase=P1`, `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`,
+  `claims_enabled.ood_real=false`, `phase_summary.P0=PASS`,
+  `orchestrator_approvals.P0=PHASE_APPROVE`.
+- P1.4 implementation NOT executed: no `degradations.py` patch, no
+  `degradation_v1.yaml`, no `build_degradation_v1.py`, no Slurm job, no
+  manifests, no test file, no pytest run, no Apptainer, no GPU, no external API.
+- Non-regression: `validate_report_shape.py` against the canonical
+  fixtures emitted `OK_REPORT_SHAPE`.
 
 ## P1.3 PARTIAL — public LibriSpeech manifests; OOD-real splits skipped
 

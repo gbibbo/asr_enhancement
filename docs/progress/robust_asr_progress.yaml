@@ -50,6 +50,26 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P1.4
+      phase: P1
+      decision: CHANGE_SCOPE
+      accepted_report_commit: d230971e8995484449095ae914b58c47c4d43b94
+      next_expected_task: P1.4
+      required_fix: "Authorize additive P1.4 degradation_v1 implementation, Slurm job, runtime SIF exec, and scratch dataset writes."
+      rationale: "P1.4 needs libs/audio/degradations.py append-only additions, Slurm execution, SIF exec, and scratch outputs, but current policy rows do not authorize these for P1.4."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P1.3
+      phase: P1
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: d230971e8995484449095ae914b58c47c4d43b94
+      next_expected_task: P1.4
+      required_fix: null
+      rationale: "P1.3 accepted as PARTIAL. LibriSpeech public manifests were built for lora_train, router_train, validation, and locked_test; all required LibriSpeech splits are non-empty and speaker-disjoint. BLOCKED_OOD_PUBLIC remains active and non-blocking; claims_enabled.ood_real=false."
+  prior_approval_packet_00:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.3
       phase: P1
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P1.4
       required_fix: null
       rationale: "P1.3 plan accepted on the scope-change commit; build LibriSpeech manifests and summary; OOD-real splits skipped with BLOCKED_OOD_PUBLIC; do not advance last_accepted_report_commit to the P1.3 implementation commit."
-  prior_approval_packet:
+  prior_approval_packet_001:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.3-scope-change
@@ -228,7 +248,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5
+  last_accepted_report_commit: d230971e8995484449095ae914b58c47c4d43b94
   expected_next_task: P1.4
   last_tracker_mismatch: null
 
@@ -308,14 +328,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: f0ec8dcbf4b3dd09cb76794150745e0f2ec5b6bd701d94c6a623f4dd8b21d4a5
+    sha256: ede82ac0889628c87eab523d9fbd238995f2b041272004a835931ca5fb501f66
     produced_by_task: P0.2
-    last_amended_by: P1.3_scope_change
+    last_amended_by: P1.4_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: c2999d597c1e35ecf1340e8dace4e3eaca0640a30fd2d802f1f26a34df853905
+    sha256: f0528f7d4d14638b3cfdc4ede17c25c347cd3b838e844399fdfaf36464d81757
     produced_by_task: P0.2
-    last_amended_by: P1.2_scope_change
+    last_amended_by: P1.4_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
