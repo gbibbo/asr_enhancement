@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P1
-current_task: P1.4
-last_completed_task: P1.3
+current_task: P1_GATE
+last_completed_task: P1.4
 
 blocked: false
 blocker: null
@@ -53,12 +53,22 @@ state_transport:
       scope: task
       task_id: P1.4
       phase: P1
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db
+      next_expected_task: P1_GATE
+      required_fix: null
+      rationale: "P1.4 passed. OK_DEGRADATION_V1 emitted, 0 BAD_OUTPUT, degradation_v1 manifests built for ID and OOD-param eval, scratch usage stayed under budget, tests and report-shape validation passed. BLOCKED_OOD_PUBLIC remains active and non-blocking."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P1.4
+      phase: P1
       decision: APPROVE_PLAN
       accepted_report_commit: 5c72769d1cdf6f7aa7e789a02c2f05aa69284341
       next_expected_task: P1_GATE
       required_fix: null
       rationale: "P1.4 plan accepted on the scope-change commit; implement libs/audio/degradations.py sample_<family> additions, configs/robust_asr/degradation_v1.yaml, scripts/robust_asr/build_degradation_v1.py, slurm/jobs/p1_4_build_degradation_v1.sh, tests/robust_asr/test_degradation_v1.py; degrade only librispeech_validation + librispeech_locked_test eval splits; do not advance last_accepted_report_commit to the P1.4 implementation commit."
-  prior_approval_packet:
+  prior_approval_packet_p1_4_scope:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.4-scope-change
@@ -268,8 +278,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: d230971e8995484449095ae914b58c47c4d43b94
-  expected_next_task: P1.4
+  last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db
+  expected_next_task: P1_GATE
   last_tracker_mismatch: null
 
 phase_summary:
@@ -1223,7 +1233,7 @@ tasks:
     unblock_condition: "BLOCKED_OOD_PUBLIC clears when Common Voice EN is populated (clips+TSV under existing root, no scope change) or TED-LIUM R3 / CHiME-6 dev is staged under a new root (CHANGE_SCOPE). At that point a P1.3 supplemental run extends ood_real_locked / common_voice_demo_reserved manifests; until then claims_enabled.ood_real stays false."
   P1.4:
     status: PASS
-    commit: null   # filled at commit; see latest_execution_report
+    commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db
     files_changed:
       - libs/audio/degradations.py                        # additive narrow patch
       - configs/robust_asr/degradation_v1.yaml

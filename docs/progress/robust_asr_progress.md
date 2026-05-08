@@ -7,19 +7,41 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P1 (Schema, manifests, degradations)
-- Current task: P1.4 (Degradation v1 generators and manifests)
-- Last completed: P1.3 (PARTIAL — public manifests, BLOCKED_OOD_PUBLIC held)
+- Current task: P1_GATE (P1 phase gate)
+- Last completed: P1.4 (PASS — degradation_v1 generators and manifests; OK_DEGRADATION_V1; 0 BAD_OUTPUT)
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: d230971e8995484449095ae914b58c47c4d43b94 (HELD per orchestrator instruction; APPROVE_EXECUTION(P1.4-scope-change) and APPROVE_PLAN(P1.4) accepted on 5c72769 do not advance the cursor; not advanced to the P1.4 implementation commit)
-- state_transport.expected_next_task: P1.4
-- latest_approval_packet: APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE)
-- prior_approval_packet: APPROVE_EXECUTION(P1.4-scope-change) on `5c72769` (next P1.4)
-- prior_approval_packet_p1_3: CHANGE_SCOPE(P1.4) on `d230971` (next P1.4)
-- prior_approval_packet_p1_3a: APPROVE_EXECUTION(P1.3) on `d230971` (next P1.4)
+- state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (advanced by APPROVE_EXECUTION(P1.4) on the P1.4 PASS implementation commit)
+- state_transport.expected_next_task: P1_GATE
+- latest_approval_packet: APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE)
+- prior_approval_packet: APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE)
+- prior_approval_packet_p1_4_scope: APPROVE_EXECUTION(P1.4-scope-change) on `5c72769` (next P1.4)
+
+## P1.4 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P1.4 phase=P1
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`49b4bdc122b9b9768b380ab9bb9c28bec49455db`
+  next_expected_task=P1_GATE.
+- Rationale: P1.4 passed. `OK_DEGRADATION_V1` emitted, 0 BAD_OUTPUT,
+  degradation_v1 manifests built for ID and OOD-param eval, scratch
+  usage stayed under budget, tests and report-shape validation passed.
+  `BLOCKED_OOD_PUBLIC` remains active and non-blocking.
+- Tracker: `current_phase=P1`, `current_task=P1_GATE`,
+  `last_completed_task=P1.4`, `markers=[BLOCKED_OOD_PUBLIC]` held,
+  `blocked=false` held, `claims_enabled.ood_real=false` held,
+  `degradation_version=degradation_v1` held,
+  `state_transport.last_accepted_report_commit` advanced
+  `d230971 -> 49b4bdc`,
+  `state_transport.expected_next_task=P1_GATE`,
+  `tasks.P1.4.next_task=P1_GATE`,
+  `tasks.P1.4.commit=49b4bdc122b9b9768b380ab9bb9c28bec49455db`.
+- P1 gate predicate (Section 8 P1) satisfiable: tasks[P1.1=PARTIAL accepted,
+  P1.2=PASS, P1.4=PASS] and tasks[P1.3=PARTIAL accepted]. Awaiting orchestrator
+  PHASE_APPROVE(P1) before P2.1 may begin.
 
 ## P1.4 PASS — degradation_v1 generators and manifests
 
