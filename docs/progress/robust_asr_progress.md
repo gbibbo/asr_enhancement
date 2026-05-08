@@ -7,8 +7,8 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P0 (Bootstrap and skeleton)
-- Current task: P0.5
-- Last completed: P0.4 (runtime contract skeleton PASS; OK_CONTRACT_SKELETON, all 19 assertions PASS, 20 unit tests passing)
+- Current task: P1.1
+- Last completed: P0.5 (model_card and router_card templates PASS; 30 and 24 TODO_FILLED_IN placeholders respectively)
 - Active markers: none
 - Blocked: false
 
@@ -18,7 +18,8 @@ Status: IN_PROGRESS
 - P0.1 PASS: Branch created, profile installed, tracker initialized
 - P0.2 PASS: Asset inventory, reuse policy, touch policy, validate_report_shape.py
 - P0.3 PASS: Runtime smoke (Slurm + Apptainer + 11 imports). Closed via P0.3-rerun-2 (job 2129641) against new SIF (sha256 8db5364c...) with env-isolated apptainer exec. Sub-tasks: P0.3-rebuild PASS (image build), P0.3-rerun HALTED (user-site shadowing), P0.3-rerun-2 PASS (env-isolation cleared shadowing).
-- P0.4 PASS: RP5 runtime contract skeleton — request/response fixtures + `libs/common/runtime_contract.py` schema + `scripts/robust_asr/validate_runtime_contract.py` (19 assertions) + 20 unit tests. Slurm CPU job 2129642 COMPLETED 0:0 in 5 s on aisurrey01 (env-isolated apptainer exec). `OK_CONTRACT_SKELETON` emitted; pytest 20/20 passing. `tracker.artifacts.runtime_contract_fixture.contract_skeleton_validation_passed = true`. `last_accepted_report_commit` left at `0b47b76e` per orchestrator instruction.
+- P0.4 PASS: RP5 runtime contract skeleton — request/response fixtures + `libs/common/runtime_contract.py` schema + `scripts/robust_asr/validate_runtime_contract.py` (19 assertions) + 20 unit tests. Slurm CPU job 2129642 COMPLETED 0:0 in 5 s on aisurrey01 (env-isolated apptainer exec). `OK_CONTRACT_SKELETON` emitted; pytest 20/20 passing. `tracker.artifacts.runtime_contract_fixture.contract_skeleton_validation_passed = true`. P0.4 acceptance commit: `40406fc31ad167500bf8ce317286f5c2b5eeb96f`.
+- P0.5 PASS: Model card and router card templates. `docs/reports/robust_asr/model_card_lora.md` (9 sections; 30 `TODO_FILLED_IN_<task_id>` placeholders, ≥ 10 required; sha256 `6f1a6ba8...`) and `docs/reports/robust_asr/router_card.md` (9 sections; 24 placeholders, ≥ 8 required; sha256 `bc5dd87d...`). No scope change, no compute. `validate_report_shape.py` still emits `OK_REPORT_SHAPE`. `current_task` advanced P0.5 → P1.1; `last_completed_task` P0.4 → P0.5. `state_transport.last_accepted_report_commit` advanced `0b47b76e` → `40406fc3` (P0.4 acceptance, per orchestrator instruction; not advanced to the P0.5 commit).
 
 ## Scope changes
 
@@ -116,9 +117,6 @@ Status: IN_PROGRESS
 
 ## Pending
 
-- P0.5: Model card and router card templates
-- P0 gate -> P1 (schema, manifests, degradations)
-- P0.5: Model card and router card templates
 - P0 gate → P1 (schema, manifests, degradations)
 - P1 → P2 (Whisper base baseline)
 - P3 (LoRA smoke, Decision A)

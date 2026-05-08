@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P0.4 (PASS — runtime contract skeleton; current_task -> P0.5)
+Updated by: P0.5 (PASS — model card and router card templates; current_task -> P1.1)
 Date: 2026-05-08
 
 ## Branch
@@ -12,20 +12,20 @@ pushed_to_origin: true
 ## Current state
 
 current_phase: P0
-current_task: P0.5
-last_completed_task: P0.4
+current_task: P1.1
+last_completed_task: P0.5
 blocked: false
 blocker: null
 active_markers: []
 
 ## Latest reports
 
-latest_execution_report: reports/robust_asr/task_reports/P0.4_runtime_contract.md
-latest_planning_report: null
+latest_execution_report: reports/robust_asr/task_reports/P0.5_card_templates.md
+latest_planning_report: reports/robust_asr/task_reports/P0.5_card_templates.md
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.4-scope-change decision=APPROVE_EXECUTION accepted_report_commit=22b685a (P0.4 scope-change paths authorized; runtime_contract.py, validator, tests, Slurm job)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P0.4 decision=CHANGE_SCOPE accepted_report_commit=0b47b76e (authorize libs/common/runtime_contract.py + validator/tests/Slurm-job touch_policy entries)
-last_accepted_report_commit: 0b47b76ee6fc90f8d5eb8c712991990f37b1b1c5
+latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.5 decision=APPROVE_PLAN accepted_report_commit=40406fc3 next_expected_task=P1.1 (templates only; no scope change; no compute)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.4 decision=APPROVE_EXECUTION accepted_report_commit=40406fc3 next_expected_task=P0.5 (P0.4 runtime contract skeleton PASS; OK_CONTRACT_SKELETON; 19/19 assertions; 20/20 pytest)
+last_accepted_report_commit: 40406fc31ad167500bf8ce317286f5c2b5eeb96f
 
 ## Key artifacts created in P0.2
 
@@ -188,14 +188,40 @@ last_accepted_report_commit: 0b47b76ee6fc90f8d5eb8c712991990f37b1b1c5
   (P0.3-rerun-2 acceptance; NOT advanced to P0.4 commit per
   orchestrator instruction).
 
+## P0.5 PASS (model card and router card templates)
+
+- Template-only task. No Slurm, no Apptainer, no GPU, no external API,
+  no scope change.
+- `docs/reports/robust_asr/model_card_lora.md`: 9 sections
+  (intended_use, training_data, hyperparameters, evaluation_data,
+  metrics, fairness_and_limitations, risks, license, contact);
+  30 `TODO_FILLED_IN_<task_id>` placeholders (≥ 10 required);
+  sha256 `6f1a6ba8194149271d9091f96b17fe79e81c201613003f7e78842e0343585104`.
+- `docs/reports/robust_asr/router_card.md`: 9 sections
+  (intended_use, inputs, decision_rule, training_data, evaluation,
+  fallbacks, risks, license, contact);
+  24 `TODO_FILLED_IN_<task_id>` placeholders (≥ 8 required);
+  sha256 `bc5dd87db91ac9371e05e838b56f32cb6dfa2a421ed0f3fbe91f99a7ff640bb4`.
+- `scripts/robust_asr/validate_report_shape.py` still emits `OK_REPORT_SHAPE`.
+- Tracker: `tasks.P0.5.status=PASS`; `current_task=P1.1`;
+  `last_completed_task=P0.5`; `markers=[]`; `blocked=false`.
+  `state_transport.last_accepted_report_commit` advanced from
+  `0b47b76e` to `40406fc31ad167500bf8ce317286f5c2b5eeb96f`
+  (P0.4 acceptance; not advanced to the P0.5 commit per orchestrator
+  instruction). `state_transport.expected_next_task=P0.5` (held until
+  orchestrator reviews the P0.5 Execution Report).
+
 ## Next expected Claude prompt
 
-Task: P0.5 Model card and router card templates
-Phase: P0
-Preconditions: P0.4 PASS (current_task == P0.5); markers=[].
-Mode: await ORCHESTRATOR_DECISION on P0.4 Execution Report; then PLANNING for P0.5.
+Task: P1.1 Data root inventory and dataset configs
+Phase: P1
+Preconditions: P0.5 PASS (current_task == P1.1); markers=[];
+P0 gate predicate evaluable (Section 8).
+Mode: await ORCHESTRATOR_DECISION on P0.5 Execution Report; then
+PLANNING for P1.1 (or for P0 phase-gate, if orchestrator opts to
+record the gate first).
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
-current_task=P0.5 and last_completed_task=P0.4, await orchestrator
-APPROVE_EXECUTION on the P0.4 report and APPROVE_PLAN for P0.5, then
-return a P0.5 Planning Report and stop.
+current_task=P1.1 and last_completed_task=P0.5, await orchestrator
+APPROVE_EXECUTION on the P0.5 report and APPROVE_PLAN for P1.1, then
+return a P1.1 Planning Report and stop.

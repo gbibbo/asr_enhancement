@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P0
-current_task: P0.5
-last_completed_task: P0.4
+current_task: P1.1
+last_completed_task: P0.5
 
 blocked: false
 blocker: null
@@ -44,11 +44,31 @@ session_log:
 
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
-  latest_planning_report: null
-  latest_execution_report: reports/robust_asr/task_reports/P0.4_runtime_contract.md
+  latest_planning_report: reports/robust_asr/task_reports/P0.5_card_templates.md
+  latest_execution_report: reports/robust_asr/task_reports/P0.5_card_templates.md
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P0.5
+      phase: null
+      decision: APPROVE_PLAN
+      accepted_report_commit: 40406fc31ad167500bf8ce317286f5c2b5eeb96f
+      next_expected_task: P1.1
+      required_fix: null
+      rationale: "P0.5 plan accepted; templates only, no scope change, no compute. accepted_report_commit references the P0.4 acceptance commit (40406fc) per orchestrator instruction."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P0.4
+      phase: null
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 40406fc31ad167500bf8ce317286f5c2b5eeb96f
+      next_expected_task: P0.5
+      required_fix: null
+      rationale: "P0.4 runtime contract skeleton PASS. OK_CONTRACT_SKELETON, all 19 assertions PASS, 20/20 pytest, current_task -> P0.5."
+  prior_approval_packet_2:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P0.4
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: "Authorize P0.4 runtime contract schema module, validator, tests, and optional Slurm contract smoke job."
       rationale: "P0.4 requires libs/common/runtime_contract.py, but current reuse policy classifies libs/common/** as read-only. P0.4 also needs explicit touch_policy authorization for validator and tests."
-  prior_approval_packet:
+  prior_approval_packet_3:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rerun-2
@@ -68,7 +88,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "P0.3 runtime smoke passed against the new env-isolated robust_asr image. BLOCKED_RUNTIME cleared. P0.4 is now the next tracker-derived task."
-  prior_approval_packet_2:
+  prior_approval_packet_4:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rerun-2
@@ -78,7 +98,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  prior_approval_packet_3:
+  prior_approval_packet_5:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P0.3-rerun-2-scope-change
@@ -88,7 +108,7 @@ state_transport:
       next_expected_task: P0.3
       required_fix: null
       rationale: "Env isolation edit (PYTHONNOUSERSITE=1 + clear PYTHONPATH/PYTHONUSERBASE + PIP_USER=0) accepted."
-  prior_approval_packet_4:
+  prior_approval_packet_6:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rebuild
@@ -98,8 +118,8 @@ state_transport:
       next_expected_task: P0.3
       required_fix: null
       rationale: Runtime image rebuild succeeded at the new authorized path. BLOCKED_RUNTIME remains active until the official P0.3 runtime smoke rerun exits 0.
-  last_accepted_report_commit: 0b47b76ee6fc90f8d5eb8c712991990f37b1b1c5
-  expected_next_task: P0.4
+  last_accepted_report_commit: 40406fc31ad167500bf8ce317286f5c2b5eeb96f
+  expected_next_task: P0.5
   last_tracker_mismatch: null
 
 phase_summary:
@@ -245,12 +265,16 @@ artifacts:
     pytest_tests_total: 20
   model_card_template:
     path: docs/reports/robust_asr/model_card_lora.md
-    sha256: null
+    sha256: 6f1a6ba8194149271d9091f96b17fe79e81c201613003f7e78842e0343585104
     produced_by_task: P0.5
+    placeholders_total: 30
+    placeholders_min_required: 10
   router_card_template:
     path: docs/reports/robust_asr/router_card.md
-    sha256: null
+    sha256: bc5dd87db91ac9371e05e838b56f32cb6dfa2a421ed0f3fbe91f99a7ff640bb4
     produced_by_task: P0.5
+    placeholders_total: 24
+    placeholders_min_required: 8
   manifest_summary:
     path: reports/robust_asr/manifest_summary.md
     sha256: null
@@ -674,7 +698,7 @@ tasks:
       host: aisurrey01.surrey.ac.uk
   P0.4:
     status: PASS
-    commit: null   # filled at commit time; see latest_execution_report
+    commit: 40406fc31ad167500bf8ce317286f5c2b5eeb96f
     files_changed:
       - artifacts/robust_asr/runtime_contract/rp5_request_fixture.json
       - artifacts/robust_asr/runtime_contract/rp5_response_fixture.json
@@ -732,3 +756,37 @@ tasks:
       max_rss_kib: 3872
       host: aisurrey01.surrey.ac.uk
       node_list: aisurrey01
+  P0.5:
+    status: PASS
+    commit: null   # filled at commit time; see latest_execution_report
+    files_changed:
+      - docs/reports/robust_asr/model_card_lora.md
+      - docs/reports/robust_asr/router_card.md
+      - reports/robust_asr/task_reports/P0.5_card_templates.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Write docs/reports/robust_asr/model_card_lora.md (9 sections, 30 TODO_FILLED_IN placeholders)"
+      - "Write docs/reports/robust_asr/router_card.md (9 sections, 24 TODO_FILLED_IN placeholders)"
+      - "grep -c TODO_FILLED_IN docs/reports/robust_asr/model_card_lora.md  # 30"
+      - "grep -c TODO_FILLED_IN docs/reports/robust_asr/router_card.md      # 24"
+      - "grep -E '^## ' on both cards (section header check)"
+      - "sha256sum docs/reports/robust_asr/model_card_lora.md docs/reports/robust_asr/router_card.md"
+      - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures  # OK_REPORT_SHAPE"
+      - "Write reports/robust_asr/task_reports/P0.5_card_templates.md"
+      - "Edit tracker yaml/md/state_capsule"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "model_card_lora.md placeholder count: 30 (>= 10 required)"
+      - "router_card.md placeholder count: 24 (>= 8 required)"
+      - "model card sections: intended_use, training_data, hyperparameters, evaluation_data, metrics, fairness_and_limitations, risks, license, contact (9/9)"
+      - "router card sections: intended_use, inputs, decision_rule, training_data, evaluation, fallbacks, risks, license, contact (9/9)"
+      - "model_card sha256: 6f1a6ba8194149271d9091f96b17fe79e81c201613003f7e78842e0343585104"
+      - "router_card sha256: bc5dd87db91ac9371e05e838b56f32cb6dfa2a421ed0f3fbe91f99a7ff640bb4"
+      - "OK_REPORT_SHAPE confirmed (no regression to state-packet shape validator)"
+      - "No scope change; no Slurm; no Apptainer; no GPU; no external API"
+      - "current_task advanced P0.5 -> P1.1; last_completed_task P0.4 -> P0.5"
+      - "state_transport.last_accepted_report_commit advanced 0b47b76e -> 40406fc3 (P0.4 acceptance)"
+    marker: null
+    next_task: P1.1
