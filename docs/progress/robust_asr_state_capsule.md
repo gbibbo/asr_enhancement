@@ -1,6 +1,10 @@
 # Robust ASR — State Capsule
 
-Updated by: P1.4 APPROVE_EXECUTION recorded — `current_task` advanced P1.4 -> P1_GATE; `last_completed_task` advanced P1.3 -> P1.4; `tasks.P1.4.next_task=P1_GATE`; `tasks.P1.4.commit=49b4bdc122b9b9768b380ab9bb9c28bec49455db`. `state_transport.last_accepted_report_commit` advanced `d230971 -> 49b4bdc`; `state_transport.expected_next_task=P1_GATE`. `latest_approval_packet`=APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE); `prior_approval_packet`=APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE); `prior_approval_packet_p1_4_scope`=APPROVE_EXECUTION(P1.4-scope-change) on `5c72769`. `markers=[BLOCKED_OOD_PUBLIC]` held; `blocked=false` held; `claims_enabled.ood_real=false` held; `degradation_version=degradation_v1` held; `normalization_version=normalization_v1` held; `metrics_version=metrics_v1` held. P1 gate predicate (Section 8 P1) satisfiable: tasks[P1.1=PARTIAL accepted, P1.2=PASS, P1.4=PASS] and tasks[P1.3=PARTIAL accepted]; awaiting orchestrator PHASE_APPROVE(P1) before P2.1 may begin. P1_GATE not yet executed.
+Updated by: P1 PHASE_APPROVE recorded — `current_phase` advanced P1 -> P2; `current_task` advanced P1_GATE -> P2.1; `last_completed_task=P1.4` held; `phase_summary.P1=PASS`; `orchestrator_approvals.P1=PHASE_APPROVE`. `state_transport.last_accepted_report_commit` STAYS `49b4bdc122b9b9768b380ab9bb9c28bec49455db` (PHASE_APPROVE accepted on the P1.4 PASS implementation commit; not advanced); `state_transport.expected_next_task=P2.1`. `latest_approval_packet`=PHASE_APPROVE(P1) on `49b4bdc` (next P2.1); `prior_approval_packet`=APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE); `prior_approval_packet_p1_4_plan`=APPROVE_PLAN(P1.4) on `5c72769`. P1 gate accepted as PASS_WITH_PREDICATE_NOTE: P1.1=PARTIAL and P1.3=PARTIAL only because OOD-real is unavailable; `BLOCKED_OOD_PUBLIC` active, non-blocking, `claims_enabled.ood_real=false`; P1.2=PASS, P1.4=PASS; required LibriSpeech manifests, eval schema, normalization, metrics, leakage tests, and degradation_v1 artifacts present; no MISSING_EVIDENCE, no PLAN_CONFLICT. Held: `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`, `claims_enabled.ood_real=false`, `claims_enabled.cloud_tradeoff=true`, `degradation_version=degradation_v1`, `normalization_version=normalization_v1`, `metrics_version=metrics_v1`. P2.1 not started; awaiting orchestrator APPROVE_PLAN(P2.1) before implementation.
+
+## Prior update — P1.4 APPROVE_EXECUTION
+
+P1.4 APPROVE_EXECUTION recorded — `current_task` advanced P1.4 -> P1_GATE; `last_completed_task` advanced P1.3 -> P1.4; `tasks.P1.4.next_task=P1_GATE`; `tasks.P1.4.commit=49b4bdc122b9b9768b380ab9bb9c28bec49455db`. `state_transport.last_accepted_report_commit` advanced `d230971 -> 49b4bdc`; `state_transport.expected_next_task=P1_GATE`. `latest_approval_packet`=APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE); `prior_approval_packet`=APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE); `prior_approval_packet_p1_4_scope`=APPROVE_EXECUTION(P1.4-scope-change) on `5c72769`. `markers=[BLOCKED_OOD_PUBLIC]` held; `blocked=false` held; `claims_enabled.ood_real=false` held; `degradation_version=degradation_v1` held; `normalization_version=normalization_v1` held; `metrics_version=metrics_v1` held. P1 gate predicate (Section 8 P1) satisfiable: tasks[P1.1=PARTIAL accepted, P1.2=PASS, P1.4=PASS] and tasks[P1.3=PARTIAL accepted]; awaiting orchestrator PHASE_APPROVE(P1) before P2.1 may begin. P1_GATE not yet executed.
 
 ## Prior update — P1.4 PASS
 
@@ -19,8 +23,8 @@ pushed_to_origin: true
 
 ## Current state
 
-current_phase: P1
-current_task: P1_GATE
+current_phase: P2
+current_task: P2.1
 last_completed_task: P1.4
 blocked: false
 blocker: null

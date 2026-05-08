@@ -6,19 +6,48 @@ Status: IN_PROGRESS
 
 ## Current state
 
-- Phase: P1 (Schema, manifests, degradations)
-- Current task: P1_GATE (P1 phase gate)
+- Phase: P2 (Whisper base baseline)
+- Current task: P2.1 (Whisper base CT2 INT8 evaluation)
 - Last completed: P1.4 (PASS — degradation_v1 generators and manifests; OK_DEGRADATION_V1; 0 BAD_OUTPUT)
+- Phase summary: P0=PASS, P1=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (advanced by APPROVE_EXECUTION(P1.4) on the P1.4 PASS implementation commit)
-- state_transport.expected_next_task: P1_GATE
-- latest_approval_packet: APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE)
-- prior_approval_packet: APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE)
-- prior_approval_packet_p1_4_scope: APPROVE_EXECUTION(P1.4-scope-change) on `5c72769` (next P1.4)
+- state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (held; PHASE_APPROVE(P1) accepted on the same commit and does not further advance the cursor)
+- state_transport.expected_next_task: P2.1
+- latest_approval_packet: PHASE_APPROVE(P1) on `49b4bdc` (next P2.1)
+- prior_approval_packet: APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE)
+- prior_approval_packet_p1_4_plan: APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE)
+
+## P1 phase gate (PHASE_APPROVE)
+
+- ORCHESTRATOR_DECISION: scope=phase phase=P1 decision=PHASE_APPROVE
+  accepted_report_commit=`49b4bdc122b9b9768b380ab9bb9c28bec49455db`
+  next_expected_task=P2.1.
+- Rationale: P1 phase gate accepted as PASS_WITH_PREDICATE_NOTE.
+  P1.1 and P1.3 are PARTIAL only because OOD-real is unavailable;
+  `BLOCKED_OOD_PUBLIC` is active, non-blocking, and
+  `claims_enabled.ood_real=false`. P1.2 and P1.4 are PASS. Required
+  LibriSpeech manifests, eval schema, normalization, metrics, leakage
+  tests, and degradation_v1 artifacts are present. No active blocking
+  markers (no MISSING_EVIDENCE, no PLAN_CONFLICT).
+- Tracker mutations: `phase_summary.P1=PASS`,
+  `orchestrator_approvals.P1=PHASE_APPROVE`,
+  `current_phase=P2`, `current_task=P2.1`,
+  `last_completed_task=P1.4` (held),
+  `state_transport.last_accepted_report_commit` STAYS `49b4bdc`
+  (PHASE_APPROVE accepted on the P1.4 PASS implementation commit;
+  not advanced),
+  `state_transport.expected_next_task=P2.1`.
+- Held: `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`,
+  `claims_enabled.ood_real=false`, `claims_enabled.cloud_tradeoff=true`,
+  `claims_enabled.positive_lora=pending`,
+  `claims_enabled.positive_system=pending`,
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1`.
 
 ## P1.4 APPROVE_EXECUTION recorded
 
