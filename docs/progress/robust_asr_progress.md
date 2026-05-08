@@ -14,12 +14,92 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: d230971e8995484449095ae914b58c47c4d43b94 (advanced by APPROVE_EXECUTION(P1.3) on the P1.3 PARTIAL implementation commit; CHANGE_SCOPE(P1.4) accepted on the same commit and does not further advance the cursor)
+- state_transport.last_accepted_report_commit: d230971e8995484449095ae914b58c47c4d43b94 (HELD per orchestrator instruction; APPROVE_EXECUTION(P1.4-scope-change) and APPROVE_PLAN(P1.4) accepted on 5c72769 do not advance the cursor; not advanced to the P1.4 implementation commit)
 - state_transport.expected_next_task: P1.4
-- latest_approval_packet: CHANGE_SCOPE(P1.4) on `d230971` (next P1.4)
-- prior_approval_packet: APPROVE_EXECUTION(P1.3) on `d230971` (next P1.4)
-- prior_approval_packet_00: APPROVE_PLAN(P1.3) on `7579602` (next P1.4)
-- prior_approval_packet_001: APPROVE_EXECUTION(P1.3-scope-change) on `7579602` (next P1.3)
+- latest_approval_packet: APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE)
+- prior_approval_packet: APPROVE_EXECUTION(P1.4-scope-change) on `5c72769` (next P1.4)
+- prior_approval_packet_p1_3: CHANGE_SCOPE(P1.4) on `d230971` (next P1.4)
+- prior_approval_packet_p1_3a: APPROVE_EXECUTION(P1.3) on `d230971` (next P1.4)
+
+## P1.4 PASS — degradation_v1 generators and manifests
+
+- ORCHESTRATOR_DECISIONs: APPROVE_EXECUTION(P1.4-scope-change) and
+  APPROVE_PLAN(P1.4), both on `accepted_report_commit=5c72769d1cdf6f7aa7e789a02c2f05aa69284341`.
+  APPROVE_EXECUTION(P1.4-scope-change) sets `next_expected_task=P1.4`;
+  APPROVE_PLAN(P1.4) sets `next_expected_task=P1_GATE`.
+- Deliverables (sha256 in tracker yaml `artifacts.*`):
+  - `libs/audio/degradations.py` — additive narrow patch: appended
+    `sample_clean`, `sample_cafe_noise`, `sample_phone_band`,
+    `sample_far_field_room`, `sample_muffled_lowpass` and a
+    `SAMPLE_FUNCTIONS` registry. Existing `apply_degradation`,
+    `DEGRADATION_FAMILIES`, `DEGRADATION_PARAMS`, and
+    `DEGRADATION_VERSION` value `"degradation_v1"` preserved.
+  - `configs/robust_asr/degradation_v1.yaml` — eval-only sources
+    (`librispeech_validation`, `librispeech_locked_test`); per-family
+    ID and OOD-param ranges (disjoint per family); master_seed=20260508;
+    50 GB scratch budget recorded.
+  - `scripts/robust_asr/build_degradation_v1.py` — §4.3 contract;
+    emits `OK_DEGRADATION_V1`; per-family success/skip/BAD_OUTPUT counts;
+    `INSUFFICIENT_SCRATCH` halt; idempotent resume per-row.
+  - `slurm/jobs/p1_4_build_degradation_v1.sh` — Apptainer SIF exec;
+    cpus=16 mem=16G time=06:00:00 partition=2080ti.
+  - `tests/robust_asr/test_degradation_v1.py` — 24 tests covering
+    metadata fields, RMS ≥ 1e-6, clipping_ratio < 0.5, source sha256
+    match, determinism, ID/OOD parameter disjointness, phone_band
+    bit_depth.
+  - `artifacts/robust_asr/manifests/degradation_v1_id_eval.parquet`
+    (26 615 rows; sha256 `cf0f0bce…`).
+  - `artifacts/robust_asr/manifests/degradation_v1_ood_param_eval.parquet`
+    (26 615 rows; sha256 `30684dc4…`).
+  - 10 per-family parquets (5 families × 2 tiers; 5 323 rows each;
+    sha256s in `degradation_v1_build_summary.json`).
+  - `artifacts/robust_asr/manifests/degradation_v1_build_summary.json`.
+  - `reports/robust_asr/degradation_v1_summary.md`.
+  - `reports/robust_asr/task_reports/P1.4_degradation_v1.md`.
+- Source data: 5 323 LibriSpeech eval rows (validation 2 703 +
+  locked_test 2 620). `lora_train` and `router_train` deliberately
+  excluded — training-time degradation is owned by P3.1 / P4.1.
+- Audio output: 42 584 `.wav` (8 wavs/source; clean is identity, no
+  audio rewritten) under
+  `/mnt/fast/nobackup/scratch4weeks/.../datasets/degradation_v1/<family>/<tier>/<audio_id>.wav`.
+  Never committed.
+- Verifications (Slurm + non-regression + report shape):
+  - Slurm job `2129647` COMPLETED `0:0` in 1 min 3 s on aisurrey01
+    (partition `2080ti`, MaxRSS 11 077 812 KiB). Sentinel
+    `OK_DEGRADATION_V1` with per-family/tier counts `5323/0`.
+  - `pytest -q tests/robust_asr/test_degradation_v1.py
+    tests/robust_asr/test_eval_schema.py
+    tests/robust_asr/test_normalization_metrics.py
+    tests/robust_asr/test_leakage.py
+    tests/robust_asr/test_runtime_contract_skeleton.py` →
+    85/85 PASS in 2.59 s.
+  - `validate_report_shape.py` → `OK_REPORT_SHAPE`, exit 0.
+- Section 5.8 budget: 50 GB scratch, 6 h/family wall-clock; actual
+  10.297 GB scratch used and ~9 s/family/tier. Safety margin ≥ 4×.
+- Section 9 P1.4 Decision rule 1 (BAD_OUTPUT > 1 % per family):
+  NOT FIRED. 0 / 53 230 BAD_OUTPUT across all 5 families × 2 tiers.
+- ID vs OOD-param disjointness verified (cafe_noise snr, far_field_room
+  rt60 + mic_distance, muffled_lowpass lowpass + attenuation,
+  phone_band bit_depth).
+- Prior attempt: Slurm job `2129646` FAILED `1:0` in 10 s due to
+  `pyarrow OverflowError: Python int too large to convert to C long`
+  on uint64 seeds. Fixed by masking the per-row seed to 63 bits
+  (`(1<<63)-1`) so it fits pyarrow `int64`. Determinism preserved
+  (SHA-256-derived 63-bit unsigned space, 9.2e18 distinct seeds).
+  No partial parquets were committed.
+- Tracker mutations: `tasks.P1.4.status=PASS`,
+  `tasks.P1.4.next_task=P1_GATE`, `tasks.P1.4.marker=BLOCKED_OOD_PUBLIC`;
+  `degradation_version=degradation_v1`; `current_task=P1.4` held;
+  `last_completed_task=P1.3` held;
+  `markers=[BLOCKED_OOD_PUBLIC]` held; `blocked=false` held;
+  `claims_enabled.ood_real=false` held;
+  `state_transport.last_accepted_report_commit` STAYS
+  `d230971e8995484449095ae914b58c47c4d43b94` per orchestrator
+  instruction (not advanced to the P1.4 implementation commit);
+  `state_transport.expected_next_task=P1.4` (held until orchestrator
+  reviews the P1.4 Execution Report).
+  `latest_approval_packet`=APPROVE_PLAN(P1.4) on `5c72769`;
+  `prior_approval_packet`=APPROVE_EXECUTION(P1.4-scope-change) on `5c72769`.
 
 ## P1.4 scope change (no implementation; reuse_policy + touch_policy amended)
 

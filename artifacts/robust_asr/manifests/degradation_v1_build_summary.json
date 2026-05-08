@@ -1,0 +1,121 @@
+{
+  "audio_root": "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/degradation_v1",
+  "degradation_version": "degradation_v1",
+  "families": {
+    "cafe_noise": {
+      "id": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 6.184,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_cafe_noise_id.parquet",
+        "per_family_sha256": "bae18ae26c06d873ca7dd84ce1029bd2a409bb859133986d9a14a9a4be3af778",
+        "rows": 5323
+      },
+      "ood_param": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 6.12,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_cafe_noise_ood_param.parquet",
+        "per_family_sha256": "b958b37ce1bbf620d800087da6fe3a503b34b4bdc0aebe2ab0500830958e402e",
+        "rows": 5323
+      }
+    },
+    "clean": {
+      "id": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 0.018,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_clean_id.parquet",
+        "per_family_sha256": "fde856ea663fcbd67ee9a593511cdd1a85153f4917162b0042db2bb45a64028e",
+        "rows": 5323
+      },
+      "ood_param": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 0.018,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_clean_ood_param.parquet",
+        "per_family_sha256": "dc8d4101993937588e5568e85f70bfd5366c0179e5a47cc5557eed79d1312950",
+        "rows": 5323
+      }
+    },
+    "far_field_room": {
+      "id": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 6.627,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_far_field_room_id.parquet",
+        "per_family_sha256": "ec1be39c6aea26f8dab58d941951066162cffb404491a9597f1237db972be354",
+        "rows": 5323
+      },
+      "ood_param": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 7.05,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_far_field_room_ood_param.parquet",
+        "per_family_sha256": "3ea8c734dce4cd902b4e47e3e6336b7b6f60927a861c133f4b9870f5d4e86892",
+        "rows": 5323
+      }
+    },
+    "muffled_lowpass": {
+      "id": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 5.085,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_muffled_lowpass_id.parquet",
+        "per_family_sha256": "742e25ab9a95a399c7e77ea1a81e8cc188da87488eaafbb9707df5788052d82a",
+        "rows": 5323
+      },
+      "ood_param": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 4.967,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_muffled_lowpass_ood_param.parquet",
+        "per_family_sha256": "5c6c4dc1ac0d9e0553045254dde9ae9aac47ebb802b4722c3e58ab9edac8bae9",
+        "rows": 5323
+      }
+    },
+    "phone_band": {
+      "id": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 8.249,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_phone_band_id.parquet",
+        "per_family_sha256": "b0e7cabe99c5a5843a05a2e25ab50f778822b247b29ad11a175134591c9d7f48",
+        "rows": 5323
+      },
+      "ood_param": {
+        "bad_output_count": 0,
+        "bad_output_ratio": 0.0,
+        "elapsed_s": 8.282,
+        "error_count": 0,
+        "per_family_path": "artifacts/robust_asr/manifests/degradation_v1_phone_band_ood_param.parquet",
+        "per_family_sha256": "218e5bf894aa5dff3de16879d6999e00d96750ab8f96ae72848f9a45762beab5",
+        "rows": 5323
+      }
+    }
+  },
+  "free_gb_post": 1754.074,
+  "free_gb_pre": 1764.371,
+  "id_eval_manifest": {
+    "path": "artifacts/robust_asr/manifests/degradation_v1_id_eval.parquet",
+    "rows": 26615,
+    "sha256": "cf0f0bce49cb0d2a813ce65ab764485ddc1cc7c5e5b9756f1668d0950a4d9a49"
+  },
+  "ood_param_eval_manifest": {
+    "path": "artifacts/robust_asr/manifests/degradation_v1_ood_param_eval.parquet",
+    "rows": 26615,
+    "sha256": "30684dc489bef980f02a2bc0c45cb4aa8bc8fc605e373de10dd97397b2308314"
+  },
+  "scratch_used_gb": 10.297,
+  "source_rows": 5323,
+  "wall_clock_s_total": 54.652
+}

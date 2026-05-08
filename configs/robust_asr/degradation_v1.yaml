@@ -1,0 +1,103 @@
+# Robust ASR — degradation_v1 configuration (P1.4)
+#
+# Plan:    docs/plans/robust_asr_agent_plan_v3_4_7.md  Section 3, Section 4.3, Section 5.8
+# Owner:   P1.4 (libs/audio/degradations.py sample_<family> + scripts/robust_asr/build_degradation_v1.py)
+# Note:    DEGRADATION_VERSION value is unchanged (additive patch); see libs/common/versions.py.
+
+degradation_version: degradation_v1
+
+# Source manifests (eval-only). lora_train and router_train are deliberately excluded;
+# training-time degradation is owned by P3.1 / P4.1.
+source_manifests:
+  - artifacts/robust_asr/manifests/librispeech_validation.parquet
+  - artifacts/robust_asr/manifests/librispeech_locked_test.parquet
+
+# Output roots.
+output_audio_root: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/degradation_v1
+output_manifest_root: artifacts/robust_asr/manifests
+
+# Section 5.8 budget (informational; build_degradation_v1.py enforces).
+scratch_budget_gb: 50
+required_scratch_gb_min: 20
+
+# Master seed; per-row seed = SHA-256(f"{DEGRADATION_VERSION}|{family}|{tier}|{audio_id}|{master_seed}")[0:8] big-endian.
+master_seed: 20260508
+
+families:
+  - clean
+  - cafe_noise
+  - phone_band
+  - far_field_room
+  - muffled_lowpass
+
+tiers:
+  - id
+  - ood_param
+
+# Per-family parameter ranges. ID = train-time distribution; OOD-param = held-out
+# (disjoint from ID per family) to evaluate generalization to unseen parameters.
+# clean has no parameters (identity).
+families_params:
+  clean:
+    id: {}
+    ood_param: {}
+
+  cafe_noise:
+    id:
+      snr_db_min: 10.0
+      snr_db_max: 25.0
+      bandpass_low_hz: 200.0
+      bandpass_high_hz: 4000.0
+      bandpass_order: 4
+    ood_param:
+      snr_db_min: 0.0
+      snr_db_max: 7.0
+      bandpass_low_hz: 200.0
+      bandpass_high_hz: 4000.0
+      bandpass_order: 4
+
+  phone_band:
+    id:
+      bandpass_low_hz: 300.0
+      bandpass_high_hz: 3400.0
+      bandpass_order: 6
+      target_sr_hz: 8000
+      bit_depth: 8
+    ood_param:
+      bandpass_low_hz: 400.0
+      bandpass_high_hz: 3000.0
+      bandpass_order: 6
+      target_sr_hz: 8000
+      bit_depth: 4
+
+  far_field_room:
+    id:
+      rt60_s_min: 0.20
+      rt60_s_max: 0.45
+      mic_distance_m_min: 1.0
+      mic_distance_m_max: 2.5
+    ood_param:
+      rt60_s_min: 0.55
+      rt60_s_max: 0.90
+      mic_distance_m_min: 3.0
+      mic_distance_m_max: 5.0
+
+  muffled_lowpass:
+    id:
+      lowpass_hz_min: 2500.0
+      lowpass_hz_max: 4000.0
+      attenuation_db_min: -9.0
+      attenuation_db_max: -3.0
+      lowpass_order: 4
+    ood_param:
+      lowpass_hz_min: 1200.0
+      lowpass_hz_max: 1800.0
+      attenuation_db_min: -15.0
+      attenuation_db_max: -10.0
+      lowpass_order: 4
+
+# Section 5.9 BAD_OUTPUT thresholds.
+bad_output:
+  rms_min: 1e-6
+  clipping_ratio_max: 0.5
+  per_family_fail_ratio_max: 0.01   # Section 9 P1.4 Decision rule 1
