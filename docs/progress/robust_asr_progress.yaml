@@ -50,15 +50,29 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
-      scope: task
-      task_id: P0.1
+      scope: scope_change
+      task_id: P0.3
       phase: null
-      decision: APPROVE_EXECUTION
-      accepted_report_commit: e80e0ce1c2ee84c96bec38712addb2c2de75c1a3
-      next_expected_task: P0.2
-      required_fix: null
-      rationale: "P0.1 execution and supplemental .gitignore evidence were accepted. The .gitignore change is scoped to allow artifacts/robust_asr while preserving generic artifacts ignores."
-  last_accepted_report_commit: e80e0ce1c2ee84c96bec38712addb2c2de75c1a3
+      decision: CHANGE_SCOPE
+      accepted_report_commit: null
+      next_expected_task: P0.3
+      required_fix: |
+        Edit configs/robust_asr/reuse_policy_v1.yaml:
+          1. Replace the Apptainer image row with class=container_image,
+             permitted_use=exec_only, allowed_tasks=[P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1],
+             validator=sha256_recorded_in_runtime_smoke_job_metadata,
+             checksum_required=true, large_artifact=true, commit_allowed=false.
+          2. Replace the slurm/jobs/** row with permitted_use=read_only_with_robust_asr_writes,
+             allowed_tasks=[P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1],
+             validator=file_basename_matches_p<task_id>_*.sh,
+             commit_allowed=true.
+        Update reports/robust_asr/touch_policy.md only if needed to stay consistent.
+        Update tracker artifact hashes for changed policy files.
+        Record this CHANGE_SCOPE packet in tracker.state_transport.latest_approval_packet.
+        Keep current_task=P0.3 and last_completed_task=P0.2.
+      rationale: >
+        P0.3 requires exec-only use of the Apptainer image, but reuse_policy_v1.yaml explicitly forbids it. The slurm/jobs/** row also has a field-vs-notes ambiguity for robust_asr p*.sh job scripts. Both policy rows must be made explicit before P0.3 can be planned for execution.
+  last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
   expected_next_task: P0.3
   last_tracker_mismatch: null
 
@@ -142,8 +156,9 @@ artifacts:
     produced_by_task: P0.2
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: d0c8842ff409b68242badc7f8a846f1901b5b252eaf34ae3caf9cbba08b255ac
+    sha256: 1ce19e07bf00ea1d2acea547fabeca6ac9efacb347b375803291f24d3ffe4cef
     produced_by_task: P0.2
+    last_amended_by: P0.3_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977

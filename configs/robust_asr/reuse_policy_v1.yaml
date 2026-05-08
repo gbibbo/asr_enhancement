@@ -329,13 +329,18 @@
 
 - path: slurm/jobs/**
   class: implementation_reuse
-  permitted_use: read_only
-  allowed_tasks: [P0.3]
-  validator: none
+  permitted_use: read_only_with_robust_asr_writes
+  allowed_tasks: [P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
+  validator: file_basename_matches_p<task_id>_*.sh
   checksum_required: false
   large_artifact: false
-  commit_allowed: false
-  notes: Prior Slurm job scripts; read for reference; robust_asr writes to slurm/jobs/p*.sh
+  commit_allowed: true
+  notes: >
+    Existing prior Slurm scripts (t*.sh, reserve_*.sh) are read-only for
+    reference. robust_asr tasks may create new scripts named
+    p<task_id>_*.sh (e.g. p0_3_runtime_smoke.sh) under slurm/jobs/,
+    scoped to the listed allowed_tasks. New robust_asr p*.sh files are
+    committable.
 
 - path: tests/**
   class: implementation_reuse
@@ -362,14 +367,19 @@
 # ---------------------------------------------------------------------------
 
 - path: /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif
-  class: no_touch
-  permitted_use: forbidden
-  allowed_tasks: []
-  validator: none
-  checksum_required: false
+  class: container_image
+  permitted_use: exec_only
+  allowed_tasks: [P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
+  validator: sha256_recorded_in_runtime_smoke_job_metadata
+  checksum_required: true
   large_artifact: true
   commit_allowed: false
-  notes: Apptainer container image; execute-only via apptainer exec; never modified
+  notes: >
+    Apptainer container image. May be executed via `apptainer exec`
+    from compute nodes (and probed via `sha256sum` / `stat` from
+    datamove1) by the listed tasks. Image bytes are never modified,
+    copied into the repo, or committed. Same task list as
+    slurm/tools/** (every task that submits a Slurm job).
 
 - path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/**
   class: data_root

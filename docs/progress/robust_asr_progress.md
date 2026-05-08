@@ -18,6 +18,14 @@ Status: IN_PROGRESS
 - P0.1 PASS: Branch created, profile installed, tracker initialized
 - P0.2 PASS: Asset inventory, reuse policy, touch policy, validate_report_shape.py
 
+## Scope changes
+
+- P0.3 CHANGE_SCOPE applied: amended `configs/robust_asr/reuse_policy_v1.yaml`
+  to authorize exec-only use of the Apptainer image (class=container_image,
+  permitted_use=exec_only) and to make `slurm/jobs/**` writable for
+  robust_asr `p<task_id>_*.sh` scripts (permitted_use=read_only_with_robust_asr_writes).
+  current_task remains P0.3; last_completed_task remains P0.2.
+
 ## Pending
 
 - P0.3: Runtime smoke (Slurm + Apptainer + imports)
