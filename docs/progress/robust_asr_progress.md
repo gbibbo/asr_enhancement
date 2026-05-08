@@ -7,17 +7,17 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P0 (Bootstrap and skeleton)
-- Current task: P0.3 (HALTED — must be rerun after image fix)
-- Last completed: P0.2 (asset inventory, reuse policy, touch policy, report shape validator)
-- Active markers: BLOCKED_RUNTIME
-- Blocked: true
-- Blocker: P0.3-rerun (job 2129640) against the new image FAILED — Python 3.11.15 OK and ctranslate2/faster_whisper/pytest/lightgbm now import, but transformers and peft fail with `tokenizers>=0.22 required, found 0.21.4`. Root cause: auto-bound `/mnt/fast/nobackup` exposes user-site packages from `/mnt/fast/nobackup/users/gb0048/.local/lib/python3.11/site-packages/` and `python_userbase/` that shadow the SIF's `/usr/local/lib/python3.11/dist-packages` (runtime sees torch 2.9.1+cu128 / transformers 4.50+ / numpy 2.3.5 instead of the SIF's pinned versions). Fix: add `--env PYTHONNOUSERSITE=1` (and clear PYTHONUSERBASE/PYTHONPATH) to apptainer exec in slurm/jobs/p0_3_runtime_smoke.sh — out of P0.3-rerun's single-line CONTAINER repoint scope; CHANGE_SCOPE required.
+- Current task: P0.4
+- Last completed: P0.3 (runtime smoke PASS via P0.3-rerun-2 against env-isolated apptainer exec; all 11 imports OK at SIF-pinned versions)
+- Active markers: none
+- Blocked: false
 
 ## Completed tasks
 
 - P0.0 PASS: Pre-bootstrap inventory (read-only, no commit)
 - P0.1 PASS: Branch created, profile installed, tracker initialized
 - P0.2 PASS: Asset inventory, reuse policy, touch policy, validate_report_shape.py
+- P0.3 PASS: Runtime smoke (Slurm + Apptainer + 11 imports). Closed via P0.3-rerun-2 (job 2129641) against new SIF (sha256 8db5364c...) with env-isolated apptainer exec. Sub-tasks: P0.3-rebuild PASS (image build), P0.3-rerun HALTED (user-site shadowing), P0.3-rerun-2 PASS (env-isolation cleared shadowing).
 
 ## Scope changes
 
@@ -88,8 +88,9 @@ Status: IN_PROGRESS
 
 ## Pending
 
-- P0.3-rerun-2: env-fix CHANGE_SCOPE (`--env PYTHONNOUSERSITE=1` + clear PYTHONUSERBASE/PYTHONPATH on apptainer exec) then re-run runtime smoke to clear BLOCKED_RUNTIME
-- P0.4: Runtime contract skeleton
+- P0.4: Runtime contract skeleton (request/response JSON + 19 assertions)
+- P0.5: Model card and router card templates
+- P0 gate -> P1 (schema, manifests, degradations)
 - P0.5: Model card and router card templates
 - P0 gate → P1 (schema, manifests, degradations)
 - P1 → P2 (Whisper base baseline)

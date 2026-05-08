@@ -3,11 +3,11 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P0
-current_task: P0.3
-last_completed_task: P0.2
+current_task: P0.4
+last_completed_task: P0.3
 
-blocked: true
-blocker: "BLOCKED_RUNTIME — P0.3-rerun (job 2129640) against new image (sha256 8db5364c...) FAILED: Python 3.11.15 OK and ctranslate2/faster_whisper/pytest/lightgbm now import, but transformers and peft fail with 'tokenizers>=0.22 required, found 0.21.4'. Root cause: auto-bound /mnt/fast/nobackup exposes user-site packages from /mnt/fast/nobackup/users/gb0048/.local/lib/python3.11/site-packages and python_userbase/ that shadow the SIF's /usr/local/lib/python3.11/dist-packages (runtime sees torch 2.9.1+cu128, transformers 4.50+, numpy 2.3.5 instead of the SIF's pinned torch 2.5.1+cu121, transformers 4.49.0, numpy 1.26.4). Fix requires `--env PYTHONNOUSERSITE=1` plus clearing PYTHONUSERBASE/PYTHONPATH on apptainer exec in slurm/jobs/p0_3_runtime_smoke.sh — out of P0.3-rerun's single-line CONTAINER repoint scope; requires CHANGE_SCOPE."
+blocked: false
+blocker: null
 
 lora_status: NOT_STARTED
 router_status: NOT_STARTED
@@ -27,7 +27,7 @@ product_baseline: whisper_base_ct2_int8
 artifact_root: artifacts/robust_asr
 handoff_root: artifacts/robust_asr/handoff
 
-markers: [BLOCKED_RUNTIME]
+markers: []
 
 claims_enabled:
   ood_real: true
@@ -50,14 +50,24 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
-      scope: scope_change
+      scope: task
       task_id: P0.3-rerun-2
       phase: null
-      decision: CHANGE_SCOPE
-      accepted_report_commit: 15f5232e204906f6524dfb32a46115afd916a020
+      decision: APPROVE_PLAN
+      accepted_report_commit: efed06e690255a1838741acc5ebd8ffb4f2c4599
+      next_expected_task: P0.4
+      required_fix: null
+      rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P0.3-rerun-2-scope-change
+      phase: null
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: efed06e690255a1838741acc5ebd8ffb4f2c4599
       next_expected_task: P0.3
-      required_fix: "Allow env-isolation edit in slurm/jobs/p0_3_runtime_smoke.sh to prevent host user-site packages from shadowing the Apptainer image."
-      rationale: "P0.3-rerun failed because host user-site Python packages shadowed the SIF packages. The image itself appears correct; rerun needs isolated Python env."
+      required_fix: null
+      rationale: "Env isolation edit (PYTHONNOUSERSITE=1 + clear PYTHONPATH/PYTHONUSERBASE + PIP_USER=0) accepted."
   prior_approval_packet:
     ORCHESTRATOR_DECISION:
       scope: task
@@ -68,8 +78,8 @@ state_transport:
       next_expected_task: P0.3
       required_fix: null
       rationale: Runtime image rebuild succeeded at the new authorized path. BLOCKED_RUNTIME remains active until the official P0.3 runtime smoke rerun exits 0.
-  last_accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
-  expected_next_task: P0.3
+  last_accepted_report_commit: efed06e690255a1838741acc5ebd8ffb4f2c4599
+  expected_next_task: P0.4
   last_tracker_mismatch: null
 
 phase_summary:
@@ -174,11 +184,10 @@ artifacts:
       - supplemental_evidence_report
   runtime_smoke_report:
     path: reports/robust_asr/runtime_smoke.md
-    sha256: 6facda278c807a1906c2417aabfb7b33c8ae306e8f141d990f4ec89269ebac5c
-    produced_by_task: P0.3-rerun
-    outcome: HALTED
-    marker: BLOCKED_RUNTIME
-    blocker_summary: "user-site shadowing on auto-bound /mnt/fast/nobackup; SIF correct but PYTHONNOUSERSITE not set"
+    sha256: 0b286c9b2acf13cdc87b9d0301bc5c5dd60c51ac4e122b216cf82fb5b037ee25
+    produced_by_task: P0.3-rerun-2
+    outcome: PASS
+    marker: null
   runtime_image_v1:
     path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
     sha256: 8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713
@@ -443,7 +452,7 @@ tasks:
     marker: null
     next_task: P0.3
   P0.3:
-    status: HALTED
+    status: PASS
     commit: null   # filled in tracker post-commit; see latest_execution_report
     files_changed:
       - slurm/jobs/p0_3_runtime_smoke.sh
@@ -480,9 +489,10 @@ tasks:
       - "Failed imports: ctranslate2, faster_whisper, pytest (FAIL: Decision rule 4)"
       - "Successful imports: torch 2.5.1+cu121, transformers 5.0.0.dev0, peft 0.18.1, librosa 0.11.0, numpy 1.26.0, pandas 2.3.3, pyarrow 23.0.0, yaml 6.0"
       - "Router fallback: lightgbm/xgboost missing; sklearn HistGradientBoostingRegressor available (informational, superseded by HALTED)"
-    marker: BLOCKED_RUNTIME
-    next_task: P0.3-rerun-2   # P0.3-rerun HALTED on user-site shadowing; env-fix CHANGE_SCOPE required
-    blocker: "BLOCKED_RUNTIME — Apptainer image provides Python 3.10.13 (Decision rule 2 requires 3.11) and ctranslate2/faster_whisper/pytest are not installed (Decision rule 4)."
+    marker: null
+    next_task: P0.4
+    blocker: null
+    closure_note: "Initial attempt (job 2129637) HALTED on legacy SIF (Python 3.10, missing imports). Closed PASS via P0.3-rerun-2 (job 2129641) against new SIF with env-isolated apptainer exec; all 11 imports OK, OK_RUNTIME_SMOKE emitted. See tasks['P0.3-rebuild'] (PASS), tasks['P0.3-rerun'] (HALTED historical), tasks['P0.3-rerun-2'] (PASS)."
     slurm:
       job_id: "2129637"
       job_name: robust_asr_p0_3_runtime_smoke
@@ -582,4 +592,52 @@ tasks:
       started_at_utc:   2026-05-08T03:12:45Z
       completed_at_utc: 2026-05-08T03:12:55Z
       elapsed_s: 10
+      host: aisurrey01.surrey.ac.uk
+  P0.3-rerun-2:
+    status: PASS
+    parent_task_id: P0.3
+    commit: null   # filled at commit; see latest_execution_report
+    files_changed:
+      - artifacts/robust_asr/runtime_smoke/runtime_smoke_job_metadata.json
+      - artifacts/robust_asr/runtime_smoke/stdout.txt
+      - artifacts/robust_asr/runtime_smoke/stderr.txt
+      - reports/robust_asr/runtime_smoke.md
+      - reports/robust_asr/task_reports/P0.3_runtime_smoke.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml: APPROVE_PLAN(P0.3-rerun-2) + APPROVE_EXECUTION(P0.3-rerun-2-scope-change); last_accepted_report_commit advanced 805cddf -> efed06e (env-isolation scope-change accepted); expected_next_task -> P0.4"
+      - "./slurm/tools/on_submit.sh sbatch /mnt/.../slurm/jobs/p0_3_runtime_smoke.sh   # job 2129641 (env-isolated)"
+      - "poll squeue (left queue within 30s)"
+      - "./slurm/tools/on_submit.sh sacct -j 2129641 -> COMPLETED 0:0 Elapsed=00:00:15"
+      - "Read p0_3_runtime_smoke_2129641.{out,err}; OK_RUNTIME_SMOKE confirmed"
+      - "mv slurm out/err to stdout.txt/stderr.txt"
+      - "Write runtime_smoke_job_metadata.json (PASS)"
+      - "Write reports/robust_asr/runtime_smoke.md (PASS)"
+      - "Write reports/robust_asr/task_reports/P0.3_runtime_smoke.md (PASS)"
+      - "Edit tracker (P0.3 PASS, blocked=false, markers=[], current_task=P0.4, last_completed_task=P0.3, BLOCKED_RUNTIME cleared)"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "Slurm job 2129641: COMPLETED 0:0 Elapsed=00:00:15 host=aisurrey01.surrey.ac.uk partition=2080ti MaxRSS=5020 KiB"
+      - "Container Python 3.11.15 (Decision rule 2 OK)"
+      - "All 11 imports OK at SIF-pinned versions: torch 2.5.1+cu121, transformers 4.49.0, peft 0.19.1, ctranslate2 4.7.1, faster_whisper 1.2.1, librosa 0.11.0, numpy 1.26.4, pandas 3.0.2, pyarrow 24.0.0, yaml 6.0.3, pytest 9.0.3"
+      - "router_pick=lightgbm; ROUTER_IMPL_FALLBACK_SKLEARN not active"
+      - "OK_RUNTIME_SMOKE sentinel emitted; exit_code=0"
+      - "Env isolation effective: PYTHONNOUSERSITE=1 + cleared PYTHONPATH/PYTHONUSERBASE + PIP_USER=0 prevented user-site shadowing"
+      - "Image sha256 8db5364c... matches tracker.artifacts.runtime_image_v1; SIF unmodified"
+      - "Legacy SIF /mnt/.../opro2/pytorch_2.1_cuda12.sif untouched (mtime preserved)"
+      - "BLOCKED_RUNTIME cleared; current_task advanced P0.3 -> P0.4"
+    marker: null
+    next_task: P0.4
+    slurm:
+      job_id: "2129641"
+      job_name: robust_asr_p0_3_runtime_smoke
+      partition: 2080ti
+      state: COMPLETED
+      exit_code: "0:0"
+      submitted_at_utc: 2026-05-08T02:30:57Z
+      started_at_utc:   2026-05-08T03:31:13Z
+      completed_at_utc: 2026-05-08T03:31:28Z
+      elapsed_s: 15
       host: aisurrey01.surrey.ac.uk

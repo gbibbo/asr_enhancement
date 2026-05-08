@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P0.3-rerun (HALTED — user-site shadowing; BLOCKED_RUNTIME persists; CHANGE_SCOPE required)
+Updated by: P0.3-rerun-2 (PASS — BLOCKED_RUNTIME cleared; current_task -> P0.4)
 Date: 2026-05-08
 
 ## Branch
@@ -12,20 +12,20 @@ pushed_to_origin: true
 ## Current state
 
 current_phase: P0
-current_task: P0.3            # HALTED, must be rerun after image fix
-last_completed_task: P0.2
-blocked: true
-blocker: BLOCKED_RUNTIME (Python 3.10.13 inside Apptainer image; ctranslate2/faster_whisper/pytest missing)
-active_markers: [BLOCKED_RUNTIME]
+current_task: P0.4
+last_completed_task: P0.3
+blocked: false
+blocker: null
+active_markers: []
 
 ## Latest reports
 
 latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
 latest_planning_report: null
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3-rerun decision=APPROVE_PLAN accepted_report_commit=805cddf (rebuild execution accepted; rerun plan approved; outcome HALTED on user-site shadowing)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3-rebuild decision=APPROVE_EXECUTION accepted_report_commit=805cddf (image build accepted)
-last_accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
+latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3-rerun-2 decision=APPROVE_PLAN accepted_report_commit=efed06e (env-isolation scope-change accepted; rerun-2 plan approved; outcome PASS, BLOCKED_RUNTIME cleared)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P0.3-rerun-2-scope-change decision=APPROVE_EXECUTION accepted_report_commit=efed06e (env-isolation edit accepted)
+last_accepted_report_commit: efed06e690255a1838741acc5ebd8ffb4f2c4599
 
 ## Key artifacts created in P0.2
 
@@ -53,7 +53,25 @@ last_accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
   expected_next_task remains P0.3.
 - P0.3 runtime smoke NOT executed; no Slurm submission.
 
-## P0.3-rerun HALTED (user-site shadowing; BLOCKED_RUNTIME persists)
+## P0.3 PASS (closed via P0.3-rerun-2; BLOCKED_RUNTIME cleared)
+
+- Slurm job 2129641 against new SIF with env-isolated apptainer exec:
+  COMPLETED 0:0 in 15 s on aisurrey01.
+- Container Python 3.11.15. All 11 imports OK at SIF-pinned versions:
+  torch 2.5.1+cu121, transformers 4.49.0, peft 0.19.1, ctranslate2 4.7.1,
+  faster_whisper 1.2.1, librosa 0.11.0, numpy 1.26.4, pandas 3.0.2,
+  pyarrow 24.0.0, yaml 6.0.3, pytest 9.0.3.
+- router_pick=lightgbm; ROUTER_IMPL_FALLBACK_SKLEARN not active.
+- OK_RUNTIME_SMOKE emitted; env_isolation in metadata.
+- Image sha256 8db5364c... matches tracker.artifacts.runtime_image_v1;
+  SIF unmodified; legacy SIF mtime preserved.
+- Tracker: tasks.P0.3.status=PASS; tasks['P0.3-rerun-2']=PASS;
+  blocked=false; markers=[]; current_task=P0.4;
+  last_completed_task=P0.3; expected_next_task=P0.4;
+  last_accepted_report_commit STAYS efed06e (env-isolation
+  scope-change acceptance; not advanced to rerun-2 commit).
+
+## P0.3-rerun HALTED (historical — user-site shadowing)
 
 - Slurm job 2129640 against new image: FAILED 1:0 in 10 s on aisurrey01.
 - Container Python 3.11.15 OK; ctranslate2/faster_whisper/pytest/lightgbm OK.
@@ -139,16 +157,11 @@ last_accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
 
 ## Next expected Claude prompt
 
-Task: P0.3-rerun-2 (env-fix CHANGE_SCOPE then re-rerun)
+Task: P0.4 Runtime contract skeleton
 Phase: P0
-Preconditions: tasks["P0.3-rerun"].status == HALTED with marker
-BLOCKED_RUNTIME; user-site shadowing diagnosis recorded;
-artifacts.runtime_image_v1 unchanged (sha256 8db5364c...).
-Mode: PLANNING (CHANGE_SCOPE proposal) then EXECUTION
+Preconditions: P0.3 PASS (current_task == P0.4); BLOCKED_RUNTIME cleared.
+Mode: PLANNING then EXECUTION
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
-current_task=P0.3 with BLOCKED_RUNTIME and the rerun-HALTED diagnosis,
-await orchestrator CHANGE_SCOPE Approval Packet authorizing additional
---env flags on apptainer exec, then plan and execute P0.3-rerun-2
-(re-edit slurm/jobs/p0_3_runtime_smoke.sh to add the env flags and
-re-submit; same image sha256 reused).
+current_task=P0.4 and last_completed_task=P0.3, await orchestrator
+APPROVE_PLAN for P0.4, then return a P0.4 Planning Report and stop.

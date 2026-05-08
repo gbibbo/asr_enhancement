@@ -1,3 +1,5 @@
 INFO:    Setting 'NVIDIA_VISIBLE_DEVICES=all' to emulate legacy GPU binding.
 INFO:    Setting --writable-tmpfs (required by nvidia-container-cli)
 WARNING: Not mounting current directory: user bind control is disabled by system administrator
+/usr/local/lib/python3.11/dist-packages/transformers/utils/hub.py:106: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
