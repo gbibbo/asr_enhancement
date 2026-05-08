@@ -50,14 +50,14 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
-      scope: task
-      task_id: P0.3-rerun
+      scope: scope_change
+      task_id: P0.3-rerun-2
       phase: null
-      decision: APPROVE_PLAN
-      accepted_report_commit: 805cddf7cab78d0ad4560dcf73092d3f8747e05e
-      next_expected_task: P0.4
-      required_fix: null
-      rationale: "P0.3-rebuild Execution Report accepted (commit 805cddf); the rerun plan is approved. Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun commit. (Outcome of rerun: HALTED on user-site shadowing; CHANGE_SCOPE required.)"
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 15f5232e204906f6524dfb32a46115afd916a020
+      next_expected_task: P0.3
+      required_fix: "Allow env-isolation edit in slurm/jobs/p0_3_runtime_smoke.sh to prevent host user-site packages from shadowing the Apptainer image."
+      rationale: "P0.3-rerun failed because host user-site Python packages shadowed the SIF packages. The image itself appears correct; rerun needs isolated Python env."
   prior_approval_packet:
     ORCHESTRATOR_DECISION:
       scope: task

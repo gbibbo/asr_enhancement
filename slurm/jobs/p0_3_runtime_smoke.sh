@@ -15,6 +15,10 @@ cd "$REPO"
 
 apptainer exec \
   --env ASR_REPO_ROOT="$REPO" \
+  --env PYTHONNOUSERSITE=1 \
+  --env PYTHONPATH= \
+  --env PYTHONUSERBASE= \
+  --env PIP_USER=0 \
   "$CONTAINER" \
   python3 - <<'PYEOF'
 import json, platform, socket, sys
