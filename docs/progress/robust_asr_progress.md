@@ -7,17 +7,83 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P1 (Schema, manifests, degradations)
-- Current task: P1.3 (public manifests for LoRA / router / validation / locked test / OOD / demo reserved)
-- Last completed: P1.2 (PASS — eval schema, normalization, metrics, leakage tests)
+- Current task: P1.4 (Degradation v1 generators and manifests)
+- Last completed: P1.3 (PARTIAL — public manifests, BLOCKED_OOD_PUBLIC held)
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5 (advanced from 8185501 by APPROVE_EXECUTION(P1.2) at commit b049f94; CHANGE_SCOPE(P1.3) recorded at the same accepted commit)
-- state_transport.expected_next_task: P1.3
-- latest_approval_packet: CHANGE_SCOPE(P1.3) on `b049f94…` (next P1.3)
-- prior_approval_packet: APPROVE_EXECUTION(P1.2) on `b049f94…` (next P1.3)
+- state_transport.last_accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5 (HELD per orchestrator instruction; APPROVE_PLAN(P1.3) on 7579602 does not advance the cursor)
+- state_transport.expected_next_task: P1.4
+- latest_approval_packet: APPROVE_PLAN(P1.3) on `7579602` (next P1.4)
+- prior_approval_packet: APPROVE_EXECUTION(P1.3-scope-change) on `7579602` (next P1.3)
+
+## P1.3 PARTIAL — public LibriSpeech manifests; OOD-real splits skipped
+
+- ORCHESTRATOR_DECISIONs recorded by P1.3:
+  - `APPROVE_EXECUTION(P1.3-scope-change)` on `accepted_report_commit=7579602`,
+    `next_expected_task=P1.3`. Rewritten touch_policy P1.3 row authorizing
+    `build_public_manifests.py`, `summarize_manifests.py`, manifest parquets,
+    summary, and task report is now binding.
+  - `APPROVE_PLAN(P1.3)` on `accepted_report_commit=7579602`,
+    `next_expected_task=P1.4`.
+- Deliverables (sha256 in tracker yaml `artifacts.*`):
+  - `scripts/robust_asr/build_public_manifests.py` — reads `data_v1.yaml`,
+    walks LibriSpeech subsets, hashes each `.flac`, probes duration with
+    `soundfile.info`, writes one parquet per `<dataset>_<split>` with
+    columns `{audio_id, source_dataset, source_subset, speaker_id,
+    chapter_id, utterance_id, audio_path_or_uri, audio_sha256,
+    duration_s, sample_rate, num_frames, split_label}`. Halts (exit 1)
+    only when a required LibriSpeech split has no resolvable rows.
+  - `scripts/robust_asr/summarize_manifests.py` — emits markdown summary
+    with per-manifest row count, duration, distinct speaker count,
+    parquet byte sha256, and OOD-real claim status.
+  - `artifacts/robust_asr/manifests/librispeech_{lora_train,router_train,validation,locked_test}.parquet`
+  - `reports/robust_asr/manifest_summary.md`
+  - `reports/robust_asr/task_reports/P1.3_manifest_summary.md`.
+- Manifest counts:
+  - `librispeech_lora_train.parquet`: 22 507 rows, 200 spk, 286 505.07 s
+    (79.5848 h), sha256 `7896175e…`.
+  - `librispeech_router_train.parquet`: 6 032 rows, 51 spk, 75 622.10 s
+    (21.0061 h), sha256 `c3d281ab…`.
+  - `librispeech_validation.parquet`: 2 703 rows, 40 spk, 19 396.12 s
+    (5.3878 h), sha256 `977a6f01…`.
+  - `librispeech_locked_test.parquet`: 2 620 rows, 40 spk, 19 452.48 s
+    (5.4035 h), sha256 `ad4f401e…`.
+  - Totals: 33 862 rows, 331 distinct speakers, 400 975.77 s (111.3822 h).
+  - Cross-check: lora_train + router_train = 28 539 = train-clean-100;
+    validation = 2 703 = dev-clean; locked_test = 2 620 = test-clean.
+- OOD-real / demo splits skipped (Decision rule 1 fired):
+  - `ood_real_locked`: `SKIPPED_OOD_PUBLIC_DEFERRED`
+    (`no_source_dataset_selected`).
+  - `common_voice_demo_reserved`: `SKIPPED_OOD_PUBLIC_DEFERRED`
+    (`root_absent_or_empty`; `present_on_host=false`,
+    `declared_speakers=0`).
+  - `marker=BLOCKED_OOD_PUBLIC` and `claims_enabled.ood_real=false`
+    held; no fallback admitted in P1.3 (plan §1 rule 5).
+- Verifications (host Python; no Slurm, no SIF, no GPU, no external API):
+  - `build_public_manifests.py` → `OK_PUBLIC_MANIFESTS`, exit 0,
+    wall-clock 10.151 s for 33 862 files (~7 GiB).
+  - `summarize_manifests.py` → `OK_MANIFEST_SUMMARY`, exit 0.
+  - `validate_report_shape.py` → `OK_REPORT_SHAPE`, exit 0.
+  - `check_speaker_disjoint.py --splits lora_train router_train
+    validation locked_test` → `OK_SPEAKER_DISJOINT` (non-trivial).
+  - `pytest -q test_runtime_contract_skeleton.py test_eval_schema.py
+    test_normalization_metrics.py test_leakage.py` → 61/61 PASS in 1.42 s.
+- Tracker mutations: `tasks.P1.3.status=PARTIAL`,
+  `tasks.P1.3.marker=BLOCKED_OOD_PUBLIC`, `tasks.P1.3.next_task=P1.4`,
+  `current_task=P1.4`, `last_completed_task=P1.3`,
+  `markers=[BLOCKED_OOD_PUBLIC]` held, `blocked=false` held,
+  `claims_enabled.ood_real=false` held,
+  `state_transport.last_accepted_report_commit` STAYS `b049f9494f9acf163d6b5799f1f6450eaeee36c5`
+  (per orchestrator instruction; NOT advanced to the P1.3
+  implementation commit), `state_transport.expected_next_task=P1.4`,
+  `latest_approval_packet=APPROVE_PLAN(P1.3)` on `7579602`,
+  `prior_approval_packet=APPROVE_EXECUTION(P1.3-scope-change)` on `7579602`.
+  `artifacts.manifest_summary`, `artifacts.build_public_manifests_script`,
+  `artifacts.summarize_manifests_script`, and a new
+  `artifacts.public_manifests` block populated.
 
 ## P1.3 CHANGE_SCOPE recorded
 

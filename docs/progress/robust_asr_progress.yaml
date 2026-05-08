@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P1
-current_task: P1.3
-last_completed_task: P1.2
+current_task: P1.4
+last_completed_task: P1.3
 
 blocked: false
 blocker: null
@@ -50,6 +50,26 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P1.3
+      phase: P1
+      decision: APPROVE_PLAN
+      accepted_report_commit: 7579602
+      next_expected_task: P1.4
+      required_fix: null
+      rationale: "P1.3 plan accepted on the scope-change commit; build LibriSpeech manifests and summary; OOD-real splits skipped with BLOCKED_OOD_PUBLIC; do not advance last_accepted_report_commit to the P1.3 implementation commit."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P1.3-scope-change
+      phase: P1
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 7579602
+      next_expected_task: P1.3
+      required_fix: null
+      rationale: "P1.3 scope-change accepted at commit 7579602; rewritten touch_policy P1.3 row authorizing build_public_manifests.py, summarize_manifests.py, and manifest parquets is now binding."
+  prior_approval_packet_0aa:
+    ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P1.3
       phase: P1
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P1.3
       required_fix: "Amend touch_policy P1.3 row to authorize build_public_manifests.py and summarize_manifests.py."
       rationale: "P1.3 requires new manifest build and summary scripts under scripts/robust_asr/**, but the current touch_policy P1.3 row omits those write paths."
-  prior_approval_packet:
+  prior_approval_packet_0ab:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.2
@@ -209,7 +229,7 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5
-  expected_next_task: P1.3
+  expected_next_task: P1.4
   last_tracker_mismatch: null
 
 phase_summary:
@@ -402,8 +422,55 @@ artifacts:
     produced_by_task: P1.2
   manifest_summary:
     path: reports/robust_asr/manifest_summary.md
-    sha256: null
+    sha256: 14c4a60261d9ee6f98e60c7fc63dd166567d58ea9a28843ed8c9b89e921a08ac
     produced_by_task: P1.3
+  build_public_manifests_script:
+    path: scripts/robust_asr/build_public_manifests.py
+    sha256: bd10c89095136cdaa33ca0775ed258daea27a5a896a36f6e7bdf640d3373fed9
+    produced_by_task: P1.3
+    last_emit: OK_PUBLIC_MANIFESTS
+  summarize_manifests_script:
+    path: scripts/robust_asr/summarize_manifests.py
+    sha256: 3203ec85df54eac6faeb49b10015b3ad85fe6a163031acc7828726d597617a27
+    produced_by_task: P1.3
+    last_emit: OK_MANIFEST_SUMMARY
+  public_manifests:
+    librispeech_lora_train:
+      path: artifacts/robust_asr/manifests/librispeech_lora_train.parquet
+      sha256: 7896175ecf9631ef949e504ecc3f442d342a44ae53f8f28ef5a34949f3484d4a
+      rows: 22507
+      speakers: 200
+      duration_s: 286505.07
+      produced_by_task: P1.3
+    librispeech_router_train:
+      path: artifacts/robust_asr/manifests/librispeech_router_train.parquet
+      sha256: c3d281ab0a53304b8a04753e9042bf3e62ea5e1957dc6ef1c524a2f2bac812fc
+      rows: 6032
+      speakers: 51
+      duration_s: 75622.10
+      produced_by_task: P1.3
+    librispeech_validation:
+      path: artifacts/robust_asr/manifests/librispeech_validation.parquet
+      sha256: 977a6f01d72171e9cfb9ce8aee71d4961a99d66397784225c71efbcf1d53733f
+      rows: 2703
+      speakers: 40
+      duration_s: 19396.12
+      produced_by_task: P1.3
+    librispeech_locked_test:
+      path: artifacts/robust_asr/manifests/librispeech_locked_test.parquet
+      sha256: ad4f401e06e3c840aaa5d34e5cae22d1cdbb1fb34c7ea671dde0f8a712661da8
+      rows: 2620
+      speakers: 40
+      duration_s: 19452.48
+      produced_by_task: P1.3
+    ood_real_locked:
+      status: SKIPPED_OOD_PUBLIC_DEFERRED
+      reason: no_source_dataset_selected
+      produced_by_task: P1.3
+    common_voice_demo_reserved:
+      status: SKIPPED_OOD_PUBLIC_DEFERRED
+      reason: root_absent_or_empty
+      produced_by_task: P1.3
   baseline_table:
     path: artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet
     sha256: null
@@ -1015,3 +1082,50 @@ tasks:
       - "state_transport.last_accepted_report_commit STAYS 587b7483 (per orchestrator instruction)"
     marker: null
     next_task: P1.3
+  P1.3:
+    status: PARTIAL
+    commit: null   # filled at commit; see latest_execution_report
+    files_changed:
+      - scripts/robust_asr/build_public_manifests.py
+      - scripts/robust_asr/summarize_manifests.py
+      - artifacts/robust_asr/manifests/librispeech_lora_train.parquet
+      - artifacts/robust_asr/manifests/librispeech_router_train.parquet
+      - artifacts/robust_asr/manifests/librispeech_validation.parquet
+      - artifacts/robust_asr/manifests/librispeech_locked_test.parquet
+      - reports/robust_asr/manifest_summary.md
+      - reports/robust_asr/task_reports/P1.3_manifest_summary.md
+      - reports/robust_asr/touch_policy.md   # via P1.3 scope-change commit 7579602
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml: APPROVE_EXECUTION(P1.3-scope-change) + APPROVE_PLAN(P1.3)"
+      - "Write scripts/robust_asr/build_public_manifests.py; chmod +x"
+      - "Write scripts/robust_asr/summarize_manifests.py; chmod +x"
+      - "python3 scripts/robust_asr/build_public_manifests.py --config configs/robust_asr/data_v1.yaml --out-root artifacts/robust_asr/manifests --workers 16  # OK_PUBLIC_MANIFESTS in 10.151s"
+      - "python3 scripts/robust_asr/summarize_manifests.py --manifest-root artifacts/robust_asr/manifests --out reports/robust_asr/manifest_summary.md --data-config configs/robust_asr/data_v1.yaml  # OK_MANIFEST_SUMMARY"
+      - "python3 -m pytest -q tests/robust_asr/test_runtime_contract_skeleton.py tests/robust_asr/test_eval_schema.py tests/robust_asr/test_normalization_metrics.py tests/robust_asr/test_leakage.py  # 61/61 PASS in 1.42s"
+      - "python3 scripts/robust_asr/validate_report_shape.py ...  # OK_REPORT_SHAPE"
+      - "python3 scripts/robust_asr/check_speaker_disjoint.py --config configs/robust_asr/data_v1.yaml --splits lora_train router_train validation locked_test  # OK_SPEAKER_DISJOINT"
+      - "Write reports/robust_asr/task_reports/P1.3_manifest_summary.md"
+      - "Edit tracker yaml/md/state_capsule (P1.3 PARTIAL; current_task -> P1.4; last_completed_task -> P1.3; last_accepted_report_commit STAYS b049f94)"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "OK_PUBLIC_MANIFESTS, OK_MANIFEST_SUMMARY, OK_REPORT_SHAPE, OK_SPEAKER_DISJOINT"
+      - "61/61 P0.4 + P1.2 pytest PASS in 1.42s (non-regression)"
+      - "librispeech_lora_train.parquet:   rows=22507 speakers=200 duration_s=286505.07 sha256=7896175ecf9631ef949e504ecc3f442d342a44ae53f8f28ef5a34949f3484d4a"
+      - "librispeech_router_train.parquet: rows=6032  speakers=51  duration_s=75622.10  sha256=c3d281ab0a53304b8a04753e9042bf3e62ea5e1957dc6ef1c524a2f2bac812fc"
+      - "librispeech_validation.parquet:   rows=2703  speakers=40  duration_s=19396.12  sha256=977a6f01d72171e9cfb9ce8aee71d4961a99d66397784225c71efbcf1d53733f"
+      - "librispeech_locked_test.parquet:  rows=2620  speakers=40  duration_s=19452.48  sha256=ad4f401e06e3c840aaa5d34e5cae22d1cdbb1fb34c7ea671dde0f8a712661da8"
+      - "Total LibriSpeech rows: 33862; total duration 400975.77s (111.3822h)"
+      - "Cross-check vs data_v1.yaml: lora_train+router_train=28539=train-clean-100; validation=2703=dev-clean; locked_test=2620=test-clean"
+      - "ood_real_locked: SKIPPED_OOD_PUBLIC_DEFERRED (no_source_dataset_selected); common_voice_demo_reserved: SKIPPED_OOD_PUBLIC_DEFERRED (root_absent_or_empty)"
+      - "Decision rule 1 fired: PARTIAL with BLOCKED_OOD_PUBLIC held; claims_enabled.ood_real=false held"
+      - "Decision rule 2 NOT fired: LibriSpeech splits all non-empty"
+      - "current_task advanced P1.3 -> P1.4; last_completed_task P1.2 -> P1.3"
+      - "state_transport.last_accepted_report_commit STAYS b049f94 (per orchestrator instruction; not advanced to the P1.3 implementation commit)"
+      - "No Slurm; no Apptainer; no GPU; no external API. Host Python 3.9.13, pyarrow 21.0.0, soundfile 0.13.1; manifest build wall-clock 10.151s for 33862 .flac files."
+    marker: BLOCKED_OOD_PUBLIC
+    next_task: P1.4
+    blocker: null
+    unblock_condition: "BLOCKED_OOD_PUBLIC clears when Common Voice EN is populated (clips+TSV under existing root, no scope change) or TED-LIUM R3 / CHiME-6 dev is staged under a new root (CHANGE_SCOPE). At that point a P1.3 supplemental run extends ood_real_locked / common_voice_demo_reserved manifests; until then claims_enabled.ood_real stays false."
