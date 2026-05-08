@@ -2,9 +2,9 @@ project: robust_asr_lora_router
 branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
-current_phase: P0
-current_task: P1.1
-last_completed_task: P0.5
+current_phase: P1
+current_task: P1.2
+last_completed_task: P1.1
 
 blocked: false
 blocker: null
@@ -53,12 +53,22 @@ state_transport:
       scope: task
       task_id: P1.1
       phase: P1
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234
+      next_expected_task: P1.2
+      required_fix: null
+      rationale: "P1.1 LibriSpeech inventory is now usable after operator restore. Required LibriSpeech splits are non-empty and speaker-disjoint. OOD-real remains unavailable, so PARTIAL with BLOCKED_OOD_PUBLIC and claims_enabled.ood_real=false is accepted."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P1.1
+      phase: P1
       decision: APPROVE_PLAN
       accepted_report_commit: e4a567707286ecbb367deb7d6a87eec97cca675d
       next_expected_task: P1.2
       required_fix: null
       rationale: "P1.1 plan accepted on the scope-change commit; execute inventory only; do not advance last_accepted_report_commit to the P1.1 commit."
-  prior_approval_packet:
+  prior_approval_packet_2:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.1-scope-change
@@ -68,7 +78,7 @@ state_transport:
       next_expected_task: P1.1
       required_fix: null
       rationale: "P1.1 scope-change accepted; reuse_policy_v1.yaml and touch_policy.md amended for P1.1 dataset inventory; current_task remains P1.1."
-  prior_approval_packet_2:
+  prior_approval_packet_3:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P1.1
@@ -78,7 +88,7 @@ state_transport:
       next_expected_task: P1.1
       required_fix: "Authorize read-only dataset root inventory for P1.1 and P1 downstream tasks, plus P1.1 write paths."
       rationale: "P1.1 must inventory dataset roots under sources/** and datasets/**. Current reuse policy either lacks the row or does not include P1.1."
-  prior_approval_packet_3:
+  prior_approval_packet_3b:
     ORCHESTRATOR_DECISION:
       scope: phase
       task_id: null
@@ -148,8 +158,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 3129c11edd5105d7c247b48eb1a170d7c1507cde
-  expected_next_task: P1.1
+  last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234
+  expected_next_task: P1.2
   last_tracker_mismatch: null
 
 phase_summary:
@@ -866,9 +876,9 @@ tasks:
       - "current_task=P1.1 held; last_completed_task=P0.5 held; blocked=false; markers=[BLOCKED_OOD_PUBLIC]"
       - "state_transport.last_accepted_report_commit STAYS 3129c11e (P0 phase-gate acceptance), per orchestrator instruction"
     marker: BLOCKED_OOD_PUBLIC
-    next_task: P1.1   # awaits APPROVE_EXECUTION to advance to P1.2
+    next_task: P1.2
     blocker: null
-    unblock_condition: "PARTIAL outcome accepted by APPROVE_EXECUTION(P1.1) advances current_task to P1.2. To clear BLOCKED_OOD_PUBLIC, populate Common Voice clips+TSV under the existing CV root (no scope change) or stage TED-LIUM R3 / CHiME-6 dev under a new root (CHANGE_SCOPE)."
+    unblock_condition: "APPROVE_EXECUTION(P1.1) recorded at 587b7483a6d37a24e0cf31549d449427c4708234; current_task advanced to P1.2. To clear BLOCKED_OOD_PUBLIC, populate Common Voice clips+TSV under the existing CV root (no scope change) or stage TED-LIUM R3 / CHiME-6 dev under a new root (CHANGE_SCOPE); OOD-real claims remain disabled until then."
     history:
       attempt_1:
         status: HALTED

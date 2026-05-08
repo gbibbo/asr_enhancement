@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P1.1 EXECUTION (rerun) (PARTIAL — BLOCKED_OOD_PUBLIC; current_task stays P1.1, last_completed_task stays P0.5, blocked=false, claims_enabled.ood_real=false)
+Updated by: APPROVE_EXECUTION(P1.1) recorded; current_task advanced P1.1 -> P1.2; last_completed_task P0.5 -> P1.1; current_phase P0 -> P1; markers=[BLOCKED_OOD_PUBLIC] held; claims_enabled.ood_real=false held; state_transport.last_accepted_report_commit advanced 3129c11e -> 587b7483
 Date: 2026-05-08
 
 ## Branch
@@ -11,9 +11,9 @@ pushed_to_origin: true
 
 ## Current state
 
-current_phase: P0
-current_task: P1.1
-last_completed_task: P0.5
+current_phase: P1
+current_task: P1.2
+last_completed_task: P1.1
 blocked: false
 blocker: null
 active_markers: [BLOCKED_OOD_PUBLIC]
@@ -24,9 +24,9 @@ claims_enabled.ood_real: false
 latest_execution_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
 latest_planning_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1 phase=P1 decision=APPROVE_PLAN accepted_report_commit=e4a56770 next_expected_task=P1.2 (P1.1 plan accepted on the scope-change commit; execute inventory only; do not advance last_accepted_report_commit to the P1.1 commit)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1-scope-change phase=P1 decision=APPROVE_EXECUTION accepted_report_commit=e4a56770 next_expected_task=P1.1 (scope-change accepted; current_task remains P1.1)
-last_accepted_report_commit: 3129c11edd5105d7c247b48eb1a170d7c1507cde
+latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1 phase=P1 decision=APPROVE_EXECUTION accepted_report_commit=587b7483 next_expected_task=P1.2 (LibriSpeech inventory usable after operator restore; required splits non-empty and speaker-disjoint; OOD-real unavailable, PARTIAL+BLOCKED_OOD_PUBLIC+claims_enabled.ood_real=false accepted)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1 phase=P1 decision=APPROVE_PLAN accepted_report_commit=e4a56770 next_expected_task=P1.2 (P1.1 plan accepted on the scope-change commit; execute inventory only)
+last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234
 
 ## Key artifacts created in P0.2
 
@@ -370,23 +370,37 @@ under the existing CV root or stage TED-LIUM R3 / CHiME-6 dev under a
 new root; either path requires a new CHANGE_SCOPE if a new host root is
 introduced.
 
+## P1.1 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P1.1 phase=P1
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`587b7483a6d37a24e0cf31549d449427c4708234`
+  next_expected_task=P1.2.
+- Rationale: LibriSpeech inventory usable after operator restore;
+  required splits non-empty and speaker-disjoint; OOD-real remains
+  unavailable so PARTIAL with `BLOCKED_OOD_PUBLIC` and
+  `claims_enabled.ood_real=false` accepted.
+- Tracker: `current_phase=P1`, `current_task=P1.2`,
+  `last_completed_task=P1.1`, `markers=[BLOCKED_OOD_PUBLIC]` held,
+  `blocked=false` held, `claims_enabled.ood_real=false` held,
+  `state_transport.last_accepted_report_commit` advanced
+  `3129c11e -> 587b7483`,
+  `state_transport.expected_next_task=P1.2`,
+  `tasks.P1.1.next_task=P1.2`.
+
 ## Next expected Claude prompt
 
-Task: P1.1 (PARTIAL — BLOCKED_OOD_PUBLIC) — awaiting
-       APPROVE_EXECUTION(P1.1) to finalize the PARTIAL outcome and
-       advance current_task to P1.2; or a directive to populate an
-       OOD-real source and rerun P1.1 a third time.
+Task: P1.2 — Canonical eval schema, normalization, leakage tests.
 Phase: P1
-Preconditions: P0 PHASE_APPROVE recorded; P1.1 CHANGE_SCOPE recorded;
-P1.1-scope-change APPROVE_EXECUTION recorded; P1.1 APPROVE_PLAN
-recorded; current_task == P1.1; last_completed_task == P0.5;
+Preconditions: P0 PHASE_APPROVE; P1.1 PARTIAL APPROVE_EXECUTION;
+current_task == P1.2; last_completed_task == P1.1;
 markers=[BLOCKED_OOD_PUBLIC]; blocked=false;
 claims_enabled.ood_real=false.
-Mode: await orchestrator instruction (APPROVE_EXECUTION(P1.1) or
-OOD-real restore + rerun).
+Mode: await ORCHESTRATOR_DECISION APPROVE_PLAN for P1.2, then return a
+P1.2 Planning Report and stop.
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
-current_task=P1.1 (PARTIAL), markers=[BLOCKED_OOD_PUBLIC],
-blocked=false, claims_enabled.ood_real=false,
-state_transport.last_accepted_report_commit=3129c11e (unchanged),
-then await orchestrator instruction.
+current_task=P1.2, last_completed_task=P1.1, current_phase=P1,
+markers=[BLOCKED_OOD_PUBLIC], blocked=false,
+state_transport.last_accepted_report_commit=587b7483 (advanced),
+then await APPROVE_PLAN(P1.2).

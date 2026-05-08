@@ -6,12 +6,30 @@ Status: IN_PROGRESS
 
 ## Current state
 
-- Phase: P0 (Bootstrap and skeleton) — PHASE_APPROVED; P1 not yet entered
-- Current task: P1.1 (PARTIAL — BLOCKED_OOD_PUBLIC; awaiting APPROVE_EXECUTION)
-- Last completed: P0.5 (model_card and router_card templates PASS; 30 and 24 TODO_FILLED_IN placeholders respectively)
+- Phase: P1 (Schema, manifests, degradations) — entered after APPROVE_EXECUTION(P1.1)
+- Current task: P1.2 (canonical eval schema, normalization, leakage tests)
+- Last completed: P1.1 (PARTIAL — BLOCKED_OOD_PUBLIC accepted; LibriSpeech inventory usable)
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
+- state_transport.last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234
+- state_transport.expected_next_task: P1.2
+
+## P1.1 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P1.1 phase=P1 decision=APPROVE_EXECUTION
+  accepted_report_commit=`587b7483a6d37a24e0cf31549d449427c4708234`
+  next_expected_task=P1.2.
+- Rationale: LibriSpeech inventory usable after operator restore;
+  required splits non-empty and speaker-disjoint; OOD-real remains
+  unavailable so PARTIAL with `BLOCKED_OOD_PUBLIC` and
+  `claims_enabled.ood_real=false` is accepted.
+- Tracker: `current_phase=P1`, `current_task=P1.2`,
+  `last_completed_task=P1.1`, `markers=[BLOCKED_OOD_PUBLIC]` held,
+  `blocked=false` held, `claims_enabled.ood_real=false` held,
+  `state_transport.last_accepted_report_commit` advanced
+  `3129c11e -> 587b7483`, `state_transport.expected_next_task=P1.2`.
+- `tasks.P1.1.next_task` set to `P1.2`. P1.2 not started.
 
 ## P0 phase gate
 
