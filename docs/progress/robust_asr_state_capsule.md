@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P0 phase gate (PHASE_APPROVE recorded; current_task=P1.1, last_completed_task=P0.5)
+Updated by: P1.1 CHANGE_SCOPE (scope-change only; no inventory; current_task stays P1.1, last_completed_task stays P0.5)
 Date: 2026-05-08
 
 ## Branch
@@ -23,9 +23,9 @@ active_markers: []
 latest_execution_report: reports/robust_asr/task_reports/P0.5_card_templates.md
 latest_planning_report: reports/robust_asr/task_reports/P0.5_card_templates.md
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=phase phase=P0 decision=PHASE_APPROVE accepted_report_commit=d0ba20c5 next_expected_task=P1.1 (P0 gate PASS; P0.0..P0.5 PASS; sentinels and artifacts present; no blockers/markers)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.5 decision=APPROVE_EXECUTION accepted_report_commit=d0ba20c5 next_expected_task=P0_GATE (P0.5 PASS; OK_CARD_TEMPLATES; 30/24 placeholders; sections 9/9)
-last_accepted_report_commit: d0ba20c532477a94f359b55c03dc6c835529c1fa
+latest_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P1.1 phase=P1 decision=CHANGE_SCOPE accepted_report_commit=3129c11e next_expected_task=P1.1 (authorize read-only dataset root inventory for P1.1 and P1 downstream tasks plus P1.1 write paths)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=phase phase=P0 decision=PHASE_APPROVE accepted_report_commit=d0ba20c5 next_expected_task=P1.1 (P0 gate PASS; P0.0..P0.5 PASS; sentinels and artifacts present; no blockers/markers)
+last_accepted_report_commit: 3129c11edd5105d7c247b48eb1a170d7c1507cde
 
 ## Key artifacts created in P0.2
 
@@ -230,16 +230,54 @@ last_accepted_report_commit: d0ba20c532477a94f359b55c03dc6c835529c1fa
 - Held: `current_task=P1.1`, `last_completed_task=P0.5`,
   `blocked=false`, `markers=[]`.
 
+## P1.1 scope change (no inventory; read-only authorization for dataset roots)
+
+- configs/robust_asr/reuse_policy_v1.yaml amended:
+  - Existing data_root row /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/**:
+    P1.1 added to allowed_tasks
+    (now [P1.1, P1.2, P1.3, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]).
+  - NEW data_root row /mnt/fast/nobackup/scratch4weeks/gb0048/sources/**:
+    permitted_use=read_only, allowed_tasks=[P1.1, P1.2, P1.3, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1],
+    validator=none, checksum_required=false, large_artifact=true,
+    commit_allowed=false. Authorizes inventory of LibriSpeech, Common
+    Voice, TED-LIUM, CHiME public dataset source roots on host.
+- reports/robust_asr/touch_policy.md P1.1 row rewritten to authorize:
+  configs/robust_asr/data_v1.yaml, reports/robust_asr/data_inventory.md,
+  reports/robust_asr/task_reports/P1.1_data_inventory.md,
+  scripts/robust_asr/check_speaker_disjoint.py, scope-change rows on
+  reuse_policy_v1.yaml/touch_policy.md, the three live trackers.
+  Read-only inventory authorized on …/sources/** and
+  …/asr_enhancement_training/datasets/**.
+- Tracker mutations:
+  - latest_approval_packet replaced with the P1.1 CHANGE_SCOPE packet
+    (prior P0 PHASE_APPROVE packet shifted to prior_approval_packet).
+  - artifacts.reuse_policy_config.sha256 →
+    16f2b5f682055f6863e5e68a396dded32e6b8346af08efb2243d147b2664f406,
+    last_amended_by=P1.1_scope_change.
+  - artifacts.touch_policy.sha256 →
+    7a0b85d6257d03d3ca322160c0080d2c6c91f5a90222114d3ad768af324ff16c,
+    last_amended_by=P1.1_scope_change.
+  - state_transport.last_accepted_report_commit STAYS
+    3129c11edd5105d7c247b48eb1a170d7c1507cde (P0 phase-gate acceptance).
+  - state_transport.expected_next_task STAYS P1.1.
+- Held: current_task=P1.1, last_completed_task=P0.5, blocked=false,
+  markers=[], project_status=IN_PROGRESS, phase_summary.P0=PASS,
+  orchestrator_approvals.P0=PHASE_APPROVE.
+- P1.1 inventory NOT executed; no data_v1.yaml authored; no
+  data_inventory.md authored; no Slurm; no Apptainer; no GPU; no
+  external API.
+
 ## Next expected Claude prompt
 
 Task: P1.1 Data root inventory and dataset configs
 Phase: P1
-Preconditions: P0 PHASE_APPROVE recorded; current_task == P1.1;
-last_completed_task == P0.5; markers=[]; blocked=false.
+Preconditions: P0 PHASE_APPROVE recorded; P1.1 CHANGE_SCOPE recorded;
+current_task == P1.1; last_completed_task == P0.5; markers=[]; blocked=false.
 Mode: await ORCHESTRATOR_DECISION APPROVE_PLAN for P1.1, then return
-a P1.1 Planning Report and stop.
+a P1.1 Planning Report (already produced once before scope-change) or
+proceed to P1.1 execution per orchestrator instruction.
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
 current_task=P1.1, last_completed_task=P0.5, phase_summary.P0=PASS,
-orchestrator_approvals.P0=PHASE_APPROVE, then await
-APPROVE_PLAN(P1.1).
+orchestrator_approvals.P0=PHASE_APPROVE, latest_approval_packet =
+CHANGE_SCOPE(P1.1), then await APPROVE_PLAN(P1.1) or APPROVE_EXECUTION(P1.1).

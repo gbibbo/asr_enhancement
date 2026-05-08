@@ -39,6 +39,34 @@ Status: IN_PROGRESS
 
 ## Scope changes
 
+- P1.1 CHANGE_SCOPE applied: amended `configs/robust_asr/reuse_policy_v1.yaml`
+  to (a) add `P1.1` to `allowed_tasks` of the existing `data_root` row
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/**`
+  and (b) add a new `data_root` row
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/**`
+  (`permitted_use=read_only`, `allowed_tasks=[P1.1, P1.2, P1.3, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]`,
+  `validator=none`, `checksum_required=false`, `large_artifact=true`,
+  `commit_allowed=false`). `reports/robust_asr/touch_policy.md` P1.1 row
+  rewritten to authorize the actual P1.1 write paths
+  (`configs/robust_asr/data_v1.yaml`, `reports/robust_asr/data_inventory.md`,
+  `reports/robust_asr/task_reports/P1.1_data_inventory.md`,
+  `scripts/robust_asr/check_speaker_disjoint.py`, scope-change rows on
+  `reuse_policy_v1.yaml`/`touch_policy.md`, the three live trackers) and
+  to record the read-only inventory authorization on
+  `…/sources/**` and `…/asr_enhancement_training/datasets/**`. Tracker:
+  `latest_approval_packet` set to the P1.1 CHANGE_SCOPE packet (prior
+  P0 PHASE_APPROVE shifted to `prior_approval_packet`);
+  `artifacts.reuse_policy_config.sha256` →
+  `16f2b5f682055f6863e5e68a396dded32e6b8346af08efb2243d147b2664f406`,
+  `last_amended_by=P1.1_scope_change`;
+  `artifacts.touch_policy.sha256` →
+  `7a0b85d6257d03d3ca322160c0080d2c6c91f5a90222114d3ad768af324ff16c`,
+  `last_amended_by=P1.1_scope_change`. `current_task` stays `P1.1`,
+  `last_completed_task` stays `P0.5`, `blocked=false`, `markers=[]`,
+  `state_transport.last_accepted_report_commit` stays
+  `3129c11edd5105d7c247b48eb1a170d7c1507cde`. P1.1 inventory not
+  executed; no Slurm; no Apptainer; no GPU.
+
 - P0.3 CHANGE_SCOPE applied: amended `configs/robust_asr/reuse_policy_v1.yaml`
   to authorize exec-only use of the Apptainer image (class=container_image,
   permitted_use=exec_only) and to make `slurm/jobs/**` writable for

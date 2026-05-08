@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P1.1
+      phase: P1
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 3129c11edd5105d7c247b48eb1a170d7c1507cde
+      next_expected_task: P1.1
+      required_fix: "Authorize read-only dataset root inventory for P1.1 and P1 downstream tasks, plus P1.1 write paths."
+      rationale: "P1.1 must inventory dataset roots under sources/** and datasets/**. Current reuse policy either lacks the row or does not include P1.1."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
       scope: phase
       task_id: null
       phase: P0
@@ -58,7 +68,7 @@ state_transport:
       next_expected_task: P1.1
       required_fix: null
       rationale: "P0 phase gate PASS. P0.0 through P0.5 are PASS; required artifacts and sentinels are present; runtime smoke and contract skeleton passed; model/router card placeholder counts exceed minima; no blockers or active markers."
-  prior_approval_packet:
+  prior_approval_packet_prev:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.5
@@ -118,7 +128,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: d0ba20c532477a94f359b55c03dc6c835529c1fa
+  last_accepted_report_commit: 3129c11edd5105d7c247b48eb1a170d7c1507cde
   expected_next_task: P1.1
   last_tracker_mismatch: null
 
@@ -198,14 +208,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 02007645e2b9eb411d4831f1e29e2e02c32baeb045d4acc7fcdf9dea8dcbbaa1
+    sha256: 7a0b85d6257d03d3ca322160c0080d2c6c91f5a90222114d3ad768af324ff16c
     produced_by_task: P0.2
-    last_amended_by: P0.4_scope_change
+    last_amended_by: P1.1_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: e1e6c7c4f055a4b950ebe6415f474374c72632d5ba8ce1e5b79d9c351004145c
+    sha256: 16f2b5f682055f6863e5e68a396dded32e6b8346af08efb2243d147b2664f406
     produced_by_task: P0.2
-    last_amended_by: P0.4_scope_change
+    last_amended_by: P1.1_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977

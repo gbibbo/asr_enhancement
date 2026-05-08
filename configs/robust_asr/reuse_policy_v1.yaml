@@ -396,12 +396,24 @@
 - path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/**
   class: data_root
   permitted_use: read_only
-  allowed_tasks: [P1.2, P1.3, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]
+  allowed_tasks: [P1.1, P1.2, P1.3, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]
   validator: none
   checksum_required: false
   large_artifact: true
   commit_allowed: false
-  notes: Librispeech manifests and audio; read-only for eval and training; never committed
+  notes: Librispeech manifests and audio; read-only for eval and training; never committed.
+         P1.1 added by scope-change for dataset root inventory (read-only ls/stat/find).
+
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/**
+  class: data_root
+  permitted_use: read_only
+  allowed_tasks: [P1.1, P1.2, P1.3, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Public dataset source roots for LibriSpeech, Common Voice, TED-LIUM, CHiME and related
+         inventory/build tasks. Read-only. Never committed. Added by P1.1 scope-change.
 
 - path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/**
   class: no_touch
