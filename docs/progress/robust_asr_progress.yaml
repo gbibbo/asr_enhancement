@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P1.2
+      phase: P1
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 1ecbaa447e380d5ed3637e80b679bcc83ae77c17
+      next_expected_task: P1.2
+      required_fix: "Authorize P1.2 writes under libs/common/** and update stale touch_policy P1.2 row from old manifests scope to eval schema / normalization / metrics / leakage tests."
+      rationale: "P1.2 requires libs/common/eval_schema.yaml, normalization.py, metrics.py, and versions.py update, but current reuse_policy only allows read-only access under libs/common/** except runtime_contract.py."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.1
       phase: P1
@@ -58,7 +68,7 @@ state_transport:
       next_expected_task: P1.2
       required_fix: null
       rationale: "P1.1 LibriSpeech inventory is now usable after operator restore. Required LibriSpeech splits are non-empty and speaker-disjoint. OOD-real remains unavailable, so PARTIAL with BLOCKED_OOD_PUBLIC and claims_enabled.ood_real=false is accepted."
-  prior_approval_packet:
+  prior_approval_packet_1b:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.1
@@ -238,14 +248,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 7a0b85d6257d03d3ca322160c0080d2c6c91f5a90222114d3ad768af324ff16c
+    sha256: f09f4006ff0a6acfd2b296a974bd7ea49ab7e6288a77440a5a06d6e779204c01
     produced_by_task: P0.2
-    last_amended_by: P1.1_scope_change
+    last_amended_by: P1.2_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: 16f2b5f682055f6863e5e68a396dded32e6b8346af08efb2243d147b2664f406
+    sha256: c2999d597c1e35ecf1340e8dace4e3eaca0640a30fd2d802f1f26a34df853905
     produced_by_task: P0.2
-    last_amended_by: P1.1_scope_change
+    last_amended_by: P1.2_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977

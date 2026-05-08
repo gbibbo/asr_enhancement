@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: APPROVE_EXECUTION(P1.1) recorded; current_task advanced P1.1 -> P1.2; last_completed_task P0.5 -> P1.1; current_phase P0 -> P1; markers=[BLOCKED_OOD_PUBLIC] held; claims_enabled.ood_real=false held; state_transport.last_accepted_report_commit advanced 3129c11e -> 587b7483
+Updated by: CHANGE_SCOPE(P1.2) recorded; reuse_policy_v1.yaml amended with four new libs/common/** rows for P1.2; touch_policy.md P1.2 row rewritten from stale manifests scope to v3.4.7 eval schema / normalization / metrics / leakage tests scope; current_task=P1.2 held; last_completed_task=P1.1 held; current_phase=P1 held; markers=[BLOCKED_OOD_PUBLIC] held; claims_enabled.ood_real=false held; state_transport.last_accepted_report_commit STAYS 587b7483 (P1.1 APPROVE_EXECUTION acceptance; not advanced for CHANGE_SCOPE).
 Date: 2026-05-08
 
 ## Branch
@@ -24,9 +24,9 @@ claims_enabled.ood_real: false
 latest_execution_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
 latest_planning_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1 phase=P1 decision=APPROVE_EXECUTION accepted_report_commit=587b7483 next_expected_task=P1.2 (LibriSpeech inventory usable after operator restore; required splits non-empty and speaker-disjoint; OOD-real unavailable, PARTIAL+BLOCKED_OOD_PUBLIC+claims_enabled.ood_real=false accepted)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1 phase=P1 decision=APPROVE_PLAN accepted_report_commit=e4a56770 next_expected_task=P1.2 (P1.1 plan accepted on the scope-change commit; execute inventory only)
-last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234
+latest_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P1.2 phase=P1 decision=CHANGE_SCOPE accepted_report_commit=1ecbaa44 next_expected_task=P1.2 (Authorize P1.2 writes under libs/common/** and update stale touch_policy P1.2 row from old manifests scope to eval schema / normalization / metrics / leakage tests; current_task held at P1.2)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1 phase=P1 decision=APPROVE_EXECUTION accepted_report_commit=587b7483 next_expected_task=P1.2 (LibriSpeech inventory usable after operator restore; required splits non-empty and speaker-disjoint; OOD-real unavailable, PARTIAL+BLOCKED_OOD_PUBLIC+claims_enabled.ood_real=false accepted)
+last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234   # held; CHANGE_SCOPE does not advance
 
 ## Key artifacts created in P0.2
 
@@ -388,19 +388,58 @@ introduced.
   `state_transport.expected_next_task=P1.2`,
   `tasks.P1.1.next_task=P1.2`.
 
+## P1.2 scope change (no P1.2 implementation; libs/common/** writes authorized)
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P1.2 phase=P1
+  decision=CHANGE_SCOPE accepted_report_commit=`1ecbaa447e380d5ed3637e80b679bcc83ae77c17`
+  next_expected_task=P1.2.
+- Required fix: Authorize P1.2 writes under `libs/common/**` and
+  update the stale touch_policy P1.2 row from the old manifests scope
+  to eval schema / normalization / metrics / leakage tests.
+- `configs/robust_asr/reuse_policy_v1.yaml` amended with four new
+  rows (libs/common/eval_schema.yaml, libs/common/normalization.py,
+  libs/common/metrics.py, libs/common/versions.py). New sha256:
+  `c2999d597c1e35ecf1340e8dace4e3eaca0640a30fd2d802f1f26a34df853905`.
+- `reports/robust_asr/touch_policy.md` P1.2 row rewritten to authorize
+  the v3.4.7 P1.2 deliverables (eval_schema.yaml, normalization.py,
+  metrics.py, versions.py append, validate_eval_schema.py, three test
+  files, P1.2 task report) plus scope-change rows on policy files and
+  the three live trackers. New sha256:
+  `f09f4006ff0a6acfd2b296a974bd7ea49ab7e6288a77440a5a06d6e779204c01`.
+- Tracker mutations: `latest_approval_packet` replaced with the P1.2
+  CHANGE_SCOPE packet (prior P1.1 APPROVE_EXECUTION shifted to
+  `prior_approval_packet`); `artifacts.reuse_policy_config.sha256` and
+  `artifacts.touch_policy.sha256` updated; both `last_amended_by` set
+  to `P1.2_scope_change`.
+  `state_transport.last_accepted_report_commit` STAYS `587b7483…`
+  (P1.1 APPROVE_EXECUTION acceptance; CHANGE_SCOPE does not advance).
+- Held: `current_task=P1.2`, `last_completed_task=P1.1`,
+  `current_phase=P1`, `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`,
+  `claims_enabled.ood_real=false`, `phase_summary.P0=PASS`,
+  `orchestrator_approvals.P0=PHASE_APPROVE`.
+- P1.2 implementation NOT executed: no eval_schema.yaml, no
+  normalization.py, no metrics.py, no versions.py mutation, no
+  validator script, no tests, no pytest run, no Slurm, no Apptainer,
+  no GPU, no external API.
+- Non-regression: `validate_report_shape.py` against the canonical
+  fixtures emitted `OK_REPORT_SHAPE`.
+
 ## Next expected Claude prompt
 
 Task: P1.2 — Canonical eval schema, normalization, leakage tests.
 Phase: P1
 Preconditions: P0 PHASE_APPROVE; P1.1 PARTIAL APPROVE_EXECUTION;
+P1.2 CHANGE_SCOPE recorded (libs/common/** writes authorized);
 current_task == P1.2; last_completed_task == P1.1;
 markers=[BLOCKED_OOD_PUBLIC]; blocked=false;
 claims_enabled.ood_real=false.
-Mode: await ORCHESTRATOR_DECISION APPROVE_PLAN for P1.2, then return a
-P1.2 Planning Report and stop.
+Mode: await ORCHESTRATOR_DECISION APPROVE_PLAN for P1.2 (Planning
+Report already on file), then APPROVE_EXECUTION; do not implement
+P1.2 until APPROVE_EXECUTION is recorded.
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
 current_task=P1.2, last_completed_task=P1.1, current_phase=P1,
 markers=[BLOCKED_OOD_PUBLIC], blocked=false,
-state_transport.last_accepted_report_commit=587b7483 (advanced),
-then await APPROVE_PLAN(P1.2).
+latest_approval_packet=CHANGE_SCOPE(P1.2) on 1ecbaa44,
+state_transport.last_accepted_report_commit=587b7483 (held),
+then await APPROVE_PLAN(P1.2) followed by APPROVE_EXECUTION(P1.2).

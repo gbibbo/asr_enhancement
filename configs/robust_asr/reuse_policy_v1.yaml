@@ -299,6 +299,55 @@
   commit_allowed: true
   notes: New runtime contract schema module created by P0.4 and finalized by P9.0.
 
+# Specific overrides of libs/common/** (P1.2 scope-change). Robust_asr authors
+# the canonical eval schema, normalization function, and metrics module under
+# libs/common/. These take precedence over the libs/common/** read_only default.
+- path: libs/common/eval_schema.yaml
+  class: robust_asr_owned_extension
+  permitted_use: read_write
+  allowed_tasks: [P1.2, P9.0]
+  validator: scripts/robust_asr/validate_eval_schema.py
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: Canonical 28-column eval schema YAML created by P1.2; finalized by P9.0.
+
+- path: libs/common/normalization.py
+  class: robust_asr_owned_extension
+  permitted_use: read_write
+  allowed_tasks: [P1.2, P2.1, P3.1, P4.2, P4.3, P5.1, P6.1, P7.3, P8.1, P9.0]
+  validator: tests/robust_asr/test_normalization_metrics.py
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: Single shared text normalization function for all backends; created by P1.2.
+
+- path: libs/common/metrics.py
+  class: robust_asr_owned_extension
+  permitted_use: read_write
+  allowed_tasks: [P1.2, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P7.3, P8.1]
+  validator: tests/robust_asr/test_normalization_metrics.py
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: Robust_asr WER/CER/WA + paired bootstrap CI helpers; created by P1.2.
+         Distinct from libs/audio/metrics.py (training profile), which remains
+         read-only.
+
+# P1.2 scope-change override for libs/common/versions.py. The file already
+# exists under the libs/common/** read_only default; P1.2 may append the
+# NORMALIZATION_VERSION constant only. Existing constants must be preserved.
+- path: libs/common/versions.py
+  class: existing_runtime_code
+  permitted_use: append_constants_only
+  allowed_tasks: [P1.2]
+  validator: NORMALIZATION_VERSION_constant_present
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: P1.2 appends NORMALIZATION_VERSION; METRICS_VERSION, DEGRADATION_VERSION,
+         ENHANCER_VERSION must remain unchanged.
+
 - path: libs/observability/**
   class: implementation_reuse
   permitted_use: read_only

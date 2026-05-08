@@ -12,8 +12,83 @@ Status: IN_PROGRESS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
-- state_transport.last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234
+- state_transport.last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234 (held; P1.2 CHANGE_SCOPE does not advance)
 - state_transport.expected_next_task: P1.2
+- latest_approval_packet: CHANGE_SCOPE(P1.2) on `1ecbaa44…` (next P1.2)
+
+## P1.2 CHANGE_SCOPE recorded
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P1.2 phase=P1
+  decision=CHANGE_SCOPE
+  accepted_report_commit=`1ecbaa447e380d5ed3637e80b679bcc83ae77c17`
+  next_expected_task=P1.2.
+- Rationale: P1.2 requires `libs/common/eval_schema.yaml`,
+  `libs/common/normalization.py`, `libs/common/metrics.py`, and
+  `libs/common/versions.py` update, but the current reuse_policy only
+  allows read-only access under `libs/common/**` except
+  `libs/common/runtime_contract.py`.
+- Required fix: Authorize P1.2 writes under `libs/common/**` and
+  update the stale touch_policy P1.2 row from the old manifests scope
+  to eval schema / normalization / metrics / leakage tests.
+- `configs/robust_asr/reuse_policy_v1.yaml` amended with four new
+  rows under the libs/common/** override block:
+  - `libs/common/eval_schema.yaml`: class=robust_asr_owned_extension,
+    permitted_use=read_write, allowed_tasks=[P1.2, P9.0],
+    validator=`scripts/robust_asr/validate_eval_schema.py`,
+    checksum_required=true, large_artifact=false, commit_allowed=true.
+  - `libs/common/normalization.py`: class=robust_asr_owned_extension,
+    permitted_use=read_write,
+    allowed_tasks=[P1.2, P2.1, P3.1, P4.2, P4.3, P5.1, P6.1, P7.3, P8.1, P9.0],
+    validator=`tests/robust_asr/test_normalization_metrics.py`,
+    checksum_required=true, large_artifact=false, commit_allowed=true.
+  - `libs/common/metrics.py`: class=robust_asr_owned_extension,
+    permitted_use=read_write,
+    allowed_tasks=[P1.2, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P7.3, P8.1],
+    validator=`tests/robust_asr/test_normalization_metrics.py`,
+    checksum_required=true, large_artifact=false, commit_allowed=true.
+  - `libs/common/versions.py`: class=existing_runtime_code,
+    permitted_use=append_constants_only, allowed_tasks=[P1.2],
+    validator=`NORMALIZATION_VERSION_constant_present`,
+    checksum_required=true, large_artifact=false, commit_allowed=true.
+- `reports/robust_asr/touch_policy.md` P1.2 row rewritten to
+  authorize the v3.4.7 P1.2 write paths
+  (`libs/common/eval_schema.yaml`, `libs/common/normalization.py`,
+  `libs/common/metrics.py`, `libs/common/versions.py` (append-only),
+  `scripts/robust_asr/validate_eval_schema.py`,
+  `tests/robust_asr/test_eval_schema.py`,
+  `tests/robust_asr/test_normalization_metrics.py`,
+  `tests/robust_asr/test_leakage.py`,
+  `reports/robust_asr/task_reports/P1.2_eval_schema.md`, scope-change
+  rows on `reuse_policy_v1.yaml`/`touch_policy.md`, the three live
+  trackers). Reads include `configs/robust_asr/data_v1.yaml`,
+  `libs/audio/metrics.py`, `libs/common/runtime_contract.py`. No Slurm,
+  no Apptainer, no GPU, no external API.
+- Tracker mutations:
+  - `latest_approval_packet` set to the P1.2 CHANGE_SCOPE packet
+    (prior P1.1 APPROVE_EXECUTION shifted to `prior_approval_packet`;
+    the older P1.1 APPROVE_PLAN shifted to `prior_approval_packet_1b`).
+  - `artifacts.reuse_policy_config.sha256` →
+    `c2999d597c1e35ecf1340e8dace4e3eaca0640a30fd2d802f1f26a34df853905`,
+    `last_amended_by=P1.2_scope_change`.
+  - `artifacts.touch_policy.sha256` →
+    `f09f4006ff0a6acfd2b296a974bd7ea49ab7e6288a77440a5a06d6e779204c01`,
+    `last_amended_by=P1.2_scope_change`.
+  - `state_transport.last_accepted_report_commit` STAYS
+    `587b7483a6d37a24e0cf31549d449427c4708234`
+    (P1.1 APPROVE_EXECUTION acceptance).
+  - `state_transport.expected_next_task` STAYS `P1.2`.
+- Held: `current_task=P1.2`, `last_completed_task=P1.1`,
+  `current_phase=P1`, `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`,
+  `claims_enabled.ood_real=false`,
+  `phase_summary.P0=PASS`, `orchestrator_approvals.P0=PHASE_APPROVE`.
+- P1.2 implementation NOT executed: no `eval_schema.yaml`, no
+  `normalization.py`, no `metrics.py`, no `versions.py` mutation, no
+  validator script, no tests, no pytest run, no Slurm, no Apptainer,
+  no GPU, no external API.
+- Non-regression: `python3 scripts/robust_asr/validate_report_shape.py
+  --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures
+  artifacts/robust_asr/state_packets/report_shape_fixtures` →
+  `OK_REPORT_SHAPE`.
 
 ## P1.1 APPROVE_EXECUTION recorded
 
