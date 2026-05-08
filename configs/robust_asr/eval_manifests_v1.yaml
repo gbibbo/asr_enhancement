@@ -69,6 +69,7 @@ backend_endpoints:
     compute_type: int8
     expected_repo: Systran/faster-whisper-base.en
     candidate_local_paths:
+      - /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/whisper_base_en_ct2_int8
       - ${ASR_CACHE_ROOT}/whisper_ct2_int8_base_en
       - /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/Systran--faster-whisper-base.en
       - ${HF_HOME}/hub/models--Systran--faster-whisper-base.en

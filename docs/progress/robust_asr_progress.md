@@ -18,11 +18,79 @@ Status: IN_PROGRESS
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (held; PHASE_APPROVE(P1) acceptance; not advanced to the P2.1 implementation commit per orchestrator instruction)
 - state_transport.expected_next_task: P2.1 (held — HALTED on MISSING_EVIDENCE)
-- latest_approval_packet: APPROVE_PLAN(P2.1) on `def8458` (next P2.2)
-- prior_approval_packet: APPROVE_EXECUTION(P2.1-scope-change) on `def8458` (next P2.1)
+- latest_approval_packet: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+- prior_approval_packet: APPROVE_PLAN(P2.1) on `def8458` (next P2.2)
+- prior_approval_packet_p2_1_scope_exec: APPROVE_EXECUTION(P2.1-scope-change) on `def8458` (next P2.1)
 - prior_approval_packet_p2_1_change_scope: CHANGE_SCOPE(P2.1) on `22201db` (next P2.1)
 - prior_approval_packet_p1_phase: PHASE_APPROVE(P1) on `49b4bdc` (next P2.1)
 - prior_approval_packet_p1_gate: APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE)
+
+## P2.1 model-remediation scope change (no conversion; CT2 source/output paths authorized)
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P2.1-model phase=P2
+  decision=CHANGE_SCOPE accepted_report_commit=`268b8e9d0f999bce905a4f2f3652b821ff08a0c3`
+  next_expected_task=P2.1.
+- Required fix: Authorize read-only use of the local OpenAI Whisper
+  `base.en.pt` checkpoint and read-write robust_asr CT2 INT8 model
+  output path.
+- `configs/robust_asr/reuse_policy_v1.yaml` amended with two new override
+  rows under the `…/cache/**` no_touch and `…/runtime/**` data_root blocks:
+  - `/mnt/.../cache/whisper/base.en.pt` — `class=data_root`,
+    `permitted_use=read_only`, `allowed_tasks=[P2.1]`,
+    `validator=sha256==25a8566e1d0c1e2231d1c762132cd20e0f96a85d16145c3a00adf5d1ac670ead`,
+    `checksum_required=true`, `large_artifact=true`,
+    `commit_allowed=false`. Cache root retains its no_touch posture for
+    every other path.
+  - `/mnt/.../runtime/whisper_models/**` — `class=model_root`,
+    `permitted_use=read_write`,
+    `allowed_tasks=[P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]`,
+    `validator=sha256_recorded_in_provenance_json`,
+    `checksum_required=true`, `large_artifact=true`,
+    `commit_allowed=false`. P2.1 writes
+    `whisper_base_en_ct2_int8/{model.bin,config.json,tokenizer*,vocabulary*,provenance.json}`;
+    downstream tasks read the same root.
+  - New sha256: `9766167cccd3d246a31adb488d89dcc6950b35c00e0eb5959b523c4c5fa8811b`,
+    `last_amended_by=P2.1_model_scope_change`.
+- `reports/robust_asr/touch_policy.md` P2.1 row extended (additive) with:
+  - allowed_write_paths: `scripts/robust_asr/build_whisper_base_ct2_int8.py`,
+    `slurm/jobs/p2_1_build_ct2_model.sh`,
+    `reports/robust_asr/whisper_base_ct2_int8_build.md`.
+  - external_paths_requiring_approval: read-only access to
+    `/mnt/.../cache/whisper/base.en.pt` (sha256-pinned 25a8566e…ad);
+    read_write access to `/mnt/.../runtime/whisper_models/**`.
+  - New sha256: `e51dc99337cbd22e5f7f359f5ae154e79351b50d58b31d4259242a764dc03db3`,
+    `last_amended_by=P2.1_model_scope_change`.
+- `configs/robust_asr/eval_manifests_v1.yaml` updated to put the new
+  robust_asr-controlled path
+  `/mnt/.../runtime/whisper_models/whisper_base_en_ct2_int8` first in
+  `backend_endpoints.whisper_base_ct2_int8.candidate_local_paths`; the
+  prior four paths are kept as fallbacks. New sha256:
+  `1e371f369b7585099aa3eaaf24202371070eff61d6b7600ccb1158e1e9859130`.
+- Tracker mutations: `latest_approval_packet` replaced with the
+  CHANGE_SCOPE(P2.1-model) packet (prior APPROVE_PLAN(P2.1) shifted to
+  `prior_approval_packet`; APPROVE_EXECUTION(P2.1-scope-change) shifted
+  to `prior_approval_packet_p2_1_scope_exec`);
+  `artifacts.reuse_policy_config.sha256` and
+  `artifacts.touch_policy.sha256` updated; both `last_amended_by` set to
+  `P2.1_model_scope_change`. `artifacts_added.eval_manifests_v1.sha256`
+  updated; `last_amended_by=P2.1_model_scope_change`.
+  `state_transport.last_accepted_report_commit` STAYS `49b4bdc…`
+  (PHASE_APPROVE(P1) acceptance; CHANGE_SCOPE does not advance).
+  `state_transport.expected_next_task` STAYS `P2.1`.
+- Held: `current_phase=P2`, `current_task=P2.1` (still HALTED),
+  `last_completed_task=P1.4`,
+  `markers=[BLOCKED_OOD_PUBLIC, MISSING_EVIDENCE]` (MISSING_EVIDENCE NOT
+  cleared), `blocked=true`, `claims_enabled.ood_real=false`,
+  `phase_summary={P0:PASS, P1:PASS}`,
+  `orchestrator_approvals={P0:PHASE_APPROVE, P1:PHASE_APPROVE}`.
+- Conversion NOT executed: no `build_whisper_base_ct2_int8.py`, no
+  Slurm build job, no model bytes written under `runtime/whisper_models/`,
+  no rerun of `slurm/jobs/p2_1_baseline.sh`, no Apptainer call, no GPU,
+  no external API.
+- Non-regression: `python3 scripts/robust_asr/validate_report_shape.py
+  --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures
+  artifacts/robust_asr/state_packets/report_shape_fixtures` →
+  `OK_REPORT_SHAPE`.
 
 ## P2.1 HALTED — MISSING_EVIDENCE (CT2 INT8 weights absent)
 

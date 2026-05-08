@@ -521,6 +521,37 @@
   commit_allowed: false
   notes: Whisper and HuggingFace model caches; used implicitly by containers; never modified
 
+# Specific override of /mnt/.../cache/** (P2.1-model scope-change). Read-only
+# access to a single openai-whisper PyTorch checkpoint with a pinned canonical
+# sha256, used as the source for offline CT2 INT8 conversion in P2.1.
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/whisper/base.en.pt
+  class: data_root
+  permitted_use: read_only
+  allowed_tasks: [P2.1]
+  validator: sha256==25a8566e1d0c1e2231d1c762132cd20e0f96a85d16145c3a00adf5d1ac670ead
+  checksum_required: true
+  large_artifact: true
+  commit_allowed: false
+  notes: openai-whisper base.en PyTorch checkpoint; canonical sha256 pinned;
+         read-only source for ctranslate2 OpenAIWhisperConverter in P2.1; never
+         modified, never committed. The cache root remains no_touch by default.
+
+# New robust_asr-controlled model output path (P2.1-model scope-change).
+# CT2 INT8 model directories (model.bin + config.json + tokenizer + vocabulary
+# + provenance.json) live here. Never committed.
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/**
+  class: model_root
+  permitted_use: read_write
+  allowed_tasks: [P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
+  validator: sha256_recorded_in_provenance_json
+  checksum_required: true
+  large_artifact: true
+  commit_allowed: false
+  notes: robust_asr model output root. P2.1 writes whisper_base_en_ct2_int8/
+         (model.bin + config + tokenizer + vocabulary + provenance.json) from
+         offline ctranslate2 OpenAIWhisperConverter on the pinned base.en.pt
+         source. Downstream LoRA / system tasks read these weights.
+
 - path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/demo_reference_artifacts/**
   class: data_root
   permitted_use: read_only

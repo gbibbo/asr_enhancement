@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P2.1-model
+      phase: P2
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 268b8e9d0f999bce905a4f2f3652b821ff08a0c3
+      next_expected_task: P2.1
+      required_fix: "Authorize read-only use of the local OpenAI Whisper base.en.pt checkpoint and read-write robust_asr CT2 INT8 model output path."
+      rationale: "P2.1 halted because whisper_base_ct2_int8 weights were missing. A local openai-whisper base.en.pt checkpoint exists with canonical sha256 and can be converted offline to CT2 INT8 with provenance."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.1
       phase: P2
@@ -58,7 +68,7 @@ state_transport:
       next_expected_task: P2.2
       required_fix: null
       rationale: "P2.1 plan accepted on the scope-change commit; implement configs/robust_asr/eval_manifests_v1.yaml, scripts/robust_asr/run_backend_eval.py, scripts/robust_asr/summarize_backend_eval.py, scripts/robust_asr/validate_eval_table.py, slurm/jobs/p2_1_baseline.sh; do not advance last_accepted_report_commit to the P2.1 implementation commit."
-  prior_approval_packet:
+  prior_approval_packet_p2_1_scope_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.1-scope-change
@@ -398,14 +408,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 1b38914f1e814619d202a610ba98ca1cc18d404b9d507f5084d5871b2721c0e3
+    sha256: e51dc99337cbd22e5f7f359f5ae154e79351b50d58b31d4259242a764dc03db3
     produced_by_task: P0.2
-    last_amended_by: P2.1_scope_change
+    last_amended_by: P2.1_model_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: 678d86a37ae471448736b08a68a9b34802ad6599ea12b08f3a0a33041d2aab6f
+    sha256: 9766167cccd3d246a31adb488d89dcc6950b35c00e0eb5959b523c4c5fa8811b
     produced_by_task: P0.2
-    last_amended_by: P2.1_scope_change
+    last_amended_by: P2.1_model_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
@@ -1411,8 +1421,9 @@ tasks:
     artifacts_added:
       eval_manifests_v1:
         path: configs/robust_asr/eval_manifests_v1.yaml
-        sha256: 4ed5c8024dc7e85c1e8ce215c96c55f3e664310e7e14bce1a100de995e86a3b9
+        sha256: 1e371f369b7585099aa3eaaf24202371070eff61d6b7600ccb1158e1e9859130
         produced_by_task: P2.1
+        last_amended_by: P2.1_model_scope_change
       run_backend_eval_script:
         path: scripts/robust_asr/run_backend_eval.py
         sha256: 56ab650f391f896b73fdd9ceb1be34ffda3a81fe354d7c284f0ac59475fa209d
