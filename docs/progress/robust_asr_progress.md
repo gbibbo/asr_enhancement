@@ -7,10 +7,11 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P0 (Bootstrap and skeleton) — PHASE_APPROVED; P1 not yet entered
-- Current task: P1.1 (HALTED — MISSING_EVIDENCE)
+- Current task: P1.1 (PARTIAL — BLOCKED_OOD_PUBLIC; awaiting APPROVE_EXECUTION)
 - Last completed: P0.5 (model_card and router_card templates PASS; 30 and 24 TODO_FILLED_IN placeholders respectively)
-- Active markers: [MISSING_EVIDENCE]
-- Blocked: true — LibriSpeech train-clean-100, train-clean-360, and test-clean audio missing on host; only dev-clean populated. Three of four required split labels (lora_train, router_train, locked_test) cannot resolve to non-empty file lists. Restore audio under `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/` and rerun P1.1.
+- Active markers: [BLOCKED_OOD_PUBLIC]
+- Blocked: false
+- claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 
 ## P0 phase gate
 
@@ -159,7 +160,48 @@ Status: IN_PROGRESS
   orchestrator instruction; `state_transport.expected_next_task` stays
   `P0.4` until orchestrator reviews the P0.4 Execution Report.
 
-## P1.1 (HALTED — MISSING_EVIDENCE; awaiting audio restore)
+## P1.1 (PARTIAL — BLOCKED_OOD_PUBLIC; rerun after operator restore)
+
+- Operator restored LibriSpeech audio at the canonical root via
+  `wget` + `tar -xzf` of `train-clean-100.tar.gz` and
+  `test-clean.tar.gz` from `https://www.openslr.org/resources/12/`
+  (gzip integrity OK; tar exit codes 0). `train-clean-360` not
+  restored (P1.1 does not require it).
+- Post-restore counts:
+  - `train-clean-100`: 251 spk, 28 539 `.flac`, 585 `.trans.txt`,
+    ~102.30 h, 6.3 GiB.
+  - `dev-clean`: 40 spk, 2 703 `.flac`, 97 `.trans.txt`, 5.388 h,
+    349 MiB.
+  - `test-clean`: 40 spk, 2 620 `.flac`, 87 `.trans.txt`, ~5.47 h,
+    356 MiB.
+- Cross-split speaker overlap within LibriSpeech: zero.
+- Deterministic split partition (recorded in `data_v1.yaml`):
+  `lora_train` = 200 train-clean-100 speakers; `router_train` = 51
+  train-clean-100 speakers (every 5th sorted ID); `validation` = 40
+  dev-clean speakers; `locked_test` = 40 test-clean speakers.
+- OOD-real candidates unchanged: Common Voice EN `clips/` empty with no
+  `.tsv` transcripts; TED-LIUM R3 and CHiME-6 absent.
+- Decision rule 1 (LibriSpeech missing → HALTED + MISSING_EVIDENCE) is
+  cleared. Decision rule 2 / Section 1.1 rule 4 (no OOD-real fallback →
+  PARTIAL + BLOCKED_OOD_PUBLIC + `claims_enabled.ood_real=false`) is
+  the operative outcome.
+- Verifications: `OK_DATA_V1_CONFIG`, `OK_SPEAKER_DISJOINT`
+  (non-trivial — 4 non-empty splits), `OK_REPORT_SHAPE`. No Slurm,
+  no Apptainer, no GPU, no external API.
+- Tracker mutations: `tasks.P1.1.status=PARTIAL`,
+  `tasks.P1.1.marker=BLOCKED_OOD_PUBLIC`,
+  `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`, `blocker=null`,
+  `claims_enabled.ood_real=false` (was `true`),
+  `current_task=P1.1` (held — orchestrator finalizes via APPROVE_EXECUTION),
+  `last_completed_task=P0.5` (held),
+  `state_transport.last_accepted_report_commit` STAYS
+  `3129c11edd5105d7c247b48eb1a170d7c1507cde` (P0 phase-gate acceptance);
+  NOT advanced to the rerun commit per orchestrator instruction.
+  Approval-packet chain unchanged from prior P1.1.
+- Prior attempt history: `tasks.P1.1.history.attempt_1` records the
+  HALTED state at commit `1470ebc1da1a1cc70fdf9965480a070a0c248e4d`.
+
+## P1.1 attempt 1 (HALTED — MISSING_EVIDENCE; cleared by operator restore)
 
 - Inventory of dataset roots completed and recorded in
   `reports/robust_asr/data_inventory.md` and `configs/robust_asr/data_v1.yaml`.

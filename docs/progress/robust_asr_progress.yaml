@@ -6,8 +6,8 @@ current_phase: P0
 current_task: P1.1
 last_completed_task: P0.5
 
-blocked: true
-blocker: "P1.1 HALTED: LibriSpeech train-clean-100, train-clean-360, and test-clean audio missing on host (only dev-clean populated). Three of four required split labels (lora_train, router_train, locked_test) cannot resolve to non-empty file lists. Restore audio under /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/ and rerun P1.1."
+blocked: false
+blocker: null
 
 lora_status: NOT_STARTED
 router_status: NOT_STARTED
@@ -27,10 +27,10 @@ product_baseline: whisper_base_ct2_int8
 artifact_root: artifacts/robust_asr
 handoff_root: artifacts/robust_asr/handoff
 
-markers: [MISSING_EVIDENCE]
+markers: [BLOCKED_OOD_PUBLIC]
 
 claims_enabled:
-  ood_real: true
+  ood_real: false
   cloud_tradeoff: true
   positive_lora: pending
   positive_system: pending
@@ -821,50 +821,57 @@ tasks:
     marker: null
     next_task: P1.1
   P1.1:
-    status: HALTED
+    status: PARTIAL
     commit: null   # filled at commit; see latest_execution_report
     files_changed:
-      - configs/robust_asr/data_v1.yaml
-      - reports/robust_asr/data_inventory.md
-      - scripts/robust_asr/check_speaker_disjoint.py
-      - reports/robust_asr/task_reports/P1.1_data_inventory.md
-      - configs/robust_asr/reuse_policy_v1.yaml   # via P1.1 scope-change commit e4a5677
-      - reports/robust_asr/touch_policy.md        # via P1.1 scope-change commit e4a5677
+      - configs/robust_asr/data_v1.yaml                # rewritten
+      - reports/robust_asr/data_inventory.md           # rewritten
+      - reports/robust_asr/task_reports/P1.1_data_inventory.md   # rewritten
+      - configs/robust_asr/reuse_policy_v1.yaml        # via P1.1 scope-change commit e4a5677 (unchanged at rerun)
+      - reports/robust_asr/touch_policy.md             # via P1.1 scope-change commit e4a5677 (unchanged at rerun)
+      - scripts/robust_asr/check_speaker_disjoint.py   # unchanged at rerun
       - docs/progress/robust_asr_progress.yaml
       - docs/progress/robust_asr_progress.md
       - docs/progress/robust_asr_state_capsule.md
     commands_run:
-      - "ls /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech"
-      - "ls /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/{train-clean-100,dev-clean,test-clean}"
-      - "find /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/<split> -name '*.flac' | wc -l"
-      - "du -sh /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/<split>"
-      - "ls /mnt/fast/nobackup/scratch4weeks/gb0048/sources/commonvoice/cv-corpus-24.0-2025-12-05/en/"
-      - "find /mnt/fast/nobackup -maxdepth 5 -type d \\( -iname '*tedlium*' -o -iname '*chime*' \\)"
-      - "python3 (read librispeech_manifest_v1{,_filtered}.jsonl per-split counts and durations)"
-      - "Write configs/robust_asr/data_v1.yaml"
-      - "Write scripts/robust_asr/check_speaker_disjoint.py; chmod +x"
-      - "Write reports/robust_asr/data_inventory.md"
-      - "Write reports/robust_asr/task_reports/P1.1_data_inventory.md"
-      - "python3 -c (data_v1.yaml parse + splits + ood_real assertions)  # OK_DATA_V1_CONFIG"
-      - "python3 scripts/robust_asr/check_speaker_disjoint.py --config configs/robust_asr/data_v1.yaml  # OK_SPEAKER_DISJOINT (trivial)"
-      - "python3 scripts/robust_asr/check_speaker_disjoint.py --config configs/robust_asr/data_v1.yaml --splits lora_train router_train validation locked_test  # OK_SPEAKER_DISJOINT (trivial)"
+      - "ls + find on /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/{train-clean-100,dev-clean,test-clean}"
+      - "du -sh on each subset"
+      - "python3 (set-disjointness across train-clean-100, dev-clean, test-clean speaker dirs)"
+      - "python3 (deterministic speaker partition: every-5th sorted -> router_train; rest -> lora_train)"
+      - "python3 (soundfile.info stride sample for hour estimates on train-clean-100 and test-clean)"
+      - "ls /mnt/fast/nobackup/scratch4weeks/gb0048/sources/commonvoice/cv-corpus-24.0-2025-12-05/en/{,clips/}"
+      - "find /mnt/fast/nobackup -maxdepth 6 -iname '*tedlium*'/'*chime*'"
+      - "Write configs/robust_asr/data_v1.yaml (populated splits)"
+      - "Write reports/robust_asr/data_inventory.md (post-restore)"
+      - "Write reports/robust_asr/task_reports/P1.1_data_inventory.md (rerun)"
+      - "python3 -c (data_v1.yaml parse + splits + non-empty + ood_real assertions)  # OK_DATA_V1_CONFIG"
+      - "python3 scripts/robust_asr/check_speaker_disjoint.py --config configs/robust_asr/data_v1.yaml  # OK_SPEAKER_DISJOINT (non-trivial)"
+      - "python3 scripts/robust_asr/check_speaker_disjoint.py --config configs/robust_asr/data_v1.yaml --splits lora_train router_train validation locked_test  # OK_SPEAKER_DISJOINT (non-trivial)"
       - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures  # OK_REPORT_SHAPE"
-      - "Edit tracker yaml/md/state_capsule (HALTED + MISSING_EVIDENCE)"
+      - "Edit tracker yaml/md/state_capsule (PARTIAL + BLOCKED_OOD_PUBLIC; claims_enabled.ood_real=false; blocked=false)"
       - "git add ...; git commit; git push"
     key_outputs:
-      - "OK_DATA_V1_CONFIG, OK_SPEAKER_DISJOINT (trivial), OK_REPORT_SHAPE"
-      - "LibriSpeech dev-clean: 40 speakers, 2703 .flac, 5.388 h, 349 MiB on disk"
-      - "LibriSpeech train-clean-100: skeleton dirs only (251 speaker dirs), 0 flac, 0 bytes"
-      - "LibriSpeech train-clean-360: subset directory absent on host"
-      - "LibriSpeech test-clean: skeleton dirs only (40 speaker dirs), 0 flac, 0 bytes"
-      - "Common Voice EN cv-corpus-24.0-2025-12-05: clips/ empty, no .tsv transcripts"
-      - "TED-LIUM R3, CHiME-6: absent on /mnt/fast/nobackup"
-      - "data_v1.yaml ood_real.selected_source=null, ood_real.blocked=true (CV/TED/CHiME unresolved)"
-      - "Decision rule 1 (LibriSpeech missing) -> HALTED + MISSING_EVIDENCE; supersedes Decision rule 2 (BLOCKED_OOD_PUBLIC)"
-      - "claims_enabled.ood_real flag NOT flipped at this report; pending orchestrator instruction with HALT resolution"
-      - "current_task=P1.1 held; last_completed_task=P0.5 held; blocked=true; markers=[MISSING_EVIDENCE]"
+      - "OK_DATA_V1_CONFIG, OK_SPEAKER_DISJOINT (non-trivial, 4 non-empty splits), OK_REPORT_SHAPE"
+      - "LibriSpeech train-clean-100: 251 speakers, 28539 .flac, 585 .trans.txt, ~102.30 h, 6.3 GiB (RESTORED)"
+      - "LibriSpeech dev-clean: 40 speakers, 2703 .flac, 97 .trans.txt, 5.388 h, 349 MiB"
+      - "LibriSpeech test-clean: 40 speakers, 2620 .flac, 87 .trans.txt, ~5.47 h, 356 MiB (RESTORED)"
+      - "LibriSpeech train-clean-360: still absent at this rerun (not required by P1.1)"
+      - "Cross-split speaker overlap within LibriSpeech: zero (train∩dev=∅, train∩test=∅, dev∩test=∅)"
+      - "Deterministic partition of train-clean-100: lora_train=200 spk, router_train=51 spk (every 5th sorted ID)"
+      - "validation: 40 dev-clean speakers; locked_test: 40 test-clean speakers"
+      - "Common Voice EN: clips/ empty, no .tsv transcripts (unchanged)"
+      - "TED-LIUM R3, CHiME-6: absent on /mnt/fast/nobackup (unchanged)"
+      - "Decision rule 1 (LibriSpeech missing) cleared; Decision rule 2 (no OOD-real fallback) -> PARTIAL + BLOCKED_OOD_PUBLIC"
+      - "claims_enabled.ood_real flipped true -> false; ood_real_locked and common_voice_demo_reserved splits remain empty"
+      - "current_task=P1.1 held; last_completed_task=P0.5 held; blocked=false; markers=[BLOCKED_OOD_PUBLIC]"
       - "state_transport.last_accepted_report_commit STAYS 3129c11e (P0 phase-gate acceptance), per orchestrator instruction"
-    marker: MISSING_EVIDENCE
-    next_task: P1.1
-    blocker: "LibriSpeech train-clean-100, train-clean-360, and test-clean audio missing on host; only dev-clean populated. lora_train, router_train, locked_test cannot resolve to non-empty file lists."
-    unblock_condition: "Restore LibriSpeech audio under /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/{train-clean-100,test-clean[,train-clean-360]}/ from openslr.org/12 and rerun P1.1."
+    marker: BLOCKED_OOD_PUBLIC
+    next_task: P1.1   # awaits APPROVE_EXECUTION to advance to P1.2
+    blocker: null
+    unblock_condition: "PARTIAL outcome accepted by APPROVE_EXECUTION(P1.1) advances current_task to P1.2. To clear BLOCKED_OOD_PUBLIC, populate Common Voice clips+TSV under the existing CV root (no scope change) or stage TED-LIUM R3 / CHiME-6 dev under a new root (CHANGE_SCOPE)."
+    history:
+      attempt_1:
+        status: HALTED
+        marker: MISSING_EVIDENCE
+        commit: 1470ebc1da1a1cc70fdf9965480a070a0c248e4d
+        notes: "LibriSpeech train-clean-100, train-clean-360, test-clean audio missing on host (only dev-clean populated). Three of four required split labels could not resolve to non-empty file lists. Cleared by operator-driven restore from openslr.org/12 between attempt 1 and rerun."
