@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P0
-current_task: P0.4
-last_completed_task: P0.3
+current_task: P0.5
+last_completed_task: P0.4
 
 blocked: false
 blocker: null
@@ -45,7 +45,7 @@ session_log:
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
   latest_planning_report: null
-  latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
+  latest_execution_report: reports/robust_asr/task_reports/P0.4_runtime_contract.md
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
@@ -228,10 +228,21 @@ artifacts:
     produced_by_task: P0.3-rebuild
   runtime_contract_fixture:
     path: reports/robust_asr/runtime_contract_smoke.md
-    sha256: null
+    sha256: null   # filled at commit time
     produced_by_task: P0.4
-    contract_skeleton_validation_passed: false
-    contract_final_validation_passed: false
+    contract_skeleton_validation_passed: true
+    contract_final_validation_passed: false   # finalized in P9.0
+    request_fixture_path: artifacts/robust_asr/runtime_contract/rp5_request_fixture.json
+    response_fixture_path: artifacts/robust_asr/runtime_contract/rp5_response_fixture.json
+    schema_module_path: libs/common/runtime_contract.py
+    validator_path: scripts/robust_asr/validate_runtime_contract.py
+    test_path: tests/robust_asr/test_runtime_contract_skeleton.py
+    job_metadata_path: artifacts/robust_asr/runtime_contract/contract_smoke_job_metadata.json
+    sentinel: OK_CONTRACT_SKELETON
+    assertions_passed: 19
+    assertions_total: 19
+    pytest_tests_passed: 20
+    pytest_tests_total: 20
   model_card_template:
     path: docs/reports/robust_asr/model_card_lora.md
     sha256: null
@@ -661,3 +672,63 @@ tasks:
       completed_at_utc: 2026-05-08T03:31:28Z
       elapsed_s: 15
       host: aisurrey01.surrey.ac.uk
+  P0.4:
+    status: PASS
+    commit: null   # filled at commit time; see latest_execution_report
+    files_changed:
+      - artifacts/robust_asr/runtime_contract/rp5_request_fixture.json
+      - artifacts/robust_asr/runtime_contract/rp5_response_fixture.json
+      - artifacts/robust_asr/runtime_contract/contract_smoke_job_metadata.json
+      - artifacts/robust_asr/runtime_contract/stdout.txt
+      - artifacts/robust_asr/runtime_contract/stderr.txt
+      - libs/common/runtime_contract.py
+      - scripts/robust_asr/validate_runtime_contract.py
+      - tests/robust_asr/test_runtime_contract_skeleton.py
+      - slurm/jobs/p0_4_contract_smoke.sh
+      - reports/robust_asr/runtime_contract_smoke.md
+      - reports/robust_asr/task_reports/P0.4_runtime_contract.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Write artifacts/robust_asr/runtime_contract/rp5_request_fixture.json"
+      - "Write artifacts/robust_asr/runtime_contract/rp5_response_fixture.json"
+      - "Write libs/common/runtime_contract.py"
+      - "Write scripts/robust_asr/validate_runtime_contract.py; chmod +x"
+      - "Write tests/robust_asr/test_runtime_contract_skeleton.py"
+      - "Write slurm/jobs/p0_4_contract_smoke.sh; chmod +x"
+      - "./slurm/tools/on_submit.sh sbatch /mnt/.../slurm/jobs/p0_4_contract_smoke.sh   # job 2129642"
+      - "poll squeue (left queue within 15s)"
+      - "./slurm/tools/on_submit.sh sacct -j 2129642 --format=JobID,JobName,State,Elapsed,MaxRSS,ExitCode,Submit,Start,End,NodeList,Partition -P"
+      - "cp artifacts/.../p0_4_contract_smoke_2129642.{out,err} -> stdout.txt/stderr.txt"
+      - "Write contract_smoke_job_metadata.json"
+      - "Write reports/robust_asr/runtime_contract_smoke.md"
+      - "Write reports/robust_asr/task_reports/P0.4_runtime_contract.md"
+      - "Edit tracker: tasks.P0.4=PASS; runtime_contract_fixture flags; current_task=P0.5; last_completed_task=P0.4; latest_execution_report=P0.4_runtime_contract.md; last_accepted_report_commit STAYS 0b47b76e (per orchestrator instruction)"
+      - "Edit progress.md and state_capsule.md"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "Slurm job 2129642 COMPLETED 0:0 Elapsed=00:00:05 MaxRSS=3872K host=aisurrey01.surrey.ac.uk partition=2080ti"
+      - "OK_CONTRACT_SKELETON sentinel emitted; validator exit_code=0"
+      - "All 19 assertions PASS (A01..A19) under --strict-skeleton"
+      - "pytest 20/20 passing in 1.06s inside SIF (skeleton-fixtures-pass + per-assertion mutations A01..A19)"
+      - "Schema module libs/common/runtime_contract.py declares JSON Schema 2020-12 draft REQUEST_SCHEMA and RESPONSE_SCHEMA + pure-stdlib run_assertions runner (no jsonschema runtime dependency)"
+      - "Validator exposes --strict-skeleton and --strict-final modes (final reserved for P9.0)"
+      - "Container image sha256 8db5364c... matches tracker.artifacts.runtime_image_v1; SIF unmodified"
+      - "Env isolation effective: PYTHONNOUSERSITE=1 + cleared PYTHONPATH/PYTHONUSERBASE + PIP_USER=0"
+      - "tracker.artifacts.runtime_contract_fixture.contract_skeleton_validation_passed: true"
+    marker: null
+    next_task: P0.5
+    slurm:
+      job_id: "2129642"
+      job_name: robust_asr_p0_4_contract_smoke
+      partition: 2080ti
+      state: COMPLETED
+      exit_code: "0:0"
+      submitted_at_utc: 2026-05-08T03:51:31Z
+      started_at_utc:   2026-05-08T03:51:31Z
+      completed_at_utc: 2026-05-08T03:51:36Z
+      elapsed_s: 5
+      max_rss_kib: 3872
+      host: aisurrey01.surrey.ac.uk
+      node_list: aisurrey01

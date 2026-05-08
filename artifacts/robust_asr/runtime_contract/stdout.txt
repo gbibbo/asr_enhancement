@@ -1,0 +1,25 @@
+---VALIDATOR---
+A01 PASS: both JSON files parsed
+A02 PASS: request_id='11111111-1111-4111-8111-111111111111' response.request_id='11111111-1111-4111-8111-111111111111'
+A03 PASS: audio.encoding='wav'
+A04 PASS: audio.sample_rate_hz=16000
+A05 PASS: audio.channels=1
+A06 PASS: audio.duration_s=3.5
+A07 PASS: audio.sha256='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+A08 PASS: constraints.profile='balanced'
+A09 PASS: constraints.allow_third_party=False
+A10 PASS: constraints.max_latency_ms=1500
+A11 PASS: response.ask_repeat=False
+A12 PASS: transcript_is_null=False ask_repeat=False errors_nonempty=False
+A13 PASS: selected_backend='whisper_base_ct2_int8' ask_repeat=False
+A14 PASS: router_kind='deterministic_selector'
+A15 PASS: cost_usd=0.0
+A16 PASS: selected_backend='whisper_base_ct2_int8' third_party_provider=None
+A17 PASS: latency_ms backend=240 server=280 end_to_end=320
+A18 PASS: confidence=0.92
+A19 PASS: strict_skeleton: model_card='' router_card=''
+OK_CONTRACT_SKELETON
+---PYTEST---
+....................                                                     [100%]
+20 passed in 1.06s
+---DONE---

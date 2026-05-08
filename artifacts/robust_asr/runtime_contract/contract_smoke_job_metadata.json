@@ -1,0 +1,33 @@
+{
+  "task_id": "P0.4",
+  "job_id": "2129642",
+  "job_name": "robust_asr_p0_4_contract_smoke",
+  "partition": "2080ti",
+  "host": "aisurrey01.surrey.ac.uk",
+  "node_list": "aisurrey01",
+  "state": "COMPLETED",
+  "exit_code": "0:0",
+  "submitted_at_utc": "2026-05-08T03:51:31Z",
+  "started_at_utc": "2026-05-08T03:51:31Z",
+  "completed_at_utc": "2026-05-08T03:51:36Z",
+  "elapsed_s": 5,
+  "max_rss_kib": 3872,
+  "container_image": "/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif",
+  "container_image_sha256": "8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713",
+  "env_isolation": {
+    "PYTHONNOUSERSITE": "1",
+    "PYTHONPATH": "",
+    "PYTHONUSERBASE": "",
+    "PIP_USER": "0"
+  },
+  "validator_mode": "--strict-skeleton",
+  "validator_sentinel": "OK_CONTRACT_SKELETON",
+  "validator_exit_code": 0,
+  "assertions_total": 19,
+  "assertions_passed": 19,
+  "assertions_failed": 0,
+  "pytest_tests_total": 20,
+  "pytest_tests_passed": 20,
+  "pytest_tests_failed": 0,
+  "outcome": "PASS"
+}

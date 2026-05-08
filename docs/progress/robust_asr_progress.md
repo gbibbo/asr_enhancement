@@ -7,8 +7,8 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P0 (Bootstrap and skeleton)
-- Current task: P0.4
-- Last completed: P0.3 (runtime smoke PASS via P0.3-rerun-2 against env-isolated apptainer exec; all 11 imports OK at SIF-pinned versions)
+- Current task: P0.5
+- Last completed: P0.4 (runtime contract skeleton PASS; OK_CONTRACT_SKELETON, all 19 assertions PASS, 20 unit tests passing)
 - Active markers: none
 - Blocked: false
 
@@ -18,6 +18,7 @@ Status: IN_PROGRESS
 - P0.1 PASS: Branch created, profile installed, tracker initialized
 - P0.2 PASS: Asset inventory, reuse policy, touch policy, validate_report_shape.py
 - P0.3 PASS: Runtime smoke (Slurm + Apptainer + 11 imports). Closed via P0.3-rerun-2 (job 2129641) against new SIF (sha256 8db5364c...) with env-isolated apptainer exec. Sub-tasks: P0.3-rebuild PASS (image build), P0.3-rerun HALTED (user-site shadowing), P0.3-rerun-2 PASS (env-isolation cleared shadowing).
+- P0.4 PASS: RP5 runtime contract skeleton — request/response fixtures + `libs/common/runtime_contract.py` schema + `scripts/robust_asr/validate_runtime_contract.py` (19 assertions) + 20 unit tests. Slurm CPU job 2129642 COMPLETED 0:0 in 5 s on aisurrey01 (env-isolated apptainer exec). `OK_CONTRACT_SKELETON` emitted; pytest 20/20 passing. `tracker.artifacts.runtime_contract_fixture.contract_skeleton_validation_passed = true`. `last_accepted_report_commit` left at `0b47b76e` per orchestrator instruction.
 
 ## Scope changes
 
@@ -86,9 +87,35 @@ Status: IN_PROGRESS
   `current_task` stays `P0.3`; `last_completed_task` stays `P0.2`;
   `state_transport.last_accepted_report_commit` stays `635a711...`
 
+## P0.4 (PASS)
+
+- Files added: fixtures (`rp5_request_fixture.json`, `rp5_response_fixture.json`),
+  schema (`libs/common/runtime_contract.py` — JSON Schema 2020-12 draft +
+  pure-stdlib assertion runner), validator
+  (`scripts/robust_asr/validate_runtime_contract.py` with `--strict-skeleton`
+  and `--strict-final`), tests
+  (`tests/robust_asr/test_runtime_contract_skeleton.py` — 20 tests covering
+  fixtures-pass + per-assertion mutations A01..A19), and Slurm job
+  (`slurm/jobs/p0_4_contract_smoke.sh`).
+- Scope-change at commit `22b685a` authorized `libs/common/runtime_contract.py`
+  (reuse_policy row, `class=robust_asr_owned_extension`, `commit_allowed=true`,
+  `allowed_tasks=[P0.4, P9.0]`) and added the validator/tests/Slurm-job paths
+  to the touch_policy P0.4 row.
+- Slurm CPU job 2129642 on aisurrey01 (partition 2080ti) COMPLETED 0:0 in 5 s,
+  MaxRSS 3872 KiB. Env isolation: `PYTHONNOUSERSITE=1`, cleared
+  `PYTHONPATH`/`PYTHONUSERBASE`, `PIP_USER=0`. Container sha256
+  `8db5364c...` matches `tracker.artifacts.runtime_image_v1`.
+- 19/19 assertions PASS in `--strict-skeleton`; sentinel `OK_CONTRACT_SKELETON`.
+- 20/20 unit tests passing in 1.06 s inside the SIF.
+- `tracker.artifacts.runtime_contract_fixture.contract_skeleton_validation_passed = true`;
+  `contract_final_validation_passed` stays `false` (final validation finalized in P9.0).
+- `current_task` advanced from P0.4 → P0.5; `last_completed_task` P0.3 → P0.4;
+  `state_transport.last_accepted_report_commit` UNCHANGED at `0b47b76e` per
+  orchestrator instruction; `state_transport.expected_next_task` stays
+  `P0.4` until orchestrator reviews the P0.4 Execution Report.
+
 ## Pending
 
-- P0.4: Runtime contract skeleton (request/response JSON + 19 assertions)
 - P0.5: Model card and router card templates
 - P0 gate -> P1 (schema, manifests, degradations)
 - P0.5: Model card and router card templates

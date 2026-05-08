@@ -1,0 +1,20 @@
+{
+  "request_id": "11111111-1111-4111-8111-111111111111",
+  "audio": {
+    "encoding": "wav",
+    "sample_rate_hz": 16000,
+    "channels": 1,
+    "duration_s": 3.5,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "uri_or_inline": "storage://robust_asr/skeleton_fixture/audio.wav"
+  },
+  "client": {
+    "browser_user_agent": "RP5-Skeleton/1.0",
+    "client_version": "0.1.0"
+  },
+  "constraints": {
+    "max_latency_ms": 1500,
+    "allow_third_party": false,
+    "profile": "balanced"
+  }
+}

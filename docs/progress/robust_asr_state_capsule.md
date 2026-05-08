@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P0.3-rerun-2 (PASS — BLOCKED_RUNTIME cleared; current_task -> P0.4)
+Updated by: P0.4 (PASS — runtime contract skeleton; current_task -> P0.5)
 Date: 2026-05-08
 
 ## Branch
@@ -12,20 +12,20 @@ pushed_to_origin: true
 ## Current state
 
 current_phase: P0
-current_task: P0.4
-last_completed_task: P0.3
+current_task: P0.5
+last_completed_task: P0.4
 blocked: false
 blocker: null
 active_markers: []
 
 ## Latest reports
 
-latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
+latest_execution_report: reports/robust_asr/task_reports/P0.4_runtime_contract.md
 latest_planning_report: null
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3-rerun-2 decision=APPROVE_PLAN accepted_report_commit=efed06e (env-isolation scope-change accepted; rerun-2 plan approved; outcome PASS, BLOCKED_RUNTIME cleared)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P0.3-rerun-2-scope-change decision=APPROVE_EXECUTION accepted_report_commit=efed06e (env-isolation edit accepted)
-last_accepted_report_commit: efed06e690255a1838741acc5ebd8ffb4f2c4599
+latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.4-scope-change decision=APPROVE_EXECUTION accepted_report_commit=22b685a (P0.4 scope-change paths authorized; runtime_contract.py, validator, tests, Slurm job)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P0.4 decision=CHANGE_SCOPE accepted_report_commit=0b47b76e (authorize libs/common/runtime_contract.py + validator/tests/Slurm-job touch_policy entries)
+last_accepted_report_commit: 0b47b76ee6fc90f8d5eb8c712991990f37b1b1c5
 
 ## Key artifacts created in P0.2
 
@@ -155,13 +155,47 @@ last_accepted_report_commit: efed06e690255a1838741acc5ebd8ffb4f2c4599
   at a different host path, a CHANGE_SCOPE Approval Packet is required
   to amend the reuse_policy_v1.yaml row.
 
+## P0.4 PASS (runtime contract skeleton)
+
+- Slurm CPU job 2129642 on aisurrey01 (partition 2080ti) COMPLETED 0:0
+  in 5 s, MaxRSS 3872 KiB. Env isolation: PYTHONNOUSERSITE=1, cleared
+  PYTHONPATH/PYTHONUSERBASE, PIP_USER=0. Container sha256 8db5364c...
+  matches tracker.artifacts.runtime_image_v1.
+- Validator (`scripts/robust_asr/validate_runtime_contract.py`,
+  `--strict-skeleton`) emitted `OK_CONTRACT_SKELETON`; all 19/19
+  assertions PASS on `rp5_request_fixture.json` /
+  `rp5_response_fixture.json`.
+- Unit tests (`tests/robust_asr/test_runtime_contract_skeleton.py`):
+  20/20 passing in 1.06 s inside the SIF (skeleton-fixtures-pass +
+  per-assertion mutations A01..A19).
+- Schema module `libs/common/runtime_contract.py` (JSON Schema 2020-12
+  draft request/response schemas + pure-stdlib assertion runner; no
+  jsonschema runtime dependency required).
+- Scope-change at commit 22b685a authorized
+  `libs/common/runtime_contract.py` (reuse_policy row,
+  class=robust_asr_owned_extension, commit_allowed=true,
+  allowed_tasks=[P0.4, P9.0]) and added validator/tests/Slurm-job paths
+  to the touch_policy P0.4 row.
+- Tracker: tasks.P0.4.status=PASS;
+  artifacts.runtime_contract_fixture.path=
+  reports/robust_asr/runtime_contract_smoke.md;
+  contract_skeleton_validation_passed=true;
+  contract_final_validation_passed=false (finalized in P9.0).
+  current_task=P0.5; last_completed_task=P0.4; blocked=false; markers=[].
+  state_transport.expected_next_task=P0.4 (held until orchestrator
+  reviews P0.4 Execution Report);
+  state_transport.last_accepted_report_commit STAYS 0b47b76e
+  (P0.3-rerun-2 acceptance; NOT advanced to P0.4 commit per
+  orchestrator instruction).
+
 ## Next expected Claude prompt
 
-Task: P0.4 Runtime contract skeleton
+Task: P0.5 Model card and router card templates
 Phase: P0
-Preconditions: P0.3 PASS (current_task == P0.4); BLOCKED_RUNTIME cleared.
-Mode: PLANNING then EXECUTION
+Preconditions: P0.4 PASS (current_task == P0.5); markers=[].
+Mode: await ORCHESTRATOR_DECISION on P0.4 Execution Report; then PLANNING for P0.5.
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
-current_task=P0.4 and last_completed_task=P0.3, await orchestrator
-APPROVE_PLAN for P0.4, then return a P0.4 Planning Report and stop.
+current_task=P0.5 and last_completed_task=P0.4, await orchestrator
+APPROVE_EXECUTION on the P0.4 report and APPROVE_PLAN for P0.5, then
+return a P0.5 Planning Report and stop.
