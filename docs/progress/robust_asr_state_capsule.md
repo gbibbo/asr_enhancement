@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P1.1 CHANGE_SCOPE (scope-change only; no inventory; current_task stays P1.1, last_completed_task stays P0.5)
+Updated by: P1.1 EXECUTION (HALTED — MISSING_EVIDENCE; current_task stays P1.1, last_completed_task stays P0.5, blocked=true)
 Date: 2026-05-08
 
 ## Branch
@@ -14,17 +14,17 @@ pushed_to_origin: true
 current_phase: P0
 current_task: P1.1
 last_completed_task: P0.5
-blocked: false
-blocker: null
-active_markers: []
+blocked: true
+blocker: "P1.1 HALTED: LibriSpeech train-clean-100, train-clean-360, and test-clean audio missing on host (only dev-clean populated). Three of four required split labels (lora_train, router_train, locked_test) cannot resolve to non-empty file lists."
+active_markers: [MISSING_EVIDENCE]
 
 ## Latest reports
 
-latest_execution_report: reports/robust_asr/task_reports/P0.5_card_templates.md
-latest_planning_report: reports/robust_asr/task_reports/P0.5_card_templates.md
+latest_execution_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
+latest_planning_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P1.1 phase=P1 decision=CHANGE_SCOPE accepted_report_commit=3129c11e next_expected_task=P1.1 (authorize read-only dataset root inventory for P1.1 and P1 downstream tasks plus P1.1 write paths)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=phase phase=P0 decision=PHASE_APPROVE accepted_report_commit=d0ba20c5 next_expected_task=P1.1 (P0 gate PASS; P0.0..P0.5 PASS; sentinels and artifacts present; no blockers/markers)
+latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1 phase=P1 decision=APPROVE_PLAN accepted_report_commit=e4a56770 next_expected_task=P1.2 (P1.1 plan accepted on the scope-change commit; execute inventory only; do not advance last_accepted_report_commit to the P1.1 commit)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1-scope-change phase=P1 decision=APPROVE_EXECUTION accepted_report_commit=e4a56770 next_expected_task=P1.1 (scope-change accepted; current_task remains P1.1)
 last_accepted_report_commit: 3129c11edd5105d7c247b48eb1a170d7c1507cde
 
 ## Key artifacts created in P0.2
@@ -267,17 +267,80 @@ last_accepted_report_commit: 3129c11edd5105d7c247b48eb1a170d7c1507cde
   data_inventory.md authored; no Slurm; no Apptainer; no GPU; no
   external API.
 
+## P1.1 EXECUTION (HALTED — MISSING_EVIDENCE)
+
+- Inventoried dataset roots on host. Findings:
+  - LibriSpeech `dev-clean`: 40 speakers, 2703 `.flac`, ~5.388 h, 349 MiB
+    on disk — populated.
+  - LibriSpeech `train-clean-100`: 251 speaker dirs, **0 `.flac`**, 0
+    bytes — skeleton only.
+  - LibriSpeech `train-clean-360`: subset directory **absent** on host.
+  - LibriSpeech `test-clean`: 40 speaker dirs, **0 `.flac`**, 0 bytes
+    — skeleton only.
+  - Common Voice EN cv-corpus-24.0-2025-12-05: `clips/` empty, no `.tsv`
+    transcripts.
+  - TED-LIUM Release 3, CHiME-6: absent on `/mnt/fast/nobackup`.
+- Files written:
+  - `configs/robust_asr/data_v1.yaml` — six canonical splits, declared
+    roots, OOD-real preference order, provisional dev-clean speaker
+    partition (sourced from
+    `datasets/splits/devclean_speaker_split_v1/{train,val}_speakers.txt`).
+  - `reports/robust_asr/data_inventory.md` — per-dataset inventory and
+    HALT rationale.
+  - `scripts/robust_asr/check_speaker_disjoint.py` — pure-Python
+    speaker-disjoint check; emits `OK_SPEAKER_DISJOINT`.
+  - `reports/robust_asr/task_reports/P1.1_data_inventory.md` — execution
+    report.
+- Verifications: `OK_DATA_V1_CONFIG`, `OK_SPEAKER_DISJOINT` (trivial — 3
+  of 4 splits empty), `OK_REPORT_SHAPE`. No Slurm, no Apptainer, no GPU,
+  no external API.
+- Decision rule 1 of P1.1 fires: LibriSpeech (partially) missing →
+  HALTED + `MISSING_EVIDENCE`. Decision rule 2 / Section 1.1 rule 4 also
+  triggers (no Section 1.1 OOD-real source resolves) but is superseded
+  by the LibriSpeech HALT. `data_v1.yaml.ood_real.blocked=true` records
+  the OOD-real status; `claims_enabled.ood_real` is NOT flipped at this
+  report and awaits orchestrator instruction with HALT resolution.
+- Tracker: `tasks.P1.1.status=HALTED`, `markers=[MISSING_EVIDENCE]`,
+  `blocked=true`, `current_task=P1.1` (held), `last_completed_task=P0.5`
+  (held), `state_transport.last_accepted_report_commit` STAYS
+  `3129c11edd5105d7c247b48eb1a170d7c1507cde` (P0 phase-gate acceptance);
+  NOT advanced to the P1.1 commit per orchestrator instruction.
+- Approval-packet chain on tracker:
+  `latest_approval_packet`=APPROVE_PLAN(P1.1) on `e4a5677…` (next P1.2);
+  `prior_approval_packet`=APPROVE_EXECUTION(P1.1-scope-change) on
+  `e4a5677…` (next P1.1);
+  `prior_approval_packet_2`=CHANGE_SCOPE(P1.1) on `3129c11e…` (next P1.1);
+  `prior_approval_packet_3`=PHASE_APPROVE(P0) on `d0ba20c5…` (next P1.1).
+
+## Unblock path
+
+Restore LibriSpeech audio under
+`/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/`:
+fetch `train-clean-100.tar.gz`, `test-clean.tar.gz` (and optionally
+`train-clean-360.tar.gz`) from `openslr.org/12` and extract in place.
+Then rerun P1.1 (no scope change required) — the inventory invariant is
+rechecked and the HALT clears once `lora_train`, `router_train`,
+`locked_test` resolve to non-empty file lists.
+
+For OOD-real, separately populate Common Voice clips + transcripts
+under the existing CV root or stage TED-LIUM R3 / CHiME-6 dev under a
+new root; either path requires a new CHANGE_SCOPE if a new host root is
+introduced.
+
 ## Next expected Claude prompt
 
-Task: P1.1 Data root inventory and dataset configs
+Task: P1.1 (HALTED — MISSING_EVIDENCE) — rerun after audio restore, OR
+       a CHANGE_SCOPE Approval Packet that reduces P1.1 scope (e.g.
+       dev-clean only).
 Phase: P1
 Preconditions: P0 PHASE_APPROVE recorded; P1.1 CHANGE_SCOPE recorded;
-current_task == P1.1; last_completed_task == P0.5; markers=[]; blocked=false.
-Mode: await ORCHESTRATOR_DECISION APPROVE_PLAN for P1.1, then return
-a P1.1 Planning Report (already produced once before scope-change) or
-proceed to P1.1 execution per orchestrator instruction.
+P1.1-scope-change APPROVE_EXECUTION recorded; P1.1 APPROVE_PLAN
+recorded; current_task == P1.1; last_completed_task == P0.5;
+markers=[MISSING_EVIDENCE]; blocked=true.
+Mode: await orchestrator instruction (audio restore + rerun, or a new
+CHANGE_SCOPE).
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
-current_task=P1.1, last_completed_task=P0.5, phase_summary.P0=PASS,
-orchestrator_approvals.P0=PHASE_APPROVE, latest_approval_packet =
-CHANGE_SCOPE(P1.1), then await APPROVE_PLAN(P1.1) or APPROVE_EXECUTION(P1.1).
+current_task=P1.1 (HALTED), markers=[MISSING_EVIDENCE], blocked=true,
+state_transport.last_accepted_report_commit=3129c11e (unchanged),
+then await orchestrator instruction.

@@ -1,0 +1,153 @@
+# Robust ASR — Data configs v1
+#
+# Produced by: P1.1 (data root inventory)
+# Date: 2026-05-08
+# Status of this config at write time: HALTED (MISSING_EVIDENCE)
+#   Only LibriSpeech dev-clean is populated on host. train-clean-100,
+#   train-clean-360, and test-clean lack audio files. Common Voice EN
+#   has no transcripts and an empty clips/ directory. TED-LIUM R3 and
+#   CHiME-6 are absent. The schema below declares the canonical six
+#   split labels but their resolved file lists are empty for every
+#   label except `validation` (LibriSpeech dev-clean).
+#
+# Schema notes:
+#   - `datasets` enumerates every dataset root *declared*; per-dataset
+#     `present_on_host` records whether the audio is actually populated.
+#   - `splits` enumerates the six canonical robust_asr split labels.
+#     For LibriSpeech, `source_dataset` and `source_subset` map each
+#     label to a LibriSpeech subset; `speakers` is the (current best
+#     guess) speaker partition.
+#   - `ood_real.selected_source` is null when no Section 1.1 fallback
+#     resolves; `ood_real.blocked: true` then triggers BLOCKED_OOD_PUBLIC
+#     in PARTIAL outcomes (here superseded by the LibriSpeech HALT).
+
+datasets:
+  librispeech:
+    name: LibriSpeech
+    version: official_2014
+    license_url: https://www.openslr.org/12
+    access_method: local
+    root: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech
+    present_on_host: partial
+    subsets:
+      train-clean-100:
+        present: false
+        speakers_listed: 251
+        speakers_with_audio: 0
+        flac_files: 0
+        hours: 0.0
+        notes: Speaker/chapter directory skeleton present; audio files absent.
+      train-clean-360:
+        present: false
+        speakers_listed: 0
+        speakers_with_audio: 0
+        flac_files: 0
+        hours: 0.0
+        notes: Subset directory not present on host.
+      dev-clean:
+        present: true
+        speakers_listed: 40
+        speakers_with_audio: 40
+        flac_files: 2703
+        hours: 5.388
+        notes: Fully populated. 40 speakers; legacy filtered manifest yields
+               2693 utterances (~5.371 h) after duration filter.
+      test-clean:
+        present: false
+        speakers_listed: 40
+        speakers_with_audio: 0
+        flac_files: 0
+        hours: 0.0
+        notes: Speaker/chapter directory skeleton present; audio files absent.
+
+  common_voice:
+    name: Common Voice English
+    version: cv-corpus-24.0-2025-12-05
+    license_url: https://commonvoice.mozilla.org/en/license
+    access_method: local
+    root: /mnt/fast/nobackup/scratch4weeks/gb0048/sources/commonvoice/cv-corpus-24.0-2025-12-05/en
+    present_on_host: false
+    notes: clips/ directory exists but is empty; no .tsv transcripts present.
+           Section 1.1 approval predicate fails (no public transcripts).
+
+  tedlium_r3:
+    name: TED-LIUM Release 3
+    version: r3
+    license_url: https://www.openslr.org/51
+    access_method: local
+    root: null
+    present_on_host: false
+    notes: Not present on /mnt/fast/nobackup.
+
+  chime6:
+    name: CHiME-6 dev
+    version: dev
+    license_url: https://www.openslr.org/150
+    access_method: local
+    root: null
+    present_on_host: false
+    notes: Not present on /mnt/fast/nobackup.
+
+# OOD-real preference order (Section 1.1).
+# Selected source resolves only if its Section 1.1 approval predicate holds.
+ood_real:
+  preference_order: [common_voice, tedlium_r3, chime6]
+  selected_source: null
+  blocked: true
+  blocked_reason: >
+    Common Voice clips/ empty and no transcripts; TED-LIUM R3 and CHiME-6
+    absent. No Section 1.1 OOD-real source resolves on host.
+
+# Canonical six split labels for robust_asr.
+splits:
+  lora_train:
+    source_dataset: librispeech
+    source_subset: train-clean-100
+    speakers: []
+    notes: Empty until train-clean-100 audio is restored on host.
+  router_train:
+    source_dataset: librispeech
+    source_subset: train-clean-100
+    speakers: []
+    notes: Empty until train-clean-100 audio is restored on host. Must be
+           speaker-disjoint from lora_train when populated.
+  validation:
+    source_dataset: librispeech
+    source_subset: dev-clean
+    speakers: [1272, 1673, 1988, 1993, 2035, 3853, 6241, 7976]
+    notes: Provisional speaker partition copied from existing
+           datasets/splits/devclean_speaker_split_v1/val_speakers.txt.
+           dev-clean is the only populated LibriSpeech subset.
+  locked_test:
+    source_dataset: librispeech
+    source_subset: test-clean
+    speakers: []
+    notes: Empty until test-clean audio is restored on host.
+  ood_real_locked:
+    source_dataset: null
+    source_subset: null
+    speakers: []
+    notes: BLOCKED_OOD_PUBLIC pending source resolution.
+  common_voice_demo_reserved:
+    source_dataset: common_voice
+    source_subset: null
+    speakers: []
+    notes: BLOCKED_OOD_PUBLIC pending Common Voice population.
+
+# Provisional speaker partition for dev-clean (40 speakers) once the
+# missing subsets are restored. Recorded for downstream tasks; not
+# authoritative until P1.3 manifests are built.
+librispeech_devclean_speaker_partition_provisional:
+  validation_speakers: [1272, 1673, 1988, 1993, 2035, 3853, 6241, 7976]
+  remaining_speakers:
+    [174, 251, 422, 652, 777, 84, 1462, 1919, 2078, 2086, 2277, 2412, 2428,
+     2803, 2902, 3000, 3081, 3170, 3536, 3576, 3752, 5338, 5536, 5694,
+     5895, 6295, 6313, 6319, 6345, 7850, 8297, 8842]
+  notes: Source = datasets/splits/devclean_speaker_split_v1/{train,val}_speakers.txt.
+         Speaker-disjoint within dev-clean only.
+
+# Disjoint constraint declaration (enforced by
+# scripts/robust_asr/check_speaker_disjoint.py once data is present).
+disjoint_constraints:
+  - splits: [lora_train, router_train, validation, locked_test]
+    keys: [speaker_id]

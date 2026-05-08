@@ -6,8 +6,8 @@ current_phase: P0
 current_task: P1.1
 last_completed_task: P0.5
 
-blocked: false
-blocker: null
+blocked: true
+blocker: "P1.1 HALTED: LibriSpeech train-clean-100, train-clean-360, and test-clean audio missing on host (only dev-clean populated). Three of four required split labels (lora_train, router_train, locked_test) cannot resolve to non-empty file lists. Restore audio under /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/ and rerun P1.1."
 
 lora_status: NOT_STARTED
 router_status: NOT_STARTED
@@ -27,7 +27,7 @@ product_baseline: whisper_base_ct2_int8
 artifact_root: artifacts/robust_asr
 handoff_root: artifacts/robust_asr/handoff
 
-markers: []
+markers: [MISSING_EVIDENCE]
 
 claims_enabled:
   ood_real: true
@@ -44,11 +44,31 @@ session_log:
 
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
-  latest_planning_report: reports/robust_asr/task_reports/P0.5_card_templates.md
-  latest_execution_report: reports/robust_asr/task_reports/P0.5_card_templates.md
+  latest_planning_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
+  latest_execution_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P1.1
+      phase: P1
+      decision: APPROVE_PLAN
+      accepted_report_commit: e4a567707286ecbb367deb7d6a87eec97cca675d
+      next_expected_task: P1.2
+      required_fix: null
+      rationale: "P1.1 plan accepted on the scope-change commit; execute inventory only; do not advance last_accepted_report_commit to the P1.1 commit."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P1.1-scope-change
+      phase: P1
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: e4a567707286ecbb367deb7d6a87eec97cca675d
+      next_expected_task: P1.1
+      required_fix: null
+      rationale: "P1.1 scope-change accepted; reuse_policy_v1.yaml and touch_policy.md amended for P1.1 dataset inventory; current_task remains P1.1."
+  prior_approval_packet_2:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P1.1
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P1.1
       required_fix: "Authorize read-only dataset root inventory for P1.1 and P1 downstream tasks, plus P1.1 write paths."
       rationale: "P1.1 must inventory dataset roots under sources/** and datasets/**. Current reuse policy either lacks the row or does not include P1.1."
-  prior_approval_packet:
+  prior_approval_packet_3:
     ORCHESTRATOR_DECISION:
       scope: phase
       task_id: null
@@ -68,7 +88,7 @@ state_transport:
       next_expected_task: P1.1
       required_fix: null
       rationale: "P0 phase gate PASS. P0.0 through P0.5 are PASS; required artifacts and sentinels are present; runtime smoke and contract skeleton passed; model/router card placeholder counts exceed minima; no blockers or active markers."
-  prior_approval_packet_prev:
+  prior_approval_packet_4:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.5
@@ -78,7 +98,7 @@ state_transport:
       next_expected_task: P0_GATE
       required_fix: null
       rationale: "P0.5 passed. Model/router card templates exist, placeholder counts exceed requirements, section checks passed, OK_CARD_TEMPLATES recorded."
-  prior_approval_packet_2:
+  prior_approval_packet_5:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.5
@@ -88,7 +108,7 @@ state_transport:
       next_expected_task: P1.1
       required_fix: null
       rationale: "P0.5 plan accepted; templates only, no scope change, no compute. accepted_report_commit references the P0.4 acceptance commit (40406fc) per orchestrator instruction."
-  prior_approval_packet_3:
+  prior_approval_packet_6:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.4
@@ -98,7 +118,7 @@ state_transport:
       next_expected_task: P0.5
       required_fix: null
       rationale: "P0.4 runtime contract skeleton PASS. OK_CONTRACT_SKELETON, all 19 assertions PASS, 20/20 pytest, current_task -> P0.5."
-  prior_approval_packet_4:
+  prior_approval_packet_7:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P0.4
@@ -108,7 +128,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: "Authorize P0.4 runtime contract schema module, validator, tests, and optional Slurm contract smoke job."
       rationale: "P0.4 requires libs/common/runtime_contract.py, but current reuse policy classifies libs/common/** as read-only. P0.4 also needs explicit touch_policy authorization for validator and tests."
-  prior_approval_packet_5:
+  prior_approval_packet_8:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rerun-2
@@ -118,7 +138,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "P0.3 runtime smoke passed against the new env-isolated robust_asr image. BLOCKED_RUNTIME cleared. P0.4 is now the next tracker-derived task."
-  prior_approval_packet_6:
+  prior_approval_packet_9:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P0.3-rerun-2
@@ -800,3 +820,51 @@ tasks:
       - "state_transport.last_accepted_report_commit advanced 0b47b76e -> 40406fc3 (P0.4 acceptance)"
     marker: null
     next_task: P1.1
+  P1.1:
+    status: HALTED
+    commit: null   # filled at commit; see latest_execution_report
+    files_changed:
+      - configs/robust_asr/data_v1.yaml
+      - reports/robust_asr/data_inventory.md
+      - scripts/robust_asr/check_speaker_disjoint.py
+      - reports/robust_asr/task_reports/P1.1_data_inventory.md
+      - configs/robust_asr/reuse_policy_v1.yaml   # via P1.1 scope-change commit e4a5677
+      - reports/robust_asr/touch_policy.md        # via P1.1 scope-change commit e4a5677
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "ls /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech"
+      - "ls /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/{train-clean-100,dev-clean,test-clean}"
+      - "find /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/<split> -name '*.flac' | wc -l"
+      - "du -sh /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/<split>"
+      - "ls /mnt/fast/nobackup/scratch4weeks/gb0048/sources/commonvoice/cv-corpus-24.0-2025-12-05/en/"
+      - "find /mnt/fast/nobackup -maxdepth 5 -type d \\( -iname '*tedlium*' -o -iname '*chime*' \\)"
+      - "python3 (read librispeech_manifest_v1{,_filtered}.jsonl per-split counts and durations)"
+      - "Write configs/robust_asr/data_v1.yaml"
+      - "Write scripts/robust_asr/check_speaker_disjoint.py; chmod +x"
+      - "Write reports/robust_asr/data_inventory.md"
+      - "Write reports/robust_asr/task_reports/P1.1_data_inventory.md"
+      - "python3 -c (data_v1.yaml parse + splits + ood_real assertions)  # OK_DATA_V1_CONFIG"
+      - "python3 scripts/robust_asr/check_speaker_disjoint.py --config configs/robust_asr/data_v1.yaml  # OK_SPEAKER_DISJOINT (trivial)"
+      - "python3 scripts/robust_asr/check_speaker_disjoint.py --config configs/robust_asr/data_v1.yaml --splits lora_train router_train validation locked_test  # OK_SPEAKER_DISJOINT (trivial)"
+      - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures  # OK_REPORT_SHAPE"
+      - "Edit tracker yaml/md/state_capsule (HALTED + MISSING_EVIDENCE)"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "OK_DATA_V1_CONFIG, OK_SPEAKER_DISJOINT (trivial), OK_REPORT_SHAPE"
+      - "LibriSpeech dev-clean: 40 speakers, 2703 .flac, 5.388 h, 349 MiB on disk"
+      - "LibriSpeech train-clean-100: skeleton dirs only (251 speaker dirs), 0 flac, 0 bytes"
+      - "LibriSpeech train-clean-360: subset directory absent on host"
+      - "LibriSpeech test-clean: skeleton dirs only (40 speaker dirs), 0 flac, 0 bytes"
+      - "Common Voice EN cv-corpus-24.0-2025-12-05: clips/ empty, no .tsv transcripts"
+      - "TED-LIUM R3, CHiME-6: absent on /mnt/fast/nobackup"
+      - "data_v1.yaml ood_real.selected_source=null, ood_real.blocked=true (CV/TED/CHiME unresolved)"
+      - "Decision rule 1 (LibriSpeech missing) -> HALTED + MISSING_EVIDENCE; supersedes Decision rule 2 (BLOCKED_OOD_PUBLIC)"
+      - "claims_enabled.ood_real flag NOT flipped at this report; pending orchestrator instruction with HALT resolution"
+      - "current_task=P1.1 held; last_completed_task=P0.5 held; blocked=true; markers=[MISSING_EVIDENCE]"
+      - "state_transport.last_accepted_report_commit STAYS 3129c11e (P0 phase-gate acceptance), per orchestrator instruction"
+    marker: MISSING_EVIDENCE
+    next_task: P1.1
+    blocker: "LibriSpeech train-clean-100, train-clean-360, and test-clean audio missing on host; only dev-clean populated. lora_train, router_train, locked_test cannot resolve to non-empty file lists."
+    unblock_condition: "Restore LibriSpeech audio under /mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/{train-clean-100,test-clean[,train-clean-360]}/ from openslr.org/12 and rerun P1.1."

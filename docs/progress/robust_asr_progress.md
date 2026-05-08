@@ -6,11 +6,11 @@ Status: IN_PROGRESS
 
 ## Current state
 
-- Phase: P0 (Bootstrap and skeleton) — PHASE_APPROVED
-- Current task: P1.1
+- Phase: P0 (Bootstrap and skeleton) — PHASE_APPROVED; P1 not yet entered
+- Current task: P1.1 (HALTED — MISSING_EVIDENCE)
 - Last completed: P0.5 (model_card and router_card templates PASS; 30 and 24 TODO_FILLED_IN placeholders respectively)
-- Active markers: none
-- Blocked: false
+- Active markers: [MISSING_EVIDENCE]
+- Blocked: true — LibriSpeech train-clean-100, train-clean-360, and test-clean audio missing on host; only dev-clean populated. Three of four required split labels (lora_train, router_train, locked_test) cannot resolve to non-empty file lists. Restore audio under `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/librispeech/LibriSpeech/` and rerun P1.1.
 
 ## P0 phase gate
 
@@ -159,9 +159,46 @@ Status: IN_PROGRESS
   orchestrator instruction; `state_transport.expected_next_task` stays
   `P0.4` until orchestrator reviews the P0.4 Execution Report.
 
+## P1.1 (HALTED — MISSING_EVIDENCE; awaiting audio restore)
+
+- Inventory of dataset roots completed and recorded in
+  `reports/robust_asr/data_inventory.md` and `configs/robust_asr/data_v1.yaml`.
+- Findings:
+  - LibriSpeech `dev-clean`: 40 speakers, 2703 `.flac`, ~5.388 h, 349 MiB on disk — populated.
+  - LibriSpeech `train-clean-100`: 251 speaker dirs, **0 `.flac`**, 0 bytes — skeleton only.
+  - LibriSpeech `train-clean-360`: subset directory **absent** on host.
+  - LibriSpeech `test-clean`: 40 speaker dirs, **0 `.flac`**, 0 bytes — skeleton only.
+  - Common Voice EN cv-corpus-24.0-2025-12-05: `clips/` empty, no `.tsv` transcripts.
+  - TED-LIUM Release 3: absent.
+  - CHiME-6: absent.
+- Decision rule 1 of P1.1 fires: LibriSpeech (partially) missing →
+  HALTED + `MISSING_EVIDENCE`. Three of four required split labels
+  (`lora_train`, `router_train`, `locked_test`) cannot resolve to
+  non-empty file lists.
+- Decision rule 2 / Section 1.1 rule 4 (BLOCKED_OOD_PUBLIC) is also
+  triggered (no Section 1.1 OOD-real source resolves) but is superseded
+  by the LibriSpeech HALT. `data_v1.yaml.ood_real.blocked=true` records
+  the OOD-real status; `claims_enabled.ood_real` flag is not flipped at
+  this report and awaits orchestrator instruction.
+- Verifications: `OK_DATA_V1_CONFIG`, `OK_SPEAKER_DISJOINT` (trivial — 3
+  of 4 splits empty), `OK_REPORT_SHAPE`. No Slurm, no Apptainer, no GPU,
+  no external API.
+- Tracker mutations: `tasks.P1.1.status=HALTED`,
+  `markers=[MISSING_EVIDENCE]`, `blocked=true`,
+  `current_task=P1.1` (held), `last_completed_task=P0.5` (held),
+  `state_transport.last_accepted_report_commit` STAYS
+  `3129c11edd5105d7c247b48eb1a170d7c1507cde` (P0 phase-gate acceptance);
+  NOT advanced to the P1.1 commit per orchestrator instruction.
+  Approval-packet chain on tracker:
+  `latest_approval_packet`=APPROVE_PLAN(P1.1) on `e4a5677…` (next P1.2);
+  `prior_approval_packet`=APPROVE_EXECUTION(P1.1-scope-change) on
+  `e4a5677…` (next P1.1);
+  `prior_approval_packet_2`=CHANGE_SCOPE(P1.1) on `3129c11e…` (next P1.1);
+  `prior_approval_packet_3`=PHASE_APPROVE(P0) on `d0ba20c5…` (next P1.1).
+
 ## Pending
 
-- P0 gate → P1 (schema, manifests, degradations)
+- P0 gate → P1 (schema, manifests, degradations) — blocked at P1.1 by MISSING_EVIDENCE
 - P1 → P2 (Whisper base baseline)
 - P3 (LoRA smoke, Decision A)
 - P4 (Full LoRA if Decision A PASS)
