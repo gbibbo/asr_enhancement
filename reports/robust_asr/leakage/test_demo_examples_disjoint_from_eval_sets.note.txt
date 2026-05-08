@@ -1,0 +1,1 @@
+SKIP_OOD_PUBLIC_DEFERRED: demo split empty under BLOCKED_OOD_PUBLIC; claims_enabled.ood_real=false. Re-run when P8.2 produces real demo manifests.

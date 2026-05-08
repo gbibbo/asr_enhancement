@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: CHANGE_SCOPE(P1.2) recorded; reuse_policy_v1.yaml amended with four new libs/common/** rows for P1.2; touch_policy.md P1.2 row rewritten from stale manifests scope to v3.4.7 eval schema / normalization / metrics / leakage tests scope; current_task=P1.2 held; last_completed_task=P1.1 held; current_phase=P1 held; markers=[BLOCKED_OOD_PUBLIC] held; claims_enabled.ood_real=false held; state_transport.last_accepted_report_commit STAYS 587b7483 (P1.1 APPROVE_EXECUTION acceptance; not advanced for CHANGE_SCOPE).
+Updated by: P1.2 PASS (eval schema, normalization, metrics, leakage tests). APPROVE_EXECUTION(P1.2-scope-change) and APPROVE_PLAN(P1.2) recorded against commit 8185501. NORMALIZATION_VERSION=normalization_v1 frozen. 41/41 P1.2 pytest PASS; OK_EVAL_SCHEMA; OK_REPORT_SHAPE; 20/20 P0.4 non-regression PASS. current_task advanced P1.2 -> P1.3; last_completed_task P1.1 -> P1.2; current_phase=P1 held; markers=[BLOCKED_OOD_PUBLIC] held; claims_enabled.ood_real=false held; state_transport.last_accepted_report_commit STAYS 587b7483 (per orchestrator instruction; not advanced to the P1.2 commit).
 Date: 2026-05-08
 
 ## Branch
@@ -12,21 +12,23 @@ pushed_to_origin: true
 ## Current state
 
 current_phase: P1
-current_task: P1.2
-last_completed_task: P1.1
+current_task: P1.3
+last_completed_task: P1.2
 blocked: false
 blocker: null
 active_markers: [BLOCKED_OOD_PUBLIC]
 claims_enabled.ood_real: false
+normalization_version: normalization_v1
+metrics_version: metrics_v1
 
 ## Latest reports
 
-latest_execution_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
-latest_planning_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
+latest_execution_report: reports/robust_asr/task_reports/P1.2_eval_schema.md
+latest_planning_report: reports/robust_asr/task_reports/P1.2_eval_schema.md
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P1.2 phase=P1 decision=CHANGE_SCOPE accepted_report_commit=1ecbaa44 next_expected_task=P1.2 (Authorize P1.2 writes under libs/common/** and update stale touch_policy P1.2 row from old manifests scope to eval schema / normalization / metrics / leakage tests; current_task held at P1.2)
-prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.1 phase=P1 decision=APPROVE_EXECUTION accepted_report_commit=587b7483 next_expected_task=P1.2 (LibriSpeech inventory usable after operator restore; required splits non-empty and speaker-disjoint; OOD-real unavailable, PARTIAL+BLOCKED_OOD_PUBLIC+claims_enabled.ood_real=false accepted)
-last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234   # held; CHANGE_SCOPE does not advance
+latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.2 phase=P1 decision=APPROVE_PLAN accepted_report_commit=8185501 next_expected_task=P1.3 (P1.2 plan accepted on the scope-change commit; implement eval schema, normalization, metrics, validator, three pytest files; do not advance last_accepted_report_commit)
+prior_approval_packet: ORCHESTRATOR_DECISION scope=task task=P1.2-scope-change phase=P1 decision=APPROVE_EXECUTION accepted_report_commit=8185501 next_expected_task=P1.2 (P1.2 scope-change accepted; reuse_policy_v1.yaml libs/common/** override rows and rewritten touch_policy P1.2 row are now binding)
+last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234   # held; APPROVE_EXECUTION(P1.2-scope-change) and APPROVE_PLAN(P1.2) reference 8185501 but per orchestrator instruction the accepted commit is not advanced
 
 ## Key artifacts created in P0.2
 
@@ -424,22 +426,91 @@ introduced.
 - Non-regression: `validate_report_shape.py` against the canonical
   fixtures emitted `OK_REPORT_SHAPE`.
 
+## P1.2 PASS — eval schema, normalization, metrics, leakage tests
+
+- ORCHESTRATOR_DECISIONs: APPROVE_EXECUTION(P1.2-scope-change) and
+  APPROVE_PLAN(P1.2), both on
+  `accepted_report_commit=8185501955f5bb5ecf44c926fcabdc8f27ae2af9`.
+  APPROVE_EXECUTION(P1.2-scope-change) sets `next_expected_task=P1.2`;
+  APPROVE_PLAN(P1.2) sets `next_expected_task=P1.3`.
+- Deliverables (sha256 in tracker yaml `artifacts.*`):
+  - `libs/common/eval_schema.yaml` (31 columns; schema_version
+    `eval_schema_v1`; backend_names + degradation_families + primary
+    key + per-column type/required/description records + Section 3
+    schema-tests rule register).
+  - `libs/common/normalization.py` (`NORMALIZATION_VERSION` imported
+    from versions.py; NFKC → lowercase → keep `[a-z0-9 ]` → collapse
+    whitespace → strip; idempotent).
+  - `libs/common/metrics.py` (`wer`, `cer`, `wa`,
+    `paired_bootstrap_ci`, `paired_bootstrap_ci_delta`; pure stdlib;
+    deterministic given seed).
+  - `libs/common/versions.py` updated to append
+    `NORMALIZATION_VERSION = "normalization_v1"`. Existing constants
+    (`METRICS_VERSION`, `DEGRADATION_VERSION`, `ENHANCER_VERSION`)
+    preserved.
+  - `scripts/robust_asr/validate_eval_schema.py` (Section 4.1
+    contract; emits `OK_EVAL_SCHEMA` or
+    `FAIL_EVAL_SCHEMA: <reason>`; exit 0/1).
+  - `tests/robust_asr/test_eval_schema.py` (positive + negative tests
+    for Section 3 rules 1–7).
+  - `tests/robust_asr/test_normalization_metrics.py` (idempotence,
+    NFKC, WER/CER/WA correctness on hand-checked inputs, paired
+    bootstrap CI determinism + bracket containment).
+  - `tests/robust_asr/test_leakage.py` (5 named tests; speaker tests
+    on real `data_v1.yaml` partition; audio_id / demo / OOD tests on
+    placeholder fixtures with SKIP_OOD_PUBLIC_DEFERRED notes for
+    empty splits).
+  - `reports/robust_asr/task_reports/P1.2_eval_schema.md`.
+- Verifications (all on host Python; no SIF, no Slurm, no GPU, no
+  external API):
+  - `pytest -q tests/robust_asr/test_eval_schema.py
+    tests/robust_asr/test_normalization_metrics.py
+    tests/robust_asr/test_leakage.py` → 41/41 PASS in 0.21 s.
+  - `validate_eval_schema.py` → `OK_EVAL_SCHEMA`, exit 0.
+  - `validate_report_shape.py` → `OK_REPORT_SHAPE`, exit 0.
+  - `pytest -q tests/robust_asr/test_runtime_contract_skeleton.py` →
+    20/20 PASS (P0.4 non-regression).
+- Plan-text inconsistency (reported, not deviated): Section 3 header
+  says "Columns (28):" but enumerates 31 column names. The 31 names
+  are encoded verbatim; the validator checks set equality with the
+  Section 3 list, not the header count.
+- BLOCKED_OOD_PUBLIC handling: leakage tests 4 and 5 honor
+  `claims_enabled.ood_real=false` by treating empty splits as
+  trivially disjoint and writing `SKIP_OOD_PUBLIC_DEFERRED` notes
+  under `reports/robust_asr/leakage/`. Notes must be removed by the
+  unblocking task once Common Voice and OOD-real are populated.
+- Tracker mutations: `tasks.P1.2.status=PASS`,
+  `tasks.P1.2.next_task=P1.3`, `current_task=P1.3`,
+  `last_completed_task=P1.2`, `markers=[BLOCKED_OOD_PUBLIC]` held,
+  `blocked=false` held, `claims_enabled.ood_real=false` held,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1` held,
+  `state_transport.last_accepted_report_commit` STAYS `587b7483…`
+  (per orchestrator instruction; not advanced to the P1.2 commit),
+  `state_transport.expected_next_task=P1.3`,
+  `latest_approval_packet`=APPROVE_PLAN(P1.2) on `8185501…`,
+  `prior_approval_packet`=APPROVE_EXECUTION(P1.2-scope-change) on
+  `8185501…`.
+
 ## Next expected Claude prompt
 
-Task: P1.2 — Canonical eval schema, normalization, leakage tests.
+Task: P1.3 — Public manifests for LoRA / router / validation /
+locked test / OOD / demo reserved.
 Phase: P1
 Preconditions: P0 PHASE_APPROVE; P1.1 PARTIAL APPROVE_EXECUTION;
-P1.2 CHANGE_SCOPE recorded (libs/common/** writes authorized);
-current_task == P1.2; last_completed_task == P1.1;
+P1.2 PASS APPROVE_PLAN recorded; libs/common eval schema /
+normalization / metrics in place at `normalization_v1` /
+`metrics_v1`; data_v1.yaml partition usable.
+current_task == P1.3; last_completed_task == P1.2;
 markers=[BLOCKED_OOD_PUBLIC]; blocked=false;
 claims_enabled.ood_real=false.
-Mode: await ORCHESTRATOR_DECISION APPROVE_PLAN for P1.2 (Planning
-Report already on file), then APPROVE_EXECUTION; do not implement
-P1.2 until APPROVE_EXECUTION is recorded.
+Mode: await ORCHESTRATOR_DECISION APPROVE_EXECUTION(P1.2)
+followed by APPROVE_PLAN(P1.3); do not start P1.3 implementation
+until both packets are recorded.
 
 Next session: read docs/progress/robust_asr_progress.yaml, confirm
-current_task=P1.2, last_completed_task=P1.1, current_phase=P1,
+current_task=P1.3, last_completed_task=P1.2, current_phase=P1,
 markers=[BLOCKED_OOD_PUBLIC], blocked=false,
-latest_approval_packet=CHANGE_SCOPE(P1.2) on 1ecbaa44,
+latest_approval_packet=APPROVE_PLAN(P1.2) on 8185501,
 state_transport.last_accepted_report_commit=587b7483 (held),
-then await APPROVE_PLAN(P1.2) followed by APPROVE_EXECUTION(P1.2).
+then await APPROVE_EXECUTION(P1.2) followed by APPROVE_PLAN(P1.3).

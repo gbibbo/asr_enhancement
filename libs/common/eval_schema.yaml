@@ -1,0 +1,93 @@
+# Robust ASR — Canonical Evaluation Schema v1
+#
+# Produced by: P1.2
+# Date: 2026-05-08
+# Source: docs/plans/robust_asr_agent_plan_v3_4_7.md Section 3
+#
+# Every backend writes one row per (audio_id, backend_name,
+# decode_config_hash) to this schema. No backend may use a private
+# result format without an adapter into this schema.
+#
+# NOTE on column count: Section 3 of the agent plan v3.4.7 carries the
+# header "Columns (28):" but enumerates 31 column names. The 31 names
+# are encoded here verbatim; the validator (`validate_eval_schema.py`)
+# checks for set equality with the Section 3 list, not the header
+# count. The discrepancy is noted in
+# reports/robust_asr/task_reports/P1.2_eval_schema.md and is reported
+# upstream as a plan-text inconsistency, not a P1.2 deviation.
+
+schema_version: eval_schema_v1
+schema_source: docs/plans/robust_asr_agent_plan_v3_4_7.md#section-3
+
+backend_names:
+  - whisper_base_ct2_int8
+  - whisper_lora_fp16
+  - whisper_lora_ct2_int8
+  - assemblyai
+  - router_driven
+  - deterministic_selector_driven
+
+degradation_families:
+  - clean
+  - cafe_noise
+  - phone_band
+  - far_field_room
+  - muffled_lowpass
+
+primary_key:
+  - audio_id
+  - backend_name
+  - decode_config_hash
+
+columns:
+  - {name: audio_id,                     type: string,  required: true,  description: "Stable, backend-independent audio identifier."}
+  - {name: source_dataset,               type: string,  required: true,  description: "Dataset name (e.g., librispeech, common_voice)."}
+  - {name: source_split,                 type: string,  required: true,  description: "Dataset subset (e.g., test-clean)."}
+  - {name: speaker_id,                   type: string,  required: true,  description: "Speaker identifier from source dataset."}
+  - {name: utterance_id,                 type: string,  required: true,  description: "Utterance id within the speaker."}
+  - {name: condition_family,             type: string,  required: true,  description: "One of degradation_families above."}
+  - {name: degradation_id,               type: string,  required: true,  description: "Degradation v1 sample id (clean has degradation_id='clean')."}
+  - {name: degradation_params_json,      type: string,  required: true,  description: "JSON-serialized degradation parameter snapshot."}
+  - {name: audio_path_or_uri,            type: string,  required: true,  description: "Local path or URI to the audio file used for the row."}
+  - {name: audio_sha256,                 type: string,  required: true,  description: "SHA-256 of the audio bytes used."}
+  - {name: reference_text,               type: string,  required: true,  description: "Raw reference transcript."}
+  - {name: reference_normalized,         type: string,  required: true,  description: "Reference run through libs/common/normalization.py."}
+  - {name: backend_name,                 type: string,  required: true,  description: "One of backend_names above."}
+  - {name: backend_version,              type: string,  required: true,  description: "Backend implementation version."}
+  - {name: backend_kind,                 type: string,  required: true,  description: "One of {local_asr, cloud_asr, router, selector}."}
+  - {name: decode_config_json,           type: string,  required: true,  description: "JSON-serialized decode-config snapshot."}
+  - {name: raw_transcript,               type: string,  required: false, description: "Raw backend transcript; null on error."}
+  - {name: normalized_transcript,        type: string,  required: false, description: "Backend transcript normalized; null on error."}
+  - {name: normalization_version,        type: string,  required: true,  description: "Value of NORMALIZATION_VERSION on libs/common/versions.py at write time."}
+  - {name: wer,                          type: float64, required: false, description: "Word error rate on normalized strings; null on error."}
+  - {name: cer,                          type: float64, required: false, description: "Character error rate on normalized strings; null on error."}
+  - {name: wa,                           type: float64, required: false, description: "Word accuracy = max(0, 1 - wer); null on error."}
+  - {name: backend_latency_ms,           type: float64, required: false, description: "Backend-only latency in ms; null on error."}
+  - {name: server_processing_latency_ms, type: float64, required: false, description: "Server-side processing latency in ms; null on error."}
+  - {name: end_to_end_latency_ms,        type: float64, required: false, description: "End-to-end latency in ms; null on error."}
+  - {name: ram_peak_mb,                  type: float64, required: false, description: "Peak resident memory in MB during decoding; null on error."}
+  - {name: cost_usd,                     type: float64, required: false, description: "External provider cost in USD; null when local_only is true."}
+  - {name: local_only,                   type: bool,    required: true,  description: "Audio did not leave the RP5 to a third-party ASR provider."}
+  - {name: third_party_provider,         type: string,  required: false, description: "Provider name when local_only=false; null otherwise."}
+  - {name: error_or_null,                type: string,  required: false, description: "Error string when any latency field is null; null on success."}
+  - {name: created_at_utc,               type: string,  required: true,  description: "RFC 3339 UTC timestamp of row creation."}
+
+# Section 3 schema tests (encoded as machine-readable invariants).
+# tests/robust_asr/test_eval_schema.py asserts each rule on synthetic
+# rows. validate_eval_table.py (P1.x downstream) asserts the same
+# rules on populated parquet tables.
+schema_tests:
+  test_1_required_columns_exist:
+    rule: every column listed in `columns` must be present on every row.
+  test_2_one_row_per_pk:
+    rule: rows are unique on (audio_id, backend_name, decode_config_hash).
+  test_3_audio_id_stable_across_backends:
+    rule: same audio_id may appear under multiple backend_name; audio_path_or_uri and audio_sha256 must agree across backends.
+  test_4_reference_normalized_identical:
+    rule: reference_normalized is identical across backends for the same audio_id.
+  test_5_normalization_version_present:
+    rule: normalization_version is non-null on every row.
+  test_6_error_implies_null_latency:
+    rule: error_or_null non-null whenever any of (backend_latency_ms, server_processing_latency_ms, end_to_end_latency_ms) is null.
+  test_7_cost_usd_local_only:
+    rule: cost_usd is null only when local_only == true; numeric otherwise.

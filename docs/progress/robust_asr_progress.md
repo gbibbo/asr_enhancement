@@ -6,15 +6,76 @@ Status: IN_PROGRESS
 
 ## Current state
 
-- Phase: P1 (Schema, manifests, degradations) — entered after APPROVE_EXECUTION(P1.1)
-- Current task: P1.2 (canonical eval schema, normalization, leakage tests)
-- Last completed: P1.1 (PARTIAL — BLOCKED_OOD_PUBLIC accepted; LibriSpeech inventory usable)
+- Phase: P1 (Schema, manifests, degradations)
+- Current task: P1.3 (public manifests for LoRA / router / validation / locked test / OOD / demo reserved)
+- Last completed: P1.2 (PASS — eval schema, normalization, metrics, leakage tests)
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
-- state_transport.last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234 (held; P1.2 CHANGE_SCOPE does not advance)
-- state_transport.expected_next_task: P1.2
-- latest_approval_packet: CHANGE_SCOPE(P1.2) on `1ecbaa44…` (next P1.2)
+- normalization_version: normalization_v1 (frozen at P1.2)
+- metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
+- state_transport.last_accepted_report_commit: 587b7483a6d37a24e0cf31549d449427c4708234 (held; P1.2 CHANGE_SCOPE + APPROVE_PLAN(P1.2) reference 8185501 but do not advance the accepted commit)
+- state_transport.expected_next_task: P1.3
+- latest_approval_packet: APPROVE_PLAN(P1.2) on `8185501…` (next P1.3)
+
+## P1.2 PASS — eval schema, normalization, metrics, leakage tests
+
+- ORCHESTRATOR_DECISIONs recorded by P1.2:
+  - `APPROVE_EXECUTION(P1.2-scope-change)` on
+    `accepted_report_commit=8185501955f5bb5ecf44c926fcabdc8f27ae2af9`,
+    `next_expected_task=P1.2`. Scope-change rows in
+    `configs/robust_asr/reuse_policy_v1.yaml` and the rewritten P1.2
+    row in `reports/robust_asr/touch_policy.md` are now binding.
+  - `APPROVE_PLAN(P1.2)` on
+    `accepted_report_commit=8185501955f5bb5ecf44c926fcabdc8f27ae2af9`,
+    `next_expected_task=P1.3`.
+- Implementation deliverables (sha256 in tracker yaml `artifacts.*`):
+  `libs/common/eval_schema.yaml`, `libs/common/normalization.py`,
+  `libs/common/metrics.py`, `libs/common/versions.py` (NORMALIZATION_VERSION
+  appended; existing constants preserved),
+  `scripts/robust_asr/validate_eval_schema.py`,
+  `tests/robust_asr/test_eval_schema.py`,
+  `tests/robust_asr/test_normalization_metrics.py`,
+  `tests/robust_asr/test_leakage.py`,
+  `reports/robust_asr/task_reports/P1.2_eval_schema.md`.
+- Verifications:
+  - `python3 -m pytest -q tests/robust_asr/test_eval_schema.py
+    tests/robust_asr/test_normalization_metrics.py
+    tests/robust_asr/test_leakage.py` → **41/41 PASS in 0.21 s**.
+  - `python3 scripts/robust_asr/validate_eval_schema.py --schema
+    libs/common/eval_schema.yaml` → `OK_EVAL_SCHEMA`, exit 0.
+  - `python3 scripts/robust_asr/validate_report_shape.py …` →
+    `OK_REPORT_SHAPE`, exit 0 (non-regression).
+  - `python3 -m pytest -q tests/robust_asr/test_runtime_contract_skeleton.py`
+    → **20/20 PASS** (P0.4 non-regression).
+- `NORMALIZATION_VERSION = "normalization_v1"` appended to
+  `libs/common/versions.py`. Existing `METRICS_VERSION="metrics_v1"`,
+  `DEGRADATION_VERSION="degradation_v1"`, `ENHANCER_VERSION=None`
+  preserved. New `libs/common/metrics.py` is the canonical robust_asr
+  metrics module (distinct from training-profile
+  `libs/audio/metrics.py`, which remains unmodified).
+- Plan-text inconsistency: Section 3 header reads "Columns (28):" but
+  enumerates 31 column names. The 31 names are encoded verbatim in the
+  schema YAML; the validator checks set equality with the Section 3
+  list, not the header count. Reported as a plan-text inconsistency,
+  not a P1.2 deviation.
+- Leakage tests 4 and 5 honor `BLOCKED_OOD_PUBLIC` /
+  `claims_enabled.ood_real=false`: empty Common Voice / OOD-real /
+  demo-reserved splits are treated as trivially disjoint and a
+  `SKIP_OOD_PUBLIC_DEFERRED` note is written under
+  `reports/robust_asr/leakage/`.
+- Tracker mutations: `tasks.P1.2.status=PASS`,
+  `current_task=P1.3`, `last_completed_task=P1.2`,
+  `markers=[BLOCKED_OOD_PUBLIC]` held, `blocked=false` held,
+  `claims_enabled.ood_real=false` held,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1` held,
+  `state_transport.last_accepted_report_commit` STAYS `587b7483…`
+  (per orchestrator instruction; not advanced to the P1.2 commit),
+  `state_transport.expected_next_task=P1.3`,
+  `latest_approval_packet`=APPROVE_PLAN(P1.2) on `8185501…`,
+  `prior_approval_packet`=APPROVE_EXECUTION(P1.2-scope-change) on
+  `8185501…`.
 
 ## P1.2 CHANGE_SCOPE recorded
 
