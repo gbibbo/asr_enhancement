@@ -18,12 +18,82 @@ Status: IN_PROGRESS
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (held; PHASE_APPROVE(P1) acceptance; not advanced to the P2.1 implementation commit per orchestrator instruction)
 - state_transport.expected_next_task: P2.1 (held — HALTED on MISSING_EVIDENCE)
-- latest_approval_packet: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
-- prior_approval_packet: APPROVE_PLAN(P2.1) on `def8458` (next P2.2)
+- latest_approval_packet: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
+- prior_approval_packet: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
+- prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+- prior_approval_packet_p2_1_plan: APPROVE_PLAN(P2.1) on `def8458` (next P2.2)
 - prior_approval_packet_p2_1_scope_exec: APPROVE_EXECUTION(P2.1-scope-change) on `def8458` (next P2.1)
 - prior_approval_packet_p2_1_change_scope: CHANGE_SCOPE(P2.1) on `22201db` (next P2.1)
 - prior_approval_packet_p1_phase: PHASE_APPROVE(P1) on `49b4bdc` (next P2.1)
-- prior_approval_packet_p1_gate: APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE)
+
+## P2.1-model-build PASS — CT2 INT8 weights produced (parent P2.1 still HALTED)
+
+- ORCHESTRATOR_DECISIONs recorded:
+  - `APPROVE_EXECUTION(P2.1-model-scope-change)` on
+    `accepted_report_commit=7253b878b61c4416f2e1164257e802ca7627a73b`,
+    `next_expected_task=P2.1`. Two new reuse_policy override rows
+    (`…/cache/whisper/base.en.pt` read-only sha256-pinned;
+    `…/runtime/whisper_models/**` read_write) and the touch_policy P2.1
+    row extension are now binding.
+  - `APPROVE_PLAN(P2.1-model-build)` on
+    `accepted_report_commit=7253b878b61c4416f2e1164257e802ca7627a73b`,
+    `next_expected_task=P2.1`. Build accepted on the model-scope-change
+    commit; `state_transport.last_accepted_report_commit` is NOT
+    advanced.
+- Implementation deliverables:
+  - `scripts/robust_asr/build_whisper_base_ct2_int8.py`
+    (sha256 `79f29b5c…835e`). Source-sha256 verification, three
+    conversion strategies in order, idempotent provenance write.
+  - `slurm/jobs/p2_1_build_ct2_model.sh`
+    (sha256 `e575f874…9e1e`). Apptainer SIF exec, env-isolated,
+    CPU-only, `--time=00:30:00`, `--mem=8G`, `--cpus-per-task=2`.
+  - `reports/robust_asr/whisper_base_ct2_int8_build.md`.
+- Slurm job 2129651 COMPLETED 0:0 in 32 s on aisurrey04 (partition
+  `2080ti`); MaxRSS 836,324 KiB; container sha256 `8db5364c…ce8713`
+  matches tracker; sentinel `OK_CT2_BUILD` printed.
+- Conversion outcome: strategy 1 (`OpenAIWhisperConverter`) — class
+  removed from ctranslate2 4.x; strategy 2 (`ct2-transformers-converter`
+  CLI) — failed with `TypeError: WhisperForConditionalGeneration.__init__()
+  got an unexpected keyword argument 'dtype'` (transformers/ctranslate2
+  API mismatch); strategy 3 (`TransformersConverter` Python API with
+  patched `load_model` that strips `dtype`/`torch_dtype` before
+  `from_pretrained`) — PASS.
+- Model directory:
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/whisper_base_en_ct2_int8/`
+  - `model.bin` (76,396,161 bytes; sha256 `4ed9e9b5…db33f`).
+  - 11 ancillary files (config, tokenizer, vocab, normalizer, generation
+    config, etc.); per-file sha256s in `provenance.json`.
+  - `provenance.json` records: source path + sha256 +
+    `source_canonical_sha256=25a8566e…ad`,
+    `ctranslate2_version=4.7.1`, `quantization=int8`, three conversion
+    attempts, `container_sha256`, `slurm_job_id=2129651`, host, UTC
+    timestamp.
+- Source: `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/whisper/base.en.pt`,
+  sha256 `25a8566e1d0c1e2231d1c762132cd20e0f96a85d16145c3a00adf5d1ac670ead`,
+  matches the canonical openai-whisper `_MODELS["base.en"]` hash.
+  HF mirror `openai/whisper-base.en` was used for model-class load only;
+  conversion outputs derive from those (canonically identical) bytes.
+- Prior attempt: Slurm job `2129650` FAILED `1:0` in 31 s
+  (strategies 1+2; strategy 3 not yet present at that commit). No
+  partial output retained because the build script wipes the output
+  directory between strategies and writes provenance.json only on
+  full success.
+- Verifications: `OK_CT2_BUILD` emitted; model.bin present; 12 output
+  files written; provenance.json records all required fields. P2.1
+  baseline rerun NOT executed; non-regression checks not re-run on this
+  build (no robust_asr code under test changed).
+- Tracker mutations: new `tasks.P2.1.subtasks.P2.1-model-build` block
+  with status PASS and Slurm metadata; new
+  `tasks.P2.1.artifacts_added.{build_whisper_base_ct2_int8_script,
+  p2_1_build_ct2_model_slurm_job, whisper_base_ct2_int8_build_report,
+  whisper_base_ct2_int8_model}` entries; `latest_approval_packet`
+  replaced with APPROVE_PLAN(P2.1-model-build) and
+  APPROVE_EXECUTION(P2.1-model-scope-change) shifted to
+  `prior_approval_packet`. **`tasks.P2.1.status` stays `HALTED`** (the
+  build does not by itself satisfy the parent task's PASS criteria).
+  `markers=[BLOCKED_OOD_PUBLIC, MISSING_EVIDENCE]` held; `blocked=true`
+  held; `current_task=P2.1` held; `last_completed_task=P1.4` held;
+  `state_transport.last_accepted_report_commit=49b4bdc…` held.
 
 ## P2.1 model-remediation scope change (no conversion; CT2 source/output paths authorized)
 

@@ -50,6 +50,26 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P2.1-model-build
+      phase: P2
+      decision: APPROVE_PLAN
+      accepted_report_commit: 7253b878b61c4416f2e1164257e802ca7627a73b
+      next_expected_task: P2.1
+      required_fix: null
+      rationale: "P2.1 model-build plan accepted on the model-scope-change commit; implement scripts/robust_asr/build_whisper_base_ct2_int8.py + slurm/jobs/p2_1_build_ct2_model.sh; convert the host openai-whisper base.en.pt to CT2 INT8 at /mnt/.../runtime/whisper_models/whisper_base_en_ct2_int8/; write provenance.json; emit OK_CT2_BUILD; do not rerun P2.1 baseline; do not clear MISSING_EVIDENCE; do not advance last_accepted_report_commit to the implementation commit."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P2.1-model-scope-change
+      phase: P2
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 7253b878b61c4416f2e1164257e802ca7627a73b
+      next_expected_task: P2.1
+      required_fix: null
+      rationale: "P2.1-model scope-change accepted at commit 7253b87; reuse_policy_v1.yaml /mnt/.../cache/whisper/base.en.pt read-only override row, /mnt/.../runtime/whisper_models/** read_write row, and the touch_policy P2.1 row extension are now binding."
+  prior_approval_packet_p2_1_model_change_scope:
+    ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P2.1-model
       phase: P2
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P2.1
       required_fix: "Authorize read-only use of the local OpenAI Whisper base.en.pt checkpoint and read-write robust_asr CT2 INT8 model output path."
       rationale: "P2.1 halted because whisper_base_ct2_int8 weights were missing. A local openai-whisper base.en.pt checkpoint exists with canonical sha256 and can be converted offline to CT2 INT8 with provenance."
-  prior_approval_packet:
+  prior_approval_packet_p2_1_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.1
@@ -1440,3 +1460,51 @@ tasks:
         path: slurm/jobs/p2_1_baseline.sh
         sha256: 09f489ef85d1aa79d7c7c6e304d1f5210f16f405f9ed402945bbfcd288f36030
         produced_by_task: P2.1
+      build_whisper_base_ct2_int8_script:
+        path: scripts/robust_asr/build_whisper_base_ct2_int8.py
+        sha256: 79f29b5c18ba12f5230a31beb07dd58184f80b29b2e60e1b9183a4af5633835e
+        produced_by_task: P2.1-model-build
+      p2_1_build_ct2_model_slurm_job:
+        path: slurm/jobs/p2_1_build_ct2_model.sh
+        sha256: e575f8740d07248b0b8c4c47ac0f612e1281214d4e827537fc2c9ba6859d9e1e
+        produced_by_task: P2.1-model-build
+      whisper_base_ct2_int8_build_report:
+        path: reports/robust_asr/whisper_base_ct2_int8_build.md
+        produced_by_task: P2.1-model-build
+      whisper_base_ct2_int8_model:
+        path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/whisper_base_en_ct2_int8
+        produced_by_task: P2.1-model-build
+        large_artifact: true
+        commit_allowed: false
+        provenance: provenance.json (in directory)
+        model_bin_sha256: 4ed9e9b5ff94611603854e0abf79badb1d9f3ae3a4b1f3537d93a116e31db33f
+        ctranslate2_version: 4.7.1
+        quantization: int8
+        source_path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/whisper/base.en.pt
+        source_sha256: 25a8566e1d0c1e2231d1c762132cd20e0f96a85d16145c3a00adf5d1ac670ead
+        slurm_job_id: "2129651"
+        container_sha256: 8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713
+    subtasks:
+      P2.1-model-build:
+        status: PASS
+        commit: pending
+        sentinel: OK_CT2_BUILD
+        slurm:
+          job_id: "2129651"
+          job_name: asr_p2_1_build_ct2
+          partition: 2080ti
+          state: COMPLETED
+          exit_code: "0:0"
+          elapsed_s: 32
+          host: aisurrey04
+          node_list: aisurrey04
+          container_sha256: 8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713
+          env_isolation: PYTHONNOUSERSITE=1, cleared PYTHONPATH/PYTHONUSERBASE, PIP_USER=0
+        history:
+          attempt_1:
+            status: FAILED
+            slurm_job_id: "2129650"
+            exit_code: "1:0"
+            elapsed_s: 31
+            notes: "Strategies 1 (OpenAIWhisperConverter) and 2 (ct2-transformers-converter CLI) both failed; strategy 1 because the class is removed in ctranslate2 4.x, strategy 2 because of a transformers/ctranslate2 API mismatch (TypeError: WhisperForConditionalGeneration.__init__() got an unexpected keyword argument 'dtype'). No partial outputs retained."
+        notes: "PASS via strategy 3 (TransformersConverter Python API with patched load_model that strips dtype/torch_dtype kwargs before from_pretrained). Source openai-whisper base.en.pt sha256 verified against canonical 25a8566e...ad before conversion. Model.bin sha256 4ed9e9b5...db33f. provenance.json records all source/output sha256s, ctranslate2 version, quantization, container sha256, and slurm job id. MISSING_EVIDENCE on the parent P2.1 task is NOT cleared by this build; clears only after the slurm/jobs/p2_1_baseline.sh rerun emits OK_BACKEND_EVAL/OK_BACKEND_SUMMARY/OK_EVAL_TABLE."
