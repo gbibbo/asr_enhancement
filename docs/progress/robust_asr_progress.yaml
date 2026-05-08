@@ -6,8 +6,8 @@ current_phase: P0
 current_task: P0.3
 last_completed_task: P0.2
 
-blocked: false
-blocker: null
+blocked: true
+blocker: "BLOCKED_RUNTIME — Apptainer image provides Python 3.10.13 (Decision rule 2 requires 3.11) and ctranslate2/faster_whisper/pytest are not installed (Decision rule 4). Clear by rebuilding the image and rerunning P0.3."
 
 lora_status: NOT_STARTED
 router_status: NOT_STARTED
@@ -27,7 +27,7 @@ product_baseline: whisper_base_ct2_int8
 artifact_root: artifacts/robust_asr
 handoff_root: artifacts/robust_asr/handoff
 
-markers: []
+markers: [BLOCKED_RUNTIME]
 
 claims_enabled:
   ood_real: true
@@ -45,33 +45,19 @@ session_log:
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
   latest_planning_report: null
-  latest_execution_report: reports/robust_asr/task_reports/P0.2_asset_inventory.md
+  latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
-      scope: scope_change
+      scope: task
       task_id: P0.3
       phase: null
-      decision: CHANGE_SCOPE
-      accepted_report_commit: null
-      next_expected_task: P0.3
-      required_fix: |
-        Edit configs/robust_asr/reuse_policy_v1.yaml:
-          1. Replace the Apptainer image row with class=container_image,
-             permitted_use=exec_only, allowed_tasks=[P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1],
-             validator=sha256_recorded_in_runtime_smoke_job_metadata,
-             checksum_required=true, large_artifact=true, commit_allowed=false.
-          2. Replace the slurm/jobs/** row with permitted_use=read_only_with_robust_asr_writes,
-             allowed_tasks=[P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1],
-             validator=file_basename_matches_p<task_id>_*.sh,
-             commit_allowed=true.
-        Update reports/robust_asr/touch_policy.md only if needed to stay consistent.
-        Update tracker artifact hashes for changed policy files.
-        Record this CHANGE_SCOPE packet in tracker.state_transport.latest_approval_packet.
-        Keep current_task=P0.3 and last_completed_task=P0.2.
-      rationale: >
-        P0.3 requires exec-only use of the Apptainer image, but reuse_policy_v1.yaml explicitly forbids it. The slurm/jobs/** row also has a field-vs-notes ambiguity for robust_asr p*.sh job scripts. Both policy rows must be made explicit before P0.3 can be planned for execution.
+      decision: APPROVE_PLAN
+      accepted_report_commit: 842965cbf07425dc9e39cee11360e4da115ed63f
+      next_expected_task: P0.4
+      required_fix: null
+      rationale: P0.3 scope-change was accepted and the revised P0.3 runtime smoke plan is approved for execution.
   last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
   expected_next_task: P0.3
   last_tracker_mismatch: null
@@ -177,8 +163,10 @@ artifacts:
       - supplemental_evidence_report
   runtime_smoke_report:
     path: reports/robust_asr/runtime_smoke.md
-    sha256: null
+    sha256: e0426e887fb1382220e470cd2bfe781a8f7370853507470e5742540c226316db
     produced_by_task: P0.3
+    outcome: HALTED
+    marker: BLOCKED_RUNTIME
   runtime_contract_fixture:
     path: reports/robust_asr/runtime_contract_smoke.md
     sha256: null
@@ -424,3 +412,55 @@ tasks:
       - "55 rows in reuse_policy_v1.yaml across 5 classes"
     marker: null
     next_task: P0.3
+  P0.3:
+    status: HALTED
+    commit: null   # filled in tracker post-commit; see latest_execution_report
+    files_changed:
+      - slurm/jobs/p0_3_runtime_smoke.sh
+      - artifacts/robust_asr/runtime_smoke/runtime_smoke_job_metadata.json
+      - artifacts/robust_asr/runtime_smoke/stdout.txt
+      - artifacts/robust_asr/runtime_smoke/stderr.txt
+      - reports/robust_asr/runtime_smoke.md
+      - reports/robust_asr/task_reports/P0.3_runtime_smoke.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "git status --short"
+      - "test -x slurm/tools/on_submit.sh"
+      - "test -f /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif"
+      - "sha256sum /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif"
+      - "stat -c '%s' <image>"
+      - "Edit progress.yaml: APPROVE_PLAN(P0.3) packet"
+      - "mkdir -p artifacts/robust_asr/runtime_smoke"
+      - "Write slurm/jobs/p0_3_runtime_smoke.sh; chmod +x"
+      - "./slurm/tools/on_submit.sh sbatch <abs_path>"
+      - "poll squeue; sacct -j 2129637"
+      - "mv slurm out/err to stdout.txt/stderr.txt"
+      - "Write runtime_smoke_job_metadata.json"
+      - "Write reports/robust_asr/runtime_smoke.md"
+      - "Write reports/robust_asr/task_reports/P0.3_runtime_smoke.md"
+      - "Edit tracker yaml/md/state capsule (HALTED)"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "Slurm job 2129637 submitted from datamove1 via on_submit.sh wrapper"
+      - "sacct: State=FAILED ExitCode=1:0 Elapsed=00:00:12 host=aisurrey01.surrey.ac.uk partition=2080ti"
+      - "Apptainer image sha256: dade82953b391d41c064b1c45c98a7438ab3eabdbbd84877ecdde4c8b7e80443 (validator satisfied)"
+      - "Container python_version: 3.10.13 (FAIL: Decision rule 2 requires 3.11)"
+      - "Failed imports: ctranslate2, faster_whisper, pytest (FAIL: Decision rule 4)"
+      - "Successful imports: torch 2.5.1+cu121, transformers 5.0.0.dev0, peft 0.18.1, librosa 0.11.0, numpy 1.26.0, pandas 2.3.3, pyarrow 23.0.0, yaml 6.0"
+      - "Router fallback: lightgbm/xgboost missing; sklearn HistGradientBoostingRegressor available (informational, superseded by HALTED)"
+    marker: BLOCKED_RUNTIME
+    next_task: P0.3   # rerun after Apptainer image is rebuilt
+    blocker: "BLOCKED_RUNTIME — Apptainer image provides Python 3.10.13 (Decision rule 2 requires 3.11) and ctranslate2/faster_whisper/pytest are not installed (Decision rule 4)."
+    slurm:
+      job_id: "2129637"
+      job_name: robust_asr_p0_3_runtime_smoke
+      partition: 2080ti
+      state: FAILED
+      exit_code: "1:0"
+      submitted_at_utc: 2026-05-08T00:57:01Z
+      started_at_utc: 2026-05-08T01:57:12Z
+      completed_at_utc: 2026-05-08T01:57:24Z
+      elapsed_s: 12
+      host: aisurrey01.surrey.ac.uk
