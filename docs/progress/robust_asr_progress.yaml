@@ -50,6 +50,26 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P1.3
+      phase: P1
+      decision: CHANGE_SCOPE
+      accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5
+      next_expected_task: P1.3
+      required_fix: "Amend touch_policy P1.3 row to authorize build_public_manifests.py and summarize_manifests.py."
+      rationale: "P1.3 requires new manifest build and summary scripts under scripts/robust_asr/**, but the current touch_policy P1.3 row omits those write paths."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P1.2
+      phase: P1
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5
+      next_expected_task: P1.3
+      required_fix: null
+      rationale: "P1.2 passed after tracker fix. Eval schema, normalization, metrics, validator, leakage tests, and non-regression checks passed. BLOCKED_OOD_PUBLIC remains active and non-blocking."
+  prior_approval_packet_0a:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.2
       phase: P1
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P1.3
       required_fix: null
       rationale: "P1.2 plan accepted on the scope-change commit; implement eval schema, normalization, metrics, validator, three pytest files, P1.2 task report; do not advance last_accepted_report_commit to the P1.2 implementation commit."
-  prior_approval_packet:
+  prior_approval_packet_0b:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.2-scope-change
@@ -188,7 +208,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 8185501955f5bb5ecf44c926fcabdc8f27ae2af9
+  last_accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5
   expected_next_task: P1.3
   last_tracker_mismatch: null
 
@@ -268,9 +288,9 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: f09f4006ff0a6acfd2b296a974bd7ea49ab7e6288a77440a5a06d6e779204c01
+    sha256: f0ec8dcbf4b3dd09cb76794150745e0f2ec5b6bd701d94c6a623f4dd8b21d4a5
     produced_by_task: P0.2
-    last_amended_by: P1.2_scope_change
+    last_amended_by: P1.3_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
     sha256: c2999d597c1e35ecf1340e8dace4e3eaca0640a30fd2d802f1f26a34df853905

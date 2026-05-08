@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: Tracker fix — state_transport.last_accepted_report_commit advanced 587b7483 -> 8185501 (APPROVE_EXECUTION(P1.2-scope-change) accepted commit). No code, tests, or task-status changes. P1.2 PASS state held. current_task=P1.3; last_completed_task=P1.2; current_phase=P1; markers=[BLOCKED_OOD_PUBLIC]; claims_enabled.ood_real=false; expected_next_task=P1.3.
+Updated by: P1.3 CHANGE_SCOPE — touch_policy.md P1.3 row amended to authorize `scripts/robust_asr/build_public_manifests.py`, `scripts/robust_asr/summarize_manifests.py`, `artifacts/robust_asr/manifests/*.parquet`, the manifest summary report, the P1.3 task report, and the three trackers. `artifacts.touch_policy.sha256` advanced f09f4006 -> f0ec8dcb, `last_amended_by=P1.3_scope_change`. `state_transport.last_accepted_report_commit` advanced 8185501 -> b049f94 (APPROVE_EXECUTION(P1.2) accepted commit; CHANGE_SCOPE does not further advance). `latest_approval_packet`=CHANGE_SCOPE(P1.3) on b049f94 (next P1.3); `prior_approval_packet`=APPROVE_EXECUTION(P1.2) on b049f94 (next P1.3). No code, no tests, no manifest build, no Slurm, no Apptainer, no GPU, no external API. P1.3 implementation NOT executed. current_task=P1.3 held; last_completed_task=P1.2 held; current_phase=P1; markers=[BLOCKED_OOD_PUBLIC]; claims_enabled.ood_real=false; expected_next_task=P1.3.
 Date: 2026-05-08
 
 ## Branch

@@ -14,9 +14,52 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 8185501955f5bb5ecf44c926fcabdc8f27ae2af9 (advanced from 587b7483 by APPROVE_EXECUTION(P1.2-scope-change); APPROVE_PLAN(P1.2) does not further advance)
+- state_transport.last_accepted_report_commit: b049f9494f9acf163d6b5799f1f6450eaeee36c5 (advanced from 8185501 by APPROVE_EXECUTION(P1.2) at commit b049f94; CHANGE_SCOPE(P1.3) recorded at the same accepted commit)
 - state_transport.expected_next_task: P1.3
-- latest_approval_packet: APPROVE_PLAN(P1.2) on `8185501…` (next P1.3)
+- latest_approval_packet: CHANGE_SCOPE(P1.3) on `b049f94…` (next P1.3)
+- prior_approval_packet: APPROVE_EXECUTION(P1.2) on `b049f94…` (next P1.3)
+
+## P1.3 CHANGE_SCOPE recorded
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P1.3 phase=P1
+  decision=CHANGE_SCOPE accepted_report_commit=`b049f9494f9acf163d6b5799f1f6450eaeee36c5`
+  next_expected_task=P1.3.
+- Required fix: Amend touch_policy P1.3 row to authorize
+  `build_public_manifests.py` and `summarize_manifests.py`.
+- Rationale: P1.3 requires new manifest build and summary scripts under
+  `scripts/robust_asr/**`, but the current touch_policy P1.3 row omits
+  those write paths.
+- `reports/robust_asr/touch_policy.md` P1.3 row rewritten to authorize:
+  `scripts/robust_asr/build_public_manifests.py`,
+  `scripts/robust_asr/summarize_manifests.py`,
+  `artifacts/robust_asr/manifests/*.parquet`,
+  `reports/robust_asr/manifest_summary.md`,
+  `reports/robust_asr/task_reports/P1.3_manifest_summary.md`,
+  `reports/robust_asr/touch_policy.md` (scope-change row),
+  the three live trackers. Reads include `configs/robust_asr/data_v1.yaml`,
+  `libs/common/eval_schema.yaml`, `libs/common/normalization.py`,
+  `libs/common/versions.py`. External reads:
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/**` and
+  `…/asr_enhancement_training/datasets/**` (read-only ls/stat/open).
+- Tracker mutations: `latest_approval_packet` set to the P1.3
+  CHANGE_SCOPE packet (prior `APPROVE_EXECUTION(P1.2)` shifted to
+  `prior_approval_packet`; older P1.2 packets shifted to
+  `prior_approval_packet_0a`/`prior_approval_packet_0b`).
+  `artifacts.touch_policy.sha256` →
+  `f0ec8dcbf4b3dd09cb76794150745e0f2ec5b6bd701d94c6a623f4dd8b21d4a5`,
+  `last_amended_by=P1.3_scope_change`.
+  `state_transport.last_accepted_report_commit` STAYS
+  `b049f9494f9acf163d6b5799f1f6450eaeee36c5`
+  (P1.2 APPROVE_EXECUTION acceptance; CHANGE_SCOPE does not advance).
+- Held: `current_task=P1.3`, `last_completed_task=P1.2`,
+  `current_phase=P1`, `markers=[BLOCKED_OOD_PUBLIC]`, `blocked=false`,
+  `claims_enabled.ood_real=false`, `phase_summary.P0=PASS`,
+  `orchestrator_approvals.P0=PHASE_APPROVE`.
+- P1.3 implementation NOT executed: no `build_public_manifests.py`, no
+  `summarize_manifests.py`, no parquet manifests, no manifest summary,
+  no Slurm, no Apptainer, no GPU, no external API.
+- Non-regression: `validate_report_shape.py` against canonical fixtures
+  emitted `OK_REPORT_SHAPE`.
 
 ## Tracker fix — last_accepted_report_commit advanced 587b7483 -> 8185501
 
