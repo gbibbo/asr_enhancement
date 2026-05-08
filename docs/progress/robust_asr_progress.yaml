@@ -45,53 +45,19 @@ session_log:
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
   latest_planning_report: null
-  latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
+  latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_image_rebuild.md
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
-      scope: scope_change
-      task_id: P0.3
+      scope: task
+      task_id: P0.3-rebuild
       phase: null
-      decision: CHANGE_SCOPE
-      accepted_report_commit: null
+      decision: APPROVE_PLAN
+      accepted_report_commit: 5ca1885e6d6e1edfac5ef5d5d203de9b08f2751d
       next_expected_task: P0.3
-      required_fix: |
-        Add a new container image row to configs/robust_asr/reuse_policy_v1.yaml for:
-          /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
-        Fields:
-          class: container_image
-          permitted_use: exec_only
-          allowed_tasks: [P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
-          validator: sha256_recorded_in_runtime_smoke_job_metadata
-          checksum_required: true
-          large_artifact: true
-          commit_allowed: false
-        Add a runtime parent row for:
-          /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/**
-        Fields:
-          class: data_root
-          permitted_use: read_write
-          allowed_tasks: [P0.3]
-          validator: none
-          checksum_required: false
-          large_artifact: true
-          commit_allowed: false
-        Update reports/robust_asr/touch_policy.md to authorize P0.3 runtime remediation writes:
-          configs/robust_asr/runtime/apptainer_robust_asr_v1.def
-          scripts/robust_asr/build_runtime_image.sh
-          reports/robust_asr/runtime_image_rebuild.md
-          reports/robust_asr/task_reports/P0.3_runtime_image_rebuild.md
-          slurm/jobs/p0_3_runtime_smoke.sh
-        Preserve the old image row unchanged:
-          /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif
-        Record this CHANGE_SCOPE packet in tracker.state_transport.latest_approval_packet.
-        Keep current_task=P0.3.
-        Keep last_completed_task=P0.2.
-        Keep BLOCKED_RUNTIME active.
-        Keep state_transport.last_accepted_report_commit=635a711cd4fe44e919966a0e6bc3df99103fe6d3.
-      rationale: >
-        P0.3 is blocked because the current image has Python 3.10.13 and missing packages. The existing image is exec_only and must not be rebuilt in place. A new robust_asr-specific image path is safer and preserves provenance.
+      required_fix: null
+      rationale: Option A scope-change accepted; new robust_asr SIF path is authorized and the rebuild sub-task is approved for execution. BLOCKED_RUNTIME stays active until the subsequent P0.3 rerun PASSes.
   last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
   expected_next_task: P0.3
   last_tracker_mismatch: null
@@ -202,6 +168,24 @@ artifacts:
     produced_by_task: P0.3
     outcome: HALTED
     marker: BLOCKED_RUNTIME
+  runtime_image_v1:
+    path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
+    sha256: 8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713
+    size_bytes: 5624180736
+    recipe_path: configs/robust_asr/runtime/apptainer_robust_asr_v1.def
+    recipe_sha256: e6e7f79bae25e8f6bf3726ab8024a75f4769ad0825eddc15f8b1e50ae377f63e
+    base_image: docker://nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+    built_by_task: P0.3-rebuild
+    built_at_utc: 2026-05-08T01:54:57Z
+    build_host: aisurrey01.surrey.ac.uk
+    build_slurm_job_id: "2129639"
+    build_method: fakeroot
+    large_artifact: true
+    commit_allowed: false
+  runtime_image_rebuild_report:
+    path: reports/robust_asr/runtime_image_rebuild.md
+    sha256: 0f1db37dd3e0e2d81ac5b6fa8c6635dced7d77510d02a01aadd0d7d43eedace4
+    produced_by_task: P0.3-rebuild
   runtime_contract_fixture:
     path: reports/robust_asr/runtime_contract_smoke.md
     sha256: null
@@ -486,7 +470,7 @@ tasks:
       - "Successful imports: torch 2.5.1+cu121, transformers 5.0.0.dev0, peft 0.18.1, librosa 0.11.0, numpy 1.26.0, pandas 2.3.3, pyarrow 23.0.0, yaml 6.0"
       - "Router fallback: lightgbm/xgboost missing; sklearn HistGradientBoostingRegressor available (informational, superseded by HALTED)"
     marker: BLOCKED_RUNTIME
-    next_task: P0.3   # rerun after Apptainer image is rebuilt
+    next_task: P0.3-rerun   # repointed image now built; rerun after orchestrator approval
     blocker: "BLOCKED_RUNTIME — Apptainer image provides Python 3.10.13 (Decision rule 2 requires 3.11) and ctranslate2/faster_whisper/pytest are not installed (Decision rule 4)."
     slurm:
       job_id: "2129637"
@@ -499,3 +483,46 @@ tasks:
       completed_at_utc: 2026-05-08T01:57:24Z
       elapsed_s: 12
       host: aisurrey01.surrey.ac.uk
+  P0.3-rebuild:
+    status: PASS
+    parent_task_id: P0.3
+    commit: null   # filled at commit time; see latest_execution_report
+    files_changed:
+      - configs/robust_asr/runtime/apptainer_robust_asr_v1.def
+      - scripts/robust_asr/build_runtime_image.sh
+      - slurm/jobs/p0_3_build_runtime_image.sh
+      - reports/robust_asr/runtime_image_rebuild.md
+      - reports/robust_asr/task_reports/P0.3_runtime_image_rebuild.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml: APPROVE_PLAN(P0.3-rebuild) packet"
+      - "mkdir -p configs/robust_asr/runtime"
+      - "Write apptainer_robust_asr_v1.def, build_runtime_image.sh, p0_3_build_runtime_image.sh"
+      - "mkdir -p /mnt/.../runtime/{build_logs,build_cache}"
+      - "./slurm/tools/on_submit.sh sbatch p0_3_build_runtime_image.sh (job 2129638; FAILED 1:0 — recipe quoting bug)"
+      - "Edit recipe: single-quote pip specs (`'>=…,<…'`)"
+      - "rm -rf /mnt/.../runtime/build_cache/*"
+      - "./slurm/tools/on_submit.sh sbatch p0_3_build_runtime_image.sh (job 2129639; COMPLETED 0:0)"
+      - "sha256sum + stat on new SIF"
+      - "Read build log; extract sentinels"
+      - "Write runtime_image_rebuild.md, P0.3_runtime_image_rebuild.md"
+      - "Edit tracker (PASS rebuild sub-task; do NOT clear BLOCKED_RUNTIME)"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "BUILD_OK_8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713"
+      - "OK_APPTAINER_INSPECT"
+      - "BUILD_METHOD=fakeroot"
+      - "%test (in-container): Python 3.11.15; robust_asr runtime image v1 test PASS"
+      - "Runtime image v1 sha256 8db5364c... at authorized path under runtime/"
+      - "Recipe sha256 e6e7f79b... after pip-spec quoting fix"
+      - "Build attempt 1 (job 2129638) FAILED — dash-quoting bug at recipe line 39"
+      - "Build attempt 2 (job 2129639) COMPLETED — apptainer build --fakeroot, elapsed 00:08:39, MaxRSS ~25 GB"
+      - "Legacy SIF /mnt/.../opro2/pytorch_2.1_cuda12.sif untouched (mtime preserved)"
+    marker: null
+    next_task: P0.3-rerun
+    slurm:
+      attempts:
+        - {job_id: "2129638", state: FAILED,    exit_code: "1:0", elapsed_s: 720,  host: aisurrey01.surrey.ac.uk, partition: 2080ti, reason: "recipe quoting bug at line 39 (`<4.50.0` interpreted as input redirect by dash)"}
+        - {job_id: "2129639", state: COMPLETED, exit_code: "0:0", elapsed_s: 519,  host: aisurrey01.surrey.ac.uk, partition: 2080ti, reason: "apptainer build --fakeroot rc=0; %test PASS"}

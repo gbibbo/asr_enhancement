@@ -1,0 +1,130 @@
+Bootstrap: docker
+From: nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+
+%labels
+    Project robust_asr_lora_router
+    Version v1
+    Description Python 3.11 + ctranslate2 + faster_whisper + pytest + LightGBM + XGBoost
+    Owner Gabriel Bibbo
+    Plan docs/plans/robust_asr_agent_plan_v3_4_7.md
+
+%help
+    robust_asr_lora_router runtime image (v1).
+
+    Provides Python 3.11 inside the container, plus the package set
+    required by P0.3 runtime smoke and downstream P2..P8 tasks. Used
+    via `apptainer exec` from Slurm jobs on Surrey aisurrey nodes,
+    submitted through ./slurm/tools/on_submit.sh from datamove1.
+
+    The image is reuse_policy classified as container_image / exec_only.
+    Image bytes are never modified, copied into the repo, or committed.
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export HF_HOME=/tmp/huggingface
+    export TRANSFORMERS_CACHE=/tmp/huggingface/transformers
+    export HF_DATASETS_CACHE=/tmp/huggingface/datasets
+    export HF_HUB_ENABLE_HF_TRANSFER=1
+    export CUDA_HOME=/usr/local/cuda
+    export PATH=/usr/local/cuda/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+    export TZ=Etc/UTC
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+    apt-get update -y
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        curl \
+        ffmpeg \
+        git \
+        libgomp1 \
+        libsm6 \
+        libsndfile1 \
+        libxext6 \
+        libxrender-dev \
+        software-properties-common \
+        wget
+
+    add-apt-repository -y ppa:deadsnakes/ppa
+    apt-get update -y
+    apt-get install -y --no-install-recommends \
+        python3.11 \
+        python3.11-dev \
+        python3.11-distutils \
+        python3.11-venv
+
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+    update-alternatives --set python3 /usr/bin/python3.11
+    curl -fsSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+    python3 /tmp/get-pip.py
+    python3 -m pip install --upgrade pip setuptools wheel
+
+    python3 -m pip install \
+        --extra-index-url https://download.pytorch.org/whl/cu121 \
+        'torch==2.5.1' 'torchaudio==2.5.1'
+
+    python3 -m pip install \
+        'transformers>=4.40.0,<4.50.0' \
+        'accelerate>=0.27.0' \
+        'datasets>=2.18.0' \
+        'peft>=0.10.0' \
+        'huggingface-hub>=0.21.0' \
+        'hf_transfer>=0.1.0'
+
+    python3 -m pip install \
+        'ctranslate2>=4.4.0' \
+        'faster-whisper>=1.0.3'
+
+    python3 -m pip install \
+        'numpy>=1.24.0,<2.0' \
+        'scipy>=1.12.0' \
+        'pandas>=2.0.0' \
+        'pyarrow>=15.0.0' \
+        'scikit-learn>=1.4.0' \
+        'lightgbm>=4.0.0' \
+        'xgboost>=2.0.0'
+
+    python3 -m pip install \
+        'librosa>=0.10.1' \
+        'soundfile>=0.12.1' \
+        'jiwer>=3.0.4'
+
+    python3 -m pip install \
+        'pyyaml>=6.0' \
+        'pytest>=7.4' \
+        'tqdm>=4.66' \
+        'requests>=2.31'
+
+    apt-get clean
+    rm -rf /var/lib/apt/lists/* /tmp/get-pip.py
+    python3 -m pip cache purge
+
+%runscript
+    #!/bin/bash
+    echo "robust_asr runtime image (v1)"
+    python3 --version
+    python3 -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"
+    python3 -c "import ctranslate2, faster_whisper, peft, transformers, librosa, pytest; print('imports ok')"
+
+%test
+    set -eux
+    python3 --version | grep -E "Python 3\.11"
+    python3 -c "import torch; assert torch.__version__.startswith('2.')"
+    python3 -c "import ctranslate2"
+    python3 -c "import faster_whisper"
+    python3 -c "import peft"
+    python3 -c "import transformers"
+    python3 -c "import librosa"
+    python3 -c "import numpy"
+    python3 -c "import pandas"
+    python3 -c "import pyarrow"
+    python3 -c "import yaml"
+    python3 -c "import pytest"
+    python3 -c "import lightgbm"
+    python3 -c "import xgboost"
+    echo "robust_asr runtime image v1 test PASS"

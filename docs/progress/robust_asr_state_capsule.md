@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P0.3_scope_change_option_A (HALTED, BLOCKED_RUNTIME persists)
+Updated by: P0.3-rebuild (PASS — BLOCKED_RUNTIME persists pending rerun)
 Date: 2026-05-08
 
 ## Branch
@@ -20,10 +20,10 @@ active_markers: [BLOCKED_RUNTIME]
 
 ## Latest reports
 
-latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
+latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_image_rebuild.md
 latest_planning_report: null
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P0.3 decision=CHANGE_SCOPE (Option A: add new robust_asr SIF path; keep BLOCKED_RUNTIME)
+latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3-rebuild decision=APPROVE_PLAN accepted_report_commit=5ca1885 (Option A scope-change accepted; rebuild approved)
 last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
 
 ## Key artifacts created in P0.2
@@ -51,6 +51,29 @@ last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
 - current_task remains P0.3; last_completed_task remains P0.2;
   expected_next_task remains P0.3.
 - P0.3 runtime smoke NOT executed; no Slurm submission.
+
+## P0.3-rebuild PASS (BLOCKED_RUNTIME still active; awaiting rerun)
+
+- Slurm job 2129639 (attempt 2 after recipe quoting fix) COMPLETED 0:0
+  in 8 min 39 s on aisurrey01 via `apptainer build --fakeroot`.
+- New robust_asr Apptainer image at the authorized path:
+  - path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
+  - sha256: 8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713
+  - size_bytes: 5624180736
+  - recipe: configs/robust_asr/runtime/apptainer_robust_asr_v1.def
+    sha256 e6e7f79bae25e8f6bf3726ab8024a75f4769ad0825eddc15f8b1e50ae377f63e
+  - base: docker://nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+  - inside-container Python 3.11.15; recipe %test PASS
+    (torch 2.5.1+cu121, transformers 4.46+, peft, ctranslate2,
+     faster_whisper, librosa 0.11.0, numpy 1.26.x, pandas, pyarrow,
+     pyyaml 6.0.3, pytest 9.0.3, lightgbm, xgboost, scipy, scikit-learn,
+     soundfile, jiwer)
+- Legacy SIF /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif
+  untouched (mtime preserved).
+- Tracker: tasks["P0.3-rebuild"]=PASS, artifacts.runtime_image_v1
+  populated, tasks.P0.3.next_task=P0.3-rerun. BLOCKED_RUNTIME stays
+  active. current_task stays P0.3, last_completed_task stays P0.2,
+  state_transport.last_accepted_report_commit stays 635a711...
 
 ## P0.3 scope change Option A (no execution; HALTED state preserved)
 
@@ -95,14 +118,14 @@ last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
 
 ## Next expected Claude prompt
 
-Task: P0.3 (rerun)
+Task: P0.3-rerun
 Phase: P0
-Preconditions: BLOCKED_RUNTIME cleared (image rebuilt and reuse_policy
-updated if path changed)
+Preconditions: tasks["P0.3-rebuild"].status == PASS;
+artifacts.runtime_image_v1 populated; BLOCKED_RUNTIME still active.
 Mode: PLANNING then EXECUTION
 
 The next session must start with the session-open ritual:
 read docs/progress/robust_asr_progress.yaml, confirm current_task=P0.3
-and BLOCKED_RUNTIME state, await orchestrator decision (image rebuild +
-CHANGE_SCOPE if needed), then return a fresh P0.3 Planning Report and
-stop.
+with BLOCKED_RUNTIME and the new image SHA in
+artifacts.runtime_image_v1, await orchestrator APPROVE_PLAN for the
+P0.3-rerun sub-task, then return a P0.3-rerun Planning Report and stop.
