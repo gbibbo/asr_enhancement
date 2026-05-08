@@ -1,0 +1,606 @@
+# Robust ASR — Reuse Policy v1
+#
+# Produced by: P0.2
+# Date: 2026-05-08
+# Schema: docs/plans/robust_asr_agent_plan_v3_4_7.md Section 2.2
+#
+# Required fields per row:
+#   path, class, permitted_use, allowed_tasks, validator,
+#   checksum_required, large_artifact, commit_allowed, notes
+#
+# Default for any unclassified path:
+#   class: no_touch | permitted_use: forbidden | allowed_tasks: []
+#   validator: none | checksum_required: false | large_artifact: unknown
+#   commit_allowed: false
+#
+# Classification rules (binding):
+#   - Legacy trackers and plans: legacy_state, permitted_use: read_only,
+#     commit_allowed: false. NOT forbidden, because P10.3 must read them.
+#   - Mandatory no-touch patterns: no_touch, permitted_use: forbidden.
+#   - Existing runtime code: implementation_reuse, permitted_use: read_only
+#     (or extend_in_place with CHANGE_SCOPE approval for specific files).
+#   - Active robust_asr paths: active_state, permitted_use: read_write.
+#   - External host paths (non-git): data_root (datasets) or no_touch (binaries).
+
+# ---------------------------------------------------------------------------
+# A. Active robust_asr state paths
+# ---------------------------------------------------------------------------
+
+- path: docs/progress/robust_asr_progress.yaml
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.0, P0.1, P0.2, P0.3, P0.4, P0.5, P1.1, P1.2, P1.3, P1.4,
+                  P2.1, P2.2, P3.1, P3.2, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2,
+                  P7.1, P7.2, P7.3, P8.1, P8.2, P9.0, P9.1, P9.2, P10.1, P10.2, P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Live tracker; every task updates this file
+
+- path: docs/progress/robust_asr_progress.md
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.1, P0.2, P0.3, P0.4, P0.5, P1.1, P1.2, P1.3, P1.4,
+                  P2.1, P2.2, P3.1, P3.2, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2,
+                  P7.1, P7.2, P7.3, P8.1, P8.2, P9.0, P9.1, P9.2, P10.1, P10.2, P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Prose tracker; updated each task
+
+- path: docs/progress/robust_asr_state_capsule.md
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.1, P0.2, P0.3, P0.4, P0.5, P1.1, P1.2, P1.3, P1.4,
+                  P2.1, P2.2, P3.1, P3.2, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2,
+                  P7.1, P7.2, P7.3, P8.1, P8.2, P9.0, P9.1, P9.2, P10.1, P10.2, P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: State capsule; updated each task
+
+- path: reports/robust_asr/**
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.1, P0.2, P0.3, P0.4, P0.5, P1.1, P1.2, P1.3, P1.4,
+                  P2.1, P2.2, P3.1, P3.2, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2,
+                  P7.1, P7.2, P7.3, P8.1, P8.2, P9.0, P9.1, P9.2, P10.1, P10.2, P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: All robust_asr reports; each task writes its designated report
+
+- path: artifacts/robust_asr/**
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.2, P0.3, P0.4, P0.5, P1.2, P1.3, P1.4, P2.1, P2.2,
+                  P3.1, P3.2, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.1, P7.2, P7.3,
+                  P8.1, P8.2, P9.0, P9.1, P9.2]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Eval tables, manifests, router, handoff; large binary artifacts not committed
+
+- path: configs/robust_asr/**
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.4]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Robust ASR configs including reuse_policy_v1.yaml
+
+- path: scripts/robust_asr/**
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1,
+                  P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Robust ASR scripts
+
+- path: tests/robust_asr/**
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P1.1, P1.2, P1.4, P3.1, P4.1, P8.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Robust ASR tests
+
+- path: docs/reports/robust_asr/**
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.5, P9.1, P10.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Model card and router card templates
+
+- path: docs/profiles/CLAUDE.robust_asr.md
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Claude profile for robust_asr; only updated by profile-update tasks
+
+- path: CLAUDE.md
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P0.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: true
+  notes: Only the ROBUST_ASR_PROFILE block may be modified; all content outside block is no_touch
+
+# ---------------------------------------------------------------------------
+# B. Legacy state paths (read_only; NOT forbidden — P10.3 reads them)
+# ---------------------------------------------------------------------------
+
+- path: docs/progress/training_datamove1_progress.md
+  class: legacy_state
+  permitted_use: read_only
+  allowed_tasks: [P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Prior training branch progress tracker; read by P10.3 only
+
+- path: docs/progress/training_datamove1_progress.yaml
+  class: legacy_state
+  permitted_use: read_only
+  allowed_tasks: [P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Prior training branch progress tracker YAML; read by P10.3 only
+
+- path: docs/progress/demo_platform_progress.md
+  class: legacy_state
+  permitted_use: read_only
+  allowed_tasks: [P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Demo platform progress tracker; read by P10.3 only
+
+- path: docs/progress/demo_platform_progress.yaml
+  class: legacy_state
+  permitted_use: read_only
+  allowed_tasks: [P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Demo platform progress tracker YAML; read by P10.3 only
+
+- path: plan.md
+  class: legacy_state
+  permitted_use: read_only
+  allowed_tasks: [P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Legacy root plan placeholder; read by P10.3 only
+
+- path: docs/plans/archive/**
+  class: legacy_state
+  permitted_use: read_only
+  allowed_tasks: [P10.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Archived demo_platform_plan.md and training_datamove1_plan.md; canonical paths
+         were docs/plans/demo_platform_plan.md and docs/plans/training_datamove1_plan.md
+         (now absent); read by P10.3 only
+
+# ---------------------------------------------------------------------------
+# C. Reusable implementation paths (read_only by default)
+# ---------------------------------------------------------------------------
+
+- path: services/api/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P0.4, P5.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: FastAPI service; extend_in_place requires CHANGE_SCOPE approval
+
+- path: services/worker/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P5.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Celery worker; extend_in_place requires CHANGE_SCOPE approval
+
+- path: services/frontend/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Frontend; not used by training tasks; extend_in_place requires CHANGE_SCOPE
+
+- path: libs/asr_adapter/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P0.4, P2.1, P5.1, P9.0]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: ASR adapter; read for contract validation and baseline evaluation
+
+- path: libs/audio_pipeline/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P1.2, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Audio pipeline; read for eval scripts
+
+- path: libs/audio/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P1.1, P1.2, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P8.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Shared metrics.py, degradations.py, enhancement.py; read for eval and training
+
+- path: libs/common/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P1.1, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P8.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: versions.py; read for version constants
+
+- path: libs/observability/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Observability library; not directly used by training tasks
+
+- path: infra/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Infrastructure configs; not used by training tasks
+
+- path: scripts/training/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P3.1, P4.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Prior training scripts; read for reference only; do not duplicate
+
+- path: slurm/tools/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: on_submit.sh Slurm wrapper; used (not modified) by all Slurm tasks
+
+- path: slurm/jobs/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P0.3]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Prior Slurm job scripts; read for reference; robust_asr writes to slurm/jobs/p*.sh
+
+- path: tests/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Existing tests (excluding tests/robust_asr/**); must not be deleted or weakened
+
+- path: configs/training/**
+  class: implementation_reuse
+  permitted_use: read_only
+  allowed_tasks: [P3.1, P4.1]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Prior training configs; read for reference only
+
+# ---------------------------------------------------------------------------
+# D. External host paths (data_root / no_touch)
+# ---------------------------------------------------------------------------
+
+- path: /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Apptainer container image; execute-only via apptainer exec; never modified
+
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/**
+  class: data_root
+  permitted_use: read_only
+  allowed_tasks: [P1.2, P1.3, P2.1, P3.1, P4.1, P4.2, P4.3, P8.1]
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Librispeech manifests and audio; read-only for eval and training; never committed
+
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runs/**
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Prior training run directories; NOT valid robust_asr evidence until validated
+
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/cache/**
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Whisper and HuggingFace model caches; used implicitly by containers; never modified
+
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/demo_reference_artifacts/**
+  class: data_root
+  permitted_use: read_only
+  allowed_tasks: [P8.2]
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: 5 demo reference examples; read by P8.2 to produce demo_examples_manifest.json
+
+# ---------------------------------------------------------------------------
+# E. Mandatory no-touch patterns (from agent plan Section 2.2)
+# ---------------------------------------------------------------------------
+
+- path: ".git/**"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Git internals; never touched directly
+
+- path: ".env"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Secrets file
+
+- path: ".env.*"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: "Secrets files (exception: .env.example is safe but not written by robust_asr tasks)"
+
+- path: "*.key"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Key files
+
+- path: "*.pem"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Certificate/key files
+
+- path: "*.token"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Token files
+
+- path: "runs/**"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Legacy training run directories (in-repo path)
+
+- path: ".cache/**"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Cache directories
+
+- path: ".hf_cache/**"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: HuggingFace cache
+
+- path: "**/__pycache__/**"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: false
+  commit_allowed: false
+  notes: Python bytecode
+
+- path: "*.wav"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Audio files
+
+- path: "*.flac"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Audio files
+
+- path: "*.mp3"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Audio files
+
+- path: "*.m4a"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Audio files
+
+- path: "*.pt"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: PyTorch weights
+
+- path: "*.pth"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: PyTorch weights
+
+- path: "*.ckpt"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Checkpoint files
+
+- path: "*.bin"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Binary model files
+
+- path: "*.safetensors"
+  class: no_touch
+  permitted_use: forbidden
+  allowed_tasks: []
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: Safetensors model files

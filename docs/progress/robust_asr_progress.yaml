@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P0
-current_task: P0.2
-last_completed_task: P0.1
+current_task: P0.3
+last_completed_task: P0.2
 
 blocked: false
 blocker: null
@@ -45,7 +45,7 @@ session_log:
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
   latest_planning_report: null
-  latest_execution_report: reports/robust_asr/task_reports/P0.1_bootstrap.md
+  latest_execution_report: reports/robust_asr/task_reports/P0.2_asset_inventory.md
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
@@ -53,13 +53,13 @@ state_transport:
       scope: task
       task_id: P0.1
       phase: null
-      decision: APPROVE_PLAN
-      accepted_report_commit: null
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: e80e0ce1c2ee84c96bec38712addb2c2de75c1a3
       next_expected_task: P0.2
       required_fix: null
-      rationale: "P0.0 passed with source and RP5 branch references resolved, so P0.1 is authorized as the bootstrap transition task."
-  last_accepted_report_commit: null
-  expected_next_task: P0.2
+      rationale: "P0.1 execution and supplemental .gitignore evidence were accepted. The .gitignore change is scoped to allow artifacts/robust_asr while preserving generic artifacts ignores."
+  last_accepted_report_commit: e80e0ce1c2ee84c96bec38712addb2c2de75c1a3
+  expected_next_task: P0.3
   last_tracker_mismatch: null
 
 phase_summary:
@@ -97,8 +97,8 @@ profile:
 
 repo_integration:
   source_branch_lineage_verified: true
-  legacy_trackers_classified: false
-  legacy_plans_classified: false
+  legacy_trackers_classified: true
+  legacy_plans_classified: true
   claude_md_preserved_outside_block: true
   reuse_policy_path: configs/robust_asr/reuse_policy_v1.yaml
   repo_integration_policy_path: reports/robust_asr/repo_integration_policy.md
@@ -130,28 +130,28 @@ artifacts:
     produced_by_task: P0.1
   asset_inventory:
     path: reports/robust_asr/asset_inventory.md
-    sha256: null
+    sha256: 546cfcaa6ae7dbf6b1335f38fc98a267acdb9ea933921b16facf5cb582bed760
     produced_by_task: P0.2
   repo_integration_policy:
     path: reports/robust_asr/repo_integration_policy.md
-    sha256: null
+    sha256: f641018166c67e552f6de233fcd986d88f4646ed8d8c85436b5006c44bb20bba
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: null
+    sha256: 454f0fd20a6391c20dc77af32b85615769562248b16ce4d4e96f46ac799ee4eb
     produced_by_task: P0.2
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: null
+    sha256: d0c8842ff409b68242badc7f8a846f1901b5b252eaf34ae3caf9cbba08b255ac
     produced_by_task: P0.2
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
-    sha256: null
+    sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
     produced_by_task: P0.2
-    last_emit: null
+    last_emit: OK_REPORT_SHAPE
   report_shape_fixtures:
     path: artifacts/robust_asr/state_packets/report_shape_fixtures
-    sha256: null
+    sha256: 704da3b3ce4f585e69a7fb310f95940dbfbd8d5da51e422c906a24a4427e67ab
     produced_by_task: P0.2
     schemas_covered:
       - prebootstrap_inventory_report
@@ -365,3 +365,47 @@ tasks:
       - "profile_sha256: fede63ffc53e6025cfe3d78ace672d59d94d0b8832e2b0e3390296790a2c7fb6"
     marker: null
     next_task: P0.2
+  P0.2:
+    status: PASS
+    commit: null
+    files_changed:
+      - reports/robust_asr/asset_inventory.md
+      - reports/robust_asr/repo_integration_policy.md
+      - reports/robust_asr/touch_policy.md
+      - configs/robust_asr/reuse_policy_v1.yaml
+      - scripts/robust_asr/validate_report_shape.py
+      - artifacts/robust_asr/state_packets/report_shape_fixtures/prebootstrap_inventory_report.yaml
+      - artifacts/robust_asr/state_packets/report_shape_fixtures/planning_report.yaml
+      - artifacts/robust_asr/state_packets/report_shape_fixtures/execution_report.yaml
+      - artifacts/robust_asr/state_packets/report_shape_fixtures/phase_gate_report.yaml
+      - artifacts/robust_asr/state_packets/report_shape_fixtures/approval_packet.yaml
+      - artifacts/robust_asr/state_packets/report_shape_fixtures/supplemental_evidence_report.yaml
+      - reports/robust_asr/task_reports/P0.2_asset_inventory.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "git log --oneline -3 && git status --short"
+      - "find . -maxdepth 1 -type f | sort (repo structure inventory)"
+      - "find docs/plans/archive -type f | sort"
+      - "ls -lah /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/"
+      - "find .../asr_enhancement_training -name '*.pt' -o -name '*.ckpt' (checkpoint inventory)"
+      - "ls -lh /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif"
+      - "python scripts/robust_asr/validate_report_shape.py --schemas ... --fixtures ..."
+      - "python3 -c (reuse_policy_v1.yaml assertions)"
+      - "python3 -c (tracker.repo_integration assertions)"
+      - "git add <staged files>"
+      - "git commit -m 'robust_asr P0.2: asset inventory, reuse policy, touch policy, report shape validator'"
+      - "git push origin feature/robust-asr-lora-router-datamove1-v1"
+    key_outputs:
+      - "OK_REPORT_SHAPE sentinel confirmed"
+      - "reuse_policy_v1.yaml assertions PASS (55 rows)"
+      - "tracker.repo_integration assertions PASS"
+      - "legacy_trackers_classified: true"
+      - "legacy_plans_classified: true"
+      - "plans archived at docs/plans/archive/legacy_reference_plans/"
+      - "AssemblyAI cache: NOT FOUND on host"
+      - "Apptainer image: /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif (3.3 GB)"
+      - "55 rows in reuse_policy_v1.yaml across 5 classes"
+    marker: null
+    next_task: P0.3

@@ -7,8 +7,8 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P0 (Bootstrap and skeleton)
-- Current task: P0.2
-- Last completed: P0.1 (branch, profile, tracker bootstrap)
+- Current task: P0.3
+- Last completed: P0.2 (asset inventory, reuse policy, touch policy, report shape validator)
 - Active markers: none
 - Blocked: false
 
@@ -16,10 +16,11 @@ Status: IN_PROGRESS
 
 - P0.0 PASS: Pre-bootstrap inventory (read-only, no commit)
 - P0.1 PASS: Branch created, profile installed, tracker initialized
+- P0.2 PASS: Asset inventory, reuse policy, touch policy, validate_report_shape.py
 
 ## Pending
 
-- P0.2: Asset inventory, reuse policy, touch policy
+- P0.3: Runtime smoke (Slurm + Apptainer + imports)
 - P0.3: Runtime smoke (Slurm + Apptainer + imports)
 - P0.4: Runtime contract skeleton
 - P0.5: Model card and router card templates

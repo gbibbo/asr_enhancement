@@ -1,0 +1,42 @@
+# Minimal valid fixture for schema: supplemental_evidence_report
+# Produced by: P0.2 (validate_report_shape.py)
+
+STATE SNAPSHOT:
+  repo_root: /mnt/fast/nobackup/users/gb0048/asr_enhancement
+  branch: feature/robust-asr-lora-router-datamove1-v1
+  head_commit: abc123def456abc123def456abc123def456abc12
+  working_tree_status: clean
+  current_phase: P0
+  current_task: P0.2
+  last_completed_task: P0.1
+  active_markers: []
+  session_log_overrides:
+    continue_without_per_task_plan_approval: false
+    continue_without_per_task_closure_approval: false
+    continue_through_gates: false
+  phase_summary_state:
+    P0: null
+  orchestrator_approvals_state:
+    P0: null
+  first_pending_task: P0.2
+  requested_task_matches_tracker: true
+  latest_task_report_path: reports/robust_asr/task_reports/P0.1_bootstrap.md
+  latest_state_capsule_path: docs/progress/robust_asr_state_capsule.md
+
+REQUEST CONTEXT:
+  requested_by_orchestrator: true
+  question: Please confirm the .gitignore state after P0.1.
+
+READ_ONLY COMMANDS RUN:
+  exact_commands:
+    - "cat .gitignore"
+  exit_codes:
+    - 0
+  stdout:
+    - "artifacts/robust_asr/ uncommitted to git as designed"
+  any_writes_attempted: false
+
+FINDINGS:
+  observations:
+    - ".gitignore updated to allow artifacts/robust_asr while keeping generic artifacts ignored"
+  unanswered_aspects: null

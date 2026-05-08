@@ -1,0 +1,94 @@
+# Minimal valid fixture for schema: planning_report
+# Produced by: P0.2 (validate_report_shape.py)
+
+STATE SNAPSHOT:
+  repo_root: /mnt/fast/nobackup/users/gb0048/asr_enhancement
+  branch: feature/robust-asr-lora-router-datamove1-v1
+  head_commit: abc123def456abc123def456abc123def456abc12
+  working_tree_status: clean
+  current_phase: P0
+  current_task: P0.2
+  last_completed_task: P0.1
+  active_markers: []
+  session_log_overrides:
+    continue_without_per_task_plan_approval: false
+    continue_without_per_task_closure_approval: false
+    continue_through_gates: false
+  phase_summary_state:
+    P0: null
+  orchestrator_approvals_state:
+    P0: null
+  first_pending_task: P0.2
+  requested_task_matches_tracker: true
+  latest_task_report_path: reports/robust_asr/task_reports/P0.1_bootstrap.md
+  latest_state_capsule_path: docs/progress/robust_asr_state_capsule.md
+
+TRACKER-DERIVED NEXT TASK:
+  first_pending_task: P0.2
+  preconditions_satisfied: true
+  requested_task_matches_tracker: true
+
+TASK SCOPE:
+  task_id: P0.2
+  task_title: Inventory existing assets and lock reuse policy
+  in_scope:
+    - Write asset_inventory.md
+    - Write repo_integration_policy.md
+  out_of_scope:
+    - Any edits to legacy trackers
+    - P0.3 and beyond
+
+PRECONDITIONS:
+  preconditions_list:
+    - P0.1 PASS
+    - docs/progress/robust_asr_progress.yaml exists
+    - CLAUDE.md robust block installed
+  each_precondition_status:
+    - true
+    - true
+    - true
+
+PLANNED FILE CHANGES:
+  expected_paths:
+    - reports/robust_asr/asset_inventory.md
+    - configs/robust_asr/reuse_policy_v1.yaml
+  expected_no_touch_paths:
+    - .git/**
+    - docs/progress/training_datamove1_progress.yaml
+  touch_policy_rows_used:
+    - none
+
+LEGACY_REUSE_AND_TOUCH_POLICY:
+  reuse_policy_path: configs/robust_asr/reuse_policy_v1.yaml
+  reused_existing_assets: []
+  forbidden_legacy_paths_checked:
+    - docs/progress/training_datamove1_progress.yaml
+  no_unapproved_reuse: true
+
+COMMANDS TO RUN:
+  commands:
+    - "test -f reports/robust_asr/asset_inventory.md"
+    - "python scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures"
+  slurm_jobs_if_any: null
+
+VERIFICATION BLOCK:
+  exact_commands:
+    - "test -f reports/robust_asr/asset_inventory.md"
+    - "python scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures"
+  required_stdout_sentinels:
+    - "OK_REPORT_SHAPE"
+  required_artifacts:
+    - reports/robust_asr/asset_inventory.md
+    - configs/robust_asr/reuse_policy_v1.yaml
+
+EXPECTED TRACKER UPDATE:
+  status_on_success: PASS
+  next_task_on_success: P0.3
+  marker_on_failure: PLAN_CONFLICT
+
+STOP CONDITION:
+  when_claude_must_stop: After commit and push. Return Execution Report. Stop.
+
+RISKS_OR_BLOCKERS:
+  items:
+    - "RISK: legacy plans archived; classify archive path instead of canonical path."

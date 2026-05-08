@@ -1,0 +1,117 @@
+# Minimal valid fixture for schema: execution_report
+# Produced by: P0.2 (validate_report_shape.py)
+
+STATE BEFORE:
+  repo_root: /mnt/fast/nobackup/users/gb0048/asr_enhancement
+  branch: feature/robust-asr-lora-router-datamove1-v1
+  head_commit: abc123def456abc123def456abc123def456abc12
+  working_tree_status: clean
+  current_phase: P0
+  current_task: P0.2
+  last_completed_task: P0.1
+  active_markers: []
+  session_log_overrides:
+    continue_without_per_task_plan_approval: false
+    continue_without_per_task_closure_approval: false
+    continue_through_gates: false
+  phase_summary_state:
+    P0: null
+  orchestrator_approvals_state:
+    P0: null
+  first_pending_task: P0.2
+  requested_task_matches_tracker: true
+  latest_task_report_path: reports/robust_asr/task_reports/P0.1_bootstrap.md
+  latest_state_capsule_path: docs/progress/robust_asr_state_capsule.md
+
+TASK EXECUTED:
+  task_id: P0.2
+  task_title: Inventory existing assets and lock reuse policy
+  outcome: PASS
+
+FILES CHANGED:
+  git_diff_stat: "5 files changed, 300 insertions(+)"
+  changed_paths:
+    - reports/robust_asr/asset_inventory.md
+    - configs/robust_asr/reuse_policy_v1.yaml
+  no_unrelated_paths_touched: true
+
+REUSE_AND_SCOPE RESULTS:
+  reused_existing_assets: []
+  reuse_policy_rows_used: []
+  forbidden_legacy_paths_touched: []
+  no_unapproved_reuse: true
+
+COMMANDS RUN:
+  exact_commands:
+    - "test -f reports/robust_asr/asset_inventory.md"
+    - "python scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures"
+  exit_codes:
+    - 0
+    - 0
+  stdout_sentinels:
+    - "OK_REPORT_SHAPE"
+  slurm_job_ids_if_any: null
+
+VERIFICATION RESULTS:
+  command_results:
+    - command: "test -f reports/robust_asr/asset_inventory.md"
+      exit_code: 0
+      sentinel_observed: null
+    - command: "python scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures"
+      exit_code: 0
+      sentinel_observed: "OK_REPORT_SHAPE"
+  artifact_checks:
+    - path: reports/robust_asr/asset_inventory.md
+      exists: true
+      size_bytes: 4096
+      sha256: placeholder_sha256
+  row_counts_if_any: null
+  checksums_if_any: null
+
+ARTIFACTS CREATED:
+  artifacts:
+    - path: reports/robust_asr/asset_inventory.md
+      sha256: placeholder_sha256
+      size_bytes: 4096
+      large_artifact: false
+      committed_to_git: true
+
+TRACKER UPDATE:
+  tracker_paths_changed:
+    - docs/progress/robust_asr_progress.yaml
+  tracker_excerpt_for_task: |
+    P0.2:
+      status: PASS
+      commit: abc123def456abc123def456abc123def456abc12
+  state_capsule_updated: true
+
+COMMIT AND PUSH:
+  commit_hash: abc123def456abc123def456abc123def456abc12
+  pushed_to_origin: true
+
+STATE AFTER:
+  repo_root: /mnt/fast/nobackup/users/gb0048/asr_enhancement
+  branch: feature/robust-asr-lora-router-datamove1-v1
+  head_commit: def456abc123def456abc123def456abc123def456
+  working_tree_status: clean
+  current_phase: P0
+  current_task: P0.3
+  last_completed_task: P0.2
+  active_markers: []
+  session_log_overrides:
+    continue_without_per_task_plan_approval: false
+    continue_without_per_task_closure_approval: false
+    continue_through_gates: false
+  phase_summary_state:
+    P0: null
+  orchestrator_approvals_state:
+    P0: null
+  first_pending_task: P0.3
+  requested_task_matches_tracker: true
+  latest_task_report_path: reports/robust_asr/task_reports/P0.2_asset_inventory.md
+  latest_state_capsule_path: docs/progress/robust_asr_state_capsule.md
+  next_tracker_derived_task: P0.3
+
+GATE STATUS:
+  phase_gate_reached: false
+  phase_gate_result: null

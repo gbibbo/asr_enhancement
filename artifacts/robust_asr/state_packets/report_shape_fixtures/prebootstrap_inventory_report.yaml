@@ -1,0 +1,41 @@
+# Minimal valid fixture for schema: prebootstrap_inventory_report
+# Produced by: P0.2 (validate_report_shape.py)
+
+BOOTSTRAP CONTEXT:
+  repo_root: /mnt/fast/nobackup/users/gb0048/asr_enhancement
+  tracker_exists: false
+  plans_readable: true
+  schemas_file_readable: true
+  any_files_written: false
+
+SOURCE BRANCH STATE:
+  source_branch_name: feature/training-datamove1-v1
+  local_ref_resolved: true
+  origin_ref_resolved: true
+  local_head_sha: abc123def456abc123def456abc123def456abc12
+  origin_head_sha: abc123def456abc123def456abc123def456abc12
+  error_if_any: null
+
+RP5 BRANCH STATE:
+  rp5_branch_name: feature/demo-runtime-rp5-v1
+  rp5_branch_state: present
+  rp5_origin_sha: abc123def456abc123def456abc123def456abc12
+  rp5_error_if_any: null
+
+REPOSITORY OBSERVATIONS:
+  remote_origin_url: https://github.com/gbibbo/asr_enhancement.git
+  working_tree_status: ""
+  top_level_directories:
+    - docs
+    - scripts
+    - services
+  legacy_trackers_seen:
+    - docs/progress/training_datamove1_progress.yaml
+  legacy_plans_seen:
+    - docs/plans/archive/legacy_reference_plans/20260507T223435Z/training_datamove1_plan.md
+
+PREBOOTSTRAP DECISION:
+  prebootstrap_status: PASS
+  next_task: P0.1
+  marker_to_record_in_p0_1: null
+  rationale: Source branch and RP5 branch both resolved; tracker absent; P0.1 is legal.

@@ -1,0 +1,12 @@
+# Minimal valid fixture for schema: approval_packet
+# Produced by: P0.2 (validate_report_shape.py)
+
+ORCHESTRATOR_DECISION:
+  scope: task
+  task_id: P0.2
+  phase: null
+  decision: APPROVE_PLAN
+  accepted_report_commit: abc123def456abc123def456abc123def456abc12
+  next_expected_task: P0.3
+  required_fix: null
+  rationale: Fixture for schema validation only.

@@ -1,0 +1,56 @@
+# Minimal valid fixture for schema: phase_gate_report
+# Produced by: P0.2 (validate_report_shape.py)
+
+STATE SNAPSHOT:
+  repo_root: /mnt/fast/nobackup/users/gb0048/asr_enhancement
+  branch: feature/robust-asr-lora-router-datamove1-v1
+  head_commit: abc123def456abc123def456abc123def456abc12
+  working_tree_status: clean
+  current_phase: P0
+  current_task: P0_gate
+  last_completed_task: P0.5
+  active_markers: []
+  session_log_overrides:
+    continue_without_per_task_plan_approval: false
+    continue_without_per_task_closure_approval: false
+    continue_through_gates: false
+  phase_summary_state:
+    P0: null
+  orchestrator_approvals_state:
+    P0: null
+  first_pending_task: P0_gate
+  requested_task_matches_tracker: true
+  latest_task_report_path: reports/robust_asr/task_reports/P0.5_card_templates.md
+  latest_state_capsule_path: docs/progress/robust_asr_state_capsule.md
+
+PHASE GATE EVIDENCE:
+  phase: P0
+  predicate_result: PASS
+  predicate_inputs:
+    all_P0_tasks_pass: true
+    asset_inventory_exists: true
+    repo_integration_policy_exists: true
+    touch_policy_exists: true
+    reuse_policy_exists: true
+    validate_report_shape_exists: true
+    validate_report_shape_emits_ok: true
+    runtime_smoke_exists: false
+  active_branch_in_outcome_table: null
+  decisions_set_during_phase:
+    Decision_A_smoke: null
+    Decision_B_lora_full: null
+    Decision_C_router_choice: null
+    Decision_D_positive_system: null
+
+COMMIT REFERENCE:
+  commit_hash: abc123def456abc123def456abc123def456abc12
+  pushed_to_origin: true
+
+NEXT EXPECTED PHASE:
+  next_phase_first_task: P1.1
+  markers_carried_forward: []
+  claims_enabled_state:
+    ood_real: true
+    cloud_tradeoff: true
+    positive_lora: pending
+    positive_system: pending
