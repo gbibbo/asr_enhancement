@@ -89,7 +89,7 @@
 - path: configs/robust_asr/**
   class: active_state
   permitted_use: read_write
-  allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.4]
+  allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.4, P2.1]
   validator: none
   checksum_required: false
   large_artifact: false

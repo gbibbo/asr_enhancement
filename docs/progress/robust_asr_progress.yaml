@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P2.1
+      phase: P2
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 22201db1a11586151811f814b14219e099e1a1ed
+      next_expected_task: P2.1
+      required_fix: "Authorize P2.1 eval config and backend-eval scripts; update stale touch_policy P2.1 row."
+      rationale: "P2.1 needs configs/robust_asr/eval_manifests_v1.yaml and three scripts under scripts/robust_asr, but current policy omits P2.1 from configs/robust_asr/** and touch_policy P2.1 does not list the new write paths."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
       scope: phase
       task_id: null
       phase: P1
@@ -58,7 +68,7 @@ state_transport:
       next_expected_task: P2.1
       required_fix: null
       rationale: "P1 phase gate accepted as PASS_WITH_PREDICATE_NOTE. P1.1 and P1.3 are PARTIAL only because OOD-real is unavailable; BLOCKED_OOD_PUBLIC is active, non-blocking, and claims_enabled.ood_real=false. P1.2 and P1.4 are PASS. Required LibriSpeech manifests, eval schema, normalization, metrics, leakage tests, and degradation_v1 artifacts are present. No active blocking markers."
-  prior_approval_packet:
+  prior_approval_packet_p1_gate:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P1.4
@@ -368,14 +378,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: ede82ac0889628c87eab523d9fbd238995f2b041272004a835931ca5fb501f66
+    sha256: 1b38914f1e814619d202a610ba98ca1cc18d404b9d507f5084d5871b2721c0e3
     produced_by_task: P0.2
-    last_amended_by: P1.4_scope_change
+    last_amended_by: P2.1_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: f0528f7d4d14638b3cfdc4ede17c25c347cd3b838e844399fdfaf36464d81757
+    sha256: 678d86a37ae471448736b08a68a9b34802ad6599ea12b08f3a0a33041d2aab6f
     produced_by_task: P0.2
-    last_amended_by: P1.4_scope_change
+    last_amended_by: P2.1_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977

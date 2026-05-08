@@ -17,9 +17,66 @@ Status: IN_PROGRESS
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (held; PHASE_APPROVE(P1) accepted on the same commit and does not further advance the cursor)
 - state_transport.expected_next_task: P2.1
-- latest_approval_packet: PHASE_APPROVE(P1) on `49b4bdc` (next P2.1)
-- prior_approval_packet: APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE)
+- latest_approval_packet: CHANGE_SCOPE(P2.1) on `22201db` (next P2.1)
+- prior_approval_packet: PHASE_APPROVE(P1) on `49b4bdc` (next P2.1)
+- prior_approval_packet_p1_gate: APPROVE_EXECUTION(P1.4) on `49b4bdc` (next P1_GATE)
 - prior_approval_packet_p1_4_plan: APPROVE_PLAN(P1.4) on `5c72769` (next P1_GATE)
+
+## P2.1 scope change (no P2.1 implementation; baseline eval paths authorized)
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P2.1 phase=P2
+  decision=CHANGE_SCOPE accepted_report_commit=`22201db1a11586151811f814b14219e099e1a1ed`
+  next_expected_task=P2.1.
+- Required fix: Authorize P2.1 eval config and backend-eval scripts;
+  update stale touch_policy P2.1 row.
+- `configs/robust_asr/reuse_policy_v1.yaml` amended:
+  - `configs/robust_asr/**` row: P2.1 added to `allowed_tasks`
+    (now `[P0.2, P0.3, P0.4, P1.1, P1.2, P1.4, P2.1]`). Authorizes
+    P2.1 to author `configs/robust_asr/eval_manifests_v1.yaml`.
+  - New sha256: `678d86a37ae471448736b08a68a9b34802ad6599ea12b08f3a0a33041d2aab6f`,
+    `last_amended_by=P2.1_scope_change`.
+- `reports/robust_asr/touch_policy.md` P2.1 row REWRITTEN to authorize
+  the v3.4.7 P2.1 deliverables: `configs/robust_asr/eval_manifests_v1.yaml`,
+  `scripts/robust_asr/run_backend_eval.py`,
+  `scripts/robust_asr/summarize_backend_eval.py`,
+  `scripts/robust_asr/validate_eval_table.py`,
+  `slurm/jobs/p2_1_baseline.sh`,
+  `artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet`,
+  `reports/robust_asr/baseline_whisper_base.md`,
+  `reports/robust_asr/task_reports/P2.1_baseline.md`,
+  scope-change rows on `reuse_policy_v1.yaml`/`touch_policy.md`,
+  three live trackers. Reads include `configs/robust_asr/data_v1.yaml`,
+  `configs/robust_asr/degradation_v1.yaml`, `libs/common/eval_schema.yaml`,
+  `libs/common/normalization.py`, `libs/common/metrics.py`,
+  `libs/common/versions.py`, `libs/audio/**`, `libs/asr_adapter/**`,
+  `libs/audio_pipeline/**`, robust_asr public manifests, and
+  degradation_v1 manifests. External: Slurm submit; Apptainer (exec)
+  on the robust_asr SIF; LibriSpeech and degradation_v1 audio
+  (read-only).
+  New sha256: `1b38914f1e814619d202a610ba98ca1cc18d404b9d507f5084d5871b2721c0e3`,
+  `last_amended_by=P2.1_scope_change`.
+- Tracker mutations: `latest_approval_packet` replaced with the P2.1
+  CHANGE_SCOPE packet (prior PHASE_APPROVE(P1) shifted to
+  `prior_approval_packet`; APPROVE_EXECUTION(P1.4) shifted to
+  `prior_approval_packet_p1_gate`); `artifacts.reuse_policy_config.sha256`
+  and `artifacts.touch_policy.sha256` updated; both `last_amended_by`
+  set to `P2.1_scope_change`.
+  `state_transport.last_accepted_report_commit` STAYS `49b4bdc…`
+  (PHASE_APPROVE(P1) acceptance; CHANGE_SCOPE does not advance).
+  `state_transport.expected_next_task` STAYS `P2.1`.
+- Held: `current_phase=P2`, `current_task=P2.1`,
+  `last_completed_task=P1.4`, `markers=[BLOCKED_OOD_PUBLIC]`,
+  `blocked=false`, `claims_enabled.ood_real=false`,
+  `phase_summary={P0:PASS, P1:PASS}`,
+  `orchestrator_approvals={P0:PHASE_APPROVE, P1:PHASE_APPROVE}`.
+- P2.1 implementation NOT executed: no `eval_manifests_v1.yaml`, no
+  `run_backend_eval.py`, no `summarize_backend_eval.py`, no
+  `validate_eval_table.py`, no Slurm job, no eval table, no baseline
+  report, no Slurm, no Apptainer, no GPU, no external API.
+- Non-regression: `python3 scripts/robust_asr/validate_report_shape.py
+  --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures
+  artifacts/robust_asr/state_packets/report_shape_fixtures` →
+  `OK_REPORT_SHAPE`.
 
 ## P1 phase gate (PHASE_APPROVE)
 
