@@ -421,6 +421,40 @@
   commit_allowed: false
   notes: 5 demo reference examples; read by P8.2 to produce demo_examples_manifest.json
 
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/**
+  class: data_root
+  permitted_use: read_write
+  allowed_tasks: [P0.3]
+  validator: none
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: >
+    robust_asr runtime build output directory. Holds the rebuilt SIF
+    and any throwaway sandbox/cache produced by
+    scripts/robust_asr/build_runtime_image.sh. Never committed to git.
+
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
+  class: container_image
+  permitted_use: exec_only
+  allowed_tasks: [P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
+  validator: sha256_recorded_in_runtime_smoke_job_metadata
+  checksum_required: true
+  large_artifact: true
+  commit_allowed: false
+  notes: >
+    robust_asr-specific Apptainer container image (Python 3.11 +
+    ctranslate2 + faster_whisper + pytest + LightGBM/XGBoost where
+    available, plus the same torch/transformers/peft/librosa/numpy/
+    pandas/pyarrow/pyyaml set as the prior image). Built from
+    configs/robust_asr/runtime/apptainer_robust_asr_v1.def by
+    scripts/robust_asr/build_runtime_image.sh and stored under
+    scratch4weeks (large artifact, never committed). Same allowed_tasks
+    as slurm/tools/**. Replaces the legacy
+    /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif image
+    for robust_asr Slurm jobs after P0.3 rerun PASSes; the legacy image
+    is preserved untouched.
+
 # ---------------------------------------------------------------------------
 # E. Mandatory no-touch patterns (from agent plan Section 2.2)
 # ---------------------------------------------------------------------------

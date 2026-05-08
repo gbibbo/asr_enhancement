@@ -50,14 +50,48 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
-      scope: task
+      scope: scope_change
       task_id: P0.3
       phase: null
-      decision: APPROVE_PLAN
-      accepted_report_commit: 842965cbf07425dc9e39cee11360e4da115ed63f
-      next_expected_task: P0.4
-      required_fix: null
-      rationale: P0.3 scope-change was accepted and the revised P0.3 runtime smoke plan is approved for execution.
+      decision: CHANGE_SCOPE
+      accepted_report_commit: null
+      next_expected_task: P0.3
+      required_fix: |
+        Add a new container image row to configs/robust_asr/reuse_policy_v1.yaml for:
+          /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
+        Fields:
+          class: container_image
+          permitted_use: exec_only
+          allowed_tasks: [P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1]
+          validator: sha256_recorded_in_runtime_smoke_job_metadata
+          checksum_required: true
+          large_artifact: true
+          commit_allowed: false
+        Add a runtime parent row for:
+          /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/**
+        Fields:
+          class: data_root
+          permitted_use: read_write
+          allowed_tasks: [P0.3]
+          validator: none
+          checksum_required: false
+          large_artifact: true
+          commit_allowed: false
+        Update reports/robust_asr/touch_policy.md to authorize P0.3 runtime remediation writes:
+          configs/robust_asr/runtime/apptainer_robust_asr_v1.def
+          scripts/robust_asr/build_runtime_image.sh
+          reports/robust_asr/runtime_image_rebuild.md
+          reports/robust_asr/task_reports/P0.3_runtime_image_rebuild.md
+          slurm/jobs/p0_3_runtime_smoke.sh
+        Preserve the old image row unchanged:
+          /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif
+        Record this CHANGE_SCOPE packet in tracker.state_transport.latest_approval_packet.
+        Keep current_task=P0.3.
+        Keep last_completed_task=P0.2.
+        Keep BLOCKED_RUNTIME active.
+        Keep state_transport.last_accepted_report_commit=635a711cd4fe44e919966a0e6bc3df99103fe6d3.
+      rationale: >
+        P0.3 is blocked because the current image has Python 3.10.13 and missing packages. The existing image is exec_only and must not be rebuilt in place. A new robust_asr-specific image path is safer and preserves provenance.
   last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
   expected_next_task: P0.3
   last_tracker_mismatch: null
@@ -138,13 +172,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 454f0fd20a6391c20dc77af32b85615769562248b16ce4d4e96f46ac799ee4eb
+    sha256: 2fcabf62bd5300bc5968fe236815662ec030646aa8a57a0cab3c5f01248d566d
     produced_by_task: P0.2
+    last_amended_by: P0.3_scope_change_option_A
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: 1ce19e07bf00ea1d2acea547fabeca6ac9efacb347b375803291f24d3ffe4cef
+    sha256: 261c84f369186e2a918ddb502ad0d2b5179795eae654764dfb17bc5223ee69dd
     produced_by_task: P0.2
-    last_amended_by: P0.3_scope_change
+    last_amended_by: P0.3_scope_change_option_A
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977

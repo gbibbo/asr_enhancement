@@ -26,6 +26,17 @@ Status: IN_PROGRESS
   permitted_use=exec_only) and to make `slurm/jobs/**` writable for
   robust_asr `p<task_id>_*.sh` scripts (permitted_use=read_only_with_robust_asr_writes).
   current_task remains P0.3; last_completed_task remains P0.2.
+- P0.3 CHANGE_SCOPE (Option A) applied: added a new robust_asr-specific
+  Apptainer image path under `scratch4weeks/.../asr_enhancement_training/runtime/`
+  to `configs/robust_asr/reuse_policy_v1.yaml`
+  (class=container_image, permitted_use=exec_only, same allowed_tasks
+  as `slurm/tools/**`) and a `data_root` parent row
+  (`runtime/**`, permitted_use=read_write, allowed_tasks=[P0.3]) for
+  the build outputs. The legacy image at `/mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif`
+  is preserved untouched. `reports/robust_asr/touch_policy.md` extended
+  with the P0.3 runtime remediation write paths. current_task remains
+  P0.3, last_completed_task remains P0.2, BLOCKED_RUNTIME stays active,
+  last_accepted_report_commit stays at 635a711.
 
 ## P0.3 first attempt (HALTED)
 

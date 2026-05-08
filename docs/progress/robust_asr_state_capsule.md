@@ -1,6 +1,6 @@
 # Robust ASR — State Capsule
 
-Updated by: P0.3 (HALTED, BLOCKED_RUNTIME)
+Updated by: P0.3_scope_change_option_A (HALTED, BLOCKED_RUNTIME persists)
 Date: 2026-05-08
 
 ## Branch
@@ -23,7 +23,7 @@ active_markers: [BLOCKED_RUNTIME]
 latest_execution_report: reports/robust_asr/task_reports/P0.3_runtime_smoke.md
 latest_planning_report: null
 latest_phase_gate_report: null
-latest_approval_packet: ORCHESTRATOR_DECISION scope=task task=P0.3 decision=APPROVE_PLAN accepted_report_commit=842965c
+latest_approval_packet: ORCHESTRATOR_DECISION scope=scope_change task=P0.3 decision=CHANGE_SCOPE (Option A: add new robust_asr SIF path; keep BLOCKED_RUNTIME)
 last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
 
 ## Key artifacts created in P0.2
@@ -51,6 +51,27 @@ last_accepted_report_commit: 635a711cd4fe44e919966a0e6bc3df99103fe6d3
 - current_task remains P0.3; last_completed_task remains P0.2;
   expected_next_task remains P0.3.
 - P0.3 runtime smoke NOT executed; no Slurm submission.
+
+## P0.3 scope change Option A (no execution; HALTED state preserved)
+
+- configs/robust_asr/reuse_policy_v1.yaml amended:
+  - NEW data_root row: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/**
+    (permitted_use=read_write, allowed_tasks=[P0.3], commit_allowed=false).
+  - NEW container_image row: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
+    (permitted_use=exec_only, allowed_tasks=[P0.3, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P7.2, P8.1],
+    validator=sha256_recorded_in_runtime_smoke_job_metadata,
+    checksum_required=true, large_artifact=true, commit_allowed=false).
+  - Legacy image row /mnt/fast/nobackup/users/gb0048/opro2/pytorch_2.1_cuda12.sif: UNCHANGED.
+- reports/robust_asr/touch_policy.md P0.3 row extended with runtime
+  remediation write paths (recipe .def, build script, rebuild reports,
+  optional build job script, slurm/jobs/p0_3_runtime_smoke.sh repoint).
+- Tracker: artifact sha256s for reuse_policy_config and touch_policy
+  updated to new values; latest_approval_packet replaced with this
+  CHANGE_SCOPE packet.
+- No image built. No P0.3 execution. tasks.P0.3.status remains HALTED,
+  marker remains BLOCKED_RUNTIME, current_task remains P0.3,
+  last_completed_task remains P0.2, last_accepted_report_commit remains
+  635a711cd4fe44e919966a0e6bc3df99103fe6d3.
 
 ## P0.3 first attempt (HALTED, BLOCKED_RUNTIME)
 
