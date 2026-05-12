@@ -190,14 +190,17 @@ def run(args: argparse.Namespace) -> int:
 
     out_rows: List[Dict[str, Any]] = []
     seen_pk: set[Tuple[str, str, str]] = set()
+    transcription_cache: Dict[str, Dict[str, Any]] = {}
 
     n_total = sum(t.num_rows for _, _, t in manifests)
     n_done = 0
+    n_decoded = 0
+    n_cached = 0
     t_start = time.time()
     for mname, tier, table in manifests:
         cols = {c: table.column(c).to_pylist() for c in table.column_names}
         for i in range(table.num_rows):
-            audio_id = cols["audio_id"][i]
+            source_audio_id = cols["audio_id"][i]
             audio_path = cols["audio_path_or_uri"][i]
             audio_sha256 = cols["audio_sha256"][i]
             speaker_id = cols["speaker_id"][i]
@@ -206,6 +209,10 @@ def run(args: argparse.Namespace) -> int:
             degradation_id = cols["degradation_id"][i]
             source_dataset = cols["source_dataset"][i]
             source_split = cols["source_split"][i]
+            # Eval-table audio_id encodes degradation so each
+            # (source x condition_family x tier) combination is a unique
+            # scoreable row per Section 3 PK rule.
+            eval_audio_id = f"{source_audio_id}::{degradation_id}"
             params = {
                 "tier": tier,
                 "snr_db": cols.get("snr_db", [None] * table.num_rows)[i],
@@ -218,13 +225,13 @@ def run(args: argparse.Namespace) -> int:
             ref_text = ref_index.get(utterance_id, "")
             ref_norm = normalize_text(ref_text)
 
-            pk = (audio_id, backend, decode_hash)
+            pk = (eval_audio_id, backend, decode_hash)
             if pk in seen_pk:
                 continue
             seen_pk.add(pk)
 
             row: Dict[str, Any] = {
-                "audio_id": audio_id,
+                "audio_id": eval_audio_id,
                 "source_dataset": source_dataset,
                 "source_split": source_split,
                 "speaker_id": speaker_id,
@@ -255,28 +262,36 @@ def run(args: argparse.Namespace) -> int:
                 "created_at_utc": _utc(),
             }
             try:
-                t0 = time.time()
-                segments, info = model.transcribe(
-                    audio_path,
-                    language=decode_cfg.get("language", "en"),
-                    task=decode_cfg.get("task", "transcribe"),
-                    beam_size=int(decode_cfg.get("beam_size", 5)),
-                    best_of=int(decode_cfg.get("best_of", 5)),
-                    temperature=float(decode_cfg.get("temperature", 0.0)),
-                    condition_on_previous_text=bool(decode_cfg.get("condition_on_previous_text", False)),
-                    vad_filter=bool(decode_cfg.get("vad_filter", False)),
-                    word_timestamps=bool(decode_cfg.get("word_timestamps", False)),
-                )
-                segs = list(segments)
-                t1 = time.time()
-                raw = " ".join(s.text for s in segs).strip()
+                if audio_sha256 in transcription_cache:
+                    cached = transcription_cache[audio_sha256]
+                    raw = cached["raw"]
+                    lat_ms = cached["lat_ms"]
+                    n_cached += 1
+                else:
+                    t0 = time.time()
+                    segments, info = model.transcribe(
+                        audio_path,
+                        language=decode_cfg.get("language", "en"),
+                        task=decode_cfg.get("task", "transcribe"),
+                        beam_size=int(decode_cfg.get("beam_size", 5)),
+                        best_of=int(decode_cfg.get("best_of", 5)),
+                        temperature=float(decode_cfg.get("temperature", 0.0)),
+                        condition_on_previous_text=bool(decode_cfg.get("condition_on_previous_text", False)),
+                        vad_filter=bool(decode_cfg.get("vad_filter", False)),
+                        word_timestamps=bool(decode_cfg.get("word_timestamps", False)),
+                    )
+                    segs = list(segments)
+                    t1 = time.time()
+                    raw = " ".join(s.text for s in segs).strip()
+                    lat_ms = (t1 - t0) * 1000.0
+                    transcription_cache[audio_sha256] = {"raw": raw, "lat_ms": lat_ms}
+                    n_decoded += 1
                 hyp_norm = normalize_text(raw)
                 row["raw_transcript"] = raw
                 row["normalized_transcript"] = hyp_norm
                 row["wer"] = float(metrics_mod.wer(ref_norm, hyp_norm))
                 row["cer"] = float(metrics_mod.cer(ref_norm, hyp_norm))
                 row["wa"] = float(metrics_mod.wa(ref_norm, hyp_norm))
-                lat_ms = (t1 - t0) * 1000.0
                 row["backend_latency_ms"] = lat_ms
                 row["end_to_end_latency_ms"] = lat_ms
                 row["server_processing_latency_ms"] = 0.0
@@ -285,9 +300,9 @@ def run(args: argparse.Namespace) -> int:
                 row["error_or_null"] = f"{type(e).__name__}: {e}"
             out_rows.append(row)
             n_done += 1
-            if n_done % 200 == 0:
+            if n_done % 1000 == 0:
                 elapsed = time.time() - t_start
-                print(f"progress {n_done}/{n_total} elapsed={elapsed:.1f}s", flush=True)
+                print(f"progress {n_done}/{n_total} decoded={n_decoded} cached={n_cached} elapsed={elapsed:.1f}s", flush=True)
 
     out_path = Path(args.out)
     emit_eval_table(out_rows, out_path)

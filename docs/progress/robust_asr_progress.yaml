@@ -6,8 +6,8 @@ current_phase: P2
 current_task: P2.1
 last_completed_task: P1.4
 
-blocked: true
-blocker: "P2.1 HALTED: CT2 INT8 weights for whisper_base_ct2_int8 not present at any candidate_local_paths declared in configs/robust_asr/eval_manifests_v1.yaml; provenance not invented; awaiting CHANGE_SCOPE that authorizes a host model path and provenance source."
+blocked: false
+blocker: null
 
 lora_status: NOT_STARTED
 router_status: NOT_STARTED
@@ -27,7 +27,7 @@ product_baseline: whisper_base_ct2_int8
 artifact_root: artifacts/robust_asr
 handoff_root: artifacts/robust_asr/handoff
 
-markers: [BLOCKED_OOD_PUBLIC, MISSING_EVIDENCE]
+markers: [BLOCKED_OOD_PUBLIC]
 
 claims_enabled:
   ood_real: false
@@ -51,6 +51,26 @@ state_transport:
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
       scope: task
+      task_id: P2.1-rerun
+      phase: P2
+      decision: APPROVE_PLAN
+      accepted_report_commit: 28dddae0c503208f3042bb5989e2bf3f5798ef56
+      next_expected_task: P2.2
+      required_fix: null
+      rationale: "P2.1-rerun plan accepted on the model-build commit. Use the existing CT2 INT8 model at /mnt/.../runtime/whisper_models/whisper_base_en_ct2_int8 (model.bin sha256 4ed9e9b5...db33f); submit slurm/jobs/p2_1_baseline.sh via slurm/tools/on_submit.sh; produce artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet and reports/robust_asr/baseline_whisper_base.md; PASS clears MISSING_EVIDENCE; BLOCKED_OOD_PUBLIC held; do not advance last_accepted_report_commit to the rerun implementation commit."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P2.1-model-build
+      phase: P2
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 28dddae0c503208f3042bb5989e2bf3f5798ef56
+      next_expected_task: P2.1
+      required_fix: null
+      rationale: "P2.1-model-build accepted at commit 28dddae. Slurm job 2129651 COMPLETED 0:0; OK_CT2_BUILD; CT2 INT8 model materialized at /mnt/.../runtime/whisper_models/whisper_base_en_ct2_int8 with provenance.json (source sha256 25a8566e...ad matches canonical openai-whisper base.en; ctranslate2 4.7.1; quantization=int8; container 8db5364c...). Parent P2.1 still HALTED until baseline rerun emits OK_BACKEND_EVAL/OK_BACKEND_SUMMARY/OK_EVAL_TABLE."
+  prior_approval_packet_p2_1_model_build_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
       task_id: P2.1-model-build
       phase: P2
       decision: APPROVE_PLAN
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P2.1
       required_fix: null
       rationale: "P2.1 model-build plan accepted on the model-scope-change commit; implement scripts/robust_asr/build_whisper_base_ct2_int8.py + slurm/jobs/p2_1_build_ct2_model.sh; convert the host openai-whisper base.en.pt to CT2 INT8 at /mnt/.../runtime/whisper_models/whisper_base_en_ct2_int8/; write provenance.json; emit OK_CT2_BUILD; do not rerun P2.1 baseline; do not clear MISSING_EVIDENCE; do not advance last_accepted_report_commit to the implementation commit."
-  prior_approval_packet:
+  prior_approval_packet_p2_1_model_scope_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.1-model-scope-change
@@ -645,12 +665,12 @@ artifacts:
       produced_by_task: P1.3
   baseline_table:
     path: artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet
-    sha256: null
-    rows: null
+    sha256: 0dc987362fd5d459946e854d85219692c687014901297a52da1a41abdfa7f4a6
+    rows: 53230
     produced_by_task: P2.1
   baseline_report:
     path: reports/robust_asr/baseline_whisper_base.md
-    sha256: null
+    sha256: 6e5e2f04337c3a0655a37c408c223c6017f5d162adbd3f4eb03b2eb331ca55e1
     produced_by_task: P2.1
   lora_smoke_report:
     path: reports/robust_asr/lora/lora_smoke_report.md
@@ -1385,8 +1405,8 @@ tasks:
         slurm_job_id: "2129646"
         notes: "Slurm job 2129646 FAILED 1:0 in 10s due to pyarrow OverflowError: Python int too large to convert to C long (uint64 seeds). Fixed by masking per-row seed to 63 bits (1<<63)-1 to fit pyarrow int64; determinism preserved (63-bit unsigned space; SHA-256-derived). No partial parquets committed (failure occurred on the first per-family parquet write for clean_id)."
   P2.1:
-    status: HALTED
-    commit: null
+    status: PASS
+    commit: pending
     files_changed:
       - configs/robust_asr/eval_manifests_v1.yaml
       - scripts/robust_asr/run_backend_eval.py
@@ -1423,21 +1443,36 @@ tasks:
       - "OK_REPORT_SHAPE confirmed; 85/85 pytest PASS (non-regression)"
       - "current_task=P2.1 held; last_completed_task=P1.4 held; markers=[BLOCKED_OOD_PUBLIC, MISSING_EVIDENCE]; blocked=true"
       - "state_transport.last_accepted_report_commit STAYS 49b4bdc122b9b9768b380ab9bb9c28bec49455db per orchestrator instruction (not advanced to P2.1 implementation commit)"
-    marker: MISSING_EVIDENCE
-    next_task: P2.1
-    blocker: "P2.1 HALTED: CT2 INT8 weights for whisper_base_ct2_int8 not present at any candidate_local_paths declared in configs/robust_asr/eval_manifests_v1.yaml; provenance not invented; awaiting CHANGE_SCOPE that authorizes a host model path and provenance source."
+    marker: null
+    next_task: P2.2
+    blocker: null
     slurm:
-      job_id: "2129649"
+      job_id: "2129900"
       job_name: asr_p2_1_baseline
       partition: 2080ti
-      state: FAILED
-      exit_code: "13:0"
-      elapsed_s: 14
+      state: COMPLETED
+      exit_code: "0:0"
+      elapsed_s: 9600
       host: aisurrey04.surrey.ac.uk
       node_list: aisurrey04
       container_sha256: 8db5364c7610496a33f1d6aa5677a5196460c6907b992b04560efbb7e4ce8713
       env_isolation: PYTHONNOUSERSITE=1, cleared PYTHONPATH/PYTHONUSERBASE, PIP_USER=0
-      sentinel: MISSING_EVIDENCE
+      sentinel: OK_BACKEND_EVAL
+    history:
+      attempt_1_halted_missing_evidence:
+        status: HALTED
+        slurm_job_id: "2129649"
+        exit_code: "13:0"
+        elapsed_s: 14
+        sentinel: MISSING_EVIDENCE
+        notes: "CT2 INT8 weights for whisper_base_ct2_int8 absent at all candidate_local_paths; provenance not invented; clean halt. Resolved by CHANGE_SCOPE(P2.1-model) + APPROVE_EXECUTION(P2.1-model-scope-change) + APPROVE_PLAN(P2.1-model-build) + P2.1-model-build (Slurm 2129651)."
+      attempt_2_under_counted:
+        status: BUG_RERUN_REQUIRED
+        slurm_job_id: "2129652"
+        exit_code: "0:0"
+        elapsed_s: 1112
+        sentinel: OK_BACKEND_EVAL
+        notes: "All three sentinels emitted but only 5323 rows written (clean tier only) because run_backend_eval.py PK was (source_audio_id, backend, decode_config_hash) which collapsed 53230 manifest rows. Detected post-run via family_counts. Fix: eval_audio_id = source_audio_id + '::' + degradation_id; transcription cache keyed on audio_sha256. No partial parquet committed under PASS status."
     artifacts_added:
       eval_manifests_v1:
         path: configs/robust_asr/eval_manifests_v1.yaml
@@ -1446,8 +1481,10 @@ tasks:
         last_amended_by: P2.1_model_scope_change
       run_backend_eval_script:
         path: scripts/robust_asr/run_backend_eval.py
-        sha256: 56ab650f391f896b73fdd9ceb1be34ffda3a81fe354d7c284f0ac59475fa209d
+        sha256: 36ba31bb696441fb7d605c972358d217450bbbc8d6a1a97ad9eaaca8bb35f873
         produced_by_task: P2.1
+        last_amended_by: P2.1_rerun
+        prior_sha256: 56ab650f391f896b73fdd9ceb1be34ffda3a81fe354d7c284f0ac59475fa209d
       summarize_backend_eval_script:
         path: scripts/robust_asr/summarize_backend_eval.py
         sha256: 97407ff2fa114a01b0cf14f210e5a1420563ac545d8b554ff366fd27746cd3c1
@@ -1471,6 +1508,16 @@ tasks:
       whisper_base_ct2_int8_build_report:
         path: reports/robust_asr/whisper_base_ct2_int8_build.md
         produced_by_task: P2.1-model-build
+      eval_table:
+        path: artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet
+        sha256: 0dc987362fd5d459946e854d85219692c687014901297a52da1a41abdfa7f4a6
+        rows: 53230
+        bytes: 16591882
+        produced_by_task: P2.1
+      baseline_report_full:
+        path: reports/robust_asr/baseline_whisper_base.md
+        sha256: 6e5e2f04337c3a0655a37c408c223c6017f5d162adbd3f4eb03b2eb331ca55e1
+        produced_by_task: P2.1
       whisper_base_ct2_int8_model:
         path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/whisper_base_en_ct2_int8
         produced_by_task: P2.1-model-build

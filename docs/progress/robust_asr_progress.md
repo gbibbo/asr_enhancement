@@ -7,24 +7,103 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P2 (Whisper base baseline)
-- Current task: P2.1 (Whisper base CT2 INT8 evaluation) — HALTED
+- Current task: P2.1 (Whisper base CT2 INT8 evaluation) — PASS (current_task held until orchestrator APPROVE_EXECUTION)
 - Last completed: P1.4 (PASS — degradation_v1 generators and manifests; OK_DEGRADATION_V1; 0 BAD_OUTPUT)
 - Phase summary: P0=PASS, P1=PASS
-- Active markers: [BLOCKED_OOD_PUBLIC, MISSING_EVIDENCE]
-- Blocked: true
-- Blocker: "P2.1 HALTED: CT2 INT8 weights for whisper_base_ct2_int8 not present at any candidate_local_paths declared in configs/robust_asr/eval_manifests_v1.yaml; provenance not invented; awaiting CHANGE_SCOPE that authorizes a host model path and provenance source."
+- Active markers: [BLOCKED_OOD_PUBLIC]
+- Blocked: false
+- Blocker: null
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (held; PHASE_APPROVE(P1) acceptance; not advanced to the P2.1 implementation commit per orchestrator instruction)
-- state_transport.expected_next_task: P2.1 (held — HALTED on MISSING_EVIDENCE)
-- latest_approval_packet: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
-- prior_approval_packet: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
+- state_transport.expected_next_task: P2.1 (held — awaiting orchestrator APPROVE_EXECUTION(P2.1))
+- latest_approval_packet: APPROVE_PLAN(P2.1-rerun) on `28dddae` (next P2.2)
+- prior_approval_packet: APPROVE_EXECUTION(P2.1-model-build) on `28dddae` (next P2.1)
+- prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
+- prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
 - prior_approval_packet_p2_1_plan: APPROVE_PLAN(P2.1) on `def8458` (next P2.2)
-- prior_approval_packet_p2_1_scope_exec: APPROVE_EXECUTION(P2.1-scope-change) on `def8458` (next P2.1)
-- prior_approval_packet_p2_1_change_scope: CHANGE_SCOPE(P2.1) on `22201db` (next P2.1)
-- prior_approval_packet_p1_phase: PHASE_APPROVE(P1) on `49b4bdc` (next P2.1)
+
+## P2.1 PASS — whisper_base_ct2_int8 baseline evaluation (53,230 rows; MISSING_EVIDENCE cleared)
+
+- ORCHESTRATOR_DECISIONs recorded:
+  - `APPROVE_EXECUTION(P2.1-model-build)` on
+    `accepted_report_commit=28dddae0c503208f3042bb5989e2bf3f5798ef56`,
+    `next_expected_task=P2.1`. CT2 INT8 model at
+    `…/runtime/whisper_models/whisper_base_en_ct2_int8/` is the binding
+    baseline backend.
+  - `APPROVE_PLAN(P2.1-rerun)` on
+    `accepted_report_commit=28dddae0c503208f3042bb5989e2bf3f5798ef56`,
+    `next_expected_task=P2.2`. Rerun accepted on the model-build
+    commit; `state_transport.last_accepted_report_commit` NOT advanced.
+- Deliverables (sha256 in tracker yaml `artifacts.*` / `tasks.P2.1.artifacts_added.*`):
+  - `artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet`
+    (53,230 rows; 31 columns; 16,591,882 bytes; sha256
+    `0dc98736…f4a6`).
+  - `reports/robust_asr/baseline_whisper_base.md`
+    (sha256 `6e5e2f04…55e1`).
+  - `scripts/robust_asr/run_backend_eval.py` (edited; sha256
+    `36ba31bb…55e1`; prior `56ab650f…fa209d`). Added
+    `eval_audio_id = source_audio_id + '::' + degradation_id` and a
+    transcription cache keyed on `audio_sha256` so each
+    `(source × condition_family × tier)` row is a distinct eval-table
+    row and identical audio decodes once.
+- Slurm execution (final PASS run):
+  - Wrapper: `./slurm/tools/on_submit.sh sbatch /…/slurm/jobs/p2_1_baseline.sh`.
+  - Job: `2129900`, name `asr_p2_1_baseline`, partition `2080ti`, host
+    `aisurrey04`, GPU job.
+  - State / ExitCode: `COMPLETED 0:0` in 2 h 40 m 00 s. MaxRSS
+    811,860 KiB. Container sha256 `8db5364c…ce8713`.
+  - 53,230 successful inferences; 0 row failures.
+  - §5.8 budget: 10800 s (3 h); actual 9600 s (11.1 % margin).
+- Per-family metrics (mean over successful rows; n=10,646 per family =
+  2 tiers × 5323):
+  - clean: WER 0.0709, WA 0.9367
+  - muffled_lowpass: WER 0.1072, WA 0.9027
+  - cafe_noise: WER 0.1241, WA 0.8784
+  - far_field_room: WER 0.1410, WA 0.8623
+  - phone_band: WER 0.6058, WA 0.6034
+- Backend / model provenance:
+  `backend_version=faster_whisper-1.2.1+ct2-int8+whisper_base_en_ct2_int8`;
+  model.bin sha256 `4ed9e9b5…db33f`; source openai-whisper base.en.pt
+  sha256 `25a8566e…ad` (canonical); ctranslate2 4.7.1; quantization
+  int8; local_only=true; third_party_provider=null; cost_usd=null;
+  normalization_version=normalization_v1.
+- Verifications:
+  - `OK_BACKEND_EVAL`, `OK_BACKEND_SUMMARY`, `OK_EVAL_TABLE` all emitted.
+  - `validate_eval_table.py` → `rows=53230 unique_pk=53230
+    unique_audio_id=53230`, `OK_EVAL_TABLE`, exit 0.
+  - `validate_report_shape.py` → `OK_REPORT_SHAPE`, exit 0.
+  - `pytest -q test_runtime_contract_skeleton.py test_eval_schema.py
+    test_normalization_metrics.py test_leakage.py test_degradation_v1.py`
+    → 85/85 PASS in 6.88 s.
+- Bug-fix history:
+  - Attempt 1 (Slurm `2129649`): HALTED `13:0` in 14 s,
+    `MISSING_EVIDENCE` — CT2 weights absent. Resolved by
+    CHANGE_SCOPE(P2.1-model) + P2.1-model-build (`2129651`).
+  - Attempt 2 (Slurm `2129652`): COMPLETED `0:0` in 18 m 32 s; all
+    sentinels emitted but only 5,323 rows (clean tier only) due to
+    PK collapse on source-only audio_id. Detected post-run; no PASS
+    declared on under-counted parquet.
+  - Attempt 3 (Slurm `2129900`, this PASS): COMPLETED `0:0` in
+    2 h 40 m 00 s; 53,230 rows; full coverage.
+- Tracker mutations: `tasks.P2.1.status=PASS`;
+  `tasks.P2.1.next_task=P2.2`; `tasks.P2.1.marker=null`;
+  `tasks.P2.1.slurm.job_id=2129900`, `state=COMPLETED`, `exit_code=0:0`,
+  `sentinel=OK_BACKEND_EVAL`; history block records attempts 1 and 2.
+  `markers=[BLOCKED_OOD_PUBLIC]` (MISSING_EVIDENCE cleared;
+  BLOCKED_OOD_PUBLIC held — non-blocking, `claims_enabled.ood_real=false`).
+  `blocked=false`; `blocker=null`. `current_task=P2.1` held (orchestrator
+  finalizes via APPROVE_EXECUTION before P2.2 may start);
+  `last_completed_task=P1.4` held. `state_transport.last_accepted_report_commit`
+  STAYS `49b4bdc…` per orchestrator instruction;
+  `state_transport.expected_next_task=P2.1` held.
+  `latest_approval_packet`=APPROVE_PLAN(P2.1-rerun) on `28dddae`;
+  `prior_approval_packet`=APPROVE_EXECUTION(P2.1-model-build) on
+  `28dddae`. `artifacts.baseline_table.{sha256,rows}` and
+  `artifacts.baseline_report.sha256` populated. New
+  `tasks.P2.1.artifacts_added.{eval_table, baseline_report_full}` entries.
 
 ## P2.1-model-build PASS — CT2 INT8 weights produced (parent P2.1 still HALTED)
 
