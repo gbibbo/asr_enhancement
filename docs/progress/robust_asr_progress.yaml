@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P2.2
+      phase: P2
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 821893c69eb3e651a94e6bddde49ca5a22be7354
+      next_expected_task: P2.2
+      required_fix: "Rewrite stale touch_policy P2.2 row to authorize the LoRA smoke config task."
+      rationale: "P2.2 requires configs/robust_asr/lora_smoke.yaml and P2.2_lora_smoke_config.md, but current touch_policy P2.2 row still refers to an old baseline-gate task."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.1
       phase: P2
@@ -58,7 +68,7 @@ state_transport:
       next_expected_task: P2.2
       required_fix: null
       rationale: "P2.1 passed after model-build remediation and tracker fix. whisper_base_ct2_int8 baseline produced 53,230 rows, OK_BACKEND_EVAL, OK_BACKEND_SUMMARY, OK_EVAL_TABLE, OK_REPORT_SHAPE, and non-regression tests passed. MISSING_EVIDENCE cleared. BLOCKED_OOD_PUBLIC remains active and non-blocking."
-  prior_approval_packet:
+  prior_approval_packet_p2_1_rerun_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.1-rerun

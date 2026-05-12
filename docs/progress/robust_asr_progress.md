@@ -16,14 +16,79 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932 (advanced from 28dddae... by APPROVE_EXECUTION(P2.1) at commit 83dd911)
+- state_transport.last_accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932 (held; CHANGE_SCOPE does not advance)
 - state_transport.expected_next_task: P2.2
-- latest_approval_packet: APPROVE_EXECUTION(P2.1) on `83dd911` (next P2.2)
-- prior_approval_packet: APPROVE_PLAN(P2.1-rerun) on `28dddae` (next P2.2)
+- latest_approval_packet: CHANGE_SCOPE(P2.2) on `821893c` (next P2.2)
+- prior_approval_packet: APPROVE_EXECUTION(P2.1) on `83dd911` (next P2.2)
+- prior_approval_packet_p2_1_rerun_plan: APPROVE_PLAN(P2.1-rerun) on `28dddae` (next P2.2)
 - prior_approval_packet_p2_1_model_build_exec: APPROVE_EXECUTION(P2.1-model-build) on `28dddae` (next P2.1)
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P2.2 CHANGE_SCOPE recorded
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P2.2 phase=P2
+  decision=CHANGE_SCOPE
+  accepted_report_commit=`821893c69eb3e651a94e6bddde49ca5a22be7354`
+  next_expected_task=P2.2.
+  required_fix="Rewrite stale touch_policy P2.2 row to authorize the
+  LoRA smoke config task."
+- Rationale: P2.2 requires `configs/robust_asr/lora_smoke.yaml` and
+  `reports/robust_asr/task_reports/P2.2_lora_smoke_config.md`, but the
+  prior touch_policy P2.2 row still referred to an old baseline-gate
+  task. Row rewritten (additive) to authorize the v3.4.7 P2.2 LoRA
+  smoke split config deliverables and the read paths needed for
+  manifest-membership validation.
+- `reports/robust_asr/touch_policy.md` P2.2 row REWRITTEN.
+  allowed_write_paths: `configs/robust_asr/lora_smoke.yaml`,
+  `reports/robust_asr/task_reports/P2.2_lora_smoke_config.md`,
+  `reports/robust_asr/touch_policy.md` (scope-change rows),
+  `docs/progress/robust_asr_progress.yaml`,
+  `docs/progress/robust_asr_progress.md`,
+  `docs/progress/robust_asr_state_capsule.md`.
+  allowed_read_paths: plan files, `configs/robust_asr/data_v1.yaml`,
+  `configs/robust_asr/reuse_policy_v1.yaml`,
+  `libs/common/eval_schema.yaml`, `libs/common/normalization.py`,
+  `libs/common/versions.py`,
+  `artifacts/robust_asr/manifests/librispeech_lora_train.parquet`,
+  `artifacts/robust_asr/manifests/librispeech_validation.parquet`,
+  `reports/robust_asr/manifest_summary.md`,
+  `reports/robust_asr/baseline_whisper_base.md`.
+  default_no_touch: legacy trackers, services/**, infra/**,
+  configs/training/**, scripts/training/**, libs/audio/** (write),
+  libs/asr_adapter/** (write), libs/common/** (write),
+  scripts/robust_asr/** (write), slurm/**.
+  mandatory_no_touch: all Section 2.2 patterns; `*.wav`/`*.flac`/`*.mp3`
+  under repo root. external_resources: none (no Slurm, no Apptainer,
+  no GPU, no external API).
+- `configs/robust_asr/reuse_policy_v1.yaml` UNCHANGED. P2.2 is already
+  listed in `allowed_tasks` for `configs/robust_asr/**` (line 80) and
+  for the `artifacts/robust_asr/**` manifest rows (lines 33, 45, 57,
+  69) used by P2.2 reads; all P2.2 paths are robust_asr-owned.
+- `latest_approval_packet`=CHANGE_SCOPE(P2.2) on
+  `821893c69eb3e651a94e6bddde49ca5a22be7354` (next P2.2);
+  `prior_approval_packet`=APPROVE_EXECUTION(P2.1) on `83dd911` (next
+  P2.2); `prior_approval_packet_p2_1_rerun_plan`=APPROVE_PLAN(P2.1-rerun)
+  on `28dddae` (next P2.2).
+- `state_transport.last_accepted_report_commit` STAYS
+  `83dd911bc124a9f1dd53bab17cc4812dbf0cf932` (CHANGE_SCOPE does not
+  advance). `state_transport.expected_next_task=P2.2` held.
+- Held: `current_phase=P2`, `current_task=P2.2`,
+  `last_completed_task=P2.1`, `markers=[BLOCKED_OOD_PUBLIC]`,
+  `blocked=false`, `claims_enabled.ood_real=false`,
+  `claims_enabled.cloud_tradeoff=true`,
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1`,
+  `phase_summary={P0:PASS, P1:PASS}`,
+  `orchestrator_approvals={P0:PHASE_APPROVE, P1:PHASE_APPROVE}`.
+- Verification: `validate_report_shape.py` -> `OK_REPORT_SHAPE` (exit
+  0).
+- P2.2 implementation NOT executed: no `configs/robust_asr/lora_smoke.yaml`,
+  no `P2.2_lora_smoke_config.md`, no manifest-membership check run, no
+  pytest run, no Slurm, no Apptainer, no GPU, no external API. Awaiting
+  orchestrator `APPROVE_PLAN(P2.2)` before implementation.
 
 ## P2.1 APPROVE_EXECUTION recorded
 
