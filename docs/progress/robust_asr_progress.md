@@ -16,7 +16,7 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 49b4bdc122b9b9768b380ab9bb9c28bec49455db (held; PHASE_APPROVE(P1) acceptance; not advanced to the P2.1 implementation commit per orchestrator instruction)
+- state_transport.last_accepted_report_commit: 28dddae0c503208f3042bb5989e2bf3f5798ef56 (advanced from 49b4bdc... by APPROVE_EXECUTION(P2.1-model-build) at commit 28dddae; the subsequent APPROVE_PLAN(P2.1-rerun) does not further advance, and the P2.1-rerun implementation commit is NOT recorded as accepted per orchestrator instruction)
 - state_transport.expected_next_task: P2.1 (held — awaiting orchestrator APPROVE_EXECUTION(P2.1))
 - latest_approval_packet: APPROVE_PLAN(P2.1-rerun) on `28dddae` (next P2.2)
 - prior_approval_packet: APPROVE_EXECUTION(P2.1-model-build) on `28dddae` (next P2.1)
@@ -24,6 +24,29 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
 - prior_approval_packet_p2_1_plan: APPROVE_PLAN(P2.1) on `def8458` (next P2.2)
+
+## Tracker fix — last_accepted_report_commit advanced 49b4bdc -> 28dddae
+
+- The P2.1 PASS update recorded
+  `state_transport.last_accepted_report_commit=49b4bdc122b9b9768b380ab9bb9c28bec49455db`
+  (PHASE_APPROVE(P1) acceptance), but
+  `APPROVE_EXECUTION(P2.1-model-build)` had accepted commit
+  `28dddae0c503208f3042bb5989e2bf3f5798ef56`, which should have
+  advanced the accepted commit at P2.1-rerun acceptance time.
+  `APPROVE_PLAN(P2.1-rerun)` accepts the same commit and does not
+  further advance.
+- Tracker corrected:
+  `state_transport.last_accepted_report_commit` set to
+  `28dddae0c503208f3042bb5989e2bf3f5798ef56`. No code, no test, no
+  task-status change. P2.1 PASS state held.
+- Held: `current_task=P2.1`, `last_completed_task=P1.4`,
+  `current_phase=P2`, `markers=[BLOCKED_OOD_PUBLIC]`,
+  `blocked=false`, `blocker=null`, `claims_enabled.ood_real=false`,
+  `tasks.P2.1.status=PASS`, `tasks.P2.1.next_task=P2.2`,
+  `state_transport.expected_next_task=P2.1`,
+  `latest_approval_packet`=APPROVE_PLAN(P2.1-rerun) on `28dddae`,
+  `prior_approval_packet`=APPROVE_EXECUTION(P2.1-model-build) on
+  `28dddae`.
 
 ## P2.1 PASS — whisper_base_ct2_int8 baseline evaluation (53,230 rows; MISSING_EVIDENCE cleared)
 
