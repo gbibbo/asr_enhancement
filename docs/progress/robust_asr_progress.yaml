@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P2
-current_task: P2.1
-last_completed_task: P1.4
+current_task: P2.2
+last_completed_task: P2.1
 
 blocked: false
 blocker: null
@@ -51,6 +51,16 @@ state_transport:
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
       scope: task
+      task_id: P2.1
+      phase: P2
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932
+      next_expected_task: P2.2
+      required_fix: null
+      rationale: "P2.1 passed after model-build remediation and tracker fix. whisper_base_ct2_int8 baseline produced 53,230 rows, OK_BACKEND_EVAL, OK_BACKEND_SUMMARY, OK_EVAL_TABLE, OK_REPORT_SHAPE, and non-regression tests passed. MISSING_EVIDENCE cleared. BLOCKED_OOD_PUBLIC remains active and non-blocking."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
       task_id: P2.1-rerun
       phase: P2
       decision: APPROVE_PLAN
@@ -58,7 +68,7 @@ state_transport:
       next_expected_task: P2.2
       required_fix: null
       rationale: "P2.1-rerun plan accepted on the model-build commit. Use the existing CT2 INT8 model at /mnt/.../runtime/whisper_models/whisper_base_en_ct2_int8 (model.bin sha256 4ed9e9b5...db33f); submit slurm/jobs/p2_1_baseline.sh via slurm/tools/on_submit.sh; produce artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet and reports/robust_asr/baseline_whisper_base.md; PASS clears MISSING_EVIDENCE; BLOCKED_OOD_PUBLIC held; do not advance last_accepted_report_commit to the rerun implementation commit."
-  prior_approval_packet:
+  prior_approval_packet_p2_1_model_build_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.1-model-build
@@ -368,8 +378,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 28dddae0c503208f3042bb5989e2bf3f5798ef56
-  expected_next_task: P2.1
+  last_accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932
+  expected_next_task: P2.2
   last_tracker_mismatch: null
 
 phase_summary:
@@ -1406,7 +1416,7 @@ tasks:
         notes: "Slurm job 2129646 FAILED 1:0 in 10s due to pyarrow OverflowError: Python int too large to convert to C long (uint64 seeds). Fixed by masking per-row seed to 63 bits (1<<63)-1 to fit pyarrow int64; determinism preserved (63-bit unsigned space; SHA-256-derived). No partial parquets committed (failure occurred on the first per-family parquet write for clean_id)."
   P2.1:
     status: PASS
-    commit: pending
+    commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932
     files_changed:
       - configs/robust_asr/eval_manifests_v1.yaml
       - scripts/robust_asr/run_backend_eval.py

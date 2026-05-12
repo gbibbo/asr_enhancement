@@ -7,8 +7,8 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P2 (Whisper base baseline)
-- Current task: P2.1 (Whisper base CT2 INT8 evaluation) — PASS (current_task held until orchestrator APPROVE_EXECUTION)
-- Last completed: P1.4 (PASS — degradation_v1 generators and manifests; OK_DEGRADATION_V1; 0 BAD_OUTPUT)
+- Current task: P2.2 (LoRA smoke split config)
+- Last completed: P2.1 (PASS — whisper_base_ct2_int8 baseline; 53,230 rows; OK_BACKEND_EVAL/OK_BACKEND_SUMMARY/OK_EVAL_TABLE; MISSING_EVIDENCE cleared)
 - Phase summary: P0=PASS, P1=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
@@ -16,14 +16,39 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 28dddae0c503208f3042bb5989e2bf3f5798ef56 (advanced from 49b4bdc... by APPROVE_EXECUTION(P2.1-model-build) at commit 28dddae; the subsequent APPROVE_PLAN(P2.1-rerun) does not further advance, and the P2.1-rerun implementation commit is NOT recorded as accepted per orchestrator instruction)
-- state_transport.expected_next_task: P2.1 (held — awaiting orchestrator APPROVE_EXECUTION(P2.1))
-- latest_approval_packet: APPROVE_PLAN(P2.1-rerun) on `28dddae` (next P2.2)
-- prior_approval_packet: APPROVE_EXECUTION(P2.1-model-build) on `28dddae` (next P2.1)
+- state_transport.last_accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932 (advanced from 28dddae... by APPROVE_EXECUTION(P2.1) at commit 83dd911)
+- state_transport.expected_next_task: P2.2
+- latest_approval_packet: APPROVE_EXECUTION(P2.1) on `83dd911` (next P2.2)
+- prior_approval_packet: APPROVE_PLAN(P2.1-rerun) on `28dddae` (next P2.2)
+- prior_approval_packet_p2_1_model_build_exec: APPROVE_EXECUTION(P2.1-model-build) on `28dddae` (next P2.1)
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
-- prior_approval_packet_p2_1_plan: APPROVE_PLAN(P2.1) on `def8458` (next P2.2)
+
+## P2.1 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P2.1 phase=P2
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`83dd911bc124a9f1dd53bab17cc4812dbf0cf932`
+  next_expected_task=P2.2.
+- Rationale: P2.1 passed after model-build remediation and tracker fix.
+  `whisper_base_ct2_int8` baseline produced 53,230 rows; sentinels
+  `OK_BACKEND_EVAL`, `OK_BACKEND_SUMMARY`, `OK_EVAL_TABLE`,
+  `OK_REPORT_SHAPE` emitted; non-regression tests passed (85/85).
+  MISSING_EVIDENCE cleared. BLOCKED_OOD_PUBLIC remains active and
+  non-blocking; `claims_enabled.ood_real=false`.
+- Tracker mutations: `current_phase=P2` held; `current_task=P2.2`;
+  `last_completed_task=P2.1`; `tasks.P2.1.status=PASS` held;
+  `tasks.P2.1.commit=83dd911…`; `markers=[BLOCKED_OOD_PUBLIC]` held;
+  `blocked=false`; `claims_enabled.ood_real=false` held;
+  `state_transport.last_accepted_report_commit` advanced
+  `28dddae -> 83dd911`; `state_transport.expected_next_task=P2.2`.
+  `latest_approval_packet=APPROVE_EXECUTION(P2.1)` on `83dd911`;
+  `prior_approval_packet=APPROVE_PLAN(P2.1-rerun)` on `28dddae`;
+  `prior_approval_packet_p2_1_model_build_exec=APPROVE_EXECUTION(P2.1-model-build)`
+  on `28dddae`.
+- P2.2 not started; awaiting orchestrator APPROVE_PLAN(P2.2) before
+  implementation.
 
 ## Tracker fix — last_accepted_report_commit advanced 49b4bdc -> 28dddae
 
