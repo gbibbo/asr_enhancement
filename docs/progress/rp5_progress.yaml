@@ -1,0 +1,24 @@
+tracker_file: docs/progress/rp5_progress.yaml
+current_phase: B-route
+current_task: BR-00
+last_completed_task: B13.1
+markers: []
+human_action_requests:
+  HAR-BR-THRESHOLDS-001:
+    status: resolved
+    result_kind: explicit_NA_all_three_categories
+    evidence_reference: "Gabriel message: Ok, encárgate de implementar las mejoras entonces"
+    accepted_by_orchestrator_decision: true
+    resolved_fields:
+      baseline_reproduction_tolerance_numeric: not_applicable_current_scope
+      latency_runtime_target_numeric: not_applicable_current_scope
+      memory_peak_target_numeric: not_applicable_current_scope
+state_transport:
+  latest_planning_report_path: null
+  latest_execution_report_path: null
+  latest_phase_gate_report_path: null
+  latest_approval_packet_path: null
+  expected_next_task: BR-00
+decisions:
+  broute_mode_default: manual
+  human_action_policy: CHANGE_SCOPE_with_human_action_request_id
