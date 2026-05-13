@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P7.3
+      phase: P7
+      decision: CHANGE_SCOPE
+      accepted_report_commit: e9ebbfe
+      next_expected_task: P7.3
+      required_fix: "Authorize deterministic selector packaging scripts, runtime test, final eval report, and P7.3 touch-policy paths."
+      rationale: "P7.3 requires package_deterministic_selector.py, evaluate_deterministic_selector.py, tests/robust_asr/test_router_runtime.py, selector_final_eval.md, and selected_router artifacts, but current policy does not authorize all P7.3 writes."
+  prior_approval_packet_p6_phase:
+    ORCHESTRATOR_DECISION:
       scope: phase
       task_id: null
       phase: P6
@@ -698,14 +708,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 382f66de62a207472ee77a35d9af88585901e29394670043bf34198823f56a42
+    sha256: f236467af7776f5243439a69baeffe50ec5193135e231bbfa5bdbd063d310ddc
     produced_by_task: P0.2
-    last_amended_by: P6.1_scope_change
+    last_amended_by: P7.3_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: 9994a741d85fb9b4c2c6aa6ea5d5ce71f763cb551c4b0403964abd10cfdbdb7c
+    sha256: 3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf
     produced_by_task: P0.2
-    last_amended_by: P6.1_scope_change
+    last_amended_by: P7.3_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
@@ -2442,3 +2452,36 @@ tasks:
     decided_at_task: P6_GATE
     next_task: P7.3
     rationale: "OUTCOME_E_DETERMINISTIC_SELECTOR active; no router candidates exist to select from (P6.2 SKIPPED_BY_OUTCOME_E and P7.1 SKIPPED_BY_OUTCOME_E). Agent plan §312 and §2664-§2665 route P7.2 to SKIPPED_BY_OUTCOME_E at the P6 gate so that the P7 gate Branch B predicate holds when P7.3 completes."
+  P7.3:
+    status: IN_PROGRESS
+    implementation_status: NOT_STARTED
+    files_changed:
+      - configs/robust_asr/reuse_policy_v1.yaml
+      - reports/robust_asr/touch_policy.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    scope_change:
+      decision: CHANGE_SCOPE
+      accepted_report_commit: e9ebbfe
+      packet_recorded_commit: pending_this_scope_change_commit
+      reuse_policy_changes:
+        - "tests/robust_asr/** allowed_tasks [P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P8.1] -> [P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P7.3, P8.1] (authorizes tests/robust_asr/test_router_runtime.py for the deterministic-selector runtime regression required by P7 gate Branch B per agent plan §2669)"
+      touch_policy_changes:
+        - "rewrite P7.3 row to authorize writes: scripts/robust_asr/package_deterministic_selector.py, scripts/robust_asr/evaluate_deterministic_selector.py, tests/robust_asr/test_router_runtime.py, artifacts/robust_asr/router/selected_router/**, reports/robust_asr/router/selector_final_eval.md, reports/robust_asr/task_reports/P7.3_router_package.md, configs/robust_asr/reuse_policy_v1.yaml (scope-change rows), reports/robust_asr/touch_policy.md (scope-change row), tracker files"
+        - "P7.3 allowed_read_paths now include: plan files, configs/robust_asr/reuse_policy_v1.yaml (read), configs/robust_asr/router_v1.yaml (read), artifacts/robust_asr/router/selector_evidence.parquet (read), reports/robust_asr/router/selector_evidence_summary.md (read), libs/common/versions.py (read), libs/common/normalization.py (read), libs/common/metrics.py (read), libs/common/eval_schema.yaml (read), scripts/robust_asr/validate_report_shape.py (read), scripts/robust_asr/validate_selector_evidence.py (read)"
+        - "explicit P7.3 default_no_touch additions: legacy trackers, services/**, infra/**, configs/training/**, scripts/training/**, slurm/**, libs/audio/** write, libs/asr_adapter/** write, libs/common/** write, libs/audio_pipeline/** write, libs/observability/** write, artifacts/robust_asr/oracle/** (Branch A only; OUTCOME_E active), P6.2 router feature/matrix artifacts, P7.2 router candidates, artifacts/robust_asr/router/selector_evidence.parquet (write — owned by P6.1), configs/robust_asr/pricing_v1.yaml (write — owned by P5.1), configs/robust_asr/eval_manifests_v1.yaml (write), configs/robust_asr/router_v1.yaml (write — owned by P6.1), configs/robust_asr/data_v1.yaml (write), configs/robust_asr/degradation_v1.yaml (write), AssemblyAI / API runtime files, *.wav/*.flac/*.mp3/*.m4a under repo root, *.pt/*.pth/*.ckpt/*.bin/*.safetensors under selected_router/"
+      artifact_sha256_updates:
+        reuse_policy_config: 3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf
+        touch_policy: f236467af7776f5243439a69baeffe50ec5193135e231bbfa5bdbd063d310ddc
+    commands_run:
+      - "Edit configs/robust_asr/reuse_policy_v1.yaml: tests/robust_asr/** allowed_tasks += P7.3"
+      - "Edit reports/robust_asr/touch_policy.md: rewrite P7.3 row"
+      - "Edit docs/progress/robust_asr_progress.{yaml,md}, docs/progress/robust_asr_state_capsule.md: record CHANGE_SCOPE(P7.3) packet; demote PHASE_APPROVE(P6) to prior_approval_packet_p6_phase; update reuse_policy_config and touch_policy sha256s with last_amended_by=P7.3_scope_change"
+      - "sha256sum configs/robust_asr/reuse_policy_v1.yaml reports/robust_asr/touch_policy.md"
+      - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures -> OK_REPORT_SHAPE"
+      - "git add ...; git commit; git push"
+    marker: null
+    next_task: P7.3
+    blocker: null
+    notes: "P7.3 scope-change only; implementation not started. CHANGE_SCOPE(P7.3) packet recorded against e9ebbfe (the P6 phase gate approval commit, current HEAD prior to this scope-change commit). reuse_policy_v1.yaml and touch_policy.md amendments authorize the deterministic selector packaging path (scripts/robust_asr/package_deterministic_selector.py, scripts/robust_asr/evaluate_deterministic_selector.py, tests/robust_asr/test_router_runtime.py, artifacts/robust_asr/router/selected_router/**, reports/robust_asr/router/selector_final_eval.md) and corresponding reads (router_v1.yaml, selector_evidence.parquet, selector_evidence_summary.md, libs/common/{versions,normalization,metrics}.py, validate_report_shape.py). Policy sha256s recorded with last_amended_by=P7.3_scope_change. current_phase=P7 held; current_task=P7.3 held; last_completed_task=P6.1 held; tasks.P7.1=SKIPPED_BY_OUTCOME_E and tasks.P7.2=SKIPPED_BY_OUTCOME_E held; markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; blocked=false held; claims_enabled.ood_real=false, .cloud_tradeoff=false, .positive_lora=false, .positive_system=pending held; router_status=SELECTOR_EVIDENCE_BUILT held; deterministic_selector_version=deterministic_selector_v1 held; state_transport.last_accepted_report_commit=64413500094b79a160fbcb179b432fd6ccdaf80f held per orchestrator instruction (NOT advanced to this scope-change commit, matching P5.1/P6.1 pattern); state_transport.expected_next_task=P7.3 held. No code, no test, no Slurm submission, no real-provider call. Only policy and tracker files modified."

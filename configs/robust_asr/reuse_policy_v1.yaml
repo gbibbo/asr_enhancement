@@ -149,13 +149,16 @@
 - path: tests/robust_asr/**
   class: active_state
   permitted_use: read_write
-  allowed_tasks: [P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P8.1]
+  allowed_tasks: [P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P7.3, P8.1]
   validator: none
   checksum_required: false
   large_artifact: false
   commit_allowed: true
   notes: Robust ASR tests. P5.1 scope-change (CHANGE_SCOPE 45b6cac) authorizes
-         tests/robust_asr/test_assemblyai.py.
+         tests/robust_asr/test_assemblyai.py. P7.3 scope-change
+         (CHANGE_SCOPE e9ebbfe) authorizes tests/robust_asr/test_router_runtime.py
+         for the deterministic-selector runtime regression required by P7 gate
+         Branch B.
 
 - path: docs/reports/robust_asr/**
   class: active_state

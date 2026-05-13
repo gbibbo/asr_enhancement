@@ -31,7 +31,8 @@ Status: IN_PROGRESS
 - router_status: SELECTOR_EVIDENCE_BUILT
 - tasks.P6.1.status: PASS (branch B selector-evidence)
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
-- latest_approval_packet: PHASE_APPROVE(P6) on `6441350` (next P7.3)
+- latest_approval_packet: CHANGE_SCOPE(P7.3) on `e9ebbfe` (next P7.3)
+- prior_approval_packet_p6_phase: PHASE_APPROVE(P6) on `6441350` (next P7.3)
 - prior_approval_packet_p6_1_exec: APPROVE_EXECUTION(P6.1) on `6441350` (next P6_GATE)
 - prior_approval_packet_p6_1_plan: APPROVE_PLAN(P6.1) on `4a9f929` (next P6_GATE)
 - prior_approval_packet_p6_1_scope_exec: APPROVE_EXECUTION(P6.1-scope-change) on `4a9f929` (next P6.1)
@@ -61,6 +62,132 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P7.3 CHANGE_SCOPE recorded — deterministic selector packaging
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P7.3 phase=P7
+  decision=CHANGE_SCOPE
+- accepted_report_commit: `e9ebbfe` (P6 phase gate approval commit; current
+  HEAD prior to this scope-change commit)
+- next_expected_task: `P7.3`
+- required_fix: "Authorize deterministic selector packaging scripts,
+  runtime test, final eval report, and P7.3 touch-policy paths."
+- rationale: P7.3 requires `scripts/robust_asr/package_deterministic_selector.py`,
+  `scripts/robust_asr/evaluate_deterministic_selector.py`,
+  `tests/robust_asr/test_router_runtime.py`,
+  `reports/robust_asr/router/selector_final_eval.md`, and the
+  `artifacts/robust_asr/router/selected_router/**` package, but the prior
+  policy (committed at `6441350`) did not authorize all P7.3 writes — in
+  particular, the `tests/robust_asr/**` row excluded P7.3 and the P7.3
+  touch-policy row did not list the scripts, the runtime test, or
+  `selector_final_eval.md`.
+
+### Reuse-policy amendments
+
+- `configs/robust_asr/reuse_policy_v1.yaml`:
+  - `tests/robust_asr/**` `allowed_tasks`:
+    `[P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P8.1]` →
+    `[P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P7.3, P8.1]`.
+    Authorizes `tests/robust_asr/test_router_runtime.py` for the
+    deterministic-selector runtime regression required by P7 gate
+    Branch B (agent plan §2669).
+
+### Touch-policy amendments
+
+- `reports/robust_asr/touch_policy.md` P7.3 row rewritten to authorize
+  writes:
+  - `scripts/robust_asr/package_deterministic_selector.py`
+  - `scripts/robust_asr/evaluate_deterministic_selector.py`
+  - `tests/robust_asr/test_router_runtime.py`
+  - `artifacts/robust_asr/router/selected_router/**`
+  - `reports/robust_asr/router/selector_final_eval.md`
+  - `reports/robust_asr/task_reports/P7.3_router_package.md`
+  - `configs/robust_asr/reuse_policy_v1.yaml` (scope-change rows)
+  - `reports/robust_asr/touch_policy.md` (scope-change row)
+  - `docs/progress/robust_asr_progress.yaml`,
+    `docs/progress/robust_asr_progress.md`,
+    `docs/progress/robust_asr_state_capsule.md`
+- Authorized reads added: `configs/robust_asr/reuse_policy_v1.yaml`,
+  `configs/robust_asr/router_v1.yaml`,
+  `artifacts/robust_asr/router/selector_evidence.parquet`,
+  `reports/robust_asr/router/selector_evidence_summary.md`,
+  `libs/common/versions.py`, `libs/common/normalization.py`,
+  `libs/common/metrics.py`, `libs/common/eval_schema.yaml`,
+  `scripts/robust_asr/validate_report_shape.py`,
+  `scripts/robust_asr/validate_selector_evidence.py`.
+- Explicit P7.3 `default_no_touch` additions: legacy trackers,
+  `services/**`, `infra/**`, `configs/training/**`,
+  `scripts/training/**`, `slurm/**`, `libs/audio/** (write)`,
+  `libs/asr_adapter/** (write)`, `libs/common/** (write)`,
+  `libs/audio_pipeline/** (write)`, `libs/observability/** (write)`,
+  `artifacts/robust_asr/oracle/**` (Branch A only; OUTCOME_E active),
+  P6.2 router feature/matrix artifacts, P7.2 router candidates,
+  `artifacts/robust_asr/router/selector_evidence.parquet` (write — owned
+  by P6.1), `configs/robust_asr/pricing_v1.yaml` (write — owned by P5.1),
+  `configs/robust_asr/eval_manifests_v1.yaml` (write),
+  `configs/robust_asr/router_v1.yaml` (write — owned by P6.1),
+  `configs/robust_asr/data_v1.yaml` (write),
+  `configs/robust_asr/degradation_v1.yaml` (write), AssemblyAI / API
+  runtime files, `*.wav/*.flac/*.mp3/*.m4a` under repo root,
+  `*.pt/*.pth/*.ckpt/*.bin/*.safetensors` under `selected_router/`.
+
+### Tracker artifact sha256 updates
+
+- `artifacts.reuse_policy_config.sha256` =
+  `3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf`;
+  `last_amended_by` = `P7.3_scope_change`.
+- `artifacts.touch_policy.sha256` =
+  `f236467af7776f5243439a69baeffe50ec5193135e231bbfa5bdbd063d310ddc`;
+  `last_amended_by` = `P7.3_scope_change`.
+
+### Routing state (held)
+
+- `current_phase` = `P7` (held).
+- `current_task` = `P7.3` (held; not advanced — this commit records the
+  scope-change only).
+- `last_completed_task` = `P6.1` (held).
+- `tasks.P7.1.status` = `SKIPPED_BY_OUTCOME_E` (held; decided at
+  `P6_GATE`).
+- `tasks.P7.2.status` = `SKIPPED_BY_OUTCOME_E` (held; decided at
+  `P6_GATE`).
+- `tasks.P7.3.status` = `IN_PROGRESS` / `implementation_status` =
+  `NOT_STARTED` (scope-change committed; APPROVE_PLAN and
+  APPROVE_EXECUTION still required before P7.3 implementation).
+- Markers `[BLOCKED_OOD_PUBLIC, BLOCKED_API,
+  OUTCOME_E_DETERMINISTIC_SELECTOR]` held.
+- `blocked` = `false`; `blocker` = `null` (held).
+- `claims_enabled.ood_real` = `false`,
+  `claims_enabled.cloud_tradeoff` = `false`,
+  `claims_enabled.positive_lora` = `false`,
+  `claims_enabled.positive_system` = `pending` (all held).
+- `router_status` = `SELECTOR_EVIDENCE_BUILT` (held).
+- `deterministic_selector_version` = `deterministic_selector_v1` (held).
+- `state_transport.last_accepted_report_commit` =
+  `64413500094b79a160fbcb179b432fd6ccdaf80f` (held per orchestrator
+  instruction — NOT advanced to this scope-change commit, matching
+  P5.1 / P6.1 pattern).
+- `state_transport.expected_next_task` = `P7.3` (held).
+- `state_transport.latest_approval_packet` = `CHANGE_SCOPE(P7.3)` on
+  `e9ebbfe`; the prior `PHASE_APPROVE(P6)` packet demoted to
+  `prior_approval_packet_p6_phase`.
+
+### Validation
+
+- `python3 scripts/robust_asr/validate_report_shape.py
+  --schemas docs/plans/state_packet_schemas_v1.yaml
+  --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures`
+  → `OK_REPORT_SHAPE`.
+
+### Notes
+
+- No code, no test, no Slurm submission, no real-provider call. Only
+  the policy files (`configs/robust_asr/reuse_policy_v1.yaml`,
+  `reports/robust_asr/touch_policy.md`) and the tracker files
+  (`docs/progress/robust_asr_progress.{yaml,md}`,
+  `docs/progress/robust_asr_state_capsule.md`) were modified.
+- P7.3 implementation (deterministic selector packaging, runtime test,
+  selector final eval, P7.3 task report) is the next scoped task once
+  `APPROVE_PLAN(P7.3)` is recorded.
 
 ## P6 PHASE_APPROVE recorded — Branch B selector-evidence
 
