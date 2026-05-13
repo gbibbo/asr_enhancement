@@ -14,14 +14,25 @@ human_action_requests:
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
-  latest_planning_report_path: reports/rp5/broute_schema_contract.md
-  latest_execution_report_path: reports/rp5/broute_schema_contract.md
+  latest_planning_report_path: reports/rp5/broute_validator_materialization_gap.md
+  latest_execution_report_path: reports/rp5/broute_validator_materialization_gap.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br01_approval_packet.yaml
+  latest_approval_packet_path: reports/rp5/broute_br02_recovery_approval_packet.yaml
   expected_next_task: BR-02
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
+recovery_log:
+  RP-VALIDATOR-MATERIALIZATION-GAP:
+    status: PASS
+    marker: VALIDATOR_MATERIALIZATION_GAP
+    commit: 54c24a451bf29324273ba7b4f865cd6dc0074d1b
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - "BEFORE_FIX: None"
+      - "AFTER_FIX: PL-BR-API-DEMO"
+      - OK_CHANGED_FILES_PATH_LOCKED
+    next_task: BR-02
 tasks:
   BR-00:
     task_id: BR-00
