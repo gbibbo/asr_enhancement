@@ -2,14 +2,14 @@ project: robust_asr_lora_router
 branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
-current_phase: P3
-current_task: P3_GATE
+current_phase: P5
+current_task: P5.1
 last_completed_task: P3.2
 
 blocked: false
 blocker: null
 
-lora_status: SMOKE_DONE
+lora_status: SKIPPED_BY_DECISION_A
 router_status: NOT_STARTED
 system_status: NOT_STARTED
 
@@ -32,7 +32,7 @@ markers: [BLOCKED_OOD_PUBLIC]
 claims_enabled:
   ood_real: false
   cloud_tradeoff: true
-  positive_lora: pending
+  positive_lora: false
   positive_system: pending
 
 session_log:
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: null
+      phase: P3
+      decision: PHASE_APPROVE
+      accepted_report_commit: 26db72df3215355a68029927980389216353526e
+      next_expected_task: P5.1
+      required_fix: null
+      rationale: "P3 phase gate PASS. P3.1 and P3.2 are PASS. Decision_A_smoke=FAIL was mechanically recorded with OK_LORA_SMOKE_DECISION:FAIL. Therefore P4.1/P4.2/P4.3 are skipped by Decision A, Decision_B_lora_full.include_lora_in_router=false, claims_enabled.positive_lora=false, and routing advances to P5.1. BLOCKED_OOD_PUBLIC remains active and non-blocking."
+  prior_approval_packet_p3_2_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P3.2
@@ -509,14 +519,14 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: 26db72df3215355a68029927980389216353526e
-  expected_next_task: P3_GATE
+  expected_next_task: P5.1
   last_tracker_mismatch: null
 
 phase_summary:
   P0: PASS
   P1: PASS
   P2: PASS
-  P3: null
+  P3: PASS
   P4: null
   P5: null
   P6: null
@@ -529,7 +539,7 @@ orchestrator_approvals:
   P0: PHASE_APPROVE
   P1: PHASE_APPROVE
   P2: PHASE_APPROVE
-  P3: null
+  P3: PHASE_APPROVE
   P4: null
   P5: null
   P6: null
@@ -941,10 +951,11 @@ decisions:
     report_path: reports/robust_asr/lora/lora_smoke_report.md
     narrative_path: reports/robust_asr/lora/decision_a_smoke.md
   Decision_B_lora_full:
-    outcome: null
-    preservation_outcome: null
-    include_lora_in_router: null
-    decided_at_task: P4.2
+    outcome: SKIPPED_BY_DECISION_A
+    preservation_outcome: SKIPPED_BY_DECISION_A
+    include_lora_in_router: false
+    decided_at_task: P3_GATE
+    rule_reference: "agent_plan_v3_4_7 §8 P3 gate (Branch B routing for Decision_A_smoke=FAIL)"
   Decision_C_router_choice:
     kind: null
     selected_impl: null
@@ -2013,3 +2024,39 @@ tasks:
         sha256: ffe3d198fd79beb2d613a8a689f703aa93d0887fd768795d906cdc1968490acd
         produced_by_task: P3.2
     notes: "P3.2 PASS via mechanical Section 5.1 decision over P3.1 metrics. Decision_A_smoke.outcome=FAIL (macro_wa_gain=-0.1284 < 0.005; max_family_wa_gain=-0.1135 < 0.010; clean_wa_regression=0.1135 > both 0.010 and 0.020; per_family_wa_gain_variance=1.79e-4 non-degenerate; export_smoke_outcome=PASS so not HALTED). 12 new tests added; 109/109 robust_asr suite PASS. lora_smoke_report.md first line = FAIL; decision_a_smoke.md narrative + expected P3-gate side effects written; P3.2_decision_a.md task report present. P3.2 does NOT enact P4 skips, lora_status transition, or claims_enabled.positive_lora changes — the P3 gate owns those. BLOCKED_OOD_PUBLIC held non-blocking. current_task=P3.2 held until orchestrator APPROVE_EXECUTION(P3.2); state_transport.last_accepted_report_commit STAYS 096fe43 per orchestrator instruction (NOT advanced to the P3.2 implementation commit); state_transport.expected_next_task=P3_GATE."
+  P3_GATE:
+    status: PASS
+    commit: 26db72df3215355a68029927980389216353526e
+    routing_branch: "P3 gate Branch B (Decision_A_smoke=FAIL)"
+    files_changed:
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit docs/progress/robust_asr_progress.yaml (current_phase=P5; current_task=P5.1; last_completed_task=P3.2; phase_summary.P3=PASS; orchestrator_approvals.P3=PHASE_APPROVE; lora_status=SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false; decisions.Decision_B_lora_full.include_lora_in_router=false; tasks.P4.1/P4.2/P4.3.status=SKIPPED_BY_DECISION_A; latest_approval_packet=PHASE_APPROVE(P3) on 26db72d; APPROVE_EXECUTION(P3.2) demoted to prior_approval_packet_p3_2_exec; state_transport.expected_next_task=P5.1; state_transport.last_accepted_report_commit held at 26db72d)"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "P3 phase gate PASS per Section 8 P3 predicate (tasks.P3.1=PASS, tasks.P3.2=PASS, lora_smoke_report.md first-line FAIL, decision_a_smoke.md present, Decision_A_smoke.outcome=FAIL ∈ {PASS,PARTIAL,FAIL,HALTED}, no BLOCKED_RUNTIME/MISSING_EVIDENCE/PLAN_CONFLICT)"
+      - "Section 8 Branch B routing enacted: P4.1/P4.2/P4.3=SKIPPED_BY_DECISION_A; lora_status SMOKE_DONE -> SKIPPED_BY_DECISION_A; claims_enabled.positive_lora pending -> false; Decision_B_lora_full.include_lora_in_router=null -> false; next task = P5.1"
+      - "current_task advanced P3_GATE -> P5.1; last_completed_task advanced P3.2 -> P3_GATE"
+      - "BLOCKED_OOD_PUBLIC held non-blocking; claims_enabled.ood_real=false held"
+      - "state_transport.last_accepted_report_commit STAYS 26db72df3215355a68029927980389216353526e per orchestrator instruction (PHASE_APPROVE recorded against the P3.2 acceptance commit; not advanced by the phase-gate commit itself)"
+    marker: null
+    next_task: P5.1
+    blocker: null
+    notes: "P3 PHASE_APPROVE recorded against commit 26db72d (the P3.2 acceptance commit). Routing enacted per Section 8 P3 Branch B for Decision_A_smoke=FAIL: P4.1/P4.2/P4.3 -> SKIPPED_BY_DECISION_A; lora_status -> SKIPPED_BY_DECISION_A; claims_enabled.positive_lora -> false; Decision_B_lora_full.include_lora_in_router -> false. P5.1 is the next task. BLOCKED_OOD_PUBLIC held non-blocking; claims_enabled.ood_real=false held. No code, no test, no Slurm submission for this update. Only tracker files modified."
+  P4.1:
+    status: SKIPPED_BY_DECISION_A
+    skipped_by: P3_GATE
+    rationale: "Decision_A_smoke=FAIL → Branch B of P3 gate skips full LoRA training."
+    next_task: null
+  P4.2:
+    status: SKIPPED_BY_DECISION_A
+    skipped_by: P3_GATE
+    rationale: "Decision_A_smoke=FAIL → Branch B of P3 gate skips full LoRA evaluation."
+    next_task: null
+  P4.3:
+    status: SKIPPED_BY_DECISION_A
+    skipped_by: P3_GATE
+    rationale: "Decision_A_smoke=FAIL → Branch B of P3 gate skips CT2 INT8 preservation."
+    next_task: null

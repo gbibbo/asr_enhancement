@@ -6,21 +6,26 @@ Status: IN_PROGRESS
 
 ## Current state
 
-- Phase: P3 (LoRA smoke and Decision A)
-- Current task: P3_GATE (Section 8 P3 phase-gate evaluation)
-- Last completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest)
+- Phase: P5 (AssemblyAI cloud baseline)
+- Current task: P5.1 (AssemblyAI cloud-baseline evaluation)
+- Last completed: P3_GATE (PHASE_APPROVE; Branch B Decision_A_smoke=FAIL routing)
+- Prior completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest)
 - Prior completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
-- Phase summary: P0=PASS, P1=PASS, P2=PASS
+- Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - Blocker: null
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
-- lora_status: SMOKE_DONE
+- claims_enabled.positive_lora: false (transitioned from pending by P3 gate Branch B)
+- lora_status: SKIPPED_BY_DECISION_A (transitioned from SMOKE_DONE by P3 gate Branch B)
+- decisions.Decision_B_lora_full.include_lora_in_router: false (set by P3 gate Branch B)
+- tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 26db72df3215355a68029927980389216353526e (advanced from `096fe43` by APPROVE_EXECUTION(P3.2))
-- state_transport.expected_next_task: P3_GATE
-- latest_approval_packet: APPROVE_EXECUTION(P3.2) on `26db72d` (next P3_GATE)
+- state_transport.last_accepted_report_commit: 26db72df3215355a68029927980389216353526e (held at the P3.2 acceptance commit; PHASE_APPROVE(P3) was recorded against this commit and does not itself advance it)
+- state_transport.expected_next_task: P5.1
+- latest_approval_packet: PHASE_APPROVE(P3) on `26db72d` (next P5.1)
+- prior_approval_packet_p3_2_exec: APPROVE_EXECUTION(P3.2) on `26db72d` (next P3_GATE)
 - prior_approval_packet_p3_2_plan: APPROVE_PLAN(P3.2) on `1025a24` (next P3_GATE)
 - prior_approval_packet_p3_2_scope_exec: APPROVE_EXECUTION(P3.2-scope-change) on `1025a24` (next P3.2)
 - prior_approval_packet_p3_2_change_scope: CHANGE_SCOPE(P3.2) on `ee92c8b` (next P3.2)
@@ -39,6 +44,51 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P3 PHASE_APPROVE recorded — Branch B skip P4
+
+- ORCHESTRATOR_DECISION: scope=phase task=null phase=P3
+  decision=PHASE_APPROVE
+  accepted_report_commit=`26db72df3215355a68029927980389216353526e`
+  next_expected_task=P5.1.
+- Rationale: P3 phase gate PASS per Section 8 P3 predicate. `tasks.P3.1=PASS`,
+  `tasks.P3.2=PASS`, `lora_smoke_report.md` first line = `FAIL`,
+  `decision_a_smoke.md` present, `Decision_A_smoke.outcome=FAIL` ∈
+  {PASS, PARTIAL, FAIL, HALTED}, no `BLOCKED_RUNTIME` / `MISSING_EVIDENCE` /
+  `PLAN_CONFLICT`. Decision_A_smoke=FAIL routes to Branch B of the P3 gate:
+  P4.1/P4.2/P4.3 skipped, LoRA excluded from router, no positive LoRA claims,
+  next task P5.1. `BLOCKED_OOD_PUBLIC` remains active and non-blocking.
+- Tracker mutations:
+  `current_phase` advanced `P3 -> P5`;
+  `current_task` advanced `P3_GATE -> P5.1`;
+  `last_completed_task` advanced `P3.2 -> P3_GATE`;
+  `phase_summary.P3 = PASS`;
+  `orchestrator_approvals.P3 = PHASE_APPROVE`;
+  `lora_status` transitioned `SMOKE_DONE -> SKIPPED_BY_DECISION_A`;
+  `claims_enabled.positive_lora` transitioned `pending -> false`;
+  `decisions.Decision_B_lora_full.include_lora_in_router` set `false`
+  (`decided_at_task=P3_GATE`);
+  `tasks.P4.1.status = SKIPPED_BY_DECISION_A`;
+  `tasks.P4.2.status = SKIPPED_BY_DECISION_A`;
+  `tasks.P4.3.status = SKIPPED_BY_DECISION_A`;
+  `state_transport.latest_approval_packet` = PHASE_APPROVE(P3) on `26db72d`;
+  `prior_approval_packet_p3_2_exec` = APPROVE_EXECUTION(P3.2) on `26db72d`;
+  `state_transport.expected_next_task = P5.1`;
+  `state_transport.last_accepted_report_commit = 26db72d…` (held; PHASE_APPROVE
+  recorded against the P3.2 acceptance commit and not itself advanced by the
+  phase-gate tracker commit).
+  Held: `markers=[BLOCKED_OOD_PUBLIC]` (non-blocking), `blocked=false`,
+  `blocker=null`, `claims_enabled.ood_real=false`,
+  `claims_enabled.cloud_tradeoff=true`,
+  `claims_enabled.positive_system=pending`, `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`, `metrics_version=metrics_v1`,
+  `phase_summary={P0:PASS, P1:PASS, P2:PASS, P3:PASS}`,
+  `orchestrator_approvals={P0:PHASE_APPROVE, P1:PHASE_APPROVE,
+  P2:PHASE_APPROVE, P3:PHASE_APPROVE}`.
+- P5.1 not started. AssemblyAI cloud baseline awaits its own
+  `APPROVE_PLAN(P5.1)` and `APPROVE_EXECUTION(P5.1)`. No code, no test, no
+  Slurm submission, no real-provider call for this update. Only tracker
+  files modified.
 
 ## P3.2 APPROVE_EXECUTION recorded
 
