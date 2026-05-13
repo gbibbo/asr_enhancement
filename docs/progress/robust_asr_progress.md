@@ -23,7 +23,8 @@ Status: IN_PROGRESS
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: 26db72df3215355a68029927980389216353526e (held at the P3.2 acceptance commit; PHASE_APPROVE(P3) was recorded against this commit and does not itself advance it)
 - state_transport.expected_next_task: P5.1
-- latest_approval_packet: PHASE_APPROVE(P3) on `26db72d` (next P5.1)
+- latest_approval_packet: CHANGE_SCOPE(P5.1) on `45b6cac` (next P5.1)
+- prior_approval_packet_p3_phase: PHASE_APPROVE(P3) on `26db72d` (next P5.1)
 - prior_approval_packet_p3_2_exec: APPROVE_EXECUTION(P3.2) on `26db72d` (next P3_GATE)
 - prior_approval_packet_p3_2_plan: APPROVE_PLAN(P3.2) on `1025a24` (next P3_GATE)
 - prior_approval_packet_p3_2_scope_exec: APPROVE_EXECUTION(P3.2-scope-change) on `1025a24` (next P3.2)
@@ -43,6 +44,77 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P5.1 CHANGE_SCOPE recorded
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P5.1 phase=P5
+  decision=CHANGE_SCOPE
+  accepted_report_commit=`45b6cac93d1fe3eb54630a7511c331439715bb68`
+  next_expected_task=P5.1
+  required_fix="Authorize AssemblyAI pricing config, runtime scripts/tests, eval manifest extension, and scratch cache path."
+  rationale: "P5.1 requires `configs/robust_asr/pricing_v1.yaml`,
+  `eval_manifests_v1.yaml` update, `tests/robust_asr/test_assemblyai.py`,
+  and scratch AssemblyAI cache writes, but prior policy rows did not
+  authorize these for P5.1."
+- Scope-change applied at commit `e45903e76b5b42d3ceb2a89b77ec7675d9d239d4`
+  (files: `configs/robust_asr/reuse_policy_v1.yaml`, `reports/robust_asr/touch_policy.md`).
+- Reuse policy mutations:
+  `configs/robust_asr/**` allowed_tasks `+= P5.1`;
+  `tests/robust_asr/**` allowed_tasks `+= P5.1`;
+  new row `configs/robust_asr/pricing_v1.yaml` (`active_state`, `read_write`,
+  allowed_tasks=`[P5.1, P10.1]`, validator=`load_yaml_and_check_required_fields`,
+  `checksum_required=true`, `commit_allowed=true`);
+  new row `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/assemblyai_cache/**`
+  (`data_root`, `read_write`, allowed_tasks=`[P5.1]`, validator=`cache_summary_json`,
+  `large_artifact=true`, `commit_allowed=false`).
+- Touch policy P5.1 row rewritten. New `allowed_write_paths` now include:
+  `configs/robust_asr/pricing_v1.yaml`, `configs/robust_asr/eval_manifests_v1.yaml`
+  (append `assemblyai` `backend_endpoints` entry only),
+  `configs/robust_asr/reuse_policy_v1.yaml` (scope-change rows),
+  `scripts/robust_asr/probe_assemblyai_runtime.py`,
+  `scripts/robust_asr/populate_assemblyai_cache.py`,
+  `scripts/robust_asr/evaluate_assemblyai_from_cache.py`,
+  `tests/robust_asr/test_assemblyai.py`,
+  `artifacts/robust_asr/eval_tables/assemblyai.parquet`,
+  `reports/robust_asr/assemblyai/cache_summary_summary.md`,
+  `reports/robust_asr/task_reports/P5.1_assemblyai.md`,
+  `reports/robust_asr/touch_policy.md` (scope-change row),
+  `docs/progress/robust_asr_progress.yaml`,
+  `docs/progress/robust_asr_progress.md`,
+  `docs/progress/robust_asr_state_capsule.md`.
+- Authorized external read/write:
+  `ASSEMBLYAI_API_KEY` from environment only (never logged or persisted);
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/assemblyai_cache/**`
+  (`read_write`, large_artifact, never committed);
+  robust_asr Apptainer image `/mnt/fast/.../robust_asr_py311_cuda12.sif` (exec only).
+- New `configs/robust_asr/reuse_policy_v1.yaml` sha256 =
+  `d72cc31f5ca46b7adb01cde7a8ffd3301c46fce58c8e8ff61c0c8bba8ed109ee`
+  (`artifacts.reuse_policy_config.sha256`,
+  `artifacts.reuse_policy_config.last_amended_by=P5.1_scope_change`).
+- New `reports/robust_asr/touch_policy.md` sha256 =
+  `710a49f2e87c9755d7b00cf66c68bcdeaa9088b8eb5f44ccbcc347de4d58b4aa`
+  (`artifacts.touch_policy.sha256`,
+  `artifacts.touch_policy.last_amended_by=P5.1_scope_change`).
+- Validation: `python scripts/robust_asr/validate_report_shape.py --schemas
+  docs/plans/state_packet_schemas_v1.yaml --fixtures
+  artifacts/robust_asr/state_packets/report_shape_fixtures` → `OK_REPORT_SHAPE`.
+- `state_transport.latest_approval_packet` = CHANGE_SCOPE(P5.1) on `45b6cac`;
+  prior `PHASE_APPROVE(P3)` packet demoted to `prior_approval_packet_p3_phase`;
+  `state_transport.expected_next_task = P5.1`;
+  `state_transport.last_accepted_report_commit = 26db72d…` (held; CHANGE_SCOPE
+  does not advance `last_accepted_report_commit`).
+- Held: `current_phase=P5`, `current_task=P5.1`, `last_completed_task=P3.2`,
+  `markers=[BLOCKED_OOD_PUBLIC]` (non-blocking), `blocked=false`, `blocker=null`,
+  `claims_enabled.ood_real=false`, `claims_enabled.positive_lora=false`,
+  `claims_enabled.cloud_tradeoff=true`, `lora_status=SKIPPED_BY_DECISION_A`,
+  `decisions.Decision_B_lora_full.include_lora_in_router=false`,
+  `tasks.P4.1=P4.2=P4.3=SKIPPED_BY_DECISION_A`,
+  `phase_summary={P0,P1,P2,P3}=PASS`,
+  `orchestrator_approvals={P0,P1,P2,P3}=PHASE_APPROVE`.
+- P5.1 implementation has not started: no `pricing_v1.yaml`, no probe/populate/
+  evaluate scripts, no `test_assemblyai.py`, no `eval_manifests_v1.yaml`
+  extension, no `assemblyai.parquet`, no AssemblyAI API call, no Slurm
+  submission. Awaits `APPROVE_PLAN(P5.1)` and `APPROVE_EXECUTION(P5.1)`.
 
 ## P3 PHASE_APPROVE recorded — Branch B skip P4
 
