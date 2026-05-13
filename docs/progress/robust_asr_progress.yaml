@@ -558,7 +558,7 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: null
+    sha256: 52c82b41624861f384c155ee44b6a40d8bc4d0b3a4473083952a6cb0f910d14a
     produced_by_task: P0.2
     last_amended_by: P3.2_scope_change
   reuse_policy_config:
@@ -1915,7 +1915,7 @@ tasks:
       - docs/progress/robust_asr_state_capsule.md
     commands_run:
       - "Edit reports/robust_asr/touch_policy.md: REWRITE P3.2 row authorising scripts/robust_asr/decide_lora_smoke.py, tests/robust_asr/test_decide_lora_smoke.py, reports/robust_asr/lora/lora_smoke_report.md, reports/robust_asr/lora/decision_a_smoke.md, reports/robust_asr/task_reports/P3.2_decision_a.md, touch_policy scope-change rows, and live trackers; readable adds reuse_policy_v1.yaml, lora_smoke_result.json, export_smoke_result.json, libs/common/* (read)"
-      - "Edit docs/progress/robust_asr_progress.yaml (latest_approval_packet -> CHANGE_SCOPE(P3.2); touch_policy.last_amended_by=P3.2_scope_change; touch_policy.sha256=null pending re-hash post-commit; P3.2 task entry added with SCOPE_CHANGE_ACCEPTED)"
+      - "Edit docs/progress/robust_asr_progress.yaml (latest_approval_packet -> CHANGE_SCOPE(P3.2); touch_policy.last_amended_by=P3.2_scope_change; touch_policy.sha256 recorded post-commit e8d5784 as 52c82b41624861f384c155ee44b6a40d8bc4d0b3a4473083952a6cb0f910d14a; P3.2 task entry added with SCOPE_CHANGE_ACCEPTED)"
       - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures"
       - "git add ...; git commit; git push"
     key_outputs:

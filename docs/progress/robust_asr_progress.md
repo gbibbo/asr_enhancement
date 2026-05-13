@@ -76,8 +76,9 @@ Status: IN_PROGRESS
   per orchestrator instruction (NOT advanced to the P3.2 scope-change
   implementation commit);
   `state_transport.expected_next_task=P3.2` held;
-  `touch_policy.last_amended_by=P3.2_scope_change` (sha256 reset to
-  null pending re-hash post-commit).
+  `touch_policy.last_amended_by=P3.2_scope_change`;
+  `artifacts.touch_policy.sha256=52c82b41624861f384c155ee44b6a40d8bc4d0b3a4473083952a6cb0f910d14a`
+  (recorded post-commit `e8d5784`).
 - Verification: `python3 scripts/robust_asr/validate_report_shape.py
   --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures
   artifacts/robust_asr/state_packets/report_shape_fixtures` → PASS.
