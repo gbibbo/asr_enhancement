@@ -15,9 +15,9 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/broute_future_constraints.md
+  latest_execution_report_path: reports/rp5/broute_br08_router_baseurl_fix.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br07_approval_packet.yaml
+  latest_approval_packet_path: reports/rp5/broute_br08_recovery_approval_packet.yaml
   expected_next_task: BR-08
 decisions:
   broute_mode_default: manual
@@ -44,6 +44,17 @@ recovery_log:
       - "unrelated_locks_unchanged: true"
       - OK_CHANGED_FILES_PATH_LOCKED
     next_task: BR-04
+  BR08_FV_ROUTER_BASEURL_FIX:
+    status: PASS
+    marker: PLAN_CONFLICT
+    commit: 18114583f24fc1276e8d9483f2ea5bc7b70baa8c
+    key_outputs:
+      - "stale container stopped: asr-demo-demo-api-1"
+      - "appmodule_smoke_ok: true"
+      - "baseurl_smoke_ok: true"
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "BR-08 phase gate invoked: false"
+    next_task: BR-08
 tasks:
   BR-00:
     task_id: BR-00
