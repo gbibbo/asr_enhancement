@@ -24,12 +24,14 @@ Status: IN_PROGRESS
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b (held at the P5.1 acceptance commit; PHASE_APPROVE(P5) was recorded against this commit and does not itself advance it, matching the P0/P1/P2/P3 pattern)
+- state_transport.last_accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f (advanced from `c71e0a0` by APPROVE_EXECUTION(P6.1))
 - state_transport.expected_next_task: P6_GATE
 - deterministic_selector_version: deterministic_selector_v1 (frozen at P6.1)
 - router_status: SELECTOR_EVIDENCE_BUILT
 - tasks.P6.1.status: PASS (branch B selector-evidence)
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
-- latest_approval_packet: APPROVE_PLAN(P6.1) on `4a9f929` (next P6_GATE)
+- latest_approval_packet: APPROVE_EXECUTION(P6.1) on `6441350` (next P6_GATE)
+- prior_approval_packet_p6_1_plan: APPROVE_PLAN(P6.1) on `4a9f929` (next P6_GATE)
 - prior_approval_packet_p6_1_scope_exec: APPROVE_EXECUTION(P6.1-scope-change) on `4a9f929` (next P6.1)
 - prior_approval_packet_p6_1_change_scope: CHANGE_SCOPE(P6.1) on `9ffc885` (next P6.1)
 - prior_approval_packet_p5_phase: PHASE_APPROVE(P5) on `c71e0a0` (next P6.1)
@@ -57,6 +59,63 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P6.1 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P6.1 phase=P6
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`64413500094b79a160fbcb179b432fd6ccdaf80f`
+  next_expected_task=P6_GATE required_fix=null.
+- Rationale: P6.1 passed on the OUTCOME_E selector-evidence path.
+  `selector_evidence.parquet` has 53 230 rows;
+  `OK_SELECTOR_EVIDENCE_BUILD` and `OK_SELECTOR_EVIDENCE` were emitted;
+  full `robust_asr` pytest passed (124/124); `OK_REPORT_SHAPE` passed;
+  `deterministic_selector_version = deterministic_selector_v1` was
+  recorded; `tasks.P6.2` was correctly marked `SKIPPED_BY_OUTCOME_E`
+  with `next_task = P7.3`.
+- Tracker mutations:
+  `tasks.P6.1.commit = 64413500094b79a160fbcb179b432fd6ccdaf80f`;
+  `tasks.P6.1.approved_by = APPROVE_EXECUTION_P6.1`;
+  `tasks.P6.1.approved_at_commit =
+  64413500094b79a160fbcb179b432fd6ccdaf80f`;
+  `state_transport.last_accepted_report_commit` advanced
+  `c71e0a0bb25a5d2749801d8fc7444869ff331d1b ->
+  64413500094b79a160fbcb179b432fd6ccdaf80f`;
+  `state_transport.expected_next_task = P6_GATE` held;
+  `latest_approval_packet` = APPROVE_EXECUTION(P6.1) on
+  `64413500094b79a160fbcb179b432fd6ccdaf80f` (next P6_GATE);
+  prior APPROVE_PLAN(P6.1) demoted to
+  `prior_approval_packet_p6_1_plan` on
+  `4a9f9291f0a1e90d21f0d771885d9eaf273aa37b` (next P6_GATE);
+  APPROVE_EXECUTION(P6.1-scope-change) held as
+  `prior_approval_packet_p6_1_scope_exec` on
+  `4a9f9291f0a1e90d21f0d771885d9eaf273aa37b` (next P6.1);
+  CHANGE_SCOPE(P6.1) held as
+  `prior_approval_packet_p6_1_change_scope` on `9ffc885` (next P6.1);
+  PHASE_APPROVE(P5) held as `prior_approval_packet_p5_phase` on
+  `c71e0a0bb25a5d2749801d8fc7444869ff331d1b` (next P6.1).
+  Held: `current_phase = P6`, `current_task = P6_GATE`,
+  `last_completed_task = P6.1`,
+  `tasks.P6.1.status = PASS`,
+  `tasks.P6.2.status = SKIPPED_BY_OUTCOME_E`,
+  `deterministic_selector_version = deterministic_selector_v1`,
+  `router_status = SELECTOR_EVIDENCE_BUILT`,
+  `markers = [BLOCKED_OOD_PUBLIC, BLOCKED_API,
+  OUTCOME_E_DETERMINISTIC_SELECTOR]`, `blocked = false`,
+  `claims_enabled.ood_real = false`, `.cloud_tradeoff = false`,
+  `.positive_lora = false`, `.positive_system = pending`,
+  `lora_status = SKIPPED_BY_DECISION_A`,
+  `decisions.Decision_B_lora_full.include_lora_in_router = false`,
+  `tasks.P4.1 = P4.2 = P4.3 = SKIPPED_BY_DECISION_A`,
+  `degradation_version = degradation_v1`,
+  `normalization_version = normalization_v1`,
+  `metrics_version = metrics_v1`,
+  `phase_summary = {P0,P1,P2,P3,P5} = PASS`,
+  `orchestrator_approvals = {P0,P1,P2,P3,P5} = PHASE_APPROVE`.
+- P6_GATE not started. P7.1 / P7.2 skips remain owned by the P6
+  gate (§312, §2664-§2665); P6.1 owns only the P6.2 skip. P7.3 not
+  started. No code, no test, no Slurm submission, no real-provider
+  call for this update. Only tracker files modified.
 
 ## P6.1 PASS — selector-evidence path (Outcome E)
 

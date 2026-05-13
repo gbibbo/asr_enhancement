@@ -53,6 +53,16 @@ state_transport:
       scope: task
       task_id: P6.1
       phase: P6
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f
+      next_expected_task: P6_GATE
+      required_fix: null
+      rationale: "P6.1 passed on the OUTCOME_E selector-evidence path. selector_evidence.parquet has 53,230 rows, OK_SELECTOR_EVIDENCE_BUILD and OK_SELECTOR_EVIDENCE were emitted, full robust_asr pytest passed, OK_REPORT_SHAPE passed, deterministic_selector_version=deterministic_selector_v1 was recorded, and P6.2 was correctly marked SKIPPED_BY_OUTCOME_E."
+  prior_approval_packet_p6_1_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P6.1
+      phase: P6
       decision: APPROVE_PLAN
       accepted_report_commit: 4a9f9291f0a1e90d21f0d771885d9eaf273aa37b
       next_expected_task: P6_GATE
@@ -598,7 +608,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b
+  last_accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f
   expected_next_task: P6_GATE
   last_tracker_mismatch: null
 
@@ -2303,7 +2313,9 @@ tasks:
   P6.1:
     status: PASS
     branch: B_selector_evidence
-    commit: pending_this_commit
+    commit: 64413500094b79a160fbcb179b432fd6ccdaf80f
+    approved_by: APPROVE_EXECUTION_P6.1
+    approved_at_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f
     sentinels:
       - OK_SELECTOR_EVIDENCE_BUILD
       - OK_SELECTOR_EVIDENCE
