@@ -89,12 +89,29 @@
 - path: configs/robust_asr/**
   class: active_state
   permitted_use: read_write
-  allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.4, P2.1]
+  allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.4, P2.1, P5.1]
   validator: none
   checksum_required: false
   large_artifact: false
   commit_allowed: true
-  notes: Robust ASR configs including reuse_policy_v1.yaml
+  notes: Robust ASR configs including reuse_policy_v1.yaml. P5.1 scope-change
+         (CHANGE_SCOPE 45b6cac) authorizes writing configs/robust_asr/pricing_v1.yaml
+         and appending the assemblyai backend_endpoints entry to
+         configs/robust_asr/eval_manifests_v1.yaml.
+
+# Specific override of configs/robust_asr/** (P5.1 scope-change). New file
+# authored by robust_asr at P5.1 and read by P10.1 (final verification).
+- path: configs/robust_asr/pricing_v1.yaml
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P5.1, P10.1]
+  validator: load_yaml_and_check_required_fields
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: AssemblyAI pricing config (unit price, max_total_cost_usd,
+         assemblyai_pricing_checked_date, source URL). Consumed by
+         populate_assemblyai_cache.py and evaluate_assemblyai_from_cache.py.
 
 - path: scripts/robust_asr/**
   class: active_state
@@ -110,12 +127,13 @@
 - path: tests/robust_asr/**
   class: active_state
   permitted_use: read_write
-  allowed_tasks: [P1.1, P1.2, P1.4, P3.1, P4.1, P8.1]
+  allowed_tasks: [P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P8.1]
   validator: none
   checksum_required: false
   large_artifact: false
   commit_allowed: true
-  notes: Robust ASR tests
+  notes: Robust ASR tests. P5.1 scope-change (CHANGE_SCOPE 45b6cac) authorizes
+         tests/robust_asr/test_assemblyai.py.
 
 - path: docs/reports/robust_asr/**
   class: active_state
@@ -574,6 +592,19 @@
     robust_asr runtime build output directory. Holds the rebuilt SIF
     and any throwaway sandbox/cache produced by
     scripts/robust_asr/build_runtime_image.sh. Never committed to git.
+
+# Specific override of /mnt/.../runtime/** (P5.1 scope-change). AssemblyAI
+# transcript cache keyed by audio_sha256; one JSON per audio_id plus
+# cache_summary.json. Lives on scratch (large_artifact); never committed.
+- path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/assemblyai_cache/**
+  class: data_root
+  permitted_use: read_write
+  allowed_tasks: [P5.1]
+  validator: cache_summary_json
+  checksum_required: false
+  large_artifact: true
+  commit_allowed: false
+  notes: AssemblyAI transcript cache keyed by audio_sha256. Never committed.
 
 - path: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif
   class: container_image
