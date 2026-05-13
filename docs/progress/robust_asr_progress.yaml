@@ -53,6 +53,16 @@ state_transport:
       scope: task
       task_id: P7.3
       phase: P7
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6
+      next_expected_task: P7_GATE
+      required_fix: null
+      rationale: "P7.3 passed on the OUTCOME_E deterministic-selector packaging path. OK_DETERMINISTIC_SELECTOR_PACKAGE, OK_SELECTOR_FINAL_EVAL, OK_REPORT_SHAPE, test_router_runtime, and the full robust_asr suite passed. The selected_router package contains no forbidden audio/model/secret files. selector_final_eval.md correctly frames the result as NEUTRAL_EVIDENCE and leaves claims_enabled.positive_system=pending."
+  prior_approval_packet_p7_3_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P7.3
+      phase: P7
       decision: APPROVE_PLAN
       accepted_report_commit: 394df2d2778e0f7204aba8155fa66e2eea8cb1a9
       next_expected_task: P7_GATE
@@ -648,8 +658,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f
-  expected_next_task: P7.3
+  last_accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6
+  expected_next_task: P7_GATE
   last_tracker_mismatch: null
 
 phase_summary:
@@ -2506,7 +2516,9 @@ tasks:
     status: PASS
     branch: B_deterministic_selector
     implementation_status: COMPLETE
-    commit: pending_this_p7_3_implementation_commit
+    commit: d009c318acd99041de3175af26b91df2adddffa6
+    approved_by: APPROVE_EXECUTION_P7.3
+    approved_at_commit: d009c318acd99041de3175af26b91df2adddffa6
     sentinels:
       - OK_DETERMINISTIC_SELECTOR_PACKAGE
       - OK_SELECTOR_FINAL_EVAL

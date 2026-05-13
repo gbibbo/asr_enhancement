@@ -26,14 +26,15 @@ Status: IN_PROGRESS
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f (held at the P6.1 acceptance commit; not advanced through the P6 phase gate, the P7.3 scope-change, or the P7.3 implementation per orchestrator instruction)
+- state_transport.last_accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6 (advanced to the P7.3 implementation commit by APPROVE_EXECUTION(P7.3))
 - state_transport.expected_next_task: P7_GATE
 - deterministic_selector_version: deterministic_selector_v1 (frozen at P6.1)
 - router_status: SELECTOR_PACKAGED
 - tasks.P6.1.status: PASS (branch B selector-evidence)
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
-- tasks.P7.3.status: PASS (branch B_deterministic_selector; next_task P7_GATE)
-- latest_approval_packet: APPROVE_PLAN(P7.3) on `394df2d` (next P7_GATE)
+- tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
+- latest_approval_packet: APPROVE_EXECUTION(P7.3) on `d009c31` (next P7_GATE)
+- prior_approval_packet_p7_3_plan: APPROVE_PLAN(P7.3) on `394df2d` (next P7_GATE)
 - prior_approval_packet_p7_3_scope_exec: APPROVE_EXECUTION(P7.3-scope-change) on `394df2d` (next P7.3)
 - prior_approval_packet_p7_3_change_scope: CHANGE_SCOPE(P7.3) on `e9ebbfe` (next P7.3)
 - prior_approval_packet_p6_phase: PHASE_APPROVE(P6) on `6441350` (next P7.3)
@@ -66,6 +67,70 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P7.3 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P7.3 phase=P7
+  decision=APPROVE_EXECUTION
+- accepted_report_commit:
+  `d009c318acd99041de3175af26b91df2adddffa6`
+- next_expected_task: `P7_GATE`
+- required_fix: null
+- rationale: P7.3 passed on the OUTCOME_E deterministic-selector
+  packaging path. `OK_DETERMINISTIC_SELECTOR_PACKAGE`,
+  `OK_SELECTOR_FINAL_EVAL`, `OK_REPORT_SHAPE`, `test_router_runtime`,
+  and the full robust_asr suite passed. The `selected_router`
+  package contains no forbidden audio/model/secret files.
+  `selector_final_eval.md` correctly frames the result as
+  **NEUTRAL_EVIDENCE** and leaves
+  `claims_enabled.positive_system=pending`.
+
+### Tracker mutations
+
+- `tasks.P7.3.commit` = `d009c318acd99041de3175af26b91df2adddffa6`;
+  `tasks.P7.3.approved_by` = `APPROVE_EXECUTION_P7.3`;
+  `tasks.P7.3.approved_at_commit` =
+  `d009c318acd99041de3175af26b91df2adddffa6`.
+- `state_transport.last_accepted_report_commit` advanced
+  `64413500094b79a160fbcb179b432fd6ccdaf80f -> d009c318acd99041de3175af26b91df2adddffa6`.
+- `state_transport.expected_next_task` = `P7_GATE` (held).
+- `latest_approval_packet` = `APPROVE_EXECUTION(P7.3)` on
+  `d009c31` (next P7_GATE); prior `APPROVE_PLAN(P7.3)` demoted to
+  `prior_approval_packet_p7_3_plan` on `394df2d` (next P7_GATE);
+  `APPROVE_EXECUTION(P7.3-scope-change)` held as
+  `prior_approval_packet_p7_3_scope_exec` on `394df2d` (next P7.3);
+  `CHANGE_SCOPE(P7.3)` held as
+  `prior_approval_packet_p7_3_change_scope` on `e9ebbfe`
+  (next P7.3); `PHASE_APPROVE(P6)` held as
+  `prior_approval_packet_p6_phase` on `6441350` (next P7.3).
+- Held: `current_phase = P7`, `current_task = P7_GATE`,
+  `last_completed_task = P7.3`, `tasks.P7.3.status = PASS`
+  (branch `B_deterministic_selector`; next_task `P7_GATE`),
+  `tasks.P7.1.status = SKIPPED_BY_OUTCOME_E`,
+  `tasks.P7.2.status = SKIPPED_BY_OUTCOME_E`,
+  `router_status = SELECTOR_PACKAGED`,
+  `deterministic_selector_version = deterministic_selector_v1`,
+  `markers = [BLOCKED_OOD_PUBLIC, BLOCKED_API,
+  OUTCOME_E_DETERMINISTIC_SELECTOR]`,
+  `blocked = false`, `blocker = null`,
+  `claims_enabled.ood_real = false`,
+  `claims_enabled.cloud_tradeoff = false`,
+  `claims_enabled.positive_lora = false`,
+  `claims_enabled.positive_system = pending`,
+  `lora_status = SKIPPED_BY_DECISION_A`,
+  `decisions.Decision_B_lora_full.include_lora_in_router = false`,
+  `tasks.P4.1 = P4.2 = P4.3 = SKIPPED_BY_DECISION_A`,
+  `tasks.P6.1 = PASS`, `tasks.P6.2 = SKIPPED_BY_OUTCOME_E`.
+
+### Notes
+
+- No code, no test, no Slurm submission, no real-provider call for
+  this update. Only tracker files modified.
+- `claims_enabled.positive_system` is NOT enabled by this approval;
+  the deterministic selector under OUTCOME_E is still NEUTRAL
+  EVIDENCE per agent plan §1664-§1665. `positive_system` will be
+  set by P8.1 only.
+- P7_GATE not started. P8.1 not started.
 
 ## P7.3 PASS — deterministic selector packaged (Outcome E, Branch B)
 
