@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-03
-last_completed_task: BR-02
+current_task: BR-04
+last_completed_task: BR-03
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -14,11 +14,11 @@ human_action_requests:
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
-  latest_planning_report_path: reports/rp5/broute_health_contract.md
-  latest_execution_report_path: reports/rp5/broute_health_contract.md
+  latest_planning_report_path: reports/rp5/broute_cache_key_contract.md
+  latest_execution_report_path: reports/rp5/broute_cache_key_contract.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br02_approval_packet.yaml
-  expected_next_task: BR-03
+  latest_approval_packet_path: reports/rp5/broute_br03_approval_packet.yaml
+  expected_next_task: BR-04
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -108,3 +108,26 @@ tasks:
       repo_dependency_or_config_files_changed: false
     marker: null
     next_task: BR-03
+  BR-03:
+    task_id: BR-03
+    status: PASS
+    commit: e866a6826b946c7e3810ad6e720386fab07f9432
+    files_changed:
+      - scripts/rp5/validate_broute_cache_key_contract.py
+      - scripts/rp5/fixtures/generate_fixture_validate_broute_cache_key_contract.py
+      - reports/rp5/broute_cache_key_contract.md
+      - tests/demo/test_broute_cache_key.py
+    commands_run:
+      - "python3 -m pytest tests/demo/test_broute_cache_key.py -q"
+      - "python3 -m pytest tests/demo/test_cache_key.py -q"
+      - "python3 scripts/rp5/validate_broute_cache_key_contract.py --source-file libs/asr/router_runtime.py --out reports/rp5/broute_cache_key_contract.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_broute_cache_key_contract.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_broute_cache_key_contract_manifest.json"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - "pytest tests/demo/test_broute_cache_key.py: 13 passed"
+      - "pytest tests/demo/test_cache_key.py: 8 passed"
+      - OK_BROUTE_CACHE_KEY_CONTRACT
+      - OK_FIXTURE_VALIDATE_BROUTE_CACHE_KEY_CONTRACT
+      - OK_CHANGED_FILES_PATH_LOCKED
+    marker: null
+    next_task: BR-04
