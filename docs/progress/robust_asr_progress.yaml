@@ -2038,7 +2038,7 @@ tasks:
     key_outputs:
       - "P3 phase gate PASS per Section 8 P3 predicate (tasks.P3.1=PASS, tasks.P3.2=PASS, lora_smoke_report.md first-line FAIL, decision_a_smoke.md present, Decision_A_smoke.outcome=FAIL ∈ {PASS,PARTIAL,FAIL,HALTED}, no BLOCKED_RUNTIME/MISSING_EVIDENCE/PLAN_CONFLICT)"
       - "Section 8 Branch B routing enacted: P4.1/P4.2/P4.3=SKIPPED_BY_DECISION_A; lora_status SMOKE_DONE -> SKIPPED_BY_DECISION_A; claims_enabled.positive_lora pending -> false; Decision_B_lora_full.include_lora_in_router=null -> false; next task = P5.1"
-      - "current_task advanced P3_GATE -> P5.1; last_completed_task advanced P3.2 -> P3_GATE"
+      - "current_task advanced P3_GATE -> P5.1; last_completed_task held at P3.2 (P3_GATE PHASE_APPROVE recorded on the P3.2 acceptance commit does not itself advance last_completed_task)"
       - "BLOCKED_OOD_PUBLIC held non-blocking; claims_enabled.ood_real=false held"
       - "state_transport.last_accepted_report_commit STAYS 26db72df3215355a68029927980389216353526e per orchestrator instruction (PHASE_APPROVE recorded against the P3.2 acceptance commit; not advanced by the phase-gate commit itself)"
     marker: null

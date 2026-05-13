@@ -8,8 +8,7 @@ Status: IN_PROGRESS
 
 - Phase: P5 (AssemblyAI cloud baseline)
 - Current task: P5.1 (AssemblyAI cloud-baseline evaluation)
-- Last completed: P3_GATE (PHASE_APPROVE; Branch B Decision_A_smoke=FAIL routing)
-- Prior completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest)
+- Last completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest) — P3_GATE PHASE_APPROVE recorded on the P3.2 acceptance commit; P3_GATE does not itself advance last_completed_task
 - Prior completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
 - Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
@@ -61,7 +60,8 @@ Status: IN_PROGRESS
 - Tracker mutations:
   `current_phase` advanced `P3 -> P5`;
   `current_task` advanced `P3_GATE -> P5.1`;
-  `last_completed_task` advanced `P3.2 -> P3_GATE`;
+  `last_completed_task` held at `P3.2` (P3_GATE PHASE_APPROVE is recorded on
+  the P3.2 acceptance commit and does not itself advance last_completed_task);
   `phase_summary.P3 = PASS`;
   `orchestrator_approvals.P3 = PHASE_APPROVE`;
   `lora_status` transitioned `SMOKE_DONE -> SKIPPED_BY_DECISION_A`;
