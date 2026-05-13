@@ -3,21 +3,21 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P6
-current_task: P6.1
-last_completed_task: P5.1
+current_task: P6_GATE
+last_completed_task: P6.1
 
 blocked: false
 blocker: null
 
 lora_status: SKIPPED_BY_DECISION_A
-router_status: NOT_STARTED
+router_status: SELECTOR_EVIDENCE_BUILT
 system_status: NOT_STARTED
 
 normalization_version: normalization_v1
 features_version: null
 router_version: null
 lora_version: null
-deterministic_selector_version: null
+deterministic_selector_version: deterministic_selector_v1
 degradation_version: degradation_v1
 metrics_version: metrics_v1
 
@@ -49,6 +49,26 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P6.1
+      phase: P6
+      decision: APPROVE_PLAN
+      accepted_report_commit: 4a9f9291f0a1e90d21f0d771885d9eaf273aa37b
+      next_expected_task: P6_GATE
+      required_fix: null
+      rationale: "P6.1 plan approved on the P6.1 scope-change commit 4a9f9291. Implement configs/robust_asr/router_v1.yaml, append DETERMINISTIC_SELECTOR_VERSION to libs/common/versions.py, create scripts/robust_asr/build_selector_evidence_table.py and scripts/robust_asr/validate_selector_evidence.py, produce artifacts/robust_asr/router/selector_evidence.parquet under OUTCOME_E_DETERMINISTIC_SELECTOR with assemblyai_available=False and lora_available=False, write reports/robust_asr/router/selector_evidence_summary.md, write reports/robust_asr/task_reports/P6.1_selector_evidence.md, and enact tracker.tasks[P6.2].status=SKIPPED_BY_OUTCOME_E with next_task=P7.3 at P6.1 closure. Do not advance last_accepted_report_commit to the P6.1 implementation commit."
+  prior_approval_packet_p6_1_scope_exec:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P6.1-scope-change
+      phase: P6
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 4a9f9291f0a1e90d21f0d771885d9eaf273aa37b
+      next_expected_task: P6.1
+      required_fix: null
+      rationale: "P6.1 scope-change accepted on the packet-recording commit 4a9f9291. reuse_policy_v1.yaml and touch_policy.md amendments (configs/robust_asr/** += P6.1, new configs/robust_asr/router_v1.yaml row, libs/common/versions.py allowed_tasks += P6.1 with DETERMINISTIC_SELECTOR_VERSION_constant_present sentinel, rewritten touch_policy P6.1 row) are now binding. Policy sha256s recorded in artifacts.reuse_policy_config.sha256 and artifacts.touch_policy.sha256 with last_amended_by=P6.1_scope_change."
+  prior_approval_packet_p6_1_change_scope:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P6.1
@@ -579,7 +599,7 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b
-  expected_next_task: P6.1
+  expected_next_task: P6_GATE
   last_tracker_mismatch: null
 
 phase_summary:
@@ -749,10 +769,10 @@ artifacts:
     produced_by_task: P1.2
   versions_module:
     path: libs/common/versions.py
-    sha256: f76f80fa2feae7b2ad21eb8c5eda97f4a9fe31404b1abf1b939c46aadd9802b9
+    sha256: be0b136d4f910dd12481554405a5a0ec53091f8222b15ab622cedea0af0161f6
     produced_by_task: P1.2
-    last_amended_by: P1.2
-    last_emit: NORMALIZATION_VERSION_constant_present
+    last_amended_by: P6.1
+    last_emit: NORMALIZATION_VERSION_constant_present AND DETERMINISTIC_SELECTOR_VERSION_constant_present
   validate_eval_schema_script:
     path: scripts/robust_asr/validate_eval_schema.py
     sha256: 8ad31f3b59864c1bb812e26a318ac62299fb7ba843c7b740874de41e2f34206b
@@ -942,14 +962,42 @@ artifacts:
     blocked_reason: key_unset
     expected_path: artifacts/robust_asr/eval_tables/assemblyai.parquet
   oracle_table:
-    path: artifacts/robust_asr/oracle/oracle_table.parquet
+    path: null
     sha256: null
     rows: null
     produced_by_task: P6.1
+    blocked_by: OUTCOME_E_DETERMINISTIC_SELECTOR
+    blocked_reason: branch_B_selector_evidence_taken
+    expected_path: artifacts/robust_asr/oracle/oracle_table.parquet
   selector_evidence_table:
     path: artifacts/robust_asr/router/selector_evidence.parquet
-    sha256: null
-    rows: null
+    sha256: c450a91a37c5967ca196dda0b23d5a2963d9b1e6f5eb07bd3f35084e6f9ae1e7
+    rows: 53230
+    produced_by_task: P6.1
+    last_emit: OK_SELECTOR_EVIDENCE_BUILD
+    validator_emit: OK_SELECTOR_EVIDENCE
+  router_v1_config:
+    path: configs/robust_asr/router_v1.yaml
+    sha256: ef9586c8e589436ae074d472d38bc12b417d2043d142d5f74d8d5d75f7de2f98
+    produced_by_task: P6.1
+    last_amended_by: P6.1
+  build_selector_evidence_script:
+    path: scripts/robust_asr/build_selector_evidence_table.py
+    sha256: 226e428e84e1c0646922893d23456c64eef02511424d1c5e2dfef2f1b557735a
+    produced_by_task: P6.1
+    last_emit: OK_SELECTOR_EVIDENCE_BUILD
+  validate_selector_evidence_script:
+    path: scripts/robust_asr/validate_selector_evidence.py
+    sha256: 68c39ca111b3ee8eaada8a13fd9b51ab9e282a35efefbb122d24925febe2c1d2
+    produced_by_task: P6.1
+    last_emit: OK_SELECTOR_EVIDENCE
+  selector_evidence_summary:
+    path: reports/robust_asr/router/selector_evidence_summary.md
+    sha256: fab05394feb361bb0c1e24b15f32e53b651ea33a4f0e0e3c42affd3914c47d89
+    produced_by_task: P6.1
+  P6_1_task_report:
+    path: reports/robust_asr/task_reports/P6.1_selector_evidence.md
+    sha256: 28f1f7d6716f4ca190272544e96352f86607a9d00f062f66b3522e57fea423c0
     produced_by_task: P6.1
   router_features:
     path: artifacts/robust_asr/router/router_features.parquet
@@ -2253,12 +2301,57 @@ tasks:
     blocker: null
     notes: "P5 PHASE_APPROVE recorded against commit c71e0a0 (the P5.1 acceptance commit). Routing enacted per Section 8 P5 Branch B for BLOCKED_API + cloud_tradeoff=false + backend_count<2: markers += OUTCOME_E_DETERMINISTIC_SELECTOR; decisions.P5_routing.branch=B_blocked_api_outcome_e; decisions.P5_routing.deployable_backend_count=1; decisions.P5_routing.deployable_backends=[whisper_base_ct2_int8]. Next task = P6.1 selector-evidence path. BLOCKED_OOD_PUBLIC held non-blocking; BLOCKED_API held non-blocking; claims_enabled.ood_real=false held; claims_enabled.cloud_tradeoff=false held; claims_enabled.positive_lora=false held; lora_status=SKIPPED_BY_DECISION_A held. No code, no test, no Slurm submission, no real-provider call for this update. Only tracker files modified."
   P6.1:
-    status: scope_change_recorded
+    status: PASS
+    branch: B_selector_evidence
     commit: pending_this_commit
+    sentinels:
+      - OK_SELECTOR_EVIDENCE_BUILD
+      - OK_SELECTOR_EVIDENCE
+      - OK_REPORT_SHAPE
+    rows: 53230
+    selected_action_counts:
+      whisper_base_ct2_int8: 53202
+      ask_repeat: 28
+      assemblyai: 0
+      whisper_lora_ct2_int8: 0
+    selector_reason_counts:
+      baseline: 53202
+      no_speech: 28
+    availability_constraints:
+      assemblyai_available_all_false: true
+      lora_available_all_false: true
+      ask_repeat_allowed_all_true: true
+    disjointness:
+      demo_overlap: 0
+      lora_train_overlap: 0
+      demo_manifest_present: false
+      lora_train_manifest: artifacts/robust_asr/manifests/librispeech_lora_train.parquet
+    files_changed:
+      - configs/robust_asr/router_v1.yaml
+      - libs/common/versions.py
+      - scripts/robust_asr/build_selector_evidence_table.py
+      - scripts/robust_asr/validate_selector_evidence.py
+      - artifacts/robust_asr/router/selector_evidence.parquet
+      - reports/robust_asr/router/selector_evidence_summary.md
+      - reports/robust_asr/task_reports/P6.1_selector_evidence.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "python3 scripts/robust_asr/build_selector_evidence_table.py --backend-tables artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet --selector-config configs/robust_asr/router_v1.yaml --out artifacts/robust_asr/router/selector_evidence.parquet -> OK_SELECTOR_EVIDENCE_BUILD rows=53230"
+      - "python3 scripts/robust_asr/validate_selector_evidence.py --input artifacts/robust_asr/router/selector_evidence.parquet -> OK_SELECTOR_EVIDENCE"
+      - "python3 -m pytest tests/robust_asr -q -> 124 passed"
+      - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures -> OK_REPORT_SHAPE"
+    key_outputs:
+      - "Outcome E selector-evidence table built over whisper_base_ct2_int8 (53,230 rows)"
+      - "deterministic_selector_version=deterministic_selector_v1 set; DETERMINISTIC_SELECTOR_VERSION appended to libs/common/versions.py without mutating existing constants"
+      - "selected_action codomain restricted to {whisper_base_ct2_int8, ask_repeat} as required by single-deployable-backend rule; no assemblyai or whisper_lora_ct2_int8 selections"
+      - "Disjointness vs LoRA-train manifest (train-clean-100) and pre-P8.2 demo set: both 0 overlap"
+      - "P6.2 SKIPPED_BY_OUTCOME_E enacted by P6.1 closure per agent plan §3853-§3854; next_task=P7.3 carried at the P6 gate"
     scope_change:
       decision: CHANGE_SCOPE
       accepted_report_commit: 9ffc885
-      packet_recorded_commit: pending_this_commit
+      packet_recorded_commit: 4a9f9291f0a1e90d21f0d771885d9eaf273aa37b
       reuse_policy_changes:
         - "configs/robust_asr/** allowed_tasks += P6.1"
         - "new row: configs/robust_asr/router_v1.yaml (active_state, read_write, [P6.1, P6.2, P7.1, P7.3, P10.1], validator=scripts/robust_asr/validate_selector_evidence.py, checksum_required=true, commit_allowed=true)"
@@ -2269,8 +2362,13 @@ tasks:
       artifact_sha256_updates:
         reuse_policy_config: 9994a741d85fb9b4c2c6aa6ea5d5ce71f763cb551c4b0403964abd10cfdbdb7c
         touch_policy: 382f66de62a207472ee77a35d9af88585901e29394670043bf34198823f56a42
-    implementation_status: NOT_STARTED
+    implementation_status: COMPLETE
     marker: null
-    next_task: P6.1
+    next_task: P6_GATE
     blocker: null
-    notes: "CHANGE_SCOPE(P6.1) recorded against accepted_report_commit=9ffc885 (the P5 phase-gate tracker commit). Authorizes the Outcome E selector-evidence path: configs/robust_asr/router_v1.yaml (new file), libs/common/versions.py (append DETERMINISTIC_SELECTOR_VERSION only), build_selector_evidence_table.py, validate_selector_evidence.py, selector_evidence.parquet, selector_evidence_summary.md, P6.1_selector_evidence.md. P6.1 implementation NOT started: no router_v1.yaml, no selector scripts, no selector_evidence.parquet, no DETERMINISTIC_SELECTOR_VERSION constant, no P6.2 skip mutation. tracker.tasks[P6.2].status remains null (will be set to SKIPPED_BY_OUTCOME_E by P6.1 closure per agent plan §3853-§3854). current_phase=P6, current_task=P6.1, last_completed_task=P5.1 held; markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; blocked=false; claims_enabled.ood_real=false, .cloud_tradeoff=false, .positive_lora=false held; lora_status=SKIPPED_BY_DECISION_A held; state_transport.last_accepted_report_commit=c71e0a0bb25a5d2749801d8fc7444869ff331d1b held (CHANGE_SCOPE does not advance last_accepted_report_commit); state_transport.expected_next_task=P6.1 held. validate_report_shape.py OK_REPORT_SHAPE. No code, no test, no Slurm, no real-provider call. Awaits APPROVE_PLAN(P6.1) and APPROVE_EXECUTION(P6.1)."
+    notes: "P6.1 selector-evidence path PASS. Build sentinel OK_SELECTOR_EVIDENCE_BUILD rows=53230; validator OK_SELECTOR_EVIDENCE; full pytest tests/robust_asr 124/124; OK_REPORT_SHAPE. Decode-feature proxy policy: P2.1 whisper_base_ct2_int8.parquet does not expose avg_logprob/no_speech_prob (produced by P6.2 extract_router_features which is SKIPPED_BY_OUTCOME_E here); P6.1 derives no_speech_prob from empty normalized_transcript (1.0 vs 0.0) and fixes avg_logprob=0.0 since the escalation branch is unreachable under assemblyai_available=false. Result: 53202 baseline / 28 ask_repeat(no_speech); no assemblyai / no whisper_lora_ct2_int8 selections (consistent with agent plan §1507-§1508 single-deployable-backend rule). Disjointness: LoRA-train overlap=0 (eval is dev-clean/test-clean, LoRA train is train-clean-100; checked at both full-id and base-stem granularity); demo overlap=0 (manifest absent pre-P8.2). tasks.P6.2.status=SKIPPED_BY_OUTCOME_E enacted with next_task=P7.3 per agent plan §3853-§3854. current_task advanced P6.1 -> P6_GATE; last_completed_task advanced P5.1 -> P6.1. state_transport.last_accepted_report_commit STAYS c71e0a0bb25a5d2749801d8fc7444869ff331d1b per orchestrator instruction (NOT advanced to the P6.1 implementation commit). state_transport.expected_next_task=P6_GATE. Markers held: BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR. claims_enabled.ood_real=false, .cloud_tradeoff=false, .positive_lora=false, .positive_system=pending held. P6_GATE not started; P7.1/P7.2 skips remain owned by P6 gate. No Slurm submission, no AssemblyAI call, no LoRA call."
+  P6.2:
+    status: SKIPPED_BY_OUTCOME_E
+    decided_at_task: P6.1
+    next_task: P7.3
+    rationale: "OUTCOME_E_DETERMINISTIC_SELECTOR active (deployable transcript-producing backend count = 1); agent plan §3853-§3854 requires P6.1 closure to set tasks.P6.2.status = SKIPPED_BY_OUTCOME_E and route the post-P6_GATE next_task to P7.3 instead of P7.1."

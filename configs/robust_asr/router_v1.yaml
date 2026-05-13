@@ -1,0 +1,80 @@
+# Robust ASR — Router / deterministic-selector config v1
+#
+# Owner: robust_asr P6.1 (CHANGE_SCOPE 9ffc885)
+# Schema: agent plan §3837-§3841, Section 5.4 (router decision rule and
+# selection) and Section 5.5 (deterministic selector / Outcome E).
+#
+# Consumed by:
+#   - scripts/robust_asr/build_selector_evidence_table.py (P6.1)
+#   - scripts/robust_asr/validate_selector_evidence.py (P6.1)
+#   - extract_router_features.py + train/select/evaluate router (P6.2/P7.x)
+#   - deterministic selector at runtime under OUTCOME_E_DETERMINISTIC_SELECTOR
+#
+# DETERMINISTIC_SELECTOR_VERSION is tracked in libs/common/versions.py
+# (P6.1 append; never mutated outside an approved CHANGE_SCOPE).
+
+schema_version: router_v1
+deterministic_selector_version: deterministic_selector_v1
+
+# ---------------------------------------------------------------------------
+# Section 5.5 deterministic selector constants
+# ---------------------------------------------------------------------------
+deterministic_selector:
+  ask_repeat_threshold: -1.0     # avg_logprob below this -> ask_repeat
+  escalate_threshold:   -0.5     # avg_logprob below this AND assemblyai_available -> assemblyai
+  no_speech_threshold:   0.6     # no_speech_prob above this -> ask_repeat
+  health_check_ttl_seconds: 300  # AssemblyAI runtime probe TTL
+
+# ---------------------------------------------------------------------------
+# Section 5.4 cost coefficients (used by P6.2 oracle build / P7.1 router
+# selection; deterministic selector at P6.1 ignores them by construction).
+# ---------------------------------------------------------------------------
+cost_coefficients:
+  alpha: 1.0   # WER weight
+  beta:  0.0   # latency weight (seconds)
+  gamma: 0.0   # cost weight ($USD)
+  delta: 0.0   # cloud-call risk weight
+
+# ---------------------------------------------------------------------------
+# Profile defaults + eligible action set per profile
+# ---------------------------------------------------------------------------
+profile_defaults:
+  default: battery_aware
+
+eligible_actions:
+  battery_aware:   [whisper_base_ct2_int8, ask_repeat]
+  cloud_allowed:   [whisper_base_ct2_int8, assemblyai, ask_repeat]
+  lora_enabled:    [whisper_base_ct2_int8, whisper_lora_ct2_int8, ask_repeat]
+  full:            [whisper_base_ct2_int8, assemblyai, whisper_lora_ct2_int8, ask_repeat]
+
+# ---------------------------------------------------------------------------
+# Router thresholds (consumed by P7.1 train_router_candidates and selector)
+# ---------------------------------------------------------------------------
+ask_repeat_wer_threshold: 0.6   # predicted WER above which ask_repeat is preferred
+router_confidence_min:    0.5   # minimum router confidence to override baseline
+epsilon_wer:              0.01  # tie tolerance for regret comparisons
+
+# ---------------------------------------------------------------------------
+# Outcome E selector-evidence build options (P6.1)
+# ---------------------------------------------------------------------------
+selector_evidence:
+  # Source backend tables; under OUTCOME_E only whisper_base_ct2_int8 is deployable.
+  backend_tables:
+    - path: artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet
+      backend_name: whisper_base_ct2_int8
+  # Runtime availability flags (forced at build time; recomputed at serving
+  # time by probe_assemblyai_runtime.py and the LoRA availability check).
+  assemblyai_available: false   # BLOCKED_API; cloud_tradeoff=false
+  lora_available:       false   # SKIPPED_BY_DECISION_A; include_lora_in_router=false
+  # Decode-feature proxy policy: the P2.1 eval table does not expose
+  # avg_logprob or no_speech_prob (those are produced by P6.2
+  # extract_router_features.py). Under OUTCOME_E with a single backend the
+  # deterministic selector reduces to whisper_base_ct2_int8 vs ask_repeat;
+  # P6.1 derives a no_speech_prob proxy from an empty normalized_transcript
+  # and leaves avg_logprob at its neutral default (0.0). The escalation
+  # branch is unreachable because assemblyai_available=false.
+  no_speech_proxy:
+    source: empty_normalized_transcript
+    value_when_empty: 1.0
+    value_when_nonempty: 0.0
+  avg_logprob_default: 0.0
