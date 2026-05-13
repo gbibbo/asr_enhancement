@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-07
-last_completed_task: BR-06
+current_task: BR-08
+last_completed_task: BR-07
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -15,10 +15,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/broute_router_stub_smoke.md
+  latest_execution_report_path: reports/rp5/broute_future_constraints.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br06_approval_packet.yaml
-  expected_next_task: BR-07
+  latest_approval_packet_path: reports/rp5/broute_br07_approval_packet.yaml
+  expected_next_task: BR-08
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -228,3 +228,22 @@ tasks:
       repo_dependency_or_config_files_changed: false
     marker: null
     next_task: BR-07
+  BR-07:
+    task_id: BR-07
+    status: PASS
+    commit: 821077c8bd0b8f00140787ab79bc8c14946ec702
+    files_changed:
+      - scripts/rp5/validate_future_constraints.py
+      - scripts/rp5/fixtures/generate_fixture_validate_future_constraints.py
+      - reports/rp5/broute_future_constraints.md
+    commands_run:
+      - "python3 scripts/rp5/validate_future_constraints.py --constraints reports/rp5/broute_future_constraints.md --out reports/rp5/future_constraint_validation.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_future_constraints.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_future_constraints_manifest.json"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_FUTURE_CONSTRAINTS
+      - OK_FIXTURE_VALIDATE_FUTURE_CONSTRAINTS
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "future constraints verified: FC-B14-0-PUBLIC-GATE, FC-B14-1-FUNNEL, FC-B15-MULTI-NETWORK, FC-HANDOFF-DATAMOVE1"
+    marker: null
+    next_task: BR-08
