@@ -19,7 +19,7 @@ PATH_LOCKS = [
     },
     {
         "lock_id": "PL-BR-API-DEMO",
-        "pattern": lambda p: p.startswith("services/") and (
+        "pattern": lambda p: p.startswith("services/api/") and (
             "demo_main" in p
             or "/demo/" in p
             or "demo/health" in p
@@ -43,10 +43,10 @@ PATH_LOCKS = [
     },
     {
         "lock_id": "PL-BR-FRONTEND",
-        "pattern": lambda p: (
-            p.startswith("services/frontend/") and any(
-                sym in p for sym in ["RouterFieldsPanel", "UploadForm", "ResultView"]
-            )
+        "pattern": lambda p: p.startswith("services/frontend/") and (
+            "/app/demo/" in p
+            or "/demo/" in p
+            or any(sym in p for sym in ["RouterFieldsPanel", "UploadForm", "ResultView"])
         ),
         "max_files": 8,
     },
