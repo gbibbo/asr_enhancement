@@ -50,6 +50,26 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P2.2
+      phase: P2
+      decision: APPROVE_PLAN
+      accepted_report_commit: d78678aa9f7a18ddfd00743789bcf797fb191a98
+      next_expected_task: P2_GATE
+      required_fix: null
+      rationale: "P2.2 plan accepted on the scope-change commit; implement configs/robust_asr/lora_smoke.yaml with smoke_split (600 rows, 200 speakers, 3 utt/speaker from librispeech_lora_train) and smoke_eval_split (200 rows, 40 speakers, 5 utt/speaker from librispeech_validation), deterministic seed=42, steps_max=200, Section 3 eval decode defaults, training_timeout_seconds=14400, eval_timeout_seconds=1800, manifest sha256 references; do not advance last_accepted_report_commit to the P2.2 implementation commit; do not start P2_GATE; do not clear BLOCKED_OOD_PUBLIC."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P2.2-scope-change
+      phase: P2
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: d78678aa9f7a18ddfd00743789bcf797fb191a98
+      next_expected_task: P2.2
+      required_fix: null
+      rationale: "P2.2 scope-change accepted at commit d78678a; rewritten touch_policy P2.2 row authorizing configs/robust_asr/lora_smoke.yaml, reports/robust_asr/task_reports/P2.2_lora_smoke_config.md, and the read paths required for manifest-membership validation is now binding."
+  prior_approval_packet_p2_2_change_scope:
+    ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P2.2
       phase: P2
@@ -58,7 +78,7 @@ state_transport:
       next_expected_task: P2.2
       required_fix: "Rewrite stale touch_policy P2.2 row to authorize the LoRA smoke config task."
       rationale: "P2.2 requires configs/robust_asr/lora_smoke.yaml and P2.2_lora_smoke_config.md, but current touch_policy P2.2 row still refers to an old baseline-gate task."
-  prior_approval_packet:
+  prior_approval_packet_p2_1_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.1
@@ -1575,3 +1595,57 @@ tasks:
             elapsed_s: 31
             notes: "Strategies 1 (OpenAIWhisperConverter) and 2 (ct2-transformers-converter CLI) both failed; strategy 1 because the class is removed in ctranslate2 4.x, strategy 2 because of a transformers/ctranslate2 API mismatch (TypeError: WhisperForConditionalGeneration.__init__() got an unexpected keyword argument 'dtype'). No partial outputs retained."
         notes: "PASS via strategy 3 (TransformersConverter Python API with patched load_model that strips dtype/torch_dtype kwargs before from_pretrained). Source openai-whisper base.en.pt sha256 verified against canonical 25a8566e...ad before conversion. Model.bin sha256 4ed9e9b5...db33f. provenance.json records all source/output sha256s, ctranslate2 version, quantization, container sha256, and slurm job id. MISSING_EVIDENCE on the parent P2.1 task is NOT cleared by this build; clears only after the slurm/jobs/p2_1_baseline.sh rerun emits OK_BACKEND_EVAL/OK_BACKEND_SUMMARY/OK_EVAL_TABLE."
+
+  P2.2:
+    status: PASS
+    commit: pending
+    files_changed:
+      - configs/robust_asr/lora_smoke.yaml
+      - reports/robust_asr/task_reports/P2.2_lora_smoke_config.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml: APPROVE_EXECUTION(P2.2-scope-change) + APPROVE_PLAN(P2.2) recorded on d78678a"
+      - "python3 -c '<deterministic stratified-by-speaker sampling: lora_train -> 600 rows / 200 speakers / 3 utt-per-speaker; validation -> 200 rows / 40 speakers / 5 utt-per-speaker; no RNG>'"
+      - "Write configs/robust_asr/lora_smoke.yaml (version, seed=42, manifests with sha256, smoke_split, smoke_eval_split, hyperparameters, eval_decode_defaults, timeouts)"
+      - "python3 -c '<yaml.safe_load + required top-level keys check>'  # OK_LORA_SMOKE_CONFIG_PARSE"
+      - "python3 -c '<pyarrow manifest membership: 600 audio_ids in lora_train + 200 in validation>'  # OK_LORA_SMOKE_MANIFEST_REFS"
+      - "python3 -c '<hyperparameters keys + steps_max=200 check>'  # OK_LORA_SMOKE_HPARAMS"
+      - "python3 -c '<Section 3 decode defaults: task=transcribe, language=en, condition_on_previous_text=false, without_timestamps=true>'  # OK_LORA_SMOKE_DECODE_DEFAULTS"
+      - "python3 -c '<timeouts: training_timeout_seconds=14400, eval_timeout_seconds=1800>'  # OK_LORA_SMOKE_TIMEOUTS"
+      - "Write reports/robust_asr/task_reports/P2.2_lora_smoke_config.md"
+      - "python scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures  # OK_REPORT_SHAPE"
+      - "python3 -m pytest -q tests/robust_asr/  # 85/85 PASS in 2.94s (non-regression)"
+      - "Edit tracker yaml/md/state_capsule (P2.2 PASS; current_task=P2.2 held until orchestrator APPROVE_EXECUTION(P2.2); last_completed_task=P2.1 held; markers=[BLOCKED_OOD_PUBLIC]; blocked=false; last_accepted_report_commit STAYS 83dd911 per orchestrator instruction)"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "configs/robust_asr/lora_smoke.yaml written (43,252 bytes; sha256 4d7ae4489587937e841df9ca172e9b9933e4647ddbe06edf3b00adc713e00cff)"
+      - "smoke_split: 600 audio_ids across 200 speakers (3 utt/speaker; total duration 7647.93s / 2.1244h)"
+      - "smoke_eval_split: 200 audio_ids across 40 speakers (5 utt/speaker; total duration 1730.07s / 0.4806h)"
+      - "Source manifest sha256s match manifest_summary.md (lora_train 7896175e..., validation 977a6f01...)"
+      - "OK_LORA_SMOKE_CONFIG_PARSE, OK_LORA_SMOKE_MANIFEST_REFS, OK_LORA_SMOKE_HPARAMS, OK_LORA_SMOKE_DECODE_DEFAULTS, OK_LORA_SMOKE_TIMEOUTS, OK_REPORT_SHAPE all emitted"
+      - "pytest -q tests/robust_asr/ -> 85/85 PASS in 2.94s (non-regression)"
+      - "current_task=P2.2 held; last_completed_task=P2.1 held; markers=[BLOCKED_OOD_PUBLIC]; blocked=false"
+      - "state_transport.last_accepted_report_commit STAYS 83dd911bc124a9f1dd53bab17cc4812dbf0cf932 per orchestrator instruction (not advanced to P2.2 implementation commit)"
+      - "P2 gate predicate (Section 8 P2) now fully satisfiable: tasks[P2.1=PASS, P2.2=PASS]; awaiting orchestrator APPROVE_EXECUTION(P2.2) and PHASE_APPROVE(P2) before P3.1 may begin."
+    marker: null
+    next_task: P2_GATE
+    blocker: null
+    slurm: null
+    artifacts_added:
+      lora_smoke_config:
+        path: configs/robust_asr/lora_smoke.yaml
+        sha256: 4d7ae4489587937e841df9ca172e9b9933e4647ddbe06edf3b00adc713e00cff
+        bytes: 43252
+        produced_by_task: P2.2
+        smoke_split_n_rows: 600
+        smoke_split_n_speakers: 200
+        smoke_eval_split_n_rows: 200
+        smoke_eval_split_n_speakers: 40
+        lora_train_manifest_sha256: 7896175ecf9631ef949e504ecc3f442d342a44ae53f8f28ef5a34949f3484d4a
+        validation_manifest_sha256: 977a6f01d72171e9cfb9ce8aee71d4961a99d66397784225c71efbcf1d53733f
+      p2_2_task_report:
+        path: reports/robust_asr/task_reports/P2.2_lora_smoke_config.md
+        produced_by_task: P2.2
+    notes: "P2.2 PASS via deterministic stratified-by-speaker sampling (no RNG). steps_max=200; seed=42 (P3.1-binding training/eval seed); Section 3 eval decode defaults; training_timeout_seconds=14400, eval_timeout_seconds=1800. Manifest sha256s pinned. BLOCKED_OOD_PUBLIC NOT cleared (held non-blocking; ood_real splits remain enabled=false). state_transport.last_accepted_report_commit STAYS 83dd911 per orchestrator instruction. current_task=P2.2 held until orchestrator APPROVE_EXECUTION(P2.2) advances it to P2_GATE."

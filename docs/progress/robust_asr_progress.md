@@ -16,15 +16,86 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932 (held; CHANGE_SCOPE does not advance)
-- state_transport.expected_next_task: P2.2
-- latest_approval_packet: CHANGE_SCOPE(P2.2) on `821893c` (next P2.2)
-- prior_approval_packet: APPROVE_EXECUTION(P2.1) on `83dd911` (next P2.2)
+- state_transport.last_accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932 (held; APPROVE_PLAN(P2.2) does not advance per orchestrator instruction)
+- state_transport.expected_next_task: P2_GATE
+- latest_approval_packet: APPROVE_PLAN(P2.2) on `d78678a` (next P2_GATE)
+- prior_approval_packet: APPROVE_EXECUTION(P2.2-scope-change) on `d78678a` (next P2.2)
+- prior_approval_packet_p2_2_change_scope: CHANGE_SCOPE(P2.2) on `821893c` (next P2.2)
+- prior_approval_packet_p2_1_exec: APPROVE_EXECUTION(P2.1) on `83dd911` (next P2.2)
 - prior_approval_packet_p2_1_rerun_plan: APPROVE_PLAN(P2.1-rerun) on `28dddae` (next P2.2)
 - prior_approval_packet_p2_1_model_build_exec: APPROVE_EXECUTION(P2.1-model-build) on `28dddae` (next P2.1)
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P2.2 PASS
+
+- LoRA smoke split config built and committed.
+  `configs/robust_asr/lora_smoke.yaml` written
+  (43,252 bytes; sha256
+  `4d7ae4489587937e841df9ca172e9b9933e4647ddbe06edf3b00adc713e00cff`).
+  Top-level keys: `version`, `seed`, `manifests`, `smoke_split`,
+  `smoke_eval_split`, `hyperparameters`, `eval_decode_defaults`,
+  `timeouts`.
+- Approvals accepted: `APPROVE_EXECUTION(P2.2-scope-change)` on
+  `d78678aa9f7a18ddfd00743789bcf797fb191a98` (next P2.2);
+  `APPROVE_PLAN(P2.2)` on
+  `d78678aa9f7a18ddfd00743789bcf797fb191a98` (next P2_GATE).
+- Sampling: deterministic stratified-by-speaker, RNG-free. For each
+  manifest the rule is: group rows by `speaker_id`, sort speakers by
+  integer ID, sort each speaker's utterances by `audio_id`
+  lexicographically, take the first `per_speaker` utterances per
+  speaker. Seed `42` is the canonical training/eval seed (P3.1-binding);
+  the smoke sampler itself is RNG-free.
+- `smoke_split` (from `librispeech_lora_train.parquet`, source sha256
+  `7896175ecf9631ef949e504ecc3f442d342a44ae53f8f28ef5a34949f3484d4a`,
+  22,507 rows / 200 speakers): **600 audio_ids across 200 speakers
+  (3 utt/speaker)**; total duration 7,647.93 s (2.1244 h).
+- `smoke_eval_split` (from `librispeech_validation.parquet`, source
+  sha256
+  `977a6f01d72171e9cfb9ce8aee71d4961a99d66397784225c71efbcf1d53733f`,
+  2,703 rows / 40 speakers): **200 audio_ids across 40 speakers
+  (5 utt/speaker)**; total duration 1,730.07 s (0.4806 h).
+- Hyperparameters: `steps_max=200`, `learning_rate=1.0e-4`,
+  `batch_size=8`, `lora_rank=8`, `lora_alpha=16`, `lora_dropout=0.05`,
+  `target_modules=[q_proj, k_proj, v_proj, out_proj]`, `seed=42`,
+  `warmup_steps=20`, `optimizer=adamw`, `weight_decay=0.0`,
+  `gradient_accumulation_steps=1`, `fp16=true`.
+- Section 3 eval decode defaults exact: `task=transcribe`,
+  `language=en`, `condition_on_previous_text=false`,
+  `without_timestamps=true`, `beam_size=1`, `temperature=0.0`.
+- Timeouts: `training_timeout_seconds=14400` (4 h),
+  `eval_timeout_seconds=1800` (30 min).
+- Verifications: `OK_LORA_SMOKE_CONFIG_PARSE`,
+  `OK_LORA_SMOKE_MANIFEST_REFS`, `OK_LORA_SMOKE_HPARAMS`,
+  `OK_LORA_SMOKE_DECODE_DEFAULTS`, `OK_LORA_SMOKE_TIMEOUTS`,
+  `OK_REPORT_SHAPE` (all exit 0). `python3 -m pytest -q
+  tests/robust_asr/` → **85/85 PASS in 2.94 s** (non-regression).
+- Tracker mutations: `tasks.P2.2.status=PASS`,
+  `tasks.P2.2.next_task=P2_GATE`, `tasks.P2.2.marker=null`,
+  `tasks.P2.2.artifacts_added.{lora_smoke_config, p2_2_task_report}`
+  populated. `current_phase=P2` held; `current_task=P2.2` held until
+  orchestrator `APPROVE_EXECUTION(P2.2)` advances to `P2_GATE`;
+  `last_completed_task=P2.1` held. `markers=[BLOCKED_OOD_PUBLIC]`
+  held (non-blocking; `claims_enabled.ood_real=false` held).
+  `blocked=false`; `blocker=null`.
+  `state_transport.last_accepted_report_commit` STAYS
+  `83dd911bc124a9f1dd53bab17cc4812dbf0cf932` (the P2.2 commit is NOT
+  accepted per orchestrator instruction).
+  `state_transport.expected_next_task=P2_GATE`.
+  `latest_approval_packet=APPROVE_PLAN(P2.2)` on `d78678a` (next
+  P2_GATE); `prior_approval_packet=APPROVE_EXECUTION(P2.2-scope-change)`
+  on `d78678a` (next P2.2);
+  `prior_approval_packet_p2_2_change_scope=CHANGE_SCOPE(P2.2)` on
+  `821893c` (next P2.2); `prior_approval_packet_p2_1_exec=
+  APPROVE_EXECUTION(P2.1)` on `83dd911` (next P2.2).
+- P2 gate predicate (Section 8 P2) now fully satisfiable: `tasks.P2.1
+  =PASS`, `tasks.P2.2=PASS`, baseline eval table + report exist,
+  `configs/robust_asr/lora_smoke.yaml` exists with valid manifest
+  references, no MISSING_EVIDENCE/PLAN_CONFLICT. Awaiting orchestrator
+  `APPROVE_EXECUTION(P2.2)` and `PHASE_APPROVE(P2)` before P3.1.
+- No Slurm submission, no Apptainer exec, no GPU, no external API,
+  no model weights, no audio I/O, no `pip install`.
 
 ## P2.2 CHANGE_SCOPE recorded
 
