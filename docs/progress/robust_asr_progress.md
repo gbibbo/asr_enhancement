@@ -17,9 +17,10 @@ Status: IN_PROGRESS
 - lora_status: SMOKE_DONE
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 096fe43371f7357007ce41317ed758499d1ff131 (advanced from `3ed96f5` by APPROVE_EXECUTION(P3.1))
+- state_transport.last_accepted_report_commit: 096fe43371f7357007ce41317ed758499d1ff131 (STAYS at the P3.1 acceptance commit; not advanced by the P3.2 scope-change implementation commit)
 - state_transport.expected_next_task: P3.2
-- latest_approval_packet: APPROVE_EXECUTION(P3.1) on `096fe43` (next P3.2)
+- latest_approval_packet: CHANGE_SCOPE(P3.2) on `ee92c8b` (next P3.2)
+- prior_approval_packet_p3_1_exec: APPROVE_EXECUTION(P3.1) on `096fe43` (next P3.2)
 - prior_approval_packet_p3_1_plan: APPROVE_PLAN(P3.1) on `3ed96f5` (next P3.2)
 - prior_approval_packet_p3_1_scope_exec: APPROVE_EXECUTION(P3.1-scope-change) on `3ed96f5` (next P3.1)
 - prior_approval_packet_p3_1_change_scope: CHANGE_SCOPE(P3.1) on `ca98443` (next P3.1)
@@ -34,6 +35,55 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P3.2 CHANGE_SCOPE recorded
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P3.2 phase=P3
+  decision=CHANGE_SCOPE
+  accepted_report_commit=`ee92c8b`
+  next_expected_task=P3.2
+  required_fix="Rewrite touch_policy P3.2 row to authorize Decision A
+  script, test, and lora smoke report."
+- Rationale: P3.2 requires `scripts/robust_asr/decide_lora_smoke.py`,
+  `tests/robust_asr/test_decide_lora_smoke.py`, and
+  `reports/robust_asr/lora/lora_smoke_report.md`, but the prior
+  `touch_policy.md` P3.2 row omitted them.
+- Touch_policy P3.2 row rewritten (allowed writes):
+  `scripts/robust_asr/decide_lora_smoke.py`,
+  `tests/robust_asr/test_decide_lora_smoke.py`,
+  `reports/robust_asr/lora/lora_smoke_report.md`,
+  `reports/robust_asr/lora/decision_a_smoke.md`,
+  `reports/robust_asr/task_reports/P3.2_decision_a.md`,
+  `reports/robust_asr/touch_policy.md` (scope-change rows),
+  `docs/progress/robust_asr_progress.yaml`,
+  `docs/progress/robust_asr_progress.md`,
+  `docs/progress/robust_asr_state_capsule.md`.
+  Reads add `configs/robust_asr/reuse_policy_v1.yaml`,
+  `reports/robust_asr/lora/lora_smoke_result.json`,
+  `artifacts/robust_asr/lora_smoke/export_smoke_result.json`,
+  `libs/common/{versions,normalization,metrics}.py`,
+  `scripts/robust_asr/validate_report_shape.py`. No external paths.
+- No script implemented, no test created, no Decision A made, no
+  `lora_smoke_report.md` written. This commit is the scope change only.
+- Tracker mutations:
+  `current_task=P3.2` held; `last_completed_task=P3.1` held;
+  `markers=[BLOCKED_OOD_PUBLIC]` held; `blocked=false`;
+  `claims_enabled.ood_real=false`; `lora_status=SMOKE_DONE` held;
+  `state_transport.latest_approval_packet`=CHANGE_SCOPE(P3.2) on
+  `ee92c8b`; previous APPROVE_EXECUTION(P3.1) demoted to
+  `prior_approval_packet_p3_1_exec`;
+  `state_transport.last_accepted_report_commit` STAYS at `096fe43`
+  per orchestrator instruction (NOT advanced to the P3.2 scope-change
+  implementation commit);
+  `state_transport.expected_next_task=P3.2` held;
+  `touch_policy.last_amended_by=P3.2_scope_change` (sha256 reset to
+  null pending re-hash post-commit).
+- Verification: `python3 scripts/robust_asr/validate_report_shape.py
+  --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures
+  artifacts/robust_asr/state_packets/report_shape_fixtures` → PASS.
+- Next: orchestrator APPROVE_PLAN(P3.2) and APPROVE_EXECUTION(P3.2)
+  required before `decide_lora_smoke.py` is implemented and Decision A
+  is recorded.
 
 ## P3.1 APPROVE_EXECUTION recorded
 

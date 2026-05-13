@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P3.2
+      phase: P3
+      decision: CHANGE_SCOPE
+      accepted_report_commit: ee92c8b
+      next_expected_task: P3.2
+      required_fix: "Rewrite touch_policy P3.2 row to authorize Decision A script, test, and lora smoke report."
+      rationale: "P3.2 requires scripts/robust_asr/decide_lora_smoke.py, tests/robust_asr/test_decide_lora_smoke.py, and reports/robust_asr/lora/lora_smoke_report.md, but current touch_policy P3.2 row omits them."
+  prior_approval_packet_p3_1_exec:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P3.1
       phase: P3
@@ -548,9 +558,9 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 32ad92b1772ba180c7d1b96171c68e08ff81af694cdc2a93343c093ea27eeffc
+    sha256: null
     produced_by_task: P0.2
-    last_amended_by: P3.1_scope_change
+    last_amended_by: P3.2_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
     sha256: 9766167cccd3d246a31adb488d89dcc6950b35c00e0eb5959b523c4c5fa8811b
@@ -1895,3 +1905,25 @@ tasks:
         path: reports/robust_asr/task_reports/P3.1_lora_smoke.md
         produced_by_task: P3.1
     notes: "P3.1 PASS via Slurm job 2131980 (COMPLETED 0:0, 9m48s, RTX 2080 Ti). All three sentinels emitted: OK_LORA_SMOKE_TRAIN (200 steps, best_step=100, best_loss=0.5837, zero non-finite, zero OOM), OK_LORA_SMOKE_EVAL (1000 rows over 5 families; macro_wa_gain=-0.1284, max_family_wa_gain=-0.1135, clean_wa_regression=0.1135, per_family_wa_gain_variance=1.79e-4 — non-degenerate so degenerate.md NOT written), OK_LORA_EXPORT_SMOKE (merge FP16 → CT2 INT8 → faster-whisper transcribe of one clean fixture audio, all OK). Predicted Decision A SMOKE_FAIL per Section 5.1 mechanical booleans: macro_wa_gain (−0.1284) < 0.005 AND clean_regression (0.1135) > 0.010 ⇒ NOT SMOKE_PASS; max_family_wa_gain (−0.1135) < 0.010 ⇒ NOT SMOKE_PARTIAL. P3.2 will record the decision and write lora_smoke_report.md + decision_a_smoke.md. LoRA adapter binaries (4 checkpoints + merged_fp16 + ct2_int8 = ~240 MB) are gitignored per touch_policy; only JSON/CSV/PNG metadata in git. BLOCKED_OOD_PUBLIC held (non-blocking; ood_real claims disabled). state_transport.last_accepted_report_commit STAYS 3ed96f5b8e559dcf9706c1fa6ae4279da56e0d91 per orchestrator instruction (NOT advanced to the P3.1 implementation commit). current_task=P3.1 held until orchestrator APPROVE_EXECUTION(P3.1) advances it to P3.2."
+  P3.2:
+    status: SCOPE_CHANGE_ACCEPTED
+    scope_change_accepted_commit: ee92c8b
+    files_changed:
+      - reports/robust_asr/touch_policy.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit reports/robust_asr/touch_policy.md: REWRITE P3.2 row authorising scripts/robust_asr/decide_lora_smoke.py, tests/robust_asr/test_decide_lora_smoke.py, reports/robust_asr/lora/lora_smoke_report.md, reports/robust_asr/lora/decision_a_smoke.md, reports/robust_asr/task_reports/P3.2_decision_a.md, touch_policy scope-change rows, and live trackers; readable adds reuse_policy_v1.yaml, lora_smoke_result.json, export_smoke_result.json, libs/common/* (read)"
+      - "Edit docs/progress/robust_asr_progress.yaml (latest_approval_packet -> CHANGE_SCOPE(P3.2); touch_policy.last_amended_by=P3.2_scope_change; touch_policy.sha256=null pending re-hash post-commit; P3.2 task entry added with SCOPE_CHANGE_ACCEPTED)"
+      - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "CHANGE_SCOPE(P3.2) accepted at ee92c8b; touch_policy P3.2 row rewritten to authorize decide_lora_smoke.py + test + lora_smoke_report.md (and the rest of the writable set) + lora_smoke_result.json / export_smoke_result.json reads"
+      - "current_task=P3.2 held; last_completed_task=P3.1 held; markers=[BLOCKED_OOD_PUBLIC] held; blocked=false; claims_enabled.ood_real=false; lora_status=SMOKE_DONE"
+      - "state_transport.last_accepted_report_commit STAYS 096fe43371f7357007ce41317ed758499d1ff131 per orchestrator instruction (NOT advanced to the P3.2 scope-change implementation commit)"
+      - "state_transport.expected_next_task=P3.2 held; awaiting APPROVE_PLAN(P3.2) and APPROVE_EXECUTION(P3.2) before Decision A may be recorded"
+    marker: null
+    next_task: P3.2
+    blocker: null
+    notes: "P3.2 scope-change only. Rewrote touch_policy P3.2 row to include decide_lora_smoke.py, test_decide_lora_smoke.py, and lora_smoke_report.md. No script implemented, no test run, no Decision A made. current_task stays at P3.2. lora_status=SMOKE_DONE held. BLOCKED_OOD_PUBLIC held non-blocking. state_transport.last_accepted_report_commit STAYS 096fe43 per orchestrator instruction."
