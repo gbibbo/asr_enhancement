@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P6.1
+      phase: P6
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 9ffc885
+      next_expected_task: P6.1
+      required_fix: "Authorize deterministic-selector config, selector evidence scripts, selector evidence table, and DETERMINISTIC_SELECTOR_VERSION."
+      rationale: "P6.1 Outcome E selector-evidence path requires configs/robust_asr/router_v1.yaml and libs/common/versions.py update, but current reuse/touch policy does not authorize these P6.1 writes."
+  prior_approval_packet_p5_phase:
+    ORCHESTRATOR_DECISION:
       scope: phase
       task_id: null
       phase: P5
@@ -648,14 +658,14 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 710a49f2e87c9755d7b00cf66c68bcdeaa9088b8eb5f44ccbcc347de4d58b4aa
+    sha256: 382f66de62a207472ee77a35d9af88585901e29394670043bf34198823f56a42
     produced_by_task: P0.2
-    last_amended_by: P5.1_scope_change
+    last_amended_by: P6.1_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: d72cc31f5ca46b7adb01cde7a8ffd3301c46fce58c8e8ff61c0c8bba8ed109ee
+    sha256: 9994a741d85fb9b4c2c6aa6ea5d5ce71f763cb551c4b0403964abd10cfdbdb7c
     produced_by_task: P0.2
-    last_amended_by: P5.1_scope_change
+    last_amended_by: P6.1_scope_change
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
@@ -2242,3 +2252,25 @@ tasks:
     next_task: P6.1
     blocker: null
     notes: "P5 PHASE_APPROVE recorded against commit c71e0a0 (the P5.1 acceptance commit). Routing enacted per Section 8 P5 Branch B for BLOCKED_API + cloud_tradeoff=false + backend_count<2: markers += OUTCOME_E_DETERMINISTIC_SELECTOR; decisions.P5_routing.branch=B_blocked_api_outcome_e; decisions.P5_routing.deployable_backend_count=1; decisions.P5_routing.deployable_backends=[whisper_base_ct2_int8]. Next task = P6.1 selector-evidence path. BLOCKED_OOD_PUBLIC held non-blocking; BLOCKED_API held non-blocking; claims_enabled.ood_real=false held; claims_enabled.cloud_tradeoff=false held; claims_enabled.positive_lora=false held; lora_status=SKIPPED_BY_DECISION_A held. No code, no test, no Slurm submission, no real-provider call for this update. Only tracker files modified."
+  P6.1:
+    status: scope_change_recorded
+    commit: pending_this_commit
+    scope_change:
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 9ffc885
+      packet_recorded_commit: pending_this_commit
+      reuse_policy_changes:
+        - "configs/robust_asr/** allowed_tasks += P6.1"
+        - "new row: configs/robust_asr/router_v1.yaml (active_state, read_write, [P6.1, P6.2, P7.1, P7.3, P10.1], validator=scripts/robust_asr/validate_selector_evidence.py, checksum_required=true, commit_allowed=true)"
+        - "amend libs/common/versions.py row: allowed_tasks [P1.2] -> [P1.2, P6.1]; validator extended to require both NORMALIZATION_VERSION_constant_present AND DETERMINISTIC_SELECTOR_VERSION_constant_present; permitted_use unchanged (append_constants_only); checksum_required=true; large_artifact=false; commit_allowed=true"
+      touch_policy_changes:
+        - "rewrite P6.1 row to authorize writes: configs/robust_asr/router_v1.yaml, scripts/robust_asr/build_selector_evidence_table.py, scripts/robust_asr/validate_selector_evidence.py, artifacts/robust_asr/router/selector_evidence.parquet, reports/robust_asr/router/selector_evidence_summary.md, reports/robust_asr/task_reports/P6.1_selector_evidence.md, libs/common/versions.py (append DETERMINISTIC_SELECTOR_VERSION only), configs/robust_asr/reuse_policy_v1.yaml (scope-change rows), reports/robust_asr/touch_policy.md (scope-change row), tracker files"
+        - "explicit P6.1 default_no_touch additions: artifacts/robust_asr/oracle/** (Branch A only; OUTCOME_E active), P6.2 router feature/matrix artifacts, P7.x candidate/selected_router artifacts, AssemblyAI runtime files, LoRA artifacts, libs/audio/** write, libs/asr_adapter/** write, libs/common/** write (except libs/common/versions.py append), tests/robust_asr/** write, slurm/**, configs/training/**, scripts/training/**, services/**, infra/**, configs/robust_asr/pricing_v1.yaml write, configs/robust_asr/eval_manifests_v1.yaml write"
+      artifact_sha256_updates:
+        reuse_policy_config: 9994a741d85fb9b4c2c6aa6ea5d5ce71f763cb551c4b0403964abd10cfdbdb7c
+        touch_policy: 382f66de62a207472ee77a35d9af88585901e29394670043bf34198823f56a42
+    implementation_status: NOT_STARTED
+    marker: null
+    next_task: P6.1
+    blocker: null
+    notes: "CHANGE_SCOPE(P6.1) recorded against accepted_report_commit=9ffc885 (the P5 phase-gate tracker commit). Authorizes the Outcome E selector-evidence path: configs/robust_asr/router_v1.yaml (new file), libs/common/versions.py (append DETERMINISTIC_SELECTOR_VERSION only), build_selector_evidence_table.py, validate_selector_evidence.py, selector_evidence.parquet, selector_evidence_summary.md, P6.1_selector_evidence.md. P6.1 implementation NOT started: no router_v1.yaml, no selector scripts, no selector_evidence.parquet, no DETERMINISTIC_SELECTOR_VERSION constant, no P6.2 skip mutation. tracker.tasks[P6.2].status remains null (will be set to SKIPPED_BY_OUTCOME_E by P6.1 closure per agent plan §3853-§3854). current_phase=P6, current_task=P6.1, last_completed_task=P5.1 held; markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; blocked=false; claims_enabled.ood_real=false, .cloud_tradeoff=false, .positive_lora=false held; lora_status=SKIPPED_BY_DECISION_A held; state_transport.last_accepted_report_commit=c71e0a0bb25a5d2749801d8fc7444869ff331d1b held (CHANGE_SCOPE does not advance last_accepted_report_commit); state_transport.expected_next_task=P6.1 held. validate_report_shape.py OK_REPORT_SHAPE. No code, no test, no Slurm, no real-provider call. Awaits APPROVE_PLAN(P6.1) and APPROVE_EXECUTION(P6.1)."

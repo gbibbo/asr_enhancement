@@ -24,7 +24,8 @@ Status: IN_PROGRESS
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b (held at the P5.1 acceptance commit; PHASE_APPROVE(P5) was recorded against this commit and does not itself advance it, matching the P0/P1/P2/P3 pattern)
 - state_transport.expected_next_task: P6.1
-- latest_approval_packet: PHASE_APPROVE(P5) on `c71e0a0` (next P6.1)
+- latest_approval_packet: CHANGE_SCOPE(P6.1) on `9ffc885` (next P6.1)
+- prior_approval_packet_p5_phase: PHASE_APPROVE(P5) on `c71e0a0` (next P6.1)
 - prior_approval_packet_p5_1_exec: APPROVE_EXECUTION(P5.1) on `c71e0a0` (next P5_GATE)
 - prior_approval_packet_p5_1_plan: APPROVE_PLAN(P5.1) on `f7a845f` (next P5_GATE)
 - prior_approval_packet_p5_1_scope_exec: APPROVE_EXECUTION(P5.1-scope-change) on `f7a845f` (next P5.1)
@@ -49,6 +50,101 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P6.1 CHANGE_SCOPE recorded
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P6.1 phase=P6
+  decision=CHANGE_SCOPE accepted_report_commit=`9ffc885`
+  next_expected_task=P6.1
+  required_fix="Authorize deterministic-selector config, selector evidence
+  scripts, selector evidence table, and DETERMINISTIC_SELECTOR_VERSION."
+- Rationale: P6.1 Outcome E selector-evidence path requires
+  `configs/robust_asr/router_v1.yaml` and `libs/common/versions.py`
+  (append `DETERMINISTIC_SELECTOR_VERSION` only), but current reuse/touch
+  policy did not authorize these P6.1 writes.
+- Reuse policy amendments (`configs/robust_asr/reuse_policy_v1.yaml`):
+  - `configs/robust_asr/**` `allowed_tasks` += `P6.1`.
+  - New row `configs/robust_asr/router_v1.yaml`: class=`active_state`,
+    permitted_use=`read_write`, allowed_tasks=`[P6.1, P6.2, P7.1, P7.3,
+    P10.1]`, validator=`scripts/robust_asr/validate_selector_evidence.py`,
+    checksum_required=`true`, large_artifact=`false`, commit_allowed=`true`.
+  - Amend `libs/common/versions.py` row: allowed_tasks=`[P1.2]` →
+    `[P1.2, P6.1]`; permitted_use=`append_constants_only` (held);
+    validator=`NORMALIZATION_VERSION_constant_present AND
+    DETERMINISTIC_SELECTOR_VERSION_constant_present`; checksum_required=
+    `true`; large_artifact=`false`; commit_allowed=`true`. Existing
+    constants (NORMALIZATION_VERSION, METRICS_VERSION, DEGRADATION_VERSION,
+    ENHANCER_VERSION) must remain unchanged.
+- Touch-policy amendments (`reports/robust_asr/touch_policy.md`, P6.1 row
+  rewritten): authorize writes of `configs/robust_asr/router_v1.yaml`,
+  `scripts/robust_asr/build_selector_evidence_table.py`,
+  `scripts/robust_asr/validate_selector_evidence.py`,
+  `artifacts/robust_asr/router/selector_evidence.parquet`,
+  `reports/robust_asr/router/selector_evidence_summary.md`,
+  `reports/robust_asr/task_reports/P6.1_selector_evidence.md`,
+  `libs/common/versions.py` (append `DETERMINISTIC_SELECTOR_VERSION`
+  only), `configs/robust_asr/reuse_policy_v1.yaml` (scope-change rows),
+  `reports/robust_asr/touch_policy.md` (scope-change row), and the three
+  live trackers. Authorize reads of plan files, `reuse_policy_v1.yaml`,
+  `configs/robust_asr/{router_v1,data_v1,eval_manifests_v1,degradation_v1}.yaml`,
+  `libs/common/{eval_schema.yaml,normalization.py,metrics.py,versions.py}`,
+  `artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet`,
+  `artifacts/robust_asr/manifests/*.parquet`,
+  `artifacts/robust_asr/lora_smoke/**` (LoRA-train audio_id disjointness),
+  `artifacts/robust_asr/demo/**` (trivial disjointness pre-P8.2), and
+  `scripts/robust_asr/validate_report_shape.py`. Explicit P6.1
+  default_no_touch additions: `artifacts/robust_asr/oracle/**` (Branch A
+  only; OUTCOME_E active), P6.2 router feature/matrix artifacts, P7.x
+  candidate/selected_router artifacts, AssemblyAI runtime files, LoRA
+  artifacts, `libs/audio/**` (write), `libs/asr_adapter/**` (write),
+  `libs/common/**` (write except `libs/common/versions.py` append),
+  `tests/robust_asr/**` (write — P6.1 not in tests/robust_asr/**
+  allowed_tasks), `slurm/**`, `configs/training/**`,
+  `scripts/training/**`, `services/**`, `infra/**`,
+  `configs/robust_asr/pricing_v1.yaml` (write),
+  `configs/robust_asr/eval_manifests_v1.yaml` (write). External:
+  none (no Slurm, no Apptainer GPU, no external API for P6.1).
+- Artifact sha256 updates:
+  - `artifacts.reuse_policy_config.sha256` =
+    `9994a741d85fb9b4c2c6aa6ea5d5ce71f763cb551c4b0403964abd10cfdbdb7c`;
+    `last_amended_by` = `P6.1_scope_change`.
+  - `artifacts.touch_policy.sha256` =
+    `382f66de62a207472ee77a35d9af88585901e29394670043bf34198823f56a42`;
+    `last_amended_by` = `P6.1_scope_change`.
+- Tracker mutations:
+  `latest_approval_packet` = CHANGE_SCOPE(P6.1) on `9ffc885` (next P6.1);
+  previous PHASE_APPROVE(P5) demoted to `prior_approval_packet_p5_phase`
+  on `c71e0a0` (next P6.1);
+  `state_transport.expected_next_task = P6.1` held;
+  `state_transport.last_accepted_report_commit =
+  c71e0a0bb25a5d2749801d8fc7444869ff331d1b` held (CHANGE_SCOPE does not
+  advance `last_accepted_report_commit`);
+  `tasks.P6.1.status = scope_change_recorded` with `implementation_status =
+  NOT_STARTED`; `tasks.P6.2` held `null` (`SKIPPED_BY_OUTCOME_E` is
+  enacted by P6.1 closure, per agent plan §3853-§3854).
+  Held: `current_phase=P6`, `current_task=P6.1`, `last_completed_task=P5.1`,
+  `markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]`,
+  `blocked=false`, `blocker=null`, `claims_enabled.ood_real=false`,
+  `claims_enabled.cloud_tradeoff=false`,
+  `claims_enabled.positive_lora=false`,
+  `claims_enabled.positive_system=pending`,
+  `lora_status=SKIPPED_BY_DECISION_A`,
+  `decisions.Decision_B_lora_full.include_lora_in_router=false`,
+  `tasks.P4.1=P4.2=P4.3=SKIPPED_BY_DECISION_A`,
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1`,
+  `phase_summary={P0,P1,P2,P3,P5}=PASS`,
+  `orchestrator_approvals={P0,P1,P2,P3,P5}=PHASE_APPROVE`.
+- `validate_report_shape.py` → `OK_REPORT_SHAPE`.
+- P6.1 implementation has not started: no `router_v1.yaml`, no
+  `build_selector_evidence_table.py`, no `validate_selector_evidence.py`,
+  no `selector_evidence.parquet`, no `selector_evidence_summary.md`, no
+  `DETERMINISTIC_SELECTOR_VERSION` constant, no `P6.2` skip mutation,
+  no task report. Awaits `APPROVE_PLAN(P6.1)` and
+  `APPROVE_EXECUTION(P6.1)`. No code, no test, no Slurm submission,
+  no real-provider call for this update. Only policy and tracker files
+  modified.
 
 ## P5 PHASE_APPROVE recorded — OUTCOME_E activated
 

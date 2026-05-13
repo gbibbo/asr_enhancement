@@ -89,7 +89,7 @@
 - path: configs/robust_asr/**
   class: active_state
   permitted_use: read_write
-  allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.4, P2.1, P5.1]
+  allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.4, P2.1, P5.1, P6.1]
   validator: none
   checksum_required: false
   large_artifact: false
@@ -97,7 +97,9 @@
   notes: Robust ASR configs including reuse_policy_v1.yaml. P5.1 scope-change
          (CHANGE_SCOPE 45b6cac) authorizes writing configs/robust_asr/pricing_v1.yaml
          and appending the assemblyai backend_endpoints entry to
-         configs/robust_asr/eval_manifests_v1.yaml.
+         configs/robust_asr/eval_manifests_v1.yaml. P6.1 scope-change
+         (CHANGE_SCOPE 9ffc885) authorizes writing
+         configs/robust_asr/router_v1.yaml (deterministic-selector config).
 
 # Specific override of configs/robust_asr/** (P5.1 scope-change). New file
 # authored by robust_asr at P5.1 and read by P10.1 (final verification).
@@ -112,6 +114,26 @@
   notes: AssemblyAI pricing config (unit price, max_total_cost_usd,
          assemblyai_pricing_checked_date, source URL). Consumed by
          populate_assemblyai_cache.py and evaluate_assemblyai_from_cache.py.
+
+# Specific override of configs/robust_asr/** (P6.1 scope-change). New file
+# authored by robust_asr at P6.1 (Outcome E selector-evidence path); read by
+# P6.2/P7.1/P7.3 (router/selector packaging) and P10.1 (final verification).
+- path: configs/robust_asr/router_v1.yaml
+  class: active_state
+  permitted_use: read_write
+  allowed_tasks: [P6.1, P6.2, P7.1, P7.3, P10.1]
+  validator: scripts/robust_asr/validate_selector_evidence.py
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: Router / deterministic-selector config. Holds Section 5.4 cost
+         coefficients (alpha, beta, gamma, delta), profile defaults, eligible
+         action set under each profile, ask_repeat_wer_threshold,
+         router_confidence_min, epsilon_wer, and Section 5.5 deterministic-
+         selector constants (ask_repeat_threshold=-1.0, escalate_threshold=-0.5,
+         no_speech_threshold=0.6, health_check_ttl_seconds=300). Consumed by
+         build_selector_evidence_table.py at P6.1 and by the deterministic
+         selector / router package at P7.3.
 
 - path: scripts/robust_asr/**
   class: active_state
@@ -370,19 +392,28 @@
          Distinct from libs/audio/metrics.py (training profile), which remains
          read-only.
 
-# P1.2 scope-change override for libs/common/versions.py. The file already
-# exists under the libs/common/** read_only default; P1.2 may append the
-# NORMALIZATION_VERSION constant only. Existing constants must be preserved.
+# P1.2 + P6.1 scope-change overrides for libs/common/versions.py. The file
+# already exists under the libs/common/** read_only default; authorized tasks
+# may append a narrow constant only. Existing constants must be preserved.
+#   - P1.2 (CHANGE_SCOPE before P1.2 implementation) authorized appending
+#     NORMALIZATION_VERSION; sentinel NORMALIZATION_VERSION_constant_present.
+#   - P6.1 (CHANGE_SCOPE 9ffc885) authorizes appending
+#     DETERMINISTIC_SELECTOR_VERSION; sentinel
+#     DETERMINISTIC_SELECTOR_VERSION_constant_present.
+# METRICS_VERSION, DEGRADATION_VERSION, ENHANCER_VERSION, FEATURES_VERSION,
+# ROUTER_VERSION, LORA_VERSION must remain unchanged.
 - path: libs/common/versions.py
   class: existing_runtime_code
   permitted_use: append_constants_only
-  allowed_tasks: [P1.2]
-  validator: NORMALIZATION_VERSION_constant_present
+  allowed_tasks: [P1.2, P6.1]
+  validator: NORMALIZATION_VERSION_constant_present AND DETERMINISTIC_SELECTOR_VERSION_constant_present
   checksum_required: true
   large_artifact: false
   commit_allowed: true
-  notes: P1.2 appends NORMALIZATION_VERSION; METRICS_VERSION, DEGRADATION_VERSION,
-         ENHANCER_VERSION must remain unchanged.
+  notes: P1.2 appended NORMALIZATION_VERSION; P6.1 appends
+         DETERMINISTIC_SELECTOR_VERSION (e.g. "deterministic_selector_v1")
+         only. METRICS_VERSION, DEGRADATION_VERSION, ENHANCER_VERSION must
+         remain unchanged.
 
 - path: libs/observability/**
   class: implementation_reuse
