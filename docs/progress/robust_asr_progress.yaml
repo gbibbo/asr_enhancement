@@ -2,8 +2,8 @@ project: robust_asr_lora_router
 branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
-current_phase: P7
-current_task: P7_GATE
+current_phase: P8
+current_task: P8.1
 last_completed_task: P7.3
 
 blocked: false
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: null
+      phase: P7
+      decision: PHASE_APPROVE
+      accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6
+      next_expected_task: P8.1
+      required_fix: null
+      rationale: "P7 phase gate PASS on Branch B deterministic selector packaging. OUTCOME_E_DETERMINISTIC_SELECTOR is active; P7.3 is PASS; P7.1 and P7.2 are SKIPPED_BY_OUTCOME_E; selected_router/deterministic_selector.json and rp5_inference.py exist; test_router_runtime passed; selector_final_eval.md declares NEUTRAL_EVIDENCE and claims_enabled.positive_system remains pending."
+  prior_approval_packet_p7_3_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P7.3
@@ -659,7 +669,7 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6
-  expected_next_task: P7_GATE
+  expected_next_task: P8.1
   last_tracker_mismatch: null
 
 phase_summary:
@@ -670,7 +680,7 @@ phase_summary:
   P4: null
   P5: PASS
   P6: PASS
-  P7: null
+  P7: PASS
   P8: null
   P9: null
   P10: null
@@ -683,7 +693,7 @@ orchestrator_approvals:
   P4: null
   P5: PHASE_APPROVE
   P6: PHASE_APPROVE
-  P7: null
+  P7: PHASE_APPROVE
   P8: null
   P9: null
   P10: null
@@ -1176,6 +1186,20 @@ decisions:
     enacted_at: P6_GATE
     decided_at_task: P6_GATE
     p7_skips_enacted: [P7.1, P7.2]
+  P7_routing:
+    branch: B_deterministic_selector
+    outcome_e_carried_forward: true
+    enacted_at: P7_GATE
+    decided_at_task: P7_GATE
+    predicate_inputs:
+      outcome_e_active: true
+      P7_1_status: SKIPPED_BY_OUTCOME_E
+      P7_2_status: SKIPPED_BY_OUTCOME_E
+      P7_3_status: PASS
+      deterministic_selector_json_exists: true
+      rp5_inference_py_exists: true
+      test_router_runtime_pytest: PASS_13_of_13
+    rule_reference: "agent_plan_v3_4_7 §2661-§2669 (P7 gate Branch B); §2672 routing -> P8.1"
 
 tasks:
   P0.0:
@@ -2604,3 +2628,33 @@ tasks:
     next_task: P7_GATE
     blocker: null
     notes: "P7.3 PASS — Outcome E Branch B (deterministic selector packaging). Scope-change commit 394df2d2778e0f7204aba8155fa66e2eea8cb1a9 binds reuse_policy_v1.yaml (tests/robust_asr/** allowed_tasks += P7.3) and touch_policy.md (P7.3 row rewritten). Implementation produces scripts/robust_asr/package_deterministic_selector.py (sha256 969c3af2…), scripts/robust_asr/evaluate_deterministic_selector.py (sha256 fa6e2623…), tests/robust_asr/test_router_runtime.py (sha256 fffed034…; 13 tests PASS), and the selected_router package: deterministic_selector.json (sha256 41d19421…), metadata.json (sha256 93dfd0cc…), rp5_inference.py (sha256 62f0caab…; stdlib-only), test_vectors.json (sha256 e57fc83e…; 20 tuples covering every Section 5.5 branch). reports/robust_asr/router/selector_final_eval.md (sha256 8a67872b…) declares NEUTRAL_EVIDENCE on line 1. Eval over 53,230 rows: parity_mismatches=0; baseline_rate=99.9474%; ask_repeat_rate=0.0526%; cloud_call_rate=0% (no AssemblyAI calls; BLOCKED_API); local_only_rate=100%; mean WER selector = mean WER baseline = 0.209797; mean WA = 0.836701; mean local-decode latency = 195.536 ms; cost = $0.00; mean_regret_wer = 0; paired BCa 95% CI = [0,0] with percentile_fallback (degenerate; ask_repeat rows had baseline_wer=1.0 already); Wilcoxon undefined (n=0 nonzero deltas). claims_enabled.positive_system stays pending (NOT enabled). selected_router/ contains no audio, model weights, secrets, API keys, or binary checkpoint files (asserted by the packager and by test_selected_router_has_no_forbidden_artifacts). current_task advanced P7.3 -> P7_GATE; last_completed_task advanced P6.1 -> P7.3; router_status SELECTOR_EVIDENCE_BUILT -> SELECTOR_PACKAGED. state_transport.last_accepted_report_commit STAYS 64413500094b79a160fbcb179b432fd6ccdaf80f per orchestrator instruction (NOT advanced to this P7.3 implementation commit, matching P5.1/P6.1 pattern). state_transport.expected_next_task=P7_GATE. Markers held: BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR. claims_enabled.ood_real=false, .cloud_tradeoff=false, .positive_lora=false, .positive_system=pending held. No Slurm submission, no AssemblyAI call, no LoRA call. P7_GATE not started. P8.1 not started."
+  P7_GATE:
+    status: PASS
+    commit: pending_this_phase_gate_commit
+    routing_branch: "P7 gate Branch B (OUTCOME_E deterministic selector)"
+    predicate_inputs:
+      outcome_e_active: true
+      P7_1_status: SKIPPED_BY_OUTCOME_E
+      P7_2_status: SKIPPED_BY_OUTCOME_E
+      P7_3_status: PASS
+      deterministic_selector_sha256: 41d194218b52c13b795d782eb92c381ac3eaa696f56fd217cab43e6a059df3fd
+      rp5_inference_sha256: 62f0caab558dbd26dd63e9cdf3c931831b527a0ec9f520811d145e7408378427
+      test_router_runtime_pytest: PASS_13_of_13
+    enacted_skips: []
+    files_changed:
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml/md/state_capsule: phase_summary.P7=PASS; orchestrator_approvals.P7=PHASE_APPROVE; current_phase=P7->P8; current_task=P7_GATE->P8.1; decisions.P7_routing recorded; latest_approval_packet=PHASE_APPROVE(P7) on d009c318…; APPROVE_EXECUTION(P7.3) demoted to prior_approval_packet_p7_3_exec; state_transport.expected_next_task=P8.1; state_transport.last_accepted_report_commit held at d009c318…"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "P7 phase gate PASS per agent plan §2661-§2669 via Branch B (deterministic selector)"
+      - "OUTCOME_E_DETERMINISTIC_SELECTOR remains active; routing advances to P8.1 (§2672)"
+      - "current_task advanced P7_GATE -> P8.1; last_completed_task held at P7.3 (PHASE_APPROVE(P7) recorded on the P7.3 acceptance commit does not itself advance last_completed_task, matching P0/P1/P2/P3/P5/P6 pattern)"
+      - "BLOCKED_OOD_PUBLIC NOT cleared; BLOCKED_API NOT cleared; OUTCOME_E_DETERMINISTIC_SELECTOR NOT cleared; all non-blocking / routing markers held"
+      - "state_transport.last_accepted_report_commit STAYS d009c318acd99041de3175af26b91df2adddffa6 per orchestrator instruction (PHASE_APPROVE recorded against the P7.3 acceptance commit; not advanced by the phase-gate commit itself)"
+    marker: null
+    next_task: P8.1
+    blocker: null
+    notes: "P7 PHASE_APPROVE recorded against commit d009c318acd99041de3175af26b91df2adddffa6 (the P7.3 acceptance commit). Routing enacted per agent plan §2661-§2672 P7 Branch B for OUTCOME_E_DETERMINISTIC_SELECTOR: phase_summary.P7=PASS; orchestrator_approvals.P7=PHASE_APPROVE; decisions.P7_routing.branch=B_deterministic_selector; decisions.P7_routing.outcome_e_carried_forward=true; decisions.P7_routing.enacted_at=P7_GATE. Next task = P8.1 (system evaluation and Decision D). BLOCKED_OOD_PUBLIC held non-blocking; BLOCKED_API held non-blocking; OUTCOME_E_DETERMINISTIC_SELECTOR held as the active outcome. claims_enabled.ood_real=false held; claims_enabled.cloud_tradeoff=false held; claims_enabled.positive_lora=false held; claims_enabled.positive_system=pending held (set only by P8.1 per §5.6); lora_status=SKIPPED_BY_DECISION_A held; deterministic_selector_version=deterministic_selector_v1 held; router_status=SELECTOR_PACKAGED held. No code, no test, no Slurm submission, no real-provider call for this update. Only tracker files modified. P8.1 not started."
