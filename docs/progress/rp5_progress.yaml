@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-00
-last_completed_task: B13.1
+current_task: BR-01
+last_completed_task: BR-00
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -14,11 +14,34 @@ human_action_requests:
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
-  latest_planning_report_path: null
-  latest_execution_report_path: null
+  latest_planning_report_path: reports/rp5/broute_plan_compile.md
+  latest_execution_report_path: reports/rp5/broute_plan_compile.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: null
-  expected_next_task: BR-00
+  latest_approval_packet_path: reports/rp5/broute_br00_approval_packet.yaml
+  expected_next_task: BR-01
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
+tasks:
+  BR-00:
+    task_id: BR-00
+    status: PASS
+    commit: 5a765949c08da66509c7e17a68ee30efceea7eb9
+    files_changed:
+      - scripts/rp5/validate_plan_compiles.py
+      - scripts/rp5/fixtures/generate_fixture_validate_plan_compiles.py
+      - scripts/rp5/validate_changed_files_against_path_locks.py
+      - scripts/rp5/fixtures/generate_fixture_validate_changed_files_against_path_locks.py
+      - reports/rp5/broute_plan_compile.md
+    commands_run:
+      - "python3 scripts/rp5/validate_plan_compiles.py --plan-dir docs/plans/broute --out reports/rp5/broute_plan_compile.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_plan_compiles.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_plan_compiles_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_changed_files_against_path_locks.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_changed_files_against_path_locks_manifest.json"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_FIXTURE_VALIDATE_PLAN_COMPILES
+      - OK_FIXTURE_VALIDATE_CHANGED_FILES_AGAINST_PATH_LOCKS
+      - OK_CHANGED_FILES_PATH_LOCKED
+    marker: null
+    next_task: BR-01
