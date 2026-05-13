@@ -3,14 +3,14 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P7
-current_task: P7.3
-last_completed_task: P6.1
+current_task: P7_GATE
+last_completed_task: P7.3
 
 blocked: false
 blocker: null
 
 lora_status: SKIPPED_BY_DECISION_A
-router_status: SELECTOR_EVIDENCE_BUILT
+router_status: SELECTOR_PACKAGED
 system_status: NOT_STARTED
 
 normalization_version: normalization_v1
@@ -49,6 +49,26 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P7.3
+      phase: P7
+      decision: APPROVE_PLAN
+      accepted_report_commit: 394df2d2778e0f7204aba8155fa66e2eea8cb1a9
+      next_expected_task: P7_GATE
+      required_fix: null
+      rationale: "P7.3 plan approved on the P7.3 scope-change commit 394df2d. Implement scripts/robust_asr/package_deterministic_selector.py, scripts/robust_asr/evaluate_deterministic_selector.py, tests/robust_asr/test_router_runtime.py, the artifacts/robust_asr/router/selected_router/ package (deterministic_selector.json, metadata.json, rp5_inference.py, test_vectors.json), reports/robust_asr/router/selector_final_eval.md, and reports/robust_asr/task_reports/P7.3_router_package.md. selector_final_eval.md must declare NEUTRAL_EVIDENCE on its first line and must not enable claims_enabled.positive_system. Do not advance last_accepted_report_commit to the P7.3 implementation commit. Do not start P7_GATE."
+  prior_approval_packet_p7_3_scope_exec:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P7.3-scope-change
+      phase: P7
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 394df2d2778e0f7204aba8155fa66e2eea8cb1a9
+      next_expected_task: P7.3
+      required_fix: null
+      rationale: "P7.3 scope-change accepted on the packet-recording commit 394df2d. reuse_policy_v1.yaml (tests/robust_asr/** += P7.3) and touch_policy.md (P7.3 row rewritten to authorize scripts, runtime test, selector_final_eval.md, and selected_router/** writes plus the corresponding reads) are now binding. Policy sha256s recorded in artifacts.reuse_policy_config.sha256 and artifacts.touch_policy.sha256 with last_amended_by=P7.3_scope_change."
+  prior_approval_packet_p7_3_change_scope:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P7.3
@@ -1040,8 +1060,38 @@ artifacts:
     produced_by_task: P6.2
   router_package:
     path: artifacts/robust_asr/router/selected_router
-    sha256: null
-    kind: null
+    sha256: 41d194218b52c13b795d782eb92c381ac3eaa696f56fd217cab43e6a059df3fd
+    kind: deterministic_selector
+    produced_by_task: P7.3
+    contents:
+      deterministic_selector_json: 41d194218b52c13b795d782eb92c381ac3eaa696f56fd217cab43e6a059df3fd
+      metadata_json: 93dfd0cc2b385d4859cb6c723664fbf1cb4876e27c513590d3f8842d915ff924
+      rp5_inference_py: 62f0caab558dbd26dd63e9cdf3c931831b527a0ec9f520811d145e7408378427
+      test_vectors_json: e57fc83e8e19763389a02e9aa6798e3e70026f7a2c041162fa33a3dec732739d
+  package_deterministic_selector_script:
+    path: scripts/robust_asr/package_deterministic_selector.py
+    sha256: 969c3af202407bbb686e6de83869173a8e8b06958afb2eae7f63c3a58c86ddf1
+    produced_by_task: P7.3
+    last_emit: OK_DETERMINISTIC_SELECTOR_PACKAGE
+  evaluate_deterministic_selector_script:
+    path: scripts/robust_asr/evaluate_deterministic_selector.py
+    sha256: fa6e2623815c9e47b279aeaceb577fd24ed9b7e1da668945fc92bc735a4a10d2
+    produced_by_task: P7.3
+    last_emit: OK_SELECTOR_FINAL_EVAL
+  test_router_runtime:
+    path: tests/robust_asr/test_router_runtime.py
+    sha256: fffed034964fecaeb3519ef65f8f963eeed4828c9ca311d712c985c710784514
+    produced_by_task: P7.3
+    pytest_tests_passed: 13
+    pytest_tests_total: 13
+  selector_final_eval:
+    path: reports/robust_asr/router/selector_final_eval.md
+    sha256: 8a67872b64b28430576a719d4d7d9189aebda57ce88bb8e62ed625094c654ecf
+    produced_by_task: P7.3
+    first_line: "NEUTRAL_EVIDENCE: positive_system=pending"
+  P7_3_task_report:
+    path: reports/robust_asr/task_reports/P7.3_router_package.md
+    sha256: null   # filled at commit time
     produced_by_task: P7.3
   system_eval_report:
     path: reports/robust_asr/system/system_eval.md
@@ -2453,11 +2503,62 @@ tasks:
     next_task: P7.3
     rationale: "OUTCOME_E_DETERMINISTIC_SELECTOR active; no router candidates exist to select from (P6.2 SKIPPED_BY_OUTCOME_E and P7.1 SKIPPED_BY_OUTCOME_E). Agent plan §312 and §2664-§2665 route P7.2 to SKIPPED_BY_OUTCOME_E at the P6 gate so that the P7 gate Branch B predicate holds when P7.3 completes."
   P7.3:
-    status: IN_PROGRESS
-    implementation_status: NOT_STARTED
+    status: PASS
+    branch: B_deterministic_selector
+    implementation_status: COMPLETE
+    commit: pending_this_p7_3_implementation_commit
+    sentinels:
+      - OK_DETERMINISTIC_SELECTOR_PACKAGE
+      - OK_SELECTOR_FINAL_EVAL
+      - OK_REPORT_SHAPE
+      - pytest_tests/robust_asr_137/137
+    package_files:
+      deterministic_selector_json:
+        sha256: 41d194218b52c13b795d782eb92c381ac3eaa696f56fd217cab43e6a059df3fd
+        size_bytes: 845
+      metadata_json:
+        sha256: 93dfd0cc2b385d4859cb6c723664fbf1cb4876e27c513590d3f8842d915ff924
+        size_bytes: 1751
+      rp5_inference_py:
+        sha256: 62f0caab558dbd26dd63e9cdf3c931831b527a0ec9f520811d145e7408378427
+        size_bytes: 2820
+      test_vectors_json:
+        sha256: e57fc83e8e19763389a02e9aa6798e3e70026f7a2c041162fa33a3dec732739d
+        size_bytes: 5794
+    eval_summary:
+      rows: 53230
+      parity_mismatches: 0
+      baseline_rate: 0.999474
+      ask_repeat_rate: 0.000526
+      cloud_call_rate: 0.0
+      local_only_rate: 1.0
+      transcript_emitted_rate: 0.999474
+      mean_wer_baseline: 0.209797
+      mean_wer_selector: 0.209797
+      mean_wa_baseline: 0.836701
+      mean_wa_selector: 0.836701
+      mean_local_decode_latency_ms: 195.536
+      cost_usd_total: 0.0
+      mean_regret_wer: 0.0
+      paired_bca_95pct_ci: [0.0, 0.0]
+      bootstrap_method: percentile_fallback
+      bootstrap_iterations: 10000
+      bootstrap_seed: 20260514
+      wilcoxon_n_nonzero: 0
+      neutral_evidence: true
+      positive_system_claim_enabled: false
     files_changed:
       - configs/robust_asr/reuse_policy_v1.yaml
       - reports/robust_asr/touch_policy.md
+      - scripts/robust_asr/package_deterministic_selector.py
+      - scripts/robust_asr/evaluate_deterministic_selector.py
+      - tests/robust_asr/test_router_runtime.py
+      - artifacts/robust_asr/router/selected_router/deterministic_selector.json
+      - artifacts/robust_asr/router/selected_router/metadata.json
+      - artifacts/robust_asr/router/selected_router/rp5_inference.py
+      - artifacts/robust_asr/router/selected_router/test_vectors.json
+      - reports/robust_asr/router/selector_final_eval.md
+      - reports/robust_asr/task_reports/P7.3_router_package.md
       - docs/progress/robust_asr_progress.yaml
       - docs/progress/robust_asr_progress.md
       - docs/progress/robust_asr_state_capsule.md
@@ -2480,8 +2581,14 @@ tasks:
       - "Edit docs/progress/robust_asr_progress.{yaml,md}, docs/progress/robust_asr_state_capsule.md: record CHANGE_SCOPE(P7.3) packet; demote PHASE_APPROVE(P6) to prior_approval_packet_p6_phase; update reuse_policy_config and touch_policy sha256s with last_amended_by=P7.3_scope_change"
       - "sha256sum configs/robust_asr/reuse_policy_v1.yaml reports/robust_asr/touch_policy.md"
       - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures -> OK_REPORT_SHAPE"
-      - "git add ...; git commit; git push"
+      - "git commit (scope-change) -> 394df2d; git push -> origin"
+      - "python3 scripts/robust_asr/package_deterministic_selector.py --selector-config configs/robust_asr/router_v1.yaml --out artifacts/robust_asr/router/selected_router -> OK_DETERMINISTIC_SELECTOR_PACKAGE"
+      - "python3 scripts/robust_asr/evaluate_deterministic_selector.py --selector artifacts/robust_asr/router/selected_router/deterministic_selector.json --selector-test artifacts/robust_asr/router/selector_evidence.parquet --out reports/robust_asr/router/selector_final_eval.md -> OK_SELECTOR_FINAL_EVAL"
+      - "python3 -m pytest tests/robust_asr/test_router_runtime.py -q -> 13 passed"
+      - "python3 -m pytest tests/robust_asr -q -> 137 passed"
+      - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures -> OK_REPORT_SHAPE"
+      - "git add ...; git commit (implementation); git push"
     marker: null
-    next_task: P7.3
+    next_task: P7_GATE
     blocker: null
-    notes: "P7.3 scope-change only; implementation not started. CHANGE_SCOPE(P7.3) packet recorded against e9ebbfe (the P6 phase gate approval commit, current HEAD prior to this scope-change commit). reuse_policy_v1.yaml and touch_policy.md amendments authorize the deterministic selector packaging path (scripts/robust_asr/package_deterministic_selector.py, scripts/robust_asr/evaluate_deterministic_selector.py, tests/robust_asr/test_router_runtime.py, artifacts/robust_asr/router/selected_router/**, reports/robust_asr/router/selector_final_eval.md) and corresponding reads (router_v1.yaml, selector_evidence.parquet, selector_evidence_summary.md, libs/common/{versions,normalization,metrics}.py, validate_report_shape.py). Policy sha256s recorded with last_amended_by=P7.3_scope_change. current_phase=P7 held; current_task=P7.3 held; last_completed_task=P6.1 held; tasks.P7.1=SKIPPED_BY_OUTCOME_E and tasks.P7.2=SKIPPED_BY_OUTCOME_E held; markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; blocked=false held; claims_enabled.ood_real=false, .cloud_tradeoff=false, .positive_lora=false, .positive_system=pending held; router_status=SELECTOR_EVIDENCE_BUILT held; deterministic_selector_version=deterministic_selector_v1 held; state_transport.last_accepted_report_commit=64413500094b79a160fbcb179b432fd6ccdaf80f held per orchestrator instruction (NOT advanced to this scope-change commit, matching P5.1/P6.1 pattern); state_transport.expected_next_task=P7.3 held. No code, no test, no Slurm submission, no real-provider call. Only policy and tracker files modified."
+    notes: "P7.3 PASS — Outcome E Branch B (deterministic selector packaging). Scope-change commit 394df2d2778e0f7204aba8155fa66e2eea8cb1a9 binds reuse_policy_v1.yaml (tests/robust_asr/** allowed_tasks += P7.3) and touch_policy.md (P7.3 row rewritten). Implementation produces scripts/robust_asr/package_deterministic_selector.py (sha256 969c3af2…), scripts/robust_asr/evaluate_deterministic_selector.py (sha256 fa6e2623…), tests/robust_asr/test_router_runtime.py (sha256 fffed034…; 13 tests PASS), and the selected_router package: deterministic_selector.json (sha256 41d19421…), metadata.json (sha256 93dfd0cc…), rp5_inference.py (sha256 62f0caab…; stdlib-only), test_vectors.json (sha256 e57fc83e…; 20 tuples covering every Section 5.5 branch). reports/robust_asr/router/selector_final_eval.md (sha256 8a67872b…) declares NEUTRAL_EVIDENCE on line 1. Eval over 53,230 rows: parity_mismatches=0; baseline_rate=99.9474%; ask_repeat_rate=0.0526%; cloud_call_rate=0% (no AssemblyAI calls; BLOCKED_API); local_only_rate=100%; mean WER selector = mean WER baseline = 0.209797; mean WA = 0.836701; mean local-decode latency = 195.536 ms; cost = $0.00; mean_regret_wer = 0; paired BCa 95% CI = [0,0] with percentile_fallback (degenerate; ask_repeat rows had baseline_wer=1.0 already); Wilcoxon undefined (n=0 nonzero deltas). claims_enabled.positive_system stays pending (NOT enabled). selected_router/ contains no audio, model weights, secrets, API keys, or binary checkpoint files (asserted by the packager and by test_selected_router_has_no_forbidden_artifacts). current_task advanced P7.3 -> P7_GATE; last_completed_task advanced P6.1 -> P7.3; router_status SELECTOR_EVIDENCE_BUILT -> SELECTOR_PACKAGED. state_transport.last_accepted_report_commit STAYS 64413500094b79a160fbcb179b432fd6ccdaf80f per orchestrator instruction (NOT advanced to this P7.3 implementation commit, matching P5.1/P6.1 pattern). state_transport.expected_next_task=P7_GATE. Markers held: BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR. claims_enabled.ood_real=false, .cloud_tradeoff=false, .positive_lora=false, .positive_system=pending held. No Slurm submission, no AssemblyAI call, no LoRA call. P7_GATE not started. P8.1 not started."

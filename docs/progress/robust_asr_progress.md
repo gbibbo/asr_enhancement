@@ -7,8 +7,9 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P7 (router / deterministic selector packaging)
-- Current task: P7.3 (package deterministic selector under OUTCOME_E)
-- Last completed: P6.1 (PASS — selector-evidence path; PHASE_APPROVE(P6) recorded against the same P6.1 acceptance commit and does not itself advance last_completed_task)
+- Current task: P7_GATE (P7 phase gate, Branch B — deterministic selector)
+- Last completed: P7.3 (PASS — deterministic selector packaged under OUTCOME_E Branch B)
+- Prior completed: P6.1 (PASS — selector-evidence path; PHASE_APPROVE(P6) recorded against the same P6.1 acceptance commit and does not itself advance last_completed_task)
 - Prior completed: P5.1 (HALTED — BLOCKED_API reason=key_unset)
 - Prior completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL)
 - Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS, P5=PASS, P6=PASS
@@ -25,13 +26,16 @@ Status: IN_PROGRESS
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f (held at the P6.1 acceptance commit; PHASE_APPROVE(P6) was recorded against this commit and does not itself advance it, matching the P0/P1/P2/P3/P5 pattern)
-- state_transport.expected_next_task: P7.3
+- state_transport.last_accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f (held at the P6.1 acceptance commit; not advanced through the P6 phase gate, the P7.3 scope-change, or the P7.3 implementation per orchestrator instruction)
+- state_transport.expected_next_task: P7_GATE
 - deterministic_selector_version: deterministic_selector_v1 (frozen at P6.1)
-- router_status: SELECTOR_EVIDENCE_BUILT
+- router_status: SELECTOR_PACKAGED
 - tasks.P6.1.status: PASS (branch B selector-evidence)
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
-- latest_approval_packet: CHANGE_SCOPE(P7.3) on `e9ebbfe` (next P7.3)
+- tasks.P7.3.status: PASS (branch B_deterministic_selector; next_task P7_GATE)
+- latest_approval_packet: APPROVE_PLAN(P7.3) on `394df2d` (next P7_GATE)
+- prior_approval_packet_p7_3_scope_exec: APPROVE_EXECUTION(P7.3-scope-change) on `394df2d` (next P7.3)
+- prior_approval_packet_p7_3_change_scope: CHANGE_SCOPE(P7.3) on `e9ebbfe` (next P7.3)
 - prior_approval_packet_p6_phase: PHASE_APPROVE(P6) on `6441350` (next P7.3)
 - prior_approval_packet_p6_1_exec: APPROVE_EXECUTION(P6.1) on `6441350` (next P6_GATE)
 - prior_approval_packet_p6_1_plan: APPROVE_PLAN(P6.1) on `4a9f929` (next P6_GATE)
@@ -62,6 +66,108 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P7.3 PASS — deterministic selector packaged (Outcome E, Branch B)
+
+- ORCHESTRATOR_DECISION (current `latest_approval_packet`):
+  scope=task task=P7.3 phase=P7 decision=APPROVE_PLAN
+  accepted_report_commit=`394df2d2778e0f7204aba8155fa66e2eea8cb1a9`
+  next_expected_task=`P7_GATE` required_fix=null.
+- Sentinels emitted: `OK_DETERMINISTIC_SELECTOR_PACKAGE`,
+  `OK_SELECTOR_FINAL_EVAL`, `OK_REPORT_SHAPE`,
+  `pytest tests/robust_asr` 137 passed (incl. the 13 new
+  `test_router_runtime.py` cases).
+- Files created:
+  - `scripts/robust_asr/package_deterministic_selector.py`
+    (sha256 `969c3af202407bbb686e6de83869173a8e8b06958afb2eae7f63c3a58c86ddf1`).
+  - `scripts/robust_asr/evaluate_deterministic_selector.py`
+    (sha256 `fa6e2623815c9e47b279aeaceb577fd24ed9b7e1da668945fc92bc735a4a10d2`).
+  - `tests/robust_asr/test_router_runtime.py`
+    (sha256 `fffed034964fecaeb3519ef65f8f963eeed4828c9ca311d712c985c710784514`;
+    13 tests PASS).
+  - `artifacts/robust_asr/router/selected_router/deterministic_selector.json`
+    (sha256 `41d194218b52c13b795d782eb92c381ac3eaa696f56fd217cab43e6a059df3fd`;
+    845 B).
+  - `artifacts/robust_asr/router/selected_router/metadata.json`
+    (sha256 `93dfd0cc2b385d4859cb6c723664fbf1cb4876e27c513590d3f8842d915ff924`;
+    1751 B).
+  - `artifacts/robust_asr/router/selected_router/rp5_inference.py`
+    (sha256 `62f0caab558dbd26dd63e9cdf3c931831b527a0ec9f520811d145e7408378427`;
+    2820 B; stdlib-only).
+  - `artifacts/robust_asr/router/selected_router/test_vectors.json`
+    (sha256 `e57fc83e8e19763389a02e9aa6798e3e70026f7a2c041162fa33a3dec732739d`;
+    5794 B; 20 tuples covering every Section 5.5 branch).
+  - `reports/robust_asr/router/selector_final_eval.md`
+    (sha256 `8a67872b64b28430576a719d4d7d9189aebda57ce88bb8e62ed625094c654ecf`;
+    first line declares **NEUTRAL_EVIDENCE**).
+  - `reports/robust_asr/task_reports/P7.3_router_package.md`.
+- Forbidden files asserted absent under
+  `artifacts/robust_asr/router/selected_router/`: no
+  `*.wav/*.flac/*.mp3/*.m4a`, no `*.pt/*.pth/*.ckpt/*.bin/*.safetensors`,
+  no `.env/.env.*/*.key/*.pem/*.token`.
+
+### Selector final evaluation (n = 53 230)
+
+- Predicate parity vs the parquet-recorded `selected_action`:
+  **0 / 53 230 mismatches**.
+- `selected_action` distribution: `whisper_base_ct2_int8` 53 202
+  (99.9474 %), `ask_repeat` 28 (0.0526 %), `assemblyai` 0,
+  `whisper_lora_ct2_int8` 0.
+- `cloud_call_rate` = 0.00 %; `local_only_rate` = 100.00 %; total
+  cost = $0.00.
+- Mean WER (selector) = mean WER (always-`whisper_base_ct2_int8`) =
+  0.209797; mean WA = 0.836701.
+- `mean_regret_wer` = 0; paired BCa 95 % CI = [0, 0] (10 000
+  iterations, seed 20260514, percentile_fallback because all 28
+  `ask_repeat` rows already have `baseline_wer = 1.0`); Wilcoxon
+  undefined (n = 0 nonzero deltas).
+- Per agent plan §1664-§1665 and §5.6, this is **NEUTRAL EVIDENCE**;
+  `claims_enabled.positive_system` stays `pending`. The selector
+  under OUTCOME_E is not making a positive system claim.
+
+### Tracker mutations
+
+- `tasks.P7.3.status` = `PASS`;
+  `tasks.P7.3.branch` = `B_deterministic_selector`;
+  `tasks.P7.3.next_task` = `P7_GATE`;
+  `tasks.P7.3.sentinels` =
+  `[OK_DETERMINISTIC_SELECTOR_PACKAGE, OK_SELECTOR_FINAL_EVAL,
+   OK_REPORT_SHAPE, pytest_tests/robust_asr_137/137]`.
+- `current_task` advanced `P7.3 -> P7_GATE`;
+  `last_completed_task` advanced `P6.1 -> P7.3`.
+- `router_status` = `SELECTOR_EVIDENCE_BUILT -> SELECTOR_PACKAGED`.
+- `artifacts.router_package` = `{kind: deterministic_selector,
+  sha256 (selector json): 41d19421…}` plus per-file sha256s; new
+  artifact entries for the two scripts, the runtime test, and the
+  final eval report.
+- `state_transport.latest_approval_packet` = `APPROVE_PLAN(P7.3)` on
+  `394df2d`; prior `APPROVE_EXECUTION(P7.3-scope-change)` demoted to
+  `prior_approval_packet_p7_3_scope_exec` on `394df2d`; prior
+  `CHANGE_SCOPE(P7.3)` demoted to
+  `prior_approval_packet_p7_3_change_scope` on `e9ebbfe`;
+  `PHASE_APPROVE(P6)` held as `prior_approval_packet_p6_phase`.
+- `state_transport.last_accepted_report_commit` held at
+  `64413500094b79a160fbcb179b432fd6ccdaf80f` per orchestrator
+  instruction (NOT advanced to this P7.3 implementation commit,
+  matching the P5.1 / P6.1 pattern).
+- `state_transport.expected_next_task` = `P7_GATE`.
+- Markers `[BLOCKED_OOD_PUBLIC, BLOCKED_API,
+  OUTCOME_E_DETERMINISTIC_SELECTOR]` held; `blocked = false`;
+  `claims_enabled.ood_real = false`, `.cloud_tradeoff = false`,
+  `.positive_lora = false`, `.positive_system = pending` (all held);
+  `deterministic_selector_version = deterministic_selector_v1` held;
+  `lora_status = SKIPPED_BY_DECISION_A` held.
+
+### Notes
+
+- No Slurm submission, no Apptainer GPU, no AssemblyAI call, no
+  LoRA call. CPU-only login-node task under CLAUDE.md §7.
+- `rp5_inference.py` is stdlib-only and loads its constants from
+  the sibling `deterministic_selector.json` at runtime, so the
+  packaged metadata is the single source of truth. Drift between
+  `router_v1.yaml` and the packaged constants would be caught by
+  `test_metadata_file_sha256s_match_on_disk`.
+- P7_GATE not started. P8.1 not started.
 
 ## P7.3 CHANGE_SCOPE recorded — deterministic selector packaging
 

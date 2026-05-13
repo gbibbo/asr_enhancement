@@ -1,0 +1,53 @@
+{
+  "ask_repeat_supported": true,
+  "build": {
+    "host": "datamove1.surrey.ac.uk",
+    "user": "gb0048",
+    "utc": "2026-05-13T23:17:42+00:00"
+  },
+  "claims_enabled_at_build": {
+    "cloud_tradeoff": false,
+    "ood_real": false,
+    "positive_lora": false,
+    "positive_system": "pending"
+  },
+  "cloud_available_at_build": false,
+  "deployable_backends": [
+    "whisper_base_ct2_int8"
+  ],
+  "deterministic_selector_version": "deterministic_selector_v1",
+  "features_version": null,
+  "files": {
+    "deterministic_selector.json": {
+      "sha256": "41d194218b52c13b795d782eb92c381ac3eaa696f56fd217cab43e6a059df3fd",
+      "size_bytes": 845
+    },
+    "rp5_inference.py": {
+      "sha256": "62f0caab558dbd26dd63e9cdf3c931831b527a0ec9f520811d145e7408378427",
+      "size_bytes": 2820
+    },
+    "test_vectors.json": {
+      "sha256": "e57fc83e8e19763389a02e9aa6798e3e70026f7a2c041162fa33a3dec732739d",
+      "size_bytes": 5794
+    }
+  },
+  "git": {
+    "branch": "feature/robust-asr-lora-router-datamove1-v1",
+    "commit": "394df2d2778e0f7204aba8155fa66e2eea8cb1a9"
+  },
+  "lora_available_at_build": false,
+  "metrics_version": "metrics_v1",
+  "normalization_version": "normalization_v1",
+  "outcome_e_deterministic_selector": true,
+  "router_version": null,
+  "section_reference": "agent_plan_v3_4_7 \u00a71642-\u00a71652 + \u00a74001-\u00a74046 (Branch B)",
+  "selector_config": {
+    "path": "configs/robust_asr/router_v1.yaml",
+    "sha256": "ef9586c8e589436ae074d472d38bc12b417d2043d142d5f74d8d5d75f7de2f98"
+  },
+  "selector_evidence": {
+    "path": "artifacts/robust_asr/router/selector_evidence.parquet",
+    "sha256": "c450a91a37c5967ca196dda0b23d5a2963d9b1e6f5eb07bd3f35084e6f9ae1e7"
+  },
+  "selector_kind": "deterministic_selector"
+}
