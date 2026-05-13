@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-06
-last_completed_task: BR-05
+current_task: BR-07
+last_completed_task: BR-06
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -15,10 +15,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/broute_manual_smoke.md
+  latest_execution_report_path: reports/rp5/broute_router_stub_smoke.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br05_approval_packet.yaml
-  expected_next_task: BR-06
+  latest_approval_packet_path: reports/rp5/broute_br06_approval_packet.yaml
+  expected_next_task: BR-07
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -203,3 +203,28 @@ tasks:
       router_field_scan_scope: "/demo/health, /demo/examples, and /demo/providers/assemblyai/status"
     marker: null
     next_task: BR-06
+  BR-06:
+    task_id: BR-06
+    status: PASS
+    commit: 1fd0e0d311dc7435b41132f91d9fc1315a2b7567
+    files_changed:
+      - scripts/rp5/smoke_broute_router_stub.py
+      - scripts/rp5/fixtures/generate_fixture_validate_broute_e2e_router_stub_smoke.py
+      - reports/rp5/broute_router_stub_smoke.md
+    commands_run:
+      - "python3 scripts/rp5/smoke_broute_router_stub.py --app-module services.api.app.demo_main:app --out reports/rp5/broute_router_stub_smoke.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_broute_e2e_router_stub_smoke.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_broute_e2e_router_stub_smoke_manifest.json"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_BROUTE_ROUTER_STUB_SMOKE
+      - OK_FIXTURE_VALIDATE_BROUTE_E2E_ROUTER_STUB_SMOKE
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "router stub smoke: 18 checks, 0 failures"
+    supplemental_evidence:
+      in_process_testclient_used: true
+      live_uvicorn_used: false
+      port_binding_used: none
+      ephemeral_runtime_root_used: true
+      repo_dependency_or_config_files_changed: false
+    marker: null
+    next_task: BR-07
