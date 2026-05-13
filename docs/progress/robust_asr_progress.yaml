@@ -2,8 +2,8 @@ project: robust_asr_lora_router
 branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
-current_phase: P6
-current_task: P6_GATE
+current_phase: P7
+current_task: P7.3
 last_completed_task: P6.1
 
 blocked: false
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: null
+      phase: P6
+      decision: PHASE_APPROVE
+      accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f
+      next_expected_task: P7.3
+      required_fix: null
+      rationale: "P6 phase gate PASS on Branch B selector-evidence path. P6.1 is PASS, P6.2 is SKIPPED_BY_OUTCOME_E, selector_evidence.parquet exists with 53,230 rows, OK_SELECTOR_EVIDENCE_BUILD, OK_SELECTOR_EVIDENCE, and OK_REPORT_SHAPE were emitted. OUTCOME_E_DETERMINISTIC_SELECTOR remains active, so P7.1 and P7.2 are skipped and routing advances to P7.3."
+  prior_approval_packet_p6_1_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P6.1
@@ -609,7 +619,7 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: 64413500094b79a160fbcb179b432fd6ccdaf80f
-  expected_next_task: P6_GATE
+  expected_next_task: P7.3
   last_tracker_mismatch: null
 
 phase_summary:
@@ -619,7 +629,7 @@ phase_summary:
   P3: PASS
   P4: null
   P5: PASS
-  P6: null
+  P6: PASS
   P7: null
   P8: null
   P9: null
@@ -632,7 +642,7 @@ orchestrator_approvals:
   P3: PHASE_APPROVE
   P4: null
   P5: PHASE_APPROVE
-  P6: null
+  P6: PHASE_APPROVE
   P7: null
   P8: null
   P9: null
@@ -1090,6 +1100,12 @@ decisions:
     deployable_backends: [whisper_base_ct2_int8]
     outcome_e_activated_at_task: P5_GATE
     decided_at_task: P5_GATE
+  P6_routing:
+    branch: B_selector_evidence
+    outcome_e_carried_forward: true
+    enacted_at: P6_GATE
+    decided_at_task: P6_GATE
+    p7_skips_enacted: [P7.1, P7.2]
 
 tasks:
   P0.0:
@@ -2384,3 +2400,45 @@ tasks:
     decided_at_task: P6.1
     next_task: P7.3
     rationale: "OUTCOME_E_DETERMINISTIC_SELECTOR active (deployable transcript-producing backend count = 1); agent plan §3853-§3854 requires P6.1 closure to set tasks.P6.2.status = SKIPPED_BY_OUTCOME_E and route the post-P6_GATE next_task to P7.3 instead of P7.1."
+  P6_GATE:
+    status: PASS
+    commit: pending_this_phase_gate_commit
+    routing_branch: "P6 gate Branch B (OUTCOME_E selector-evidence path)"
+    predicate_inputs:
+      outcome_e_active: true
+      P6_1_status: PASS
+      P6_2_status: SKIPPED_BY_OUTCOME_E
+      selector_evidence_parquet_exists: true
+      selector_evidence_sha256: c450a91a37c5967ca196dda0b23d5a2963d9b1e6f5eb07bd3f35084e6f9ae1e7
+      selector_evidence_rows: 53230
+      validator_sentinel: OK_SELECTOR_EVIDENCE
+    enacted_skips:
+      - "tasks.P7.1.status = SKIPPED_BY_OUTCOME_E (decided_at_task=P6_GATE; next_task=P7.3)"
+      - "tasks.P7.2.status = SKIPPED_BY_OUTCOME_E (decided_at_task=P6_GATE; next_task=P7.3)"
+    files_changed:
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml/md/state_capsule: phase_summary.P6=PASS; orchestrator_approvals.P6=PHASE_APPROVE; current_phase=P6->P7; current_task=P6_GATE->P7.3; decisions.P6_routing recorded; tasks.P7.1=SKIPPED_BY_OUTCOME_E; tasks.P7.2=SKIPPED_BY_OUTCOME_E; latest_approval_packet=PHASE_APPROVE(P6) on 64413500…; APPROVE_EXECUTION(P6.1) demoted to prior_approval_packet_p6_1_exec; state_transport.expected_next_task=P7.3; state_transport.last_accepted_report_commit held at 64413500…"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "P6 phase gate PASS per agent plan §2631-§2636 via Branch B (selector-evidence)"
+      - "OUTCOME_E_DETERMINISTIC_SELECTOR remains active; P7.1 and P7.2 skipped at P6 gate (§312, §2664-§2665); routing advances to P7.3 (§308)"
+      - "current_task advanced P6_GATE -> P7.3; last_completed_task held at P6.1 (PHASE_APPROVE(P6) recorded on the P6.1 acceptance commit does not itself advance last_completed_task, matching P0/P1/P2/P3/P5 pattern)"
+      - "BLOCKED_OOD_PUBLIC NOT cleared; BLOCKED_API NOT cleared; OUTCOME_E_DETERMINISTIC_SELECTOR NOT cleared; all non-blocking / routing markers held"
+      - "state_transport.last_accepted_report_commit STAYS 64413500094b79a160fbcb179b432fd6ccdaf80f per orchestrator instruction (PHASE_APPROVE recorded against the P6.1 acceptance commit; not advanced by the phase-gate commit itself)"
+    marker: null
+    next_task: P7.3
+    blocker: null
+    notes: "P6 PHASE_APPROVE recorded against commit 64413500094b79a160fbcb179b432fd6ccdaf80f (the P6.1 acceptance commit). Routing enacted per Section 8 P6 Branch B for OUTCOME_E_DETERMINISTIC_SELECTOR: phase_summary.P6=PASS; orchestrator_approvals.P6=PHASE_APPROVE; decisions.P6_routing.branch=B_selector_evidence; decisions.P6_routing.outcome_e_carried_forward=true; decisions.P6_routing.enacted_at=P6_GATE; tasks.P7.1=tasks.P7.2=SKIPPED_BY_OUTCOME_E (decided_at_task=P6_GATE, next_task=P7.3). Next task = P7.3 (selector packaging). BLOCKED_OOD_PUBLIC held non-blocking; BLOCKED_API held non-blocking; OUTCOME_E_DETERMINISTIC_SELECTOR held as the active outcome. claims_enabled.ood_real=false held; claims_enabled.cloud_tradeoff=false held; claims_enabled.positive_lora=false held; claims_enabled.positive_system=pending held; lora_status=SKIPPED_BY_DECISION_A held; deterministic_selector_version=deterministic_selector_v1 held; router_status=SELECTOR_EVIDENCE_BUILT held. No code, no test, no Slurm submission, no real-provider call for this update. Only tracker files modified."
+  P7.1:
+    status: SKIPPED_BY_OUTCOME_E
+    decided_at_task: P6_GATE
+    next_task: P7.3
+    rationale: "OUTCOME_E_DETERMINISTIC_SELECTOR active; no ML router candidates trained because the P6.1 selector-evidence path was taken (P6.2 SKIPPED_BY_OUTCOME_E). Agent plan §312 and §2664-§2665 route P7.1 to SKIPPED_BY_OUTCOME_E at the P6 gate so that the P7 gate Branch B predicate holds when P7.3 completes."
+  P7.2:
+    status: SKIPPED_BY_OUTCOME_E
+    decided_at_task: P6_GATE
+    next_task: P7.3
+    rationale: "OUTCOME_E_DETERMINISTIC_SELECTOR active; no router candidates exist to select from (P6.2 SKIPPED_BY_OUTCOME_E and P7.1 SKIPPED_BY_OUTCOME_E). Agent plan §312 and §2664-§2665 route P7.2 to SKIPPED_BY_OUTCOME_E at the P6 gate so that the P7 gate Branch B predicate holds when P7.3 completes."
