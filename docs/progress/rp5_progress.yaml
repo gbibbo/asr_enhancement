@@ -14,10 +14,10 @@ human_action_requests:
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
-  latest_planning_report_path: reports/rp5/broute_cache_key_contract.md
-  latest_execution_report_path: reports/rp5/broute_cache_key_contract.md
+  latest_planning_report_path: reports/rp5/broute_frontend_validator_materialization_gap.md
+  latest_execution_report_path: reports/rp5/broute_frontend_validator_materialization_gap.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br03_approval_packet.yaml
+  latest_approval_packet_path: reports/rp5/broute_br04_recovery_approval_packet.yaml
   expected_next_task: BR-04
 decisions:
   broute_mode_default: manual
@@ -33,6 +33,17 @@ recovery_log:
       - "AFTER_FIX: PL-BR-API-DEMO"
       - OK_CHANGED_FILES_PATH_LOCKED
     next_task: BR-02
+  RP-VALIDATOR-MATERIALIZATION-GAP-BR04:
+    status: PASS
+    marker: VALIDATOR_MATERIALIZATION_GAP
+    commit: 0712dcdefb54ed16c5cd840ffeb07f0f8b6705ca
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - "before_fix_defect_reproduced: true"
+      - "after_fix_classification_ok: true"
+      - "unrelated_locks_unchanged: true"
+      - OK_CHANGED_FILES_PATH_LOCKED
+    next_task: BR-04
 tasks:
   BR-00:
     task_id: BR-00
