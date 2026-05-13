@@ -19,11 +19,14 @@ PATH_LOCKS = [
     },
     {
         "lock_id": "PL-BR-API-DEMO",
-        "pattern": lambda p: (
-            any(seg in p for seg in ["/demo/", "demo/health", "demo/upload", "demo/results"])
-            and "assemble_demo_response" not in p
+        "pattern": lambda p: p.startswith("services/") and (
+            "demo_main" in p
+            or "/demo/" in p
+            or "demo/health" in p
+            or "demo/upload" in p
+            or "demo/results" in p
             or "assemble_demo_response" in p
-        ) and p.startswith("services/"),
+        ),
         "max_files": 6,
     },
     {
