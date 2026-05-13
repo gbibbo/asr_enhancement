@@ -26,6 +26,9 @@ _DEMO_ENV_VARS = [
     "DEMO_EXAMPLES_CONFIG",
 ]
 
+_ADMIN_USER = "admin"
+_ADMIN_PASS = "shh-test-only"
+
 
 def _insert_job(db_path: Path, status: str) -> str:
     job_id = str(uuid.uuid4())
@@ -46,6 +49,8 @@ def client(tmp_path, monkeypatch):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("DEMO_RUNTIME_ROOT", str(tmp_path))
+    monkeypatch.setenv("ADMIN_STATS_USERNAME", _ADMIN_USER)
+    monkeypatch.setenv("ADMIN_STATS_PASSWORD", _ADMIN_PASS)
     from services.api.app.demo_main import app
     with TestClient(app) as test_client:
         yield test_client
@@ -64,19 +69,21 @@ def _queue_max(client: TestClient) -> int:
 def test_health_returns_ok(client):
     resp = client.get("/demo/health")
     assert resp.status_code == 200
-    body = resp.json()
-    assert body["status"] == "ok"
-    assert body["mode"] == "demo"
+    assert resp.json() == {"status": "ok"}
 
 
 def test_health_db_ok_is_true(client):
-    body = client.get("/demo/health").json()
-    assert body["db_ok"] is True
+    public = client.get("/demo/health").json()
+    assert "db_ok" not in public
+    admin = client.get("/admin/health", auth=(_ADMIN_USER, _ADMIN_PASS)).json()
+    assert admin["db_ok"] is True
 
 
 def test_health_queue_depth_is_integer(client):
-    body = client.get("/demo/health").json()
-    assert isinstance(body["queue_depth"], int)
+    public = client.get("/demo/health").json()
+    assert "queue_depth" not in public
+    admin = client.get("/admin/health", auth=(_ADMIN_USER, _ADMIN_PASS)).json()
+    assert isinstance(admin["queue_depth"], int)
 
 
 # --- POST /demo/jobs ---

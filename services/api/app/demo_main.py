@@ -161,8 +161,31 @@ class _RunCachedRequest(BaseModel):
 
 
 @app.get("/demo/health")
-async def demo_health(request: Request):
+async def demo_health():
+    return {"status": "ok"}
+
+
+@app.get("/admin/health")
+async def admin_health(
+    request: Request,
+    credentials: HTTPBasicCredentials | None = Depends(_basic),
+):
     settings: DemoSettings = request.app.state.settings
+    _unauth = HTTPException(
+        status_code=401,
+        detail="Unauthorized",
+        headers={"WWW-Authenticate": "Basic"},
+    )
+    if credentials is None or settings.admin_stats_password is None:
+        raise _unauth
+    ok_user = secrets.compare_digest(
+        credentials.username.encode(), settings.admin_stats_username.encode()
+    )
+    ok_pass = secrets.compare_digest(
+        credentials.password.encode(), settings.admin_stats_password.encode()
+    )
+    if not (ok_user and ok_pass):
+        raise _unauth
     try:
         queue_depth = count_active_jobs(settings.demo_db_path)
         db_ok = True
@@ -170,7 +193,6 @@ async def demo_health(request: Request):
         queue_depth = -1
         db_ok = False
     return {
-        "status": "ok" if db_ok else "degraded",
         "mode": "demo",
         "db_ok": db_ok,
         "queue_depth": queue_depth,

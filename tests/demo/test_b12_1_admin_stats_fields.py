@@ -229,8 +229,24 @@ def test_admin_stats_provider_state_b10_1_invariants(auth_client):
 def test_public_health_shape_unchanged(auth_client):
     resp = auth_client.get("/demo/health")
     assert resp.status_code == 200
-    keys = sorted(resp.json().keys())
-    assert keys == ["db_ok", "mode", "queue_depth", "status"]
+    body = resp.json()
+    assert body == {"status": "ok"}
+    assert sorted(body.keys()) == ["status"]
+
+
+def test_admin_health_requires_auth(auth_client):
+    resp = auth_client.get("/admin/health", auth=None)
+    assert resp.status_code == 401
+    assert resp.headers.get("WWW-Authenticate") == "Basic"
+
+
+def test_admin_health_returns_diagnostics_with_auth(auth_client):
+    resp = auth_client.get("/admin/health", auth=("admin", "shh-test-only"))
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "db_ok" in body
+    assert "queue_depth" in body
+    assert "mode" in body
 
 
 def test_public_provider_state_shape_no_state_assumption(auth_client):
