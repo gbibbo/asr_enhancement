@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-01
-last_completed_task: BR-00
+current_task: BR-02
+last_completed_task: BR-01
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -14,11 +14,11 @@ human_action_requests:
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
-  latest_planning_report_path: reports/rp5/broute_plan_compile.md
-  latest_execution_report_path: reports/rp5/broute_plan_compile.md
+  latest_planning_report_path: reports/rp5/broute_schema_contract.md
+  latest_execution_report_path: reports/rp5/broute_schema_contract.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br00_approval_packet.yaml
-  expected_next_task: BR-01
+  latest_approval_packet_path: reports/rp5/broute_br01_approval_packet.yaml
+  expected_next_task: BR-02
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -45,3 +45,22 @@ tasks:
       - OK_CHANGED_FILES_PATH_LOCKED
     marker: null
     next_task: BR-01
+  BR-01:
+    task_id: BR-01
+    status: PASS
+    commit: 9112713c26e127ac207ac9c61eea34a38576a742
+    files_changed:
+      - libs/asr/router_runtime.py
+      - scripts/rp5/validate_broute_schema_contract.py
+      - scripts/rp5/fixtures/generate_fixture_validate_broute_schema_contract.py
+      - reports/rp5/broute_schema_contract.md
+    commands_run:
+      - "python3 scripts/rp5/validate_broute_schema_contract.py --out reports/rp5/broute_schema_contract.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_broute_schema_contract.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_broute_schema_contract_manifest.json"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_BROUTE_SCHEMA_CONTRACT
+      - OK_FIXTURE_VALIDATE_BROUTE_SCHEMA_CONTRACT
+      - OK_CHANGED_FILES_PATH_LOCKED
+    marker: null
+    next_task: BR-02
