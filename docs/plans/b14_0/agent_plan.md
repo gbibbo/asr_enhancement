@@ -70,6 +70,7 @@ validators:
   - validate_report_shape
   - validate_approval_packet
   - print_tracker_state
+  - validate_public_security_invariants  # inherited from B-route; reused by RP-PUBLIC-SECURITY-REGRESSION diagnosis command in §11
 artifacts:
   - reports/rp5/b14_0_plan_compile.md
   - reports/rp5/b14_0_recruiter_auth_contract.md
@@ -108,7 +109,7 @@ repository:
 |---|---|---|---|---:|---|
 | PL-B14_0-API-DEMO | exact_directory_with_predicate | recruiter middleware and dependency wiring in services/api/app/; admin auth code in services/api/app/ may be inspected but not modified except where the predicate explicitly allows | `python scripts/rp5/validate_path_lock_pl_b14_0_api_demo.py --diff HEAD~1..HEAD` | 6 | UNAUTHORIZED_FILE_TOUCHED |
 | PL-B14_0-FRONTEND | exact_directory_with_predicate | recruiter-auth UX under services/frontend/app/demo/; unrelated style-only files excluded | `python scripts/rp5/validate_path_lock_pl_b14_0_frontend.py --diff HEAD~1..HEAD` | 8 | UNAUTHORIZED_FILE_TOUCHED |
-| PL-B14_0-CONFIG | exact_file_or_create | .env.example placeholders only; real secrets forbidden; compose changes only under explicit task contract | `python scripts/rp5/validate_changed_files_against_path_locks.py --lock PL-B14_0-CONFIG --diff HEAD~1..HEAD` | 2 | UNAUTHORIZED_FILE_TOUCHED |
+| PL-B14_0-CONFIG | exact_file_or_create | .env.example placeholders only; real secrets forbidden; compose files (docker-compose*.yml, docker-compose.demo.yml) are forbidden in B14.0; if a future task requires a compose change, a CHANGE_SCOPE decision must update this lock row and the relevant §10 task contract together in one patch before the compose file may be touched | `python scripts/rp5/validate_changed_files_against_path_locks.py --lock PL-B14_0-CONFIG --diff HEAD~1..HEAD` | 2 | UNAUTHORIZED_FILE_TOUCHED |
 | PL-B14_0-TESTS | exact_directory_with_predicate | tests/demo/test_b14_0_*.py and tests/rp5/fixtures/ | `python scripts/rp5/validate_path_lock_pl_b14_0_tests.py --diff HEAD~1..HEAD` | 12 | UNAUTHORIZED_FILE_TOUCHED |
 | PL-B14_0-SCRIPTS | exact_directory_with_predicate | scripts/rp5/validate_b14_0_*.py and scripts/rp5/fixtures/generate_fixture_validate_b14_0_*.py and scripts/rp5/smoke_b14_0_*.py | `python scripts/rp5/validate_path_lock_pl_b14_0_scripts.py --diff HEAD~1..HEAD` | 18 | UNAUTHORIZED_FILE_TOUCHED |
 | PL-B14_0-REPORTS | exact_directory_with_predicate | reports/rp5/b14_0_*.md; B-route reports remain frozen | `python scripts/rp5/validate_changed_files_against_path_locks.py --lock PL-B14_0-REPORTS --diff HEAD~1..HEAD` | 20 | UNAUTHORIZED_FILE_TOUCHED |
@@ -154,6 +155,25 @@ forbidden_in_B14_0:
   - any Tailscale Funnel, serve, systemd, or public-network artifact
   - any datamove1 router handoff swap
   - any logging of Authorization header values or password material
+```
+
+### 2.1 Threshold audit
+
+| Category | Status | Source or rationale |
+|---|---|---|
+| recruiter_credential_rotation_interval_numeric | HUMAN_ACTION_REQUIRED (HAR-B14_0-RECRUITER-CREDS-001) | rotation cadence is operator policy; agent has no authority to pick a numeric default |
+| recruiter_initial_credential_values | HUMAN_ACTION_REQUIRED (HAR-B14_0-RECRUITER-CREDS-001) | secrets must originate outside the agent; supplied via host environment at deploy time |
+| recruiter_401_response_timing_sla_ms | not_applicable_current_scope | B14.0 validates correctness of challenge response, not a latency SLA; latency budgets belong to a later soak phase |
+| recruiter_failed_attempt_lockout_counter | not_applicable_current_scope | B14.0 does not introduce rate-limiting or lockout; lockout policy belongs to B14.1 public exposure layer |
+| credential_leak_max_bytes_in_logs | not_applicable_current_scope_per_zero_tolerance | qualitative invariant: zero credential bytes in logs, error pages, structured-log fields, or challenge bodies; no numeric tolerance authorized |
+| BR-02_health_payload_byte_tolerance | not_applicable_current_scope_per_exact_match | authenticated /demo/health body must equal {"status":"ok"} byte-for-byte; no tolerance |
+| broute_validator_re_emission_runtime_budget_ms | not_applicable_current_scope | B14_0-07 re-runs BR-02..BR-07 validators for correctness, not for performance |
+
+```yaml
+threshold_audit_summary:
+  numeric_thresholds_introduced_in_B14_0: 0
+  HUMAN_ACTION_REQUIRED_entries: 2 (both routed through HAR-B14_0-RECRUITER-CREDS-001)
+  not_applicable_current_scope_entries: 5
 ```
 
 ## 3. Marker registry
@@ -215,9 +235,21 @@ Closure command: `python scripts/rp5/validate_changed_files_against_path_locks.p
 
 ## 9. Validator contracts and fixtures
 
-Each new validator has a paired fixture generator at scripts/rp5/fixtures/generate_fixture_validate_b14_0_<id>.py producing positive_and_negative fixtures with sha256 manifests. Generator sentinel format: OK_FIXTURE_VALIDATE_B14_0_<ID>. Failure marker matches the owning validator's marker per orchestrator_plan §6. Inherited validators (validate_plan_compiles, validate_changed_files_against_path_locks, validate_report_shape, validate_approval_packet, print_tracker_state, validate_future_constraints, validate_no_banned_phrases) reuse the B-route scripts and fixture generators with --plan-dir docs/plans/b14_0/ where applicable.
+Each new validator has a paired fixture generator at scripts/rp5/fixtures/generate_fixture_validate_b14_0_<id>.py producing positive_and_negative fixtures with sha256 manifests. Generator sentinel format: OK_FIXTURE_VALIDATE_B14_0_<ID>. Failure marker matches the owning validator's marker per orchestrator_plan §6. Inherited validators (validate_plan_compiles, validate_changed_files_against_path_locks, validate_report_shape, validate_approval_packet, print_tracker_state, validate_future_constraints, validate_no_banned_phrases, validate_public_security_invariants) reuse the B-route scripts and fixture generators with --plan-dir docs/plans/b14_0/ where applicable.
 
 validate_plan_compiles must_check contract is inherited from B-route §9, with the additional check `every_B14_0_task_next_state_exists`.
+
+### 9.1 Fixture generator contracts for new B14.0 validators
+
+| Generator id | Script path | Command | Output manifest | Sentinel | Owned marker |
+|---|---|---|---|---|---|
+| generate_fixture_validate_b14_0_recruiter_auth_contract | scripts/rp5/fixtures/generate_fixture_validate_b14_0_recruiter_auth_contract.py | `python scripts/rp5/fixtures/generate_fixture_validate_b14_0_recruiter_auth_contract.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_recruiter_auth_contract_manifest.json` | tests/rp5/fixtures/generate_fixture_validate_b14_0_recruiter_auth_contract_manifest.json with sha256 per file | OK_FIXTURE_VALIDATE_B14_0_RECRUITER_AUTH_CONTRACT | B14_0_RECRUITER_AUTH_CONTRACT_FAILED |
+| generate_fixture_validate_b14_0_auth_separation_invariants | scripts/rp5/fixtures/generate_fixture_validate_b14_0_auth_separation_invariants.py | `python scripts/rp5/fixtures/generate_fixture_validate_b14_0_auth_separation_invariants.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_auth_separation_invariants_manifest.json` | tests/rp5/fixtures/generate_fixture_validate_b14_0_auth_separation_invariants_manifest.json with sha256 per file | OK_FIXTURE_VALIDATE_B14_0_AUTH_SEPARATION | B14_0_AUTH_BYPASS_DETECTED or B14_0_ADMIN_RECRUITER_CRED_CONFLATION |
+| generate_fixture_validate_b14_0_health_payload_preserved_under_auth | scripts/rp5/fixtures/generate_fixture_validate_b14_0_health_payload_preserved_under_auth.py | `python scripts/rp5/fixtures/generate_fixture_validate_b14_0_health_payload_preserved_under_auth.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_health_payload_preserved_under_auth_manifest.json` | tests/rp5/fixtures/generate_fixture_validate_b14_0_health_payload_preserved_under_auth_manifest.json with sha256 per file | OK_FIXTURE_VALIDATE_B14_0_HEALTH_UNDER_AUTH | B14_0_HEALTH_PAYLOAD_REGRESSION_UNDER_AUTH |
+| generate_fixture_validate_b14_0_frontend_auth_contract | scripts/rp5/fixtures/generate_fixture_validate_b14_0_frontend_auth_contract.py | `python scripts/rp5/fixtures/generate_fixture_validate_b14_0_frontend_auth_contract.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_frontend_auth_contract_manifest.json` | tests/rp5/fixtures/generate_fixture_validate_b14_0_frontend_auth_contract_manifest.json with sha256 per file | OK_FIXTURE_VALIDATE_B14_0_FRONTEND_AUTH | B14_0_FRONTEND_AUTH_UX_DRIFT |
+| generate_fixture_validate_b14_0_e2e_manual_smoke_with_auth | scripts/rp5/fixtures/generate_fixture_validate_b14_0_e2e_manual_smoke_with_auth.py | `python scripts/rp5/fixtures/generate_fixture_validate_b14_0_e2e_manual_smoke_with_auth.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_e2e_manual_smoke_with_auth_manifest.json` | tests/rp5/fixtures/generate_fixture_validate_b14_0_e2e_manual_smoke_with_auth_manifest.json with sha256 per file | OK_FIXTURE_VALIDATE_B14_0_MANUAL_SMOKE_WITH_AUTH | B14_0_MANUAL_SMOKE_WITH_AUTH_FAILED |
+| generate_fixture_validate_b14_0_no_credential_leak | scripts/rp5/fixtures/generate_fixture_validate_b14_0_no_credential_leak.py | `python scripts/rp5/fixtures/generate_fixture_validate_b14_0_no_credential_leak.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_no_credential_leak_manifest.json` | tests/rp5/fixtures/generate_fixture_validate_b14_0_no_credential_leak_manifest.json with sha256 per file | OK_FIXTURE_VALIDATE_B14_0_NO_CRED_LEAK | B14_0_CRED_LEAK_DETECTED |
+| generate_fixture_validate_b14_0_broute_compatibility_under_auth | scripts/rp5/fixtures/generate_fixture_validate_b14_0_broute_compatibility_under_auth.py | `python scripts/rp5/fixtures/generate_fixture_validate_b14_0_broute_compatibility_under_auth.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_broute_compatibility_under_auth_manifest.json` | tests/rp5/fixtures/generate_fixture_validate_b14_0_broute_compatibility_under_auth_manifest.json with sha256 per file | OK_FIXTURE_VALIDATE_B14_0_BROUTE_COMPATIBILITY | B14_0_BROUTE_REGRESSION_UNDER_AUTH |
 
 ## 10. Task contracts
 
@@ -295,7 +327,35 @@ Expected: zero rows.
 
 ## 15. Human action requests
 
-No HAR pre-declared at draft time. The HAR transport (CHANGE_SCOPE_with_human_action_request_id) is inherited from B-route. Specific HAR entries will be added during plan review if thresholds, credential lifetimes, or rotation policies require human authorization.
+The HAR transport (CHANGE_SCOPE_with_human_action_request_id) is inherited from B-route. One HAR is pre-declared because recruiter credentials must originate outside the agent's authority.
+
+| HAR id | Trigger marker | Missing inputs | Blocking scope | Required human result shape |
+|---|---|---|---|---|
+| HAR-B14_0-RECRUITER-CREDS-001 | HUMAN_ACTION_REQUIRED | recruiter_initial_username, recruiter_initial_password, recruiter_credential_rotation_cadence | resolved before B14_0-02 closure | operator provides values via host environment (or host systemd service env); values are recorded only by reference (env-var-name and rotation-cadence string), never by value, in tracker supplemental_evidence and in the HAR result block; explicit_NA is accepted only for the rotation_cadence field if the operator declares a manual-rotation-on-incident policy |
+
+```yaml
+HAR-B14_0-RECRUITER-CREDS-001:
+  status: pre_declared_unresolved
+  marker: HUMAN_ACTION_REQUIRED
+  missing_inputs:
+    - recruiter_initial_username
+    - recruiter_initial_password
+    - recruiter_credential_rotation_cadence
+  why_human_only: secrets must originate outside the agent; the agent has no authority to invent recruiter credentials or pick a rotation policy
+  allowed_values_or_schema:
+    recruiter_initial_username: ASCII string of length 1..64, not equal to ADMIN_STATS_USERNAME value
+    recruiter_initial_password: ASCII string of length 16..128, entropy ≥ 96 bits per operator policy, not equal to ADMIN_STATS_PASSWORD value
+    recruiter_credential_rotation_cadence: ISO-8601 duration or the literal "manual-rotation-on-incident"
+  blocks: B14_0-02 closure
+  created_by_task: B14.0 plan authoring (this draft)
+  next_state_until_result: agent waits; no B14.0-02 execution begins
+  forbidden_agent_action: inventing credential values, committing real credentials, logging credentials, storing credentials in committed files
+  result_expected_at: before APPROVE_PLAN for B14_0-02
+  result_recording_policy:
+    - the human_action_result captures field names and the rotation-policy string only
+    - actual credential values are NEVER written into tracker, approval packets, or any committed file
+    - tracker records only "supplied: true" per field and the rotation policy string
+```
 
 ## 16. Authoring status
 
@@ -305,4 +365,24 @@ no_B14_0_implementation_task_starts_until:
   - this draft passes the same Dual-Agent Adversarial Plan Convergence Protocol used for B-route (or an orchestrator-named equivalent)
   - the orchestrator records ORCHESTRATOR_DECISION(scope=plan_authoring_approval, decision=APPROVE_FOR_EXECUTION, accepted_report_commit=<this draft commit or its convergent successor>)
   - the orchestrator advances the tracker from B14.0_PENDING_ORCHESTRATOR_INSTRUCTION to a B14.0-active state in a separate decision
+```
+
+## 17. Adversarial stress-replay
+
+| Scenario | initial_state | triggering_event | expected_marker | expected_next_state | report_shape | plan_sections_used | result |
+|---|---|---|---|---|---|---|---|
+| shared-credential conflation | RECRUITER_USERNAME == ADMIN_STATS_USERNAME or RECRUITER_PASSWORD == ADMIN_STATS_PASSWORD at startup | B14_0-03 closure attempt | B14_0_ADMIN_RECRUITER_CRED_CONFLATION | B14_0-03 fix | execution_report | §2, §3, §4, §10, §11, §12 | PASS evidence: validate_b14_0_auth_separation_invariants emits FAIL on shared-credential fixture |
+| 401 leaks router field | recruiter 401 challenge body contains router_kind | B14_0-02 or B14_0-06 closure | B14_0_AUTH_BYPASS_DETECTED or B14_0_CRED_LEAK_DETECTED depending on origin | first failing task fix | execution_report | §2, §3, §4, §10, §11, §12 | PASS evidence: validate_b14_0_recruiter_auth_contract forbidden_response_body_substrings list rejects the fixture; validate_b14_0_no_credential_leak supplements detection |
+| password logged | structured log line includes RECRUITER_PASSWORD value | B14_0-06 closure | B14_0_CRED_LEAK_DETECTED | B14_0-06 fix | execution_report | §2, §3, §4, §10, §11, §12 | PASS evidence: validate_b14_0_no_credential_leak scans log scratch with credential needles and emits FAIL |
+| admin-realm collision | /demo/* recruiter route challenges with realm="Restricted" (admin realm) | B14_0-02 or B14_0-03 closure | B14_0_AUTH_BYPASS_DETECTED | first failing task fix | execution_report | §2, §3, §4, §10, §11, §12 | PASS evidence: validate_b14_0_recruiter_auth_contract pins WWW-Authenticate to Basic realm="asr-demo-recruiter"; mismatch fails |
+| Funnel string introduced | services/ or scripts/ contains "tailscale funnel" or "funnel serve" literal | any B14_0-NN closure | FUTURE_CONSTRAINT_REGRESSION | CHANGE_SCOPE | execution_report | §3, §4, §11, §12, orchestrator_plan §3 | PASS evidence: validate_future_constraints scans active plan and committed sources for forbidden Funnel substrings |
+| public URL literal | committed file contains a non-loopback http URL | any B14_0-NN closure | PUBLIC_SECURITY_REGRESSION | FIX_BEFORE_CLOSE | execution_report | §3, §4, §11, §12, orchestrator_plan §7 | PASS evidence: validate_public_security_invariants and validate_no_banned_phrases scan-based detection |
+| router-runtime edit | libs/asr/router_runtime.py modified | any B14_0-NN commit | UNAUTHORIZED_FILE_TOUCHED | STOP_SCOPE_CONFLICT | execution_report | §1, §3, §8, §11, §12 | PASS evidence: path lock validator rejects file outside B14.0 lock set; FC-BROUTE-FROZEN preservation row in orchestrator_plan §3 also fires |
+| frontend types router-field shape edit | services/frontend/app/demo/types.ts RouterFields shape changed | B14_0-04 closure | B14_0_BROUTE_REGRESSION_UNDER_AUTH or UNAUTHORIZED_FILE_TOUCHED | B14_0-04 fix or STOP_SCOPE_CONFLICT | execution_report | §1, §3, §4, §10, §11, §12 | PASS evidence: validate_b14_0_broute_compatibility_under_auth compares BR-04 frontend-backend contract output; mismatch fails |
+
+```yaml
+stress_replay_summary:
+  scenarios_enumerated: 8
+  every_scenario_maps_to_existing_marker: true
+  every_scenario_maps_to_existing_recovery_packet: true (markers above all appear in §3 and §11)
 ```
