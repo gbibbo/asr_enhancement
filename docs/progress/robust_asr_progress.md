@@ -16,9 +16,10 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd (PHASE_APPROVE(P2) accepted on the P2.2 PASS commit; not advanced — PHASE_APPROVE accepts the same commit as the closing APPROVE_EXECUTION(P2.2))
+- state_transport.last_accepted_report_commit: ca98443d380f675eb45666af19d3686f3fbfa54f (CHANGE_SCOPE(P3.1) accepts the P2 PHASE_APPROVE commit; not advanced — CHANGE_SCOPE does not advance last_accepted_report_commit)
 - state_transport.expected_next_task: P3.1
-- latest_approval_packet: PHASE_APPROVE(P2) on `8c37ece` (next P3.1)
+- latest_approval_packet: CHANGE_SCOPE(P3.1) on `ca98443` (next P3.1)
+- prior_approval_packet_p2_phase: PHASE_APPROVE(P2) on `8c37ece` (next P3.1)
 - prior_approval_packet: APPROVE_EXECUTION(P2.2) on `8c37ece` (next P2_GATE)
 - prior_approval_packet_p2_2_plan: APPROVE_PLAN(P2.2) on `d78678a` (next P2_GATE)
 - prior_approval_packet_p2_2_scope_exec: APPROVE_EXECUTION(P2.2-scope-change) on `d78678a` (next P2.2)
@@ -29,6 +30,127 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P3.1 CHANGE_SCOPE recorded
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P3.1 phase=P3
+  decision=CHANGE_SCOPE
+  accepted_report_commit=`ca98443d380f675eb45666af19d3686f3fbfa54f`
+  next_expected_task=P3.1.
+  required_fix="Rewrite stale touch_policy P3.1 row for LoRA smoke
+  train/eval/export deliverables."
+- Rationale: P3.1 requires `scripts/robust_asr/train_lora_smoke.py`,
+  `scripts/robust_asr/evaluate_lora_smoke.py`,
+  `scripts/robust_asr/smoke_export_lora_ct2.py`,
+  `slurm/jobs/p3_1_lora_smoke.sh`, smoke outputs
+  (`artifacts/robust_asr/lora_smoke/{checkpoint_manifest.json,
+  training_log.csv, loss_curve.png, export_smoke_result.json}`), and
+  smoke reports (`reports/robust_asr/lora/{lora_smoke_result.json,
+  lora_smoke_degenerate.md}`), but the current touch_policy P3.1 row
+  still referenced the stale P3.2-style `lora_smoke_report.md` and
+  omitted the three new scripts, the test file, and the JSON/degenerate
+  deliverables.
+- `reports/robust_asr/touch_policy.md` P3.1 row REWRITTEN. New
+  `allowed_write_paths`:
+  `scripts/robust_asr/train_lora_smoke.py`,
+  `scripts/robust_asr/evaluate_lora_smoke.py`,
+  `scripts/robust_asr/smoke_export_lora_ct2.py`,
+  `slurm/jobs/p3_1_lora_smoke.sh`,
+  `tests/robust_asr/test_lora_smoke.py`,
+  `artifacts/robust_asr/lora_smoke/checkpoint_manifest.json`,
+  `artifacts/robust_asr/lora_smoke/training_log.csv`,
+  `artifacts/robust_asr/lora_smoke/loss_curve.png`,
+  `artifacts/robust_asr/lora_smoke/export_smoke_result.json`,
+  `reports/robust_asr/lora/lora_smoke_result.json`,
+  `reports/robust_asr/lora/lora_smoke_degenerate.md`,
+  `reports/robust_asr/task_reports/P3.1_lora_smoke.md`,
+  `reports/robust_asr/touch_policy.md` (scope-change rows),
+  `docs/progress/robust_asr_progress.yaml`,
+  `docs/progress/robust_asr_progress.md`,
+  `docs/progress/robust_asr_state_capsule.md`.
+  New `allowed_read_paths`: plan files,
+  `configs/robust_asr/{reuse_policy_v1.yaml, lora_smoke.yaml,
+  data_v1.yaml, eval_manifests_v1.yaml, degradation_v1.yaml}`,
+  `libs/common/{eval_schema.yaml, normalization.py, metrics.py,
+  versions.py, runtime_contract.py}`,
+  `libs/audio/**`, `libs/audio_pipeline/**`, `libs/asr_adapter/**`,
+  `artifacts/robust_asr/manifests/{librispeech_lora_train.parquet,
+  librispeech_validation.parquet, degradation_v1_*.parquet}`,
+  `artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet`,
+  `reports/robust_asr/{baseline_whisper_base.md, manifest_summary.md,
+  degradation_v1_summary.md}`,
+  `scripts/robust_asr/validate_report_shape.py`,
+  `scripts/training/**`, `configs/training/**`.
+  `default_no_touch_paths`: legacy trackers, `services/**`, `infra/**`,
+  `configs/training/**` (write), `scripts/training/**` (write),
+  `libs/audio/**` (write), `libs/asr_adapter/**` (write),
+  `libs/audio_pipeline/**` (write), `libs/common/**` (write),
+  `libs/observability/**` (write),
+  `reports/robust_asr/lora/lora_smoke_report.md` (P3.2-owned;
+  EXPLICITLY REMOVED from P3.1 writes).
+  `mandatory_no_touch`: all Section 2.2 patterns; LoRA adapter binary
+  checkpoints (`*.pt`/`*.pth`/`*.bin`/`*.safetensors`) remain
+  no-touch and never committed; the adapter subtree under
+  `artifacts/robust_asr/lora_smoke/` is gitignored so only small
+  JSON/CSV/PNG/MD metadata land in git.
+  `external_resources`: Slurm submit via `slurm/tools/on_submit.sh`
+  (GPU); robust_asr Apptainer image at
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/robust_asr_py311_cuda12.sif`
+  (exec `--nv`); LibriSpeech source audio under
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/sources/**` and
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/**`
+  (read-only); degradation_v1 audio under
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/datasets/degradation_v1/**`
+  (read-only at P3.1);
+  `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/whisper_base_en_ct2_int8/`
+  (read-only for export smoke fixture); HF base.en source weights
+  cache (read-only) for LoRA adapter injection.
+- New `reports/robust_asr/touch_policy.md` sha256 =
+  `32ad92b1772ba180c7d1b96171c68e08ff81af694cdc2a93343c093ea27eeffc`;
+  `artifacts.touch_policy.last_amended_by=P3.1_scope_change`.
+- `configs/robust_asr/reuse_policy_v1.yaml` UNCHANGED — every P3.1 write
+  path already sits under a robust_asr-owned reuse-policy row that lists
+  P3.1 in `allowed_tasks` (`scripts/robust_asr/**`,
+  `artifacts/robust_asr/**`, `reports/robust_asr/**`,
+  `tests/robust_asr/**`, `slurm/jobs/**` with `p<task>_*.sh` basename
+  rule, `docs/progress/robust_asr_*`); external host paths
+  (`…/runtime/robust_asr_py311_cuda12.sif`, `…/datasets/**`,
+  `…/datasets/degradation_v1/**`, `…/runtime/whisper_models/**`) also
+  already list P3.1 in `allowed_tasks`.
+- `latest_approval_packet`=CHANGE_SCOPE(P3.1) on
+  `ca98443d380f675eb45666af19d3686f3fbfa54f` (next P3.1);
+  `prior_approval_packet_p2_phase`=PHASE_APPROVE(P2) on `8c37ece`
+  (next P3.1); `prior_approval_packet`=APPROVE_EXECUTION(P2.2) on
+  `8c37ece` (next P2_GATE);
+  `prior_approval_packet_p2_2_plan`=APPROVE_PLAN(P2.2) on `d78678a`
+  (next P2_GATE).
+- `state_transport.last_accepted_report_commit` STAYS
+  `ca98443d380f675eb45666af19d3686f3fbfa54f` (CHANGE_SCOPE does not
+  advance). `state_transport.expected_next_task=P3.1` held.
+- Held: `current_phase=P3`, `current_task=P3.1`,
+  `last_completed_task=P2.2`, `markers=[BLOCKED_OOD_PUBLIC]`
+  (non-blocking), `blocked=false`, `blocker=null`,
+  `claims_enabled.ood_real=false`,
+  `claims_enabled.cloud_tradeoff=true`,
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1`,
+  `phase_summary={P0:PASS, P1:PASS, P2:PASS}`,
+  `orchestrator_approvals={P0:PHASE_APPROVE, P1:PHASE_APPROVE,
+  P2:PHASE_APPROVE}`.
+- Verification: `python scripts/robust_asr/validate_report_shape.py
+  --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures
+  artifacts/robust_asr/state_packets/report_shape_fixtures` →
+  `OK_REPORT_SHAPE` (exit 0).
+- P3.1 implementation NOT executed: no `train_lora_smoke.py`, no
+  `evaluate_lora_smoke.py`, no `smoke_export_lora_ct2.py`, no
+  `slurm/jobs/p3_1_lora_smoke.sh`, no `tests/robust_asr/test_lora_smoke.py`,
+  no `artifacts/robust_asr/lora_smoke/*` outputs, no
+  `reports/robust_asr/lora/lora_smoke_*` outputs, no
+  `P3.1_lora_smoke.md` task report, no Slurm submission, no Apptainer,
+  no GPU, no LoRA training, no LoRA inference, no LoRA export, no
+  HuggingFace download, no model bytes written. Awaiting orchestrator
+  `APPROVE_PLAN(P3.1)` before implementation.
 
 ## P2 PHASE_APPROVE recorded
 

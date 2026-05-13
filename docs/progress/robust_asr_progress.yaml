@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P3.1
+      phase: P3
+      decision: CHANGE_SCOPE
+      accepted_report_commit: ca98443d380f675eb45666af19d3686f3fbfa54f
+      next_expected_task: P3.1
+      required_fix: "Rewrite stale touch_policy P3.1 row for LoRA smoke train/eval/export deliverables."
+      rationale: "P3.1 requires train_lora_smoke.py, evaluate_lora_smoke.py, smoke_export_lora_ct2.py, Slurm job, smoke outputs, and reports, but current touch_policy P3.1 row still references stale P3.2-style lora_smoke_report.md."
+  prior_approval_packet_p2_phase:
+    ORCHESTRATOR_DECISION:
       scope: phase
       task_id: null
       phase: P2
@@ -508,9 +518,9 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: e51dc99337cbd22e5f7f359f5ae154e79351b50d58b31d4259242a764dc03db3
+    sha256: 32ad92b1772ba180c7d1b96171c68e08ff81af694cdc2a93343c093ea27eeffc
     produced_by_task: P0.2
-    last_amended_by: P2.1_model_scope_change
+    last_amended_by: P3.1_scope_change
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
     sha256: 9766167cccd3d246a31adb488d89dcc6950b35c00e0eb5959b523c4c5fa8811b
@@ -1669,3 +1679,40 @@ tasks:
         path: reports/robust_asr/task_reports/P2.2_lora_smoke_config.md
         produced_by_task: P2.2
     notes: "P2.2 PASS via deterministic stratified-by-speaker sampling (no RNG). steps_max=200; seed=42 (P3.1-binding training/eval seed); Section 3 eval decode defaults; training_timeout_seconds=14400, eval_timeout_seconds=1800. Manifest sha256s pinned. BLOCKED_OOD_PUBLIC NOT cleared (held non-blocking; ood_real splits remain enabled=false). state_transport.last_accepted_report_commit STAYS 83dd911 per orchestrator instruction. current_task=P2.2 held until orchestrator APPROVE_EXECUTION(P2.2) advances it to P2_GATE."
+  P3.1:
+    status: SCOPE_CHANGE_RECORDED
+    commit: null
+    files_changed:
+      - reports/robust_asr/touch_policy.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit reports/robust_asr/touch_policy.md: REWRITE P3.1 row to authorize train_lora_smoke.py, evaluate_lora_smoke.py, smoke_export_lora_ct2.py, slurm/jobs/p3_1_lora_smoke.sh, tests/robust_asr/test_lora_smoke.py, artifacts/robust_asr/lora_smoke/{checkpoint_manifest.json, training_log.csv, loss_curve.png, export_smoke_result.json}, reports/robust_asr/lora/{lora_smoke_result.json, lora_smoke_degenerate.md}, reports/robust_asr/task_reports/P3.1_lora_smoke.md, scope-change rows, three live trackers; reads include plan files, reuse_policy_v1.yaml, lora_smoke.yaml, data_v1.yaml, eval_manifests_v1.yaml, degradation_v1.yaml, libs/common/{eval_schema.yaml, normalization.py, metrics.py, versions.py, runtime_contract.py}, libs/audio/**, libs/audio_pipeline/**, libs/asr_adapter/**, robust_asr manifests, baseline parquet+report, manifest_summary, degradation_v1_summary; no_touch includes reports/robust_asr/lora/lora_smoke_report.md (P3.2-owned)"
+      - "Edit progress.yaml: latest_approval_packet=CHANGE_SCOPE(P3.1) on ca98443; PHASE_APPROVE(P2) moved to prior_approval_packet_p2_phase; touch_policy sha256 -> 32ad92b1...; touch_policy.last_amended_by=P3.1_scope_change; tasks.P3.1 entry added; current_task=P3.1 held; last_completed_task=P2.2 held; markers=[BLOCKED_OOD_PUBLIC] held; blocked=false held; claims_enabled.ood_real=false held; state_transport.last_accepted_report_commit STAYS ca98443; state_transport.expected_next_task=P3.1 held"
+      - "Edit progress.md: prepend P3.1 CHANGE_SCOPE section"
+      - "Edit state_capsule.md: prepend P3.1 CHANGE_SCOPE section"
+      - "python scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures  # OK_REPORT_SHAPE"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "P3.1 row REWRITTEN in reports/robust_asr/touch_policy.md (sha256 32ad92b1772ba180c7d1b96171c68e08ff81af694cdc2a93343c093ea27eeffc)"
+      - "Stale P3.2-style allowed_write_paths entry reports/robust_asr/lora/lora_smoke_report.md REMOVED from P3.1 row; explicitly listed under default_no_touch_paths with note 'owned by P3.2; not written by P3.1'"
+      - "New allowed_write_paths for P3.1 enumerate: three scripts/robust_asr/*_smoke*.py, slurm/jobs/p3_1_lora_smoke.sh, tests/robust_asr/test_lora_smoke.py, four artifacts/robust_asr/lora_smoke/* small outputs (checkpoint_manifest.json, training_log.csv, loss_curve.png, export_smoke_result.json), two reports/robust_asr/lora/lora_smoke_* result/degenerate files, task report, scope-change row, three live trackers"
+      - "LoRA binary checkpoints (*.pt/*.pth/*.bin/*.safetensors) recorded under mandatory_no_touch and explicitly never committed; adapter subtree under artifacts/robust_asr/lora_smoke/ remains gitignored"
+      - "External resources documented: Slurm submit via slurm/tools/on_submit.sh (GPU); robust_asr SIF exec --nv at /mnt/.../runtime/robust_asr_py311_cuda12.sif; LibriSpeech + degradation_v1 audio read-only; whisper_base_en_ct2_int8 model dir read-only for export smoke fixture; HF base.en cache read-only for LoRA injection"
+      - "OK_REPORT_SHAPE emitted by validate_report_shape.py"
+      - "configs/robust_asr/reuse_policy_v1.yaml UNCHANGED — all P3.1 write paths already lie under robust_asr-owned rows (scripts/robust_asr/**, artifacts/robust_asr/**, reports/robust_asr/**, tests/robust_asr/**, slurm/jobs/p<task>_*.sh wildcard, docs/progress/robust_asr_*) with P3.1 in allowed_tasks"
+      - "current_task=P3.1 held; last_completed_task=P2.2 held; markers=[BLOCKED_OOD_PUBLIC] held; blocked=false; claims_enabled.ood_real=false"
+      - "state_transport.last_accepted_report_commit STAYS ca98443d380f675eb45666af19d3686f3fbfa54f per orchestrator instruction (CHANGE_SCOPE does not advance)"
+      - "state_transport.expected_next_task=P3.1 held"
+    marker: null
+    next_task: P3.1
+    blocker: null
+    slurm: null
+    artifacts_added:
+      touch_policy_p3_1_row:
+        path: reports/robust_asr/touch_policy.md
+        sha256: 32ad92b1772ba180c7d1b96171c68e08ff81af694cdc2a93343c093ea27eeffc
+        last_amended_by: P3.1_scope_change
+        produced_by_task: P0.2
+    notes: "P3.1 CHANGE_SCOPE recorded against acceptance commit ca98443. No P3.1 implementation: no train_lora_smoke.py, no evaluate_lora_smoke.py, no smoke_export_lora_ct2.py, no slurm/jobs/p3_1_lora_smoke.sh, no tests/robust_asr/test_lora_smoke.py, no artifacts/robust_asr/lora_smoke/* outputs, no reports/robust_asr/lora/lora_smoke_* outputs, no task report, no Slurm submission, no Apptainer, no GPU, no LoRA training. tasks.P3.1.status held as SCOPE_CHANGE_RECORDED (not PASS/FAIL/HALTED). LoRA binary checkpoints will remain uncommitted and outside git tracking. BLOCKED_OOD_PUBLIC NOT cleared (held non-blocking; ood_real claims disabled). Awaiting orchestrator APPROVE_PLAN(P3.1) before implementation."
