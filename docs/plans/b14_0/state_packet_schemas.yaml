@@ -1,6 +1,7 @@
 schema_version: "1.0.0-b14_0-draft"
 schema_owner: state_packet_schemas
-authoring_status: DRAFT_NOT_APPROVED_FOR_EXECUTION
+authoring_status: APPROVED_FOR_EXECUTION
+accepted_plan_revision_commit: 8a049d00bdfec5b97c416f3135644ecd78f14bd8
 applies_to_plans:
   - orchestrator_plan: docs/plans/b14_0/orchestrator_plan.md
   - agent_plan: docs/plans/b14_0/agent_plan.md

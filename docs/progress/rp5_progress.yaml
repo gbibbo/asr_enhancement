@@ -1,6 +1,6 @@
 tracker_file: docs/progress/rp5_progress.yaml
-current_phase: B14.0_PENDING_ORCHESTRATOR_INSTRUCTION
-current_task: B14.0_PENDING_ORCHESTRATOR_INSTRUCTION
+current_phase: B14.0
+current_task: B14_0-00
 last_completed_task: BR-08
 last_completed_phase: B-route
 markers: []
@@ -13,7 +13,22 @@ phase_approvals:
     approval_packet_path: reports/rp5/broute_phase_approval_packet.yaml
     phase_gate_report_path: reports/rp5/broute_phase_gate.md
     next_phase: B14.0
-    next_phase_status: PENDING_ORCHESTRATOR_INSTRUCTION
+    next_phase_status: APPROVED_FOR_EXECUTION
+plan_authoring_approvals:
+  B14.0:
+    status: APPROVED_FOR_EXECUTION
+    decision: APPROVE_FOR_EXECUTION
+    accepted_plan_revision_commit: 8a049d00bdfec5b97c416f3135644ecd78f14bd8
+    approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
+    plan_files:
+      - docs/plans/b14_0/orchestrator_plan.md
+      - docs/plans/b14_0/agent_plan.md
+      - docs/plans/b14_0/state_packet_schemas.yaml
+    implementation_task_started: false
+    har_carried_forward:
+      - id: HAR-B14_0-RECRUITER-CREDS-001
+        status: pre_declared_unresolved
+        blocks: B14_0-02 closure
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
     status: resolved
@@ -28,8 +43,8 @@ state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
   latest_execution_report_path: reports/rp5/broute_phase_gate.md
   latest_phase_gate_report_path: reports/rp5/broute_phase_gate.md
-  latest_approval_packet_path: reports/rp5/broute_phase_approval_packet.yaml
-  expected_next_task: B14.0_PENDING_ORCHESTRATOR_INSTRUCTION
+  latest_approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
+  expected_next_task: B14_0-00
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id

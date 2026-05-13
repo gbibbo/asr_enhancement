@@ -1,6 +1,6 @@
 # agent_plan.md
 
-Plan state: DRAFT_NOT_APPROVED_FOR_EXECUTION
+Plan state: APPROVED_FOR_EXECUTION (accepted_plan_revision_commit 8a049d00bdfec5b97c416f3135644ecd78f14bd8)
 Project scope: B14.0 recruiter HTTPBasic public-access gate only. Future phases (B14.1, B15, B-handoff) are preserved but not executable in this plan. B-route deliverables are frozen.
 Authority: executable task order, exact commands, validators, fixture generators, marker registry, recovery packets, transition table, tracker mutation rules, path locks, and report skeleton references.
 
@@ -360,11 +360,13 @@ HAR-B14_0-RECRUITER-CREDS-001:
 ## 16. Authoring status
 
 ```yaml
-authoring_status: DRAFT_NOT_APPROVED_FOR_EXECUTION
+authoring_status: APPROVED_FOR_EXECUTION
+accepted_plan_revision_commit: 8a049d00bdfec5b97c416f3135644ecd78f14bd8
+plan_approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
+tracker_advanced_to: current_phase=B14.0, current_task=B14_0-00, expected_next_task=B14_0-00
 no_B14_0_implementation_task_starts_until:
-  - this draft passes the same Dual-Agent Adversarial Plan Convergence Protocol used for B-route (or an orchestrator-named equivalent)
-  - the orchestrator records ORCHESTRATOR_DECISION(scope=plan_authoring_approval, decision=APPROVE_FOR_EXECUTION, accepted_report_commit=<this draft commit or its convergent successor>)
-  - the orchestrator advances the tracker from B14.0_PENDING_ORCHESTRATOR_INSTRUCTION to a B14.0-active state in a separate decision
+  - an APPROVE_PLAN decision for the first B14.0 task (B14_0-00) is recorded by the orchestrator after this plan-package approval
+  - HAR-B14_0-RECRUITER-CREDS-001 is resolved before B14_0-02 closure (does not block B14_0-00 or B14_0-01)
 ```
 
 ## 17. Adversarial stress-replay

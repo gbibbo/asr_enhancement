@@ -1,6 +1,6 @@
 # orchestrator_plan.md
 
-Plan state: DRAFT_NOT_APPROVED_FOR_EXECUTION
+Plan state: APPROVED_FOR_EXECUTION (accepted_plan_revision_commit 8a049d00bdfec5b97c416f3135644ecd78f14bd8)
 Project scope: B14.0 recruiter HTTPBasic public-access gate. B14.1 (Tailscale Funnel), B15 (multi-network smoke), and B-handoff (datamove1 router swap) are preserved as future constraints and are not executable in this file.
 Authoritative predecessor: docs/plans/broute/ approved at commit a445e5918bf12bf266a46bd960e67739167eefba.
 
@@ -177,8 +177,10 @@ execution_report_required_before_closure: true
 phase_gate_report_required_before_phase_approval: true
 supplemental_evidence_read_only: true
 human_action_request_transport: CHANGE_SCOPE_with_human_action_request_id
-draft_plan_authoring_status: DRAFT_NOT_APPROVED_FOR_EXECUTION
-no_B14_0_implementation_task_starts_until: this plan package is reviewed under the same Dual-Agent Adversarial Plan Convergence Protocol used for B-route, then committed and approved by ORCHESTRATOR_DECISION(scope=plan_authoring_approval, decision=APPROVE_FOR_EXECUTION)
+plan_authoring_status: APPROVED_FOR_EXECUTION
+accepted_plan_revision_commit: 8a049d00bdfec5b97c416f3135644ecd78f14bd8
+plan_approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
+no_B14_0_implementation_task_starts_until: an APPROVE_PLAN decision for the first B14.0 task (B14_0-00) is recorded after this plan-package approval
 ```
 
 ## 10. Cross-document conflict resolution
