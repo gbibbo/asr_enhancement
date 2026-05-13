@@ -7,9 +7,9 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P3 (LoRA smoke and Decision A)
-- Current task: P3.2 (held until APPROVE_EXECUTION(P3.2) → P3_GATE)
-- Last completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
-- P3.2 status: PASS — Decision_A_smoke.outcome = FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest
+- Current task: P3_GATE (Section 8 P3 phase-gate evaluation)
+- Last completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest)
+- Prior completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
 - Phase summary: P0=PASS, P1=PASS, P2=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
@@ -18,9 +18,10 @@ Status: IN_PROGRESS
 - lora_status: SMOKE_DONE
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 096fe43371f7357007ce41317ed758499d1ff131 (STAYS at the P3.1 acceptance commit; not advanced by the P3.2 scope-change implementation commit)
+- state_transport.last_accepted_report_commit: 26db72df3215355a68029927980389216353526e (advanced from `096fe43` by APPROVE_EXECUTION(P3.2))
 - state_transport.expected_next_task: P3_GATE
-- latest_approval_packet: APPROVE_PLAN(P3.2) on `1025a24` (next P3_GATE)
+- latest_approval_packet: APPROVE_EXECUTION(P3.2) on `26db72d` (next P3_GATE)
+- prior_approval_packet_p3_2_plan: APPROVE_PLAN(P3.2) on `1025a24` (next P3_GATE)
 - prior_approval_packet_p3_2_scope_exec: APPROVE_EXECUTION(P3.2-scope-change) on `1025a24` (next P3.2)
 - prior_approval_packet_p3_2_change_scope: CHANGE_SCOPE(P3.2) on `ee92c8b` (next P3.2)
 - prior_approval_packet_p3_1_exec: APPROVE_EXECUTION(P3.1) on `096fe43` (next P3.2)
@@ -38,6 +39,43 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P3.2 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P3.2 phase=P3
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`26db72df3215355a68029927980389216353526e`
+  next_expected_task=P3_GATE.
+- Rationale: P3.2 passed. Decision_A_smoke was mechanically recorded as FAIL
+  with sentinel `OK_LORA_SMOKE_DECISION:FAIL`. Tests passed
+  (12/12 new + 109/109 full robust_asr suite), and
+  `validate_report_shape.py` emitted `OK_REPORT_SHAPE`. P3 gate will enact
+  downstream routing and P4 skips.
+- Tracker mutations:
+  `current_task` advanced `P3.2 -> P3_GATE`;
+  `last_completed_task` advanced `P3.1 -> P3.2`;
+  `tasks.P3.2.status=PASS` (held);
+  `tasks.P3.2.commit=26db72df3215355a68029927980389216353526e`;
+  `state_transport.last_accepted_report_commit` advanced
+  `096fe43 -> 26db72d`;
+  `state_transport.expected_next_task=P3_GATE` (held).
+  `latest_approval_packet`=APPROVE_EXECUTION(P3.2) on `26db72d`;
+  `prior_approval_packet_p3_2_plan`=APPROVE_PLAN(P3.2) on `1025a24`.
+  Held: `current_phase=P3`, `markers=[BLOCKED_OOD_PUBLIC]`
+  (non-blocking), `blocked=false`, `blocker=null`,
+  `claims_enabled.ood_real=false`, `claims_enabled.cloud_tradeoff=true`,
+  `claims_enabled.positive_lora=pending` (P3 gate enacts → false),
+  `lora_status=SMOKE_DONE` (P3 gate enacts → `SKIPPED_BY_DECISION_A`),
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1`,
+  `phase_summary={P0:PASS, P1:PASS, P2:PASS}`,
+  `orchestrator_approvals={P0:PHASE_APPROVE, P1:PHASE_APPROVE,
+  P2:PHASE_APPROVE}`.
+- P3_GATE not started. P4 task statuses (`P4.1`, `P4.2`, `P4.3`) remain
+  unchanged; they transition to `SKIPPED_BY_DECISION_A` only when the
+  orchestrator runs the P3 gate. No script, no test, no Slurm submission
+  for this update. Only tracker files modified.
 
 ## P3.2 PASS — Decision A = FAIL
 

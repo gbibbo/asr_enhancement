@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P3
-current_task: P3.2
-last_completed_task: P3.1
+current_task: P3_GATE
+last_completed_task: P3.2
 
 blocked: false
 blocker: null
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P3.2
+      phase: P3
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 26db72df3215355a68029927980389216353526e
+      next_expected_task: P3_GATE
+      required_fix: null
+      rationale: "P3.2 passed. Decision_A_smoke was mechanically recorded as FAIL with sentinel OK_LORA_SMOKE_DECISION:FAIL. Tests passed, full robust_asr pytest passed, and OK_REPORT_SHAPE passed. P3 gate will enact downstream routing and P4 skips."
+  prior_approval_packet_p3_2_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P3.2
@@ -498,7 +508,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 096fe43371f7357007ce41317ed758499d1ff131
+  last_accepted_report_commit: 26db72df3215355a68029927980389216353526e
   expected_next_task: P3_GATE
   last_tracker_mismatch: null
 
@@ -1938,6 +1948,7 @@ tasks:
     notes: "P3.1 PASS via Slurm job 2131980 (COMPLETED 0:0, 9m48s, RTX 2080 Ti). All three sentinels emitted: OK_LORA_SMOKE_TRAIN (200 steps, best_step=100, best_loss=0.5837, zero non-finite, zero OOM), OK_LORA_SMOKE_EVAL (1000 rows over 5 families; macro_wa_gain=-0.1284, max_family_wa_gain=-0.1135, clean_wa_regression=0.1135, per_family_wa_gain_variance=1.79e-4 — non-degenerate so degenerate.md NOT written), OK_LORA_EXPORT_SMOKE (merge FP16 → CT2 INT8 → faster-whisper transcribe of one clean fixture audio, all OK). Predicted Decision A SMOKE_FAIL per Section 5.1 mechanical booleans: macro_wa_gain (−0.1284) < 0.005 AND clean_regression (0.1135) > 0.010 ⇒ NOT SMOKE_PASS; max_family_wa_gain (−0.1135) < 0.010 ⇒ NOT SMOKE_PARTIAL. P3.2 will record the decision and write lora_smoke_report.md + decision_a_smoke.md. LoRA adapter binaries (4 checkpoints + merged_fp16 + ct2_int8 = ~240 MB) are gitignored per touch_policy; only JSON/CSV/PNG metadata in git. BLOCKED_OOD_PUBLIC held (non-blocking; ood_real claims disabled). state_transport.last_accepted_report_commit STAYS 3ed96f5b8e559dcf9706c1fa6ae4279da56e0d91 per orchestrator instruction (NOT advanced to the P3.1 implementation commit). current_task=P3.1 held until orchestrator APPROVE_EXECUTION(P3.1) advances it to P3.2."
   P3.2:
     status: PASS
+    commit: 26db72df3215355a68029927980389216353526e
     sentinels:
       - OK_LORA_SMOKE_DECISION:FAIL
     decision_a_outcome: FAIL
