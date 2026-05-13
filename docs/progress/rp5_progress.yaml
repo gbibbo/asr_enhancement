@@ -1,8 +1,19 @@
 tracker_file: docs/progress/rp5_progress.yaml
-current_phase: B-route
-current_task: PHASE_GATE_DECISION
+current_phase: B14.0_PENDING_ORCHESTRATOR_INSTRUCTION
+current_task: B14.0_PENDING_ORCHESTRATOR_INSTRUCTION
 last_completed_task: BR-08
+last_completed_phase: B-route
 markers: []
+phase_approvals:
+  B-route:
+    status: APPROVED
+    decision: PHASE_APPROVE
+    accepted_phase_gate_report_commit: 4a4f8e4b20ff3ff5f19647e7ec1f723f6492df25
+    accepted_tracker_closure_commit: e6c5aec9139a436e75f783d1df2707d25b385346
+    approval_packet_path: reports/rp5/broute_phase_approval_packet.yaml
+    phase_gate_report_path: reports/rp5/broute_phase_gate.md
+    next_phase: B14.0
+    next_phase_status: PENDING_ORCHESTRATOR_INSTRUCTION
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
     status: resolved
@@ -17,8 +28,8 @@ state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
   latest_execution_report_path: reports/rp5/broute_phase_gate.md
   latest_phase_gate_report_path: reports/rp5/broute_phase_gate.md
-  latest_approval_packet_path: reports/rp5/broute_br08_approval_packet.yaml
-  expected_next_task: PHASE_GATE_DECISION
+  latest_approval_packet_path: reports/rp5/broute_phase_approval_packet.yaml
+  expected_next_task: B14.0_PENDING_ORCHESTRATOR_INSTRUCTION
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id

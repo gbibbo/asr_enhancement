@@ -1,0 +1,14 @@
+ORCHESTRATOR_DECISION:
+  scope: phase
+  task_id: null
+  phase: B-route
+  decision: PHASE_APPROVE
+  accepted_report_commit: 4a4f8e4b20ff3ff5f19647e7ec1f723f6492df25
+  next_expected_task: B14.0_PENDING_ORCHESTRATOR_INSTRUCTION
+  required_fix: null
+  rationale: B-route phase gate is approved. BR-01 through BR-08 are PASS, BR-08 produced B_ROUTE_PHASE_GATE_PASS in reports/rp5/broute_phase_gate.md, all nine final-verification sentinels (OK_PLAN_COMPILES, OK_BROUTE_SCHEMA_CONTRACT, OK_BROUTE_CACHE_KEY_CONTRACT, OK_BROUTE_HEALTH_PUBLIC_PAYLOAD, OK_PUBLIC_SECURITY_INVARIANTS, OK_FRONTEND_BACKEND_CONTRACT, OK_BROUTE_MANUAL_SMOKE, OK_BROUTE_ROUTER_STUB_SMOKE, OK_FUTURE_CONSTRAINTS) and OK_CHANGED_FILES_PATH_LOCKED were observed, recovery_log.BR08_FV_ROUTER_BASEURL_FIX is PASS with PLAN_CONFLICT cleared, the four future constraints (FC-B14-0-PUBLIC-GATE, FC-B14-1-FUNNEL, FC-B15-MULTI-NETWORK, FC-HANDOFF-DATAMOVE1) are preserved, markers are empty, the tracker is at PHASE_GATE_DECISION, and no post-B-route work has started. B14.0 remains pending external orchestrator instruction and is not started by this approval.
+phase_gate_report_accepted: reports/rp5/broute_phase_gate.md
+task_closure_accepted: reports/rp5/broute_br08_approval_packet.yaml
+phase_status: APPROVED
+next_phase: B14.0
+next_phase_status: PENDING_ORCHESTRATOR_INSTRUCTION
