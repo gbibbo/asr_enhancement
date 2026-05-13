@@ -6,12 +6,12 @@ Status: IN_PROGRESS
 
 ## Current state
 
-- Phase: P5 (AssemblyAI cloud baseline)
-- Current task: P5_GATE
-- Last completed: P5.1 (HALTED — BLOCKED_API reason=key_unset; APPROVE_EXECUTION(P5.1) accepted on `c71e0a0`)
-- Prior completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
-- Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS
-- Active markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API]
+- Phase: P6 (router / oracle / selector-evidence)
+- Current task: P6.1 (selector-evidence path — OUTCOME_E active)
+- Last completed: P5.1 (HALTED — BLOCKED_API reason=key_unset; APPROVE_EXECUTION(P5.1) accepted on `c71e0a0`; P5 PHASE_APPROVE recorded on the same commit and does not itself advance last_completed_task)
+- Prior completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL)
+- Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS, P5=PASS
+- Active markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]
 - Blocked: false
 - Blocker: null
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
@@ -22,9 +22,10 @@ Status: IN_PROGRESS
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b (advanced to the P5.1 acceptance commit by APPROVE_EXECUTION(P5.1))
-- state_transport.expected_next_task: P5_GATE
-- latest_approval_packet: APPROVE_EXECUTION(P5.1) on `c71e0a0` (next P5_GATE)
+- state_transport.last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b (held at the P5.1 acceptance commit; PHASE_APPROVE(P5) was recorded against this commit and does not itself advance it, matching the P0/P1/P2/P3 pattern)
+- state_transport.expected_next_task: P6.1
+- latest_approval_packet: PHASE_APPROVE(P5) on `c71e0a0` (next P6.1)
+- prior_approval_packet_p5_1_exec: APPROVE_EXECUTION(P5.1) on `c71e0a0` (next P5_GATE)
 - prior_approval_packet_p5_1_plan: APPROVE_PLAN(P5.1) on `f7a845f` (next P5_GATE)
 - prior_approval_packet_p5_1_scope_exec: APPROVE_EXECUTION(P5.1-scope-change) on `f7a845f` (next P5.1)
 - prior_approval_packet_p5_1_change_scope: CHANGE_SCOPE(P5.1) on `45b6cac` (next P5.1)
@@ -48,6 +49,58 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P5 PHASE_APPROVE recorded — OUTCOME_E activated
+
+- ORCHESTRATOR_DECISION: scope=phase task=null phase=P5
+  decision=PHASE_APPROVE
+  accepted_report_commit=`c71e0a0bb25a5d2749801d8fc7444869ff331d1b`
+  next_expected_task=P6.1 required_fix=null.
+- Rationale: P5 phase gate PASS via the BLOCKED_API + `cloud_tradeoff=false`
+  branch of §2589–§2596. `tasks.P5.1.status=HALTED` ∈ {PASS, PARTIAL, HALTED}
+  AND marker `BLOCKED_API` active AND `claims_enabled.cloud_tradeoff=false`
+  satisfies the predicate one-of clause. Backend-count predicate (§2607–2613):
+  start with `{whisper_base_ct2_int8}`; LoRA excluded by
+  `Decision_B_lora_full.include_lora_in_router=false` (Decision_A_smoke=FAIL);
+  AssemblyAI excluded by `BLOCKED_API` active. Count = 1 < 2 →
+  `OUTCOME_E_DETERMINISTIC_SELECTOR` activated at the P5 gate. Routing
+  advances to P6.1 selector-evidence path (§3848–§3853). BLOCKED_OOD_PUBLIC
+  and BLOCKED_API remain active and non-blocking.
+- Tracker mutations:
+  `current_phase` advanced `P5 -> P6`;
+  `current_task` advanced `P5_GATE -> P6.1`;
+  `last_completed_task` held at `P5.1` (PHASE_APPROVE recorded against the
+  P5.1 acceptance commit does not itself advance last_completed_task,
+  matching the P0/P1/P2/P3 pattern);
+  `phase_summary.P5 = PASS`;
+  `orchestrator_approvals.P5 = PHASE_APPROVE`;
+  `markers` → `[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]`;
+  `decisions.P5_routing.branch = B_blocked_api_outcome_e`;
+  `decisions.P5_routing.deployable_backend_count = 1`;
+  `decisions.P5_routing.deployable_backends = [whisper_base_ct2_int8]`;
+  `decisions.P5_routing.outcome_e_activated_at_task = P5_GATE`;
+  `state_transport.latest_approval_packet` = PHASE_APPROVE(P5) on `c71e0a0`;
+  `prior_approval_packet_p5_1_exec` = APPROVE_EXECUTION(P5.1) on `c71e0a0`;
+  `state_transport.expected_next_task = P6.1`;
+  `state_transport.last_accepted_report_commit = c71e0a0…` held
+  (PHASE_APPROVE recorded against the P5.1 acceptance commit; not advanced
+  by the phase-gate tracker commit itself).
+  Held: `blocked=false`, `blocker=null`, `claims_enabled.ood_real=false`,
+  `claims_enabled.cloud_tradeoff=false`, `claims_enabled.positive_lora=false`,
+  `claims_enabled.positive_system=pending`,
+  `lora_status=SKIPPED_BY_DECISION_A`,
+  `decisions.Decision_B_lora_full.include_lora_in_router=false`,
+  `tasks.P4.1=P4.2=P4.3=SKIPPED_BY_DECISION_A`,
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`, `metrics_version=metrics_v1`,
+  `phase_summary={P0,P1,P2,P3}=PASS`,
+  `orchestrator_approvals={P0,P1,P2,P3}=PHASE_APPROVE`.
+- P6.1 selector-evidence path is the next task. `tasks.P6.2.status =
+  SKIPPED_BY_OUTCOME_E` is NOT enacted by the P5 gate — it is enacted by
+  P6.1 per §3853. `tasks.P7.1`/`tasks.P7.2` skips are owned by the P6
+  gate (§312, §2664–§2665). BLOCKED_OOD_PUBLIC NOT cleared. BLOCKED_API
+  NOT cleared. P6.1 not started. No code, no test, no Slurm submission,
+  no real-provider call for this update. Only tracker files modified.
 
 ## P5.1 APPROVE_EXECUTION recorded
 

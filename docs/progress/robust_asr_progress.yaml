@@ -2,8 +2,8 @@ project: robust_asr_lora_router
 branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
-current_phase: P5
-current_task: P5_GATE
+current_phase: P6
+current_task: P6.1
 last_completed_task: P5.1
 
 blocked: false
@@ -27,7 +27,7 @@ product_baseline: whisper_base_ct2_int8
 artifact_root: artifacts/robust_asr
 handoff_root: artifacts/robust_asr/handoff
 
-markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API]
+markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]
 
 claims_enabled:
   ood_real: false
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: null
+      phase: P5
+      decision: PHASE_APPROVE
+      accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b
+      next_expected_task: P6.1
+      required_fix: null
+      rationale: "P5 phase gate PASS via BLOCKED_API + claims_enabled.cloud_tradeoff=false. P5.1 legally halted with BLOCKED_API reason=key_unset, which satisfies the P5 gate blocked-API branch (agent plan §2589-§2596). Deployable backend count is 1: whisper_base_ct2_int8 only. LoRA is excluded by Decision_A_smoke=FAIL and AssemblyAI is excluded by BLOCKED_API. Therefore OUTCOME_E_DETERMINISTIC_SELECTOR is activated and routing advances to P6.1 selector-evidence path. BLOCKED_OOD_PUBLIC and BLOCKED_API remain active and non-blocking."
+  prior_approval_packet_p5_1_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P5.1
@@ -559,7 +569,7 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b
-  expected_next_task: P5_GATE
+  expected_next_task: P6.1
   last_tracker_mismatch: null
 
 phase_summary:
@@ -568,7 +578,7 @@ phase_summary:
   P2: PASS
   P3: PASS
   P4: null
-  P5: null
+  P5: PASS
   P6: null
   P7: null
   P8: null
@@ -581,7 +591,7 @@ orchestrator_approvals:
   P2: PHASE_APPROVE
   P3: PHASE_APPROVE
   P4: null
-  P5: null
+  P5: PHASE_APPROVE
   P6: null
   P7: null
   P8: null
@@ -1006,6 +1016,12 @@ decisions:
   Decision_D_positive_system:
     outcome: null
     decided_at_task: P8.1
+  P5_routing:
+    branch: B_blocked_api_outcome_e
+    deployable_backend_count: 1
+    deployable_backends: [whisper_base_ct2_int8]
+    outcome_e_activated_at_task: P5_GATE
+    decided_at_task: P5_GATE
 
 tasks:
   P0.0:
@@ -2199,3 +2215,30 @@ tasks:
     next_task: P5_GATE
     blocker: null
     notes: "CHANGE_SCOPE(P5.1) recorded against 45b6cac; scope-change applied at commit e45903e; CHANGE_SCOPE-packet recording committed at f7a845f. APPROVE_EXECUTION(P5.1-scope-change) and APPROVE_PLAN(P5.1) both accepted on f7a845f. P5.1 implementation: pricing_v1.yaml, eval_manifests_v1.yaml (append assemblyai backend_endpoints entry), probe_assemblyai_runtime.py, populate_assemblyai_cache.py, evaluate_assemblyai_from_cache.py, test_assemblyai.py (15 tests), and task report all present. Probe returned ASSEMBLYAI_RUNTIME=false reason=key_unset → HALTED + BLOCKED_API; claims_enabled.cloud_tradeoff flipped true -> false. No AssemblyAI request issued; no upload; ASSEMBLYAI_API_KEY never logged or persisted. Paid-API guard implemented (exit 8/9/10/11/12 + pre-spend summary + running-cost guard); 15 tests exercise all five guards without network. Full pytest tests/robust_asr/ = 124/124 PASS (was 109; +15 new). OK_REPORT_SHAPE PASS. current_task=P5.1 held until APPROVE_EXECUTION(P5.1); last_completed_task=P3.2 held; markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API]; blocked=false; claims_enabled.ood_real=false; claims_enabled.cloud_tradeoff=false; claims_enabled.positive_lora=false; lora_status=SKIPPED_BY_DECISION_A; state_transport.last_accepted_report_commit STAYS 26db72df3215355a68029927980389216353526e per orchestrator instruction (NOT advanced to the P5.1 implementation commit); state_transport.expected_next_task advanced from P5.1 to P5_GATE by APPROVE_PLAN(P5.1)."
+  P5_GATE:
+    status: PASS
+    commit: pending_this_phase_gate_commit
+    routing_branch: "P5 gate Branch B (BLOCKED_API + < 2 deployable backends)"
+    predicate_one_of_satisfied: "BLOCKED_API + claims_enabled.cloud_tradeoff=false"
+    deployable_backend_count: 1
+    deployable_backends: [whisper_base_ct2_int8]
+    marker_added: OUTCOME_E_DETERMINISTIC_SELECTOR
+    files_changed:
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml/md/state_capsule: phase_summary.P5=PASS; orchestrator_approvals.P5=PHASE_APPROVE; current_phase=P5->P6; current_task=P5_GATE->P6.1; markers += OUTCOME_E_DETERMINISTIC_SELECTOR; decisions.P5_routing recorded; latest_approval_packet=PHASE_APPROVE(P5) on c71e0a0; APPROVE_EXECUTION(P5.1) demoted to prior_approval_packet_p5_1_exec; state_transport.expected_next_task=P6.1; state_transport.last_accepted_report_commit held at c71e0a0"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "P5 phase gate PASS per agent plan §2589-§2596 via the BLOCKED_API + cloud_tradeoff=false branch"
+      - "Deployable backend count predicate evaluates to 1: {whisper_base_ct2_int8} only; LoRA excluded by Decision_A_smoke=FAIL (include_lora_in_router=false); AssemblyAI excluded by BLOCKED_API (cloud_tradeoff=false)"
+      - "< 2 transcript-producing deployable backends -> Section 8 routing activates OUTCOME_E_DETERMINISTIC_SELECTOR at P5_GATE"
+      - "Next post-gate task = P6.1 selector-evidence path (§3848-§3853); P6.2 SKIPPED_BY_OUTCOME_E will be enacted at P6.1 (not at P5 gate)"
+      - "current_task advanced P5_GATE -> P6.1; last_completed_task held at P5.1 (PHASE_APPROVE(P5) recorded on the P5.1 acceptance commit does not itself advance last_completed_task, matching the P0/P1/P2/P3 pattern)"
+      - "BLOCKED_OOD_PUBLIC NOT cleared; BLOCKED_API NOT cleared; both non-blocking"
+      - "state_transport.last_accepted_report_commit STAYS c71e0a0bb25a5d2749801d8fc7444869ff331d1b per orchestrator instruction (PHASE_APPROVE recorded against the P5.1 acceptance commit; not advanced by the phase-gate commit itself)"
+    marker: null
+    next_task: P6.1
+    blocker: null
+    notes: "P5 PHASE_APPROVE recorded against commit c71e0a0 (the P5.1 acceptance commit). Routing enacted per Section 8 P5 Branch B for BLOCKED_API + cloud_tradeoff=false + backend_count<2: markers += OUTCOME_E_DETERMINISTIC_SELECTOR; decisions.P5_routing.branch=B_blocked_api_outcome_e; decisions.P5_routing.deployable_backend_count=1; decisions.P5_routing.deployable_backends=[whisper_base_ct2_int8]. Next task = P6.1 selector-evidence path. BLOCKED_OOD_PUBLIC held non-blocking; BLOCKED_API held non-blocking; claims_enabled.ood_real=false held; claims_enabled.cloud_tradeoff=false held; claims_enabled.positive_lora=false held; lora_status=SKIPPED_BY_DECISION_A held. No code, no test, no Slurm submission, no real-provider call for this update. Only tracker files modified."
