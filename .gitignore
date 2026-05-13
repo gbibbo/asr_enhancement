@@ -55,6 +55,15 @@ checkpoints/
 data/
 .cache/
 
+# Robust ASR — LoRA binary subtrees (kept outside git per touch_policy)
+artifacts/robust_asr/lora_smoke/checkpoints/
+artifacts/robust_asr/lora_smoke/merged_fp16/
+artifacts/robust_asr/lora_smoke/ct2_int8/
+artifacts/robust_asr/lora_full/checkpoints/
+artifacts/robust_asr/lora_merged_fp16/
+artifacts/robust_asr/lora_ct2_int8/
+*.bin
+
 # Generated audio
 *.wav
 *.flac

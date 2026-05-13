@@ -1,0 +1,47 @@
+{
+  "baseline_per_family_wa": {
+    "cafe_noise": 0.922104025793256,
+    "clean": 0.9358901601498212,
+    "far_field_room": 0.9155191475836573,
+    "muffled_lowpass": 0.9289216861503804,
+    "phone_band": 0.9271904928221563
+  },
+  "best_step": 100,
+  "clean_wa_regression": 0.11345487026714807,
+  "created_at_utc": "2026-05-13T15:15:01Z",
+  "eval_decode_defaults": {
+    "beam_size": 1,
+    "condition_on_previous_text": false,
+    "language": "en",
+    "task": "transcribe",
+    "temperature": 0.0,
+    "without_timestamps": true
+  },
+  "families": [
+    "clean",
+    "cafe_noise",
+    "phone_band",
+    "far_field_room",
+    "muffled_lowpass"
+  ],
+  "lora_per_family_wa": {
+    "cafe_noise": 0.776647910799716,
+    "clean": 0.8224352898826731,
+    "far_field_room": 0.7719401940931515,
+    "muffled_lowpass": 0.8105788346345,
+    "phone_band": 0.8058669605731368
+  },
+  "macro_wa_gain": -0.12843126450321876,
+  "max_family_wa_gain": -0.11345487026714807,
+  "n_eval_audio_ids": 1000,
+  "n_eval_rows": 1000,
+  "normalization_version": "normalization_v1",
+  "per_family_wa_gain": {
+    "cafe_noise": -0.14545611499354005,
+    "clean": -0.11345487026714807,
+    "far_field_room": -0.14357895349050576,
+    "muffled_lowpass": -0.11834285151588042,
+    "phone_band": -0.12132353224901948
+  },
+  "per_family_wa_gain_variance": 0.0001791772669176124
+}

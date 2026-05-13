@@ -7,18 +7,21 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P3 (LoRA smoke and Decision A)
-- Current task: P3.1 (LoRA smoke train, eval, export smoke)
-- Last completed: P2.2 (PASS — LoRA smoke split config; 600 train / 200 eval audio_ids; OK_LORA_SMOKE_* sentinels; OK_REPORT_SHAPE; 85/85 pytest PASS)
+- Current task: P3.1 (LoRA smoke train, eval, export smoke) — PASS pending APPROVE_EXECUTION(P3.1)
+- Last completed: P2.2 (PASS — held until APPROVE_EXECUTION(P3.1) advances last_completed to P3.1)
 - Phase summary: P0=PASS, P1=PASS, P2=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - Blocker: null
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
+- lora_status: SMOKE_DONE
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: ca98443d380f675eb45666af19d3686f3fbfa54f (CHANGE_SCOPE(P3.1) accepts the P2 PHASE_APPROVE commit; not advanced — CHANGE_SCOPE does not advance last_accepted_report_commit)
-- state_transport.expected_next_task: P3.1
-- latest_approval_packet: CHANGE_SCOPE(P3.1) on `ca98443` (next P3.1)
+- state_transport.last_accepted_report_commit: 3ed96f5b8e559dcf9706c1fa6ae4279da56e0d91 (APPROVE_PLAN(P3.1) accepts the scope-change commit; NOT advanced to the P3.1 implementation commit per orchestrator instruction)
+- state_transport.expected_next_task: P3.2 (set when APPROVE_PLAN(P3.1) was recorded)
+- latest_approval_packet: APPROVE_PLAN(P3.1) on `3ed96f5` (next P3.2)
+- prior_approval_packet_p3_1_scope_exec: APPROVE_EXECUTION(P3.1-scope-change) on `3ed96f5` (next P3.1)
+- prior_approval_packet_p3_1_change_scope: CHANGE_SCOPE(P3.1) on `ca98443` (next P3.1)
 - prior_approval_packet_p2_phase: PHASE_APPROVE(P2) on `8c37ece` (next P3.1)
 - prior_approval_packet: APPROVE_EXECUTION(P2.2) on `8c37ece` (next P2_GATE)
 - prior_approval_packet_p2_2_plan: APPROVE_PLAN(P2.2) on `d78678a` (next P2_GATE)
@@ -30,6 +33,122 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P3.1 PASS — LoRA smoke train, eval, export smoke (Slurm job 2131980)
+
+- ORCHESTRATOR_DECISION: scope=task task=P3.1-scope-change phase=P3
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`3ed96f5b8e559dcf9706c1fa6ae4279da56e0d91`
+  next_expected_task=P3.1. Then immediately:
+  scope=task task=P3.1 phase=P3 decision=APPROVE_PLAN
+  accepted_report_commit=`3ed96f5b8e559dcf9706c1fa6ae4279da56e0d91`
+  next_expected_task=P3.2.
+- Slurm job `2131980` COMPLETED `0:0` in `00:09:48` on
+  `aisurrey03.surrey.ac.uk` (RTX 2080 Ti, partition `2080ti`,
+  MaxRSS 2,826,500 KiB, container sha256 `8db5364c…ce8713`).
+  All three sentinels emitted in order:
+  - `OK_LORA_SMOKE_TRAIN steps_completed=200 best_step=100
+    best_loss=0.5837` — 200 LoRA steps over the 600-row smoke_split
+    with on-the-fly degradation; no OOM, no non-finite loss
+    (`nonfinite_count=0`); LoRA trainable params 589,824 /
+    73,183,232 total (0.806%); fp16 + AdamW + warmup_steps=20 +
+    lr=1e-4; per-step duration ≈ 1.5–2 s on RTX 2080 Ti.
+  - `OK_LORA_SMOKE_EVAL macro_wa_gain=-0.1284
+    max_family_wa_gain=-0.1135 clean_wa_regression=0.1135` —
+    1000 rows over the 200-base × 5-family
+    `degradation_v1_id_eval.parquet` slice for the smoke_eval_split;
+    `per_family_wa_gain_variance=1.79e-4` (non-degenerate so no
+    `lora_smoke_degenerate.md` written); per-family WA gain:
+    clean −0.1135, cafe_noise −0.1455, phone_band −0.1213,
+    far_field_room −0.1436, muffled_lowpass −0.1183.
+  - `OK_LORA_EXPORT_SMOKE` — merge_lora_fp16 OK (15.8 s) →
+    ct2_int8_export OK (1.34 s, model.bin 77 MB INT8) →
+    faster_whisper_transcribe OK (0.76 s on
+    `librispeech/dev-clean/1272-128104-0000` clean fixture from the
+    smoke_eval_split). Workaround applied: patched
+    `TransformersConverter.load_model` strips `dtype`/`torch_dtype`
+    kwargs to bridge transformers/ctranslate2 4.7.1 API mismatch
+    (same pattern used by `build_whisper_base_ct2_int8.py` in
+    P2.1-model-build).
+- Predicted Decision A (Section 5.1, mechanical) is **SMOKE_FAIL**:
+  `macro_wa_gain` (−0.1284) `< 0.005` AND `clean_regression` (0.1135)
+  `> 0.010` ⇒ not SMOKE_PASS; `max_family_wa_gain` (−0.1135) `< 0.010`
+  ⇒ not SMOKE_PARTIAL. P3.1 does NOT record this; P3.2 owns the
+  decision and the side effects (Section 5.10 fallback: P4
+  `SKIPPED_BY_DECISION_A`, `Decision_B_lora_full.include_lora_in_router
+  = false`, `claims_enabled.positive_lora = false`).
+- Run history (single PASS plus four iterative fixes, full
+  reproducibility): see `reports/robust_asr/task_reports/P3.1_lora_smoke.md`
+  for the per-attempt table (jobs 2131879, 2131884, 2131889, 2131891,
+  2131897, 2131908, 2131980).
+- Verifications:
+  `python3 scripts/robust_asr/validate_report_shape.py …` →
+  `OK_REPORT_SHAPE` exit 0;
+  `python3 -m pytest -q tests/robust_asr/` → **97 passed in 3.51 s**
+  (was 85 pre-P3.1; +9 new tests + 3 conditional tests now active
+  after artifact production).
+- Deliverables committed (all small JSON/CSV/PNG/MD/scripts/tests):
+  `artifacts/robust_asr/lora_smoke/checkpoint_manifest.json` (sha256
+  `21d519a5…01ce2`), `…/training_log.csv` (sha256 `d2fd4dca…faea8`),
+  `…/loss_curve.png` (sha256 `3426869e…ab69c`, generated by the
+  stdlib zlib+struct PNG fallback since the SIF has no matplotlib
+  or PIL), `…/export_smoke_result.json` (sha256 `ca97450a…cda33ad`),
+  `reports/robust_asr/lora/lora_smoke_result.json` (sha256
+  `c5eac79f…721be`), `reports/robust_asr/task_reports/P3.1_lora_smoke.md`,
+  plus the four new scripts/tests
+  (`scripts/robust_asr/{train_lora_smoke,evaluate_lora_smoke,smoke_export_lora_ct2}.py`,
+  `slurm/jobs/p3_1_lora_smoke.sh`, `tests/robust_asr/test_lora_smoke.py`)
+  and the `.gitignore` extension for LoRA binary subtrees.
+- Deliverables produced but NOT committed (gitignored per touch_policy):
+  `artifacts/robust_asr/lora_smoke/checkpoints/step_{00050,00100,00150,00200}/`
+  (4 LoRA adapter dirs, ~9.2 MiB total),
+  `artifacts/robust_asr/lora_smoke/merged_fp16/` (FP16 base + LoRA,
+  ~143 MiB), `artifacts/robust_asr/lora_smoke/ct2_int8/` (CT2 INT8
+  export with model.bin ~77 MiB).
+- HF cache staging (no scope change; lives under the
+  pre-authorized model-root cache path read-only): `model.safetensors`
+  (sha256 `d4dd5542…71db5`) and `config.json` (sha256 `160c1df4…be76`)
+  were downloaded from `huggingface.co/openai/whisper-base.en/resolve/main`
+  on datamove1 and symlinked into
+  `…/cache/huggingface/hub/models--openai--whisper-base.en/snapshots/911407f4…/`
+  alongside the tokenizer/preprocessor files that were already present.
+  This is read-only data, never committed to git.
+- Tracker mutations:
+  `tasks.P3.1.status=PASS`,
+  `tasks.P3.1.slurm_job_id=2131980`,
+  `tasks.P3.1.next_task=P3.2`,
+  `tasks.P3.1.marker=null`,
+  `tasks.P3.1.artifacts_added.{checkpoint_manifest, training_log,
+  loss_curve, lora_smoke_result, export_smoke_result, scripts,
+  Slurm job, tests, task report}` populated;
+  `lora_status=SMOKE_DONE`;
+  `artifacts.lora_smoke_*` sha256s populated;
+  `artifacts.lora_smoke_report.produced_by_task=P3.2` corrected
+  (was incorrectly recorded as `P3.1` at tracker-init).
+  `latest_approval_packet=APPROVE_PLAN(P3.1)` on `3ed96f5`;
+  `prior_approval_packet_p3_1_scope_exec=APPROVE_EXECUTION(P3.1-scope-change)`
+  on `3ed96f5`;
+  `prior_approval_packet_p3_1_change_scope=CHANGE_SCOPE(P3.1)` on
+  `ca98443`.
+  Held: `current_phase=P3`, `current_task=P3.1` (orchestrator
+  finalizes via `APPROVE_EXECUTION(P3.1)` before P3.2 may start),
+  `last_completed_task=P2.2`, `markers=[BLOCKED_OOD_PUBLIC]`
+  (non-blocking; NOT cleared), `blocked=false`, `blocker=null`,
+  `claims_enabled.ood_real=false`, `claims_enabled.cloud_tradeoff=true`,
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1`,
+  `phase_summary={P0:PASS, P1:PASS, P2:PASS}`,
+  `orchestrator_approvals={P0:PHASE_APPROVE, P1:PHASE_APPROVE,
+  P2:PHASE_APPROVE}`,
+  `state_transport.last_accepted_report_commit=3ed96f5b8e559dcf9706c1fa6ae4279da56e0d91`
+  (NOT advanced to the P3.1 implementation commit per orchestrator
+  instruction),
+  `state_transport.expected_next_task=P3.2`.
+- P3 gate predicate (Section 8 P3) is now half-satisfied:
+  `tasks.P3.1` is PASS; awaiting orchestrator
+  `APPROVE_EXECUTION(P3.1)` and then P3.2 (Decision A) before
+  `PHASE_APPROVE(P3)` and the P4 / P5 routing.
 
 ## P3.1 CHANGE_SCOPE recorded
 
