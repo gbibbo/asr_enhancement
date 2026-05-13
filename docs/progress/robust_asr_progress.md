@@ -7,8 +7,8 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P3 (LoRA smoke and Decision A)
-- Current task: P3.1 (LoRA smoke train, eval, export smoke) — PASS pending APPROVE_EXECUTION(P3.1)
-- Last completed: P2.2 (PASS — held until APPROVE_EXECUTION(P3.1) advances last_completed to P3.1)
+- Current task: P3.2 (Decision A — mechanical decision from P3.1 smoke metrics)
+- Last completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
 - Phase summary: P0=PASS, P1=PASS, P2=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
@@ -17,9 +17,10 @@ Status: IN_PROGRESS
 - lora_status: SMOKE_DONE
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 3ed96f5b8e559dcf9706c1fa6ae4279da56e0d91 (APPROVE_PLAN(P3.1) accepts the scope-change commit; NOT advanced to the P3.1 implementation commit per orchestrator instruction)
-- state_transport.expected_next_task: P3.2 (set when APPROVE_PLAN(P3.1) was recorded)
-- latest_approval_packet: APPROVE_PLAN(P3.1) on `3ed96f5` (next P3.2)
+- state_transport.last_accepted_report_commit: 096fe43371f7357007ce41317ed758499d1ff131 (advanced from `3ed96f5` by APPROVE_EXECUTION(P3.1))
+- state_transport.expected_next_task: P3.2
+- latest_approval_packet: APPROVE_EXECUTION(P3.1) on `096fe43` (next P3.2)
+- prior_approval_packet_p3_1_plan: APPROVE_PLAN(P3.1) on `3ed96f5` (next P3.2)
 - prior_approval_packet_p3_1_scope_exec: APPROVE_EXECUTION(P3.1-scope-change) on `3ed96f5` (next P3.1)
 - prior_approval_packet_p3_1_change_scope: CHANGE_SCOPE(P3.1) on `ca98443` (next P3.1)
 - prior_approval_packet_p2_phase: PHASE_APPROVE(P2) on `8c37ece` (next P3.1)
@@ -33,6 +34,45 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P3.1 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P3.1 phase=P3
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`096fe43371f7357007ce41317ed758499d1ff131`
+  next_expected_task=P3.2.
+- Rationale: P3.1 passed. `OK_LORA_SMOKE_TRAIN`, `OK_LORA_SMOKE_EVAL`,
+  `OK_LORA_EXPORT_SMOKE`, `OK_REPORT_SHAPE`, and tests passed. LoRA
+  smoke completed without `BLOCKED_RUNTIME`, `BUDGET_EXCEEDED`,
+  `DEGENERATE_SMOKE_RESULT`, or `EXPORT_BLOCKED`. P3.2 will make
+  Decision A from the recorded metrics.
+- Tracker mutations:
+  `current_task` advanced `P3.1 -> P3.2`;
+  `last_completed_task` advanced `P2.2 -> P3.1`;
+  `tasks.P3.1.commit=096fe43371f7357007ce41317ed758499d1ff131`;
+  `state_transport.last_accepted_report_commit` advanced
+  `3ed96f5 -> 096fe43`;
+  `state_transport.expected_next_task=P3.2`.
+  `latest_approval_packet`=APPROVE_EXECUTION(P3.1) on `096fe43`;
+  `prior_approval_packet_p3_1_plan`=APPROVE_PLAN(P3.1) on `3ed96f5`;
+  `prior_approval_packet_p3_1_scope_exec`=APPROVE_EXECUTION(P3.1-scope-change)
+  on `3ed96f5`; `prior_approval_packet_p3_1_change_scope`=CHANGE_SCOPE(P3.1)
+  on `ca98443`.
+  Held: `current_phase=P3`, `markers=[BLOCKED_OOD_PUBLIC]`
+  (non-blocking), `blocked=false`, `blocker=null`,
+  `claims_enabled.ood_real=false`, `claims_enabled.cloud_tradeoff=true`,
+  `lora_status=SMOKE_DONE`, `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`,
+  `metrics_version=metrics_v1`,
+  `phase_summary={P0:PASS, P1:PASS, P2:PASS}`,
+  `orchestrator_approvals={P0:PHASE_APPROVE, P1:PHASE_APPROVE,
+  P2:PHASE_APPROVE}`.
+- P3.2 not started; awaiting orchestrator `APPROVE_PLAN(P3.2)` before
+  implementation. P3.2 deliverables (per agent plan §3601-§3637):
+  `reports/robust_asr/lora/lora_smoke_report.md` (PASS|PARTIAL|FAIL|HALTED
+  outcome on first line) and `reports/robust_asr/lora/decision_a_smoke.md`
+  (decision narrative). No code, no test, no Slurm submission for this
+  update. Only tracker files modified.
 
 ## P3.1 PASS — LoRA smoke train, eval, export smoke (Slurm job 2131980)
 

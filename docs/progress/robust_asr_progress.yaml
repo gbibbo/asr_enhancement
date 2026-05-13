@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P3
-current_task: P3.1
-last_completed_task: P2.2
+current_task: P3.2
+last_completed_task: P3.1
 
 blocked: false
 blocker: null
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P3.1
+      phase: P3
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 096fe43371f7357007ce41317ed758499d1ff131
+      next_expected_task: P3.2
+      required_fix: null
+      rationale: "P3.1 passed. OK_LORA_SMOKE_TRAIN, OK_LORA_SMOKE_EVAL, OK_LORA_EXPORT_SMOKE, OK_REPORT_SHAPE, and tests passed. LoRA smoke completed without BLOCKED_RUNTIME, BUDGET_EXCEEDED, DEGENERATE_SMOKE_RESULT, or EXPORT_BLOCKED. P3.2 will make Decision A from the recorded metrics."
+  prior_approval_packet_p3_1_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P3.1
@@ -458,7 +468,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 3ed96f5b8e559dcf9706c1fa6ae4279da56e0d91
+  last_accepted_report_commit: 096fe43371f7357007ce41317ed758499d1ff131
   expected_next_task: P3.2
   last_tracker_mismatch: null
 
@@ -1725,7 +1735,7 @@ tasks:
     notes: "P2.2 PASS via deterministic stratified-by-speaker sampling (no RNG). steps_max=200; seed=42 (P3.1-binding training/eval seed); Section 3 eval decode defaults; training_timeout_seconds=14400, eval_timeout_seconds=1800. Manifest sha256s pinned. BLOCKED_OOD_PUBLIC NOT cleared (held non-blocking; ood_real splits remain enabled=false). state_transport.last_accepted_report_commit STAYS 83dd911 per orchestrator instruction. current_task=P2.2 held until orchestrator APPROVE_EXECUTION(P2.2) advances it to P2_GATE."
   P3.1:
     status: PASS
-    commit: null
+    commit: 096fe43371f7357007ce41317ed758499d1ff131
     slurm_job_id: 2131980
     slurm_node: aisurrey03.surrey.ac.uk
     slurm_partition: 2080ti
