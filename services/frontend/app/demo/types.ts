@@ -43,10 +43,44 @@ export type DemoExamplesResponse = {
 };
 
 export type DemoHealthResponse = {
-  status: "ok" | "degraded";
-  mode: "demo";
-  db_ok: boolean;
-  queue_depth: number;
+  status: "ok";
+};
+
+export type LatencyMs = {
+  backend: number;
+  server: number;
+  end_to_end: number;
+};
+
+export type RouterDecisionView = {
+  selected_backend: string;
+  router_kind: string;
+  router_version: string;
+  routing_profile: string;
+  allow_third_party: boolean;
+  third_party_provider: string | null;
+  cost_policy: string;
+  estimated_cost_usd: number;
+  predicted_confidence: number;
+  predicted_ask_repeat: number;
+  routing_explanation: string;
+  router_latency_ms: number;
+};
+
+export type AssembledResponseView = {
+  transcript_text: string;
+  selected_backend: string;
+  router_kind: string;
+  router_version: string;
+  routing_profile: string;
+  allow_third_party: boolean;
+  third_party_provider: string | null;
+  estimated_cost_usd: number;
+  cost_usd: number;
+  backend_confidence: number;
+  ask_repeat: number;
+  latency_ms: LatencyMs;
+  routing_explanation: string;
 };
 
 export type DemoWarning = {
