@@ -11,19 +11,22 @@ Status: IN_PROGRESS
 - Last completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest) — P3_GATE PHASE_APPROVE recorded on the P3.2 acceptance commit; P3_GATE does not itself advance last_completed_task
 - Prior completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
 - Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS
-- Active markers: [BLOCKED_OOD_PUBLIC]
+- Active markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API]
 - Blocked: false
 - Blocker: null
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
+- claims_enabled.cloud_tradeoff: false (set by P5.1 BLOCKED_API; ASSEMBLYAI_API_KEY unset)
 - claims_enabled.positive_lora: false (transitioned from pending by P3 gate Branch B)
 - lora_status: SKIPPED_BY_DECISION_A (transitioned from SMOKE_DONE by P3 gate Branch B)
 - decisions.Decision_B_lora_full.include_lora_in_router: false (set by P3 gate Branch B)
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 26db72df3215355a68029927980389216353526e (held at the P3.2 acceptance commit; PHASE_APPROVE(P3) was recorded against this commit and does not itself advance it)
-- state_transport.expected_next_task: P5.1
-- latest_approval_packet: CHANGE_SCOPE(P5.1) on `45b6cac` (next P5.1)
+- state_transport.last_accepted_report_commit: 26db72df3215355a68029927980389216353526e (held at the P3.2 acceptance commit; P5.1 implementation does not advance it per orchestrator instruction)
+- state_transport.expected_next_task: P5_GATE
+- latest_approval_packet: APPROVE_PLAN(P5.1) on `f7a845f` (next P5_GATE)
+- prior_approval_packet_p5_1_scope_exec: APPROVE_EXECUTION(P5.1-scope-change) on `f7a845f` (next P5.1)
+- prior_approval_packet_p5_1_change_scope: CHANGE_SCOPE(P5.1) on `45b6cac` (next P5.1)
 - prior_approval_packet_p3_phase: PHASE_APPROVE(P3) on `26db72d` (next P5.1)
 - prior_approval_packet_p3_2_exec: APPROVE_EXECUTION(P3.2) on `26db72d` (next P3_GATE)
 - prior_approval_packet_p3_2_plan: APPROVE_PLAN(P3.2) on `1025a24` (next P3_GATE)
@@ -44,6 +47,68 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P5.1 HALTED — BLOCKED_API (key_unset)
+
+- APPROVE_EXECUTION(P5.1-scope-change) recorded on `f7a845f` (next P5.1);
+  APPROVE_PLAN(P5.1) recorded on `f7a845f` (next P5_GATE).
+- Probe `python3 scripts/robust_asr/probe_assemblyai_runtime.py` →
+  `ASSEMBLYAI_RUNTIME=false reason=key_unset`. `ASSEMBLYAI_API_KEY` is
+  unset on datamove1. Per agent plan §3786–3805, cache populate and
+  evaluate are skipped; `BLOCKED_API` is the legal Section 5 closure.
+- Deliverables written: `configs/robust_asr/pricing_v1.yaml`,
+  `configs/robust_asr/eval_manifests_v1.yaml` (append assemblyai
+  `backend_endpoints` entry only),
+  `scripts/robust_asr/probe_assemblyai_runtime.py`,
+  `scripts/robust_asr/populate_assemblyai_cache.py`,
+  `scripts/robust_asr/evaluate_assemblyai_from_cache.py`,
+  `tests/robust_asr/test_assemblyai.py` (15 tests),
+  `reports/robust_asr/task_reports/P5.1_assemblyai.md`. No
+  `assemblyai.parquet`, no `cache_summary.json`, no Slurm submission, no
+  AssemblyAI request.
+- Paid-API guard (`populate_assemblyai_cache.py`):
+  exit 8 = `ASSEMBLYAI_API_KEY_UNSET`;
+  exit 12 = `PENDING_PRICING_VERIFICATION` (>90 day old `assemblyai_pricing_checked_date`);
+  exit 11 = `BUDGET_EXCEEDED` (estimated total cost > `max_total_cost_usd`,
+  or per-row running-cost check would exceed the cap mid-run);
+  exit 9 = `ASSEMBLYAI_AUTH_FAIL` on HTTP 401/403;
+  exit 10 = `ASSEMBLYAI_QUOTA` on HTTP 429 after retries.
+  Pre-spend summary printed BEFORE any upload.
+  `ASSEMBLYAI_API_KEY` is read from the environment only and is never
+  logged or written to disk. Tests exercise all five guards without
+  network calls.
+- Verification: `python3 -m pytest tests/robust_asr/test_assemblyai.py -q`
+  → `15 passed`; full `pytest tests/robust_asr/` → `124/124 PASS`
+  (was 109; +15 new); `validate_report_shape.py` → `OK_REPORT_SHAPE`.
+- Tracker mutations:
+  `tasks.P5.1.status = HALTED`;
+  `tasks.P5.1.blocked_marker = BLOCKED_API` (`reason=key_unset`);
+  `markers` → `[BLOCKED_OOD_PUBLIC, BLOCKED_API]`;
+  `claims_enabled.cloud_tradeoff = false` (was `true`);
+  `assemblyai_table.path = null`, `blocked_by = BLOCKED_API`,
+  `expected_path = artifacts/robust_asr/eval_tables/assemblyai.parquet`;
+  `latest_approval_packet` = APPROVE_PLAN(P5.1) on `f7a845f`;
+  prior `APPROVE_EXECUTION(P5.1-scope-change)` recorded as
+  `prior_approval_packet_p5_1_scope_exec`;
+  prior `CHANGE_SCOPE(P5.1)` demoted to `prior_approval_packet_p5_1_change_scope`;
+  `state_transport.expected_next_task = P5_GATE`;
+  `state_transport.last_accepted_report_commit = 26db72d…` held
+  (CHANGE_SCOPE + APPROVE_PLAN do not advance `last_accepted_report_commit`
+  to the P5.1 implementation commit).
+- Held: `current_phase=P5`, `current_task=P5.1` (held until
+  APPROVE_EXECUTION(P5.1) advances it to `P5_GATE`),
+  `last_completed_task=P3.2`, `blocked=false`, `blocker=null`,
+  `claims_enabled.ood_real=false`, `claims_enabled.positive_lora=false`,
+  `claims_enabled.positive_system=pending`,
+  `lora_status=SKIPPED_BY_DECISION_A`,
+  `decisions.Decision_B_lora_full.include_lora_in_router=false`,
+  `tasks.P4.1=P4.2=P4.3=SKIPPED_BY_DECISION_A`,
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`, `metrics_version=metrics_v1`,
+  `phase_summary={P0,P1,P2,P3}=PASS`,
+  `orchestrator_approvals={P0,P1,P2,P3}=PHASE_APPROVE`.
+- `BLOCKED_OOD_PUBLIC` NOT cleared; held non-blocking.
+- P5_GATE not started. Awaits orchestrator `APPROVE_EXECUTION(P5.1)`.
 
 ## P5.1 CHANGE_SCOPE recorded
 

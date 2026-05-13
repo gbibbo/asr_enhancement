@@ -1,0 +1,45 @@
+# Robust ASR — AssemblyAI Pricing v1
+#
+# Produced by: P5.1
+# Date: 2026-05-13
+# Source: https://www.assemblyai.com/pricing
+#
+# Public AssemblyAI pricing snapshot used by:
+#   scripts/robust_asr/populate_assemblyai_cache.py
+#   scripts/robust_asr/evaluate_assemblyai_from_cache.py
+#
+# All cost-impacting fields below are gates:
+#   - populate_assemblyai_cache.py computes an estimated total cost from
+#     the eval manifests' audio_duration_s sum and the unit_price_*
+#     fields. If the estimate exceeds max_total_cost_usd, populate exits
+#     with BUDGET_EXCEEDED and writes no cache entries.
+#   - If assemblyai_pricing_checked_date is older than 90 days from the
+#     current date, populate exits with PENDING_PRICING_VERIFICATION.
+
+assemblyai_pricing_checked_date: "2026-05-13"
+pricing_source_url: "https://www.assemblyai.com/pricing"
+pricing_currency: "USD"
+
+# Best (model, billing_unit, unit_price_usd) tuple captured from the
+# public pricing page. AssemblyAI bills by audio second for the
+# universal-1/standard transcription tier; the per_second rate below is
+# the conservative public list price for English transcription.
+billing_unit: "audio_second"
+unit_price_usd_per_audio_second: 0.0001028   # ≈ $0.37 / hour list price
+universal_model_unit_price_usd_per_audio_second: 0.0001028
+
+# Hard cap for total AssemblyAI spend across populate runs. If the
+# estimated cost exceeds this value, populate exits with
+# BUDGET_EXCEEDED and writes no cache entries.
+max_total_cost_usd: 50.0
+
+# Manifest set whose audio_duration_s sums feed the pre-spend estimate.
+# Populate iterates these manifests and skips entries where enabled=false.
+estimate_manifest_set: eval_manifests_v1
+
+# Behavioral guardrails consumed by populate_assemblyai_cache.py.
+http_5xx_partial_threshold_pct: 1.0           # 5xx > 1% audio_ids → PARTIAL
+http_429_max_retries: 5
+http_5xx_max_retries: 1
+request_timeout_seconds: 60
+probe_timeout_seconds: 5

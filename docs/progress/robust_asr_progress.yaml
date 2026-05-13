@@ -27,11 +27,11 @@ product_baseline: whisper_base_ct2_int8
 artifact_root: artifacts/robust_asr
 handoff_root: artifacts/robust_asr/handoff
 
-markers: [BLOCKED_OOD_PUBLIC]
+markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API]
 
 claims_enabled:
   ood_real: false
-  cloud_tradeoff: true
+  cloud_tradeoff: false
   positive_lora: false
   positive_system: pending
 
@@ -49,6 +49,26 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P5.1
+      phase: P5
+      decision: APPROVE_PLAN
+      accepted_report_commit: f7a845f3ff8f2bf51b8bcc8ff2342a4e4f817f64
+      next_expected_task: P5_GATE
+      required_fix: null
+      rationale: "P5.1 plan approved on the scope-change-packet commit. Implement configs/robust_asr/pricing_v1.yaml, scripts/robust_asr/{probe_assemblyai_runtime,populate_assemblyai_cache,evaluate_assemblyai_from_cache}.py, tests/robust_asr/test_assemblyai.py, append assemblyai backend_endpoints entry to configs/robust_asr/eval_manifests_v1.yaml, and produce reports/robust_asr/task_reports/P5.1_assemblyai.md. Paid-API guard: key_unset → exit 8 (BLOCKED_API); pricing stale → exit 12 (PENDING_PRICING_VERIFICATION); estimated or running cost > max_total_cost_usd → exit 11 (BUDGET_EXCEEDED); no upload before pre-spend summary; ASSEMBLYAI_API_KEY env-only, never logged or persisted. Do not advance last_accepted_report_commit to the P5.1 implementation commit. Do not start P5_GATE."
+  prior_approval_packet_p5_1_scope_exec:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P5.1-scope-change
+      phase: P5
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: f7a845f3ff8f2bf51b8bcc8ff2342a4e4f817f64
+      next_expected_task: P5.1
+      required_fix: null
+      rationale: "P5.1 scope-change accepted on the packet-recording commit f7a845f. reuse_policy_v1.yaml and touch_policy.md amendments (configs/robust_asr/** += P5.1, tests/robust_asr/** += P5.1, new pricing_v1.yaml row, new scratch assemblyai_cache row, rewritten touch_policy P5.1 row) are now binding. Policy sha256s recorded in artifacts.reuse_policy_config.sha256 and artifacts.touch_policy.sha256 with last_amended_by=P5.1_scope_change."
+  prior_approval_packet_p5_1_change_scope:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P5.1
@@ -529,7 +549,7 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: 26db72df3215355a68029927980389216353526e
-  expected_next_task: P5.1
+  expected_next_task: P5_GATE
   last_tracker_mismatch: null
 
 phase_summary:
@@ -884,10 +904,13 @@ artifacts:
     sha256: null
     produced_by_task: P4.3
   assemblyai_table:
-    path: artifacts/robust_asr/eval_tables/assemblyai.parquet
+    path: null
     sha256: null
     rows: null
     produced_by_task: P5.1
+    blocked_by: BLOCKED_API
+    blocked_reason: key_unset
+    expected_path: artifacts/robust_asr/eval_tables/assemblyai.parquet
   oracle_table:
     path: artifacts/robust_asr/oracle/oracle_table.parquet
     sha256: null
@@ -2071,8 +2094,78 @@ tasks:
     rationale: "Decision_A_smoke=FAIL → Branch B of P3 gate skips CT2 INT8 preservation."
     next_task: null
   P5.1:
-    status: scope_change_recorded
-    commit: e45903e76b5b42d3ceb2a89b77ec7675d9d239d4
+    status: HALTED
+    blocked_marker: BLOCKED_API
+    reason: key_unset
+    commit: pending_this_implementation_commit
+    files_changed:
+      - configs/robust_asr/pricing_v1.yaml
+      - configs/robust_asr/eval_manifests_v1.yaml
+      - scripts/robust_asr/probe_assemblyai_runtime.py
+      - scripts/robust_asr/populate_assemblyai_cache.py
+      - scripts/robust_asr/evaluate_assemblyai_from_cache.py
+      - tests/robust_asr/test_assemblyai.py
+      - reports/robust_asr/task_reports/P5.1_assemblyai.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "python3 scripts/robust_asr/probe_assemblyai_runtime.py → ASSEMBLYAI_RUNTIME=false reason=key_unset (exit 0)"
+      - "python3 -m pytest tests/robust_asr/test_assemblyai.py -q → 15 passed"
+      - "python3 -m pytest tests/robust_asr/ -q → 124 passed (was 109; +15 new)"
+      - "python3 scripts/robust_asr/validate_report_shape.py → OK_REPORT_SHAPE"
+    key_outputs:
+      - "BLOCKED_API recorded: ASSEMBLYAI_API_KEY unset on datamove1; no AssemblyAI request issued"
+      - "claims_enabled.cloud_tradeoff flipped true -> false"
+      - "Paid-API guard implemented in populate_assemblyai_cache.py: key_unset (exit 8), pricing_stale (exit 12), budget_exceeded (exit 11), running-cost guard, pre-spend summary, key never logged or persisted"
+      - "No artifacts/robust_asr/eval_tables/assemblyai.parquet produced; OK_ASSEMBLYAI_CACHE/EVAL/EVAL_TABLE NOT emitted; BLOCKED_API is the legal Section 5/§3800 closure"
+    sentinels: []
+    artifacts:
+      pricing_config:
+        path: configs/robust_asr/pricing_v1.yaml
+        sha256: c1e61077ea4c025b147d0bbc9ce42e5b8cbca83a3cb360bc5724bdd99a61a815
+        produced_by_task: P5.1
+        last_amended_by: P5.1
+      eval_manifests_v1:
+        path: configs/robust_asr/eval_manifests_v1.yaml
+        sha256: ab7d16ec3998dd94a20eccf74d3cf2ba39800baef2851eb01d23ce5d1423cfc4
+        produced_by_task: P2.1
+        last_amended_by: P5.1
+      probe_script:
+        path: scripts/robust_asr/probe_assemblyai_runtime.py
+        sha256: 6f1530db9769eae79cd5a013b9d4e7535667bd6e2d86e21201cc6b559d98657c
+        produced_by_task: P5.1
+      populate_script:
+        path: scripts/robust_asr/populate_assemblyai_cache.py
+        sha256: af21fb41a94c77431f7d9c948383c6a4c090dbb9329589291532372a9db89217
+        produced_by_task: P5.1
+      evaluate_script:
+        path: scripts/robust_asr/evaluate_assemblyai_from_cache.py
+        sha256: 20c2e0b3a0df9b57cbc52951450d8cb38cef46ecf631dc16c58ea4756a78e20e
+        produced_by_task: P5.1
+      tests:
+        path: tests/robust_asr/test_assemblyai.py
+        sha256: 18a35a280baba0f3dab463c901b7132c6ade44e5ee51748789eafed02aba8348
+        produced_by_task: P5.1
+        n_tests: 15
+      task_report:
+        path: reports/robust_asr/task_reports/P5.1_assemblyai.md
+        produced_by_task: P5.1
+      assemblyai_table:
+        path: null
+        sha256: null
+        rows: null
+        produced_by_task: P5.1
+        blocked_by: BLOCKED_API
+    paid_api_guard:
+      key_unset_exit_code: 8
+      pricing_stale_exit_code: 12
+      budget_exceeded_exit_code: 11
+      auth_fail_exit_code: 9
+      quota_exit_code: 10
+      pre_spend_summary_emitted_before_upload: true
+      running_cost_guard: true
+      api_key_logged_or_persisted: false
     scope_change:
       decision: CHANGE_SCOPE
       accepted_report_commit: 45b6cac93d1fe3eb54630a7511c331439715bb68
@@ -2088,8 +2181,8 @@ tasks:
       artifact_sha256_updates:
         reuse_policy_config: d72cc31f5ca46b7adb01cde7a8ffd3301c46fce58c8e8ff61c0c8bba8ed109ee
         touch_policy: 710a49f2e87c9755d7b00cf66c68bcdeaa9088b8eb5f44ccbcc347de4d58b4aa
-    implementation_status: not_started
-    marker: null
-    next_task: P5.1
+    implementation_status: HALTED_BLOCKED_API
+    marker: BLOCKED_API
+    next_task: P5_GATE
     blocker: null
-    notes: "CHANGE_SCOPE(P5.1) recorded against accepted_report_commit=45b6cac93d1fe3eb54630a7511c331439715bb68 and applied at commit e45903e76b5b42d3ceb2a89b77ec7675d9d239d4. Reuse_policy_v1.yaml and touch_policy.md amended; new policy hashes recorded in artifacts.reuse_policy_config.sha256 and artifacts.touch_policy.sha256 with last_amended_by=P5.1_scope_change. P5.1 implementation has not started: no pricing_v1.yaml, no probe/populate/evaluate scripts, no test_assemblyai.py, no eval_manifests_v1.yaml extension, no parquet, no AssemblyAI API call, no Slurm submission. current_task=P5.1 held; last_completed_task=P3.2 held; markers=[BLOCKED_OOD_PUBLIC] held non-blocking; claims_enabled.ood_real=false; claims_enabled.positive_lora=false; lora_status=SKIPPED_BY_DECISION_A; state_transport.last_accepted_report_commit STAYS 26db72df3215355a68029927980389216353526e per orchestrator instruction (NOT advanced to the P5.1 scope-change commit); state_transport.expected_next_task=P5.1."
+    notes: "CHANGE_SCOPE(P5.1) recorded against 45b6cac; scope-change applied at commit e45903e; CHANGE_SCOPE-packet recording committed at f7a845f. APPROVE_EXECUTION(P5.1-scope-change) and APPROVE_PLAN(P5.1) both accepted on f7a845f. P5.1 implementation: pricing_v1.yaml, eval_manifests_v1.yaml (append assemblyai backend_endpoints entry), probe_assemblyai_runtime.py, populate_assemblyai_cache.py, evaluate_assemblyai_from_cache.py, test_assemblyai.py (15 tests), and task report all present. Probe returned ASSEMBLYAI_RUNTIME=false reason=key_unset → HALTED + BLOCKED_API; claims_enabled.cloud_tradeoff flipped true -> false. No AssemblyAI request issued; no upload; ASSEMBLYAI_API_KEY never logged or persisted. Paid-API guard implemented (exit 8/9/10/11/12 + pre-spend summary + running-cost guard); 15 tests exercise all five guards without network. Full pytest tests/robust_asr/ = 124/124 PASS (was 109; +15 new). OK_REPORT_SHAPE PASS. current_task=P5.1 held until APPROVE_EXECUTION(P5.1); last_completed_task=P3.2 held; markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API]; blocked=false; claims_enabled.ood_real=false; claims_enabled.cloud_tradeoff=false; claims_enabled.positive_lora=false; lora_status=SKIPPED_BY_DECISION_A; state_transport.last_accepted_report_commit STAYS 26db72df3215355a68029927980389216353526e per orchestrator instruction (NOT advanced to the P5.1 implementation commit); state_transport.expected_next_task advanced from P5.1 to P5_GATE by APPROVE_PLAN(P5.1)."

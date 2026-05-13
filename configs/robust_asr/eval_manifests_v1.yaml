@@ -75,3 +75,24 @@ backend_endpoints:
       - ${HF_HOME}/hub/models--Systran--faster-whisper-base.en
       - ${ASR_CACHE_ROOT}/huggingface/hub/models--Systran--faster-whisper-base.en
     halt_if_missing_marker: MISSING_EVIDENCE
+
+  # Added by P5.1 (CHANGE_SCOPE 45b6cac → APPROVE_PLAN(P5.1)).
+  # AssemblyAI is a cloud backend. local_only=false; third_party_provider
+  # is recorded on every output row. Eligibility for production routing is
+  # decided at runtime by probe_assemblyai_runtime.py + the P5.1 BLOCKED_API
+  # outcome; pricing_v1.yaml is the cost-source gate.
+  assemblyai:
+    backend_kind: cloud_asr
+    local_only: false
+    third_party_provider: assemblyai
+    api_base: https://api.assemblyai.com/v2
+    model: universal
+    language_code: en
+    api_key_env: ASSEMBLYAI_API_KEY
+    pricing_config: configs/robust_asr/pricing_v1.yaml
+    cache_dir: /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/assemblyai_cache
+    halt_if_blocked_marker: BLOCKED_API
+    notes: >
+      ASSEMBLYAI_API_KEY is read from the environment only and is never
+      logged or persisted. Cache JSON entries are keyed by audio_sha256
+      and stored on scratch; never committed.
