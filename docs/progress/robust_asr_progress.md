@@ -6,20 +6,21 @@ Status: IN_PROGRESS
 
 ## Current state
 
-- Phase: P2 (Whisper base baseline)
-- Current task: P2_GATE (awaiting orchestrator PHASE_APPROVE(P2))
+- Phase: P3 (LoRA smoke and Decision A)
+- Current task: P3.1 (LoRA smoke train, eval, export smoke)
 - Last completed: P2.2 (PASS — LoRA smoke split config; 600 train / 200 eval audio_ids; OK_LORA_SMOKE_* sentinels; OK_REPORT_SHAPE; 85/85 pytest PASS)
-- Phase summary: P0=PASS, P1=PASS
+- Phase summary: P0=PASS, P1=PASS, P2=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
 - Blocker: null
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd (advanced from 83dd911... by APPROVE_EXECUTION(P2.2) at commit 8c37ece)
-- state_transport.expected_next_task: P2_GATE
-- latest_approval_packet: APPROVE_EXECUTION(P2.2) on `8c37ece` (next P2_GATE)
-- prior_approval_packet: APPROVE_PLAN(P2.2) on `d78678a` (next P2_GATE)
+- state_transport.last_accepted_report_commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd (PHASE_APPROVE(P2) accepted on the P2.2 PASS commit; not advanced — PHASE_APPROVE accepts the same commit as the closing APPROVE_EXECUTION(P2.2))
+- state_transport.expected_next_task: P3.1
+- latest_approval_packet: PHASE_APPROVE(P2) on `8c37ece` (next P3.1)
+- prior_approval_packet: APPROVE_EXECUTION(P2.2) on `8c37ece` (next P2_GATE)
+- prior_approval_packet_p2_2_plan: APPROVE_PLAN(P2.2) on `d78678a` (next P2_GATE)
 - prior_approval_packet_p2_2_scope_exec: APPROVE_EXECUTION(P2.2-scope-change) on `d78678a` (next P2.2)
 - prior_approval_packet_p2_2_change_scope: CHANGE_SCOPE(P2.2) on `821893c` (next P2.2)
 - prior_approval_packet_p2_1_exec: APPROVE_EXECUTION(P2.1) on `83dd911` (next P2.2)
@@ -28,6 +29,49 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P2 PHASE_APPROVE recorded
+
+- ORCHESTRATOR_DECISION: scope=phase task=null phase=P2
+  decision=PHASE_APPROVE
+  accepted_report_commit=`8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd`
+  next_expected_task=P3.1.
+- Rationale: P2 phase gate PASS. `tasks.P2.1` and `tasks.P2.2` are
+  PASS; baseline parquet
+  (`artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet`,
+  53,230 rows; sha256
+  `0dc987362fd5d459946e854d85219692c687014901297a52da1a41abdfa7f4a6`),
+  baseline report (`reports/robust_asr/baseline_whisper_base.md`,
+  sha256 `6e5e2f04…ca55e1`), and LoRA smoke config
+  (`configs/robust_asr/lora_smoke.yaml`, sha256
+  `4d7ae448…e00cff`, 600 + 200 audio_ids referencing valid manifest
+  rows) are present and validated. Sentinels recorded across
+  P2.1/P2.2: `OK_BACKEND_EVAL`, `OK_BACKEND_SUMMARY`, `OK_EVAL_TABLE`,
+  `OK_LORA_SMOKE_CONFIG_PARSE`, `OK_LORA_SMOKE_MANIFEST_REFS`,
+  `OK_LORA_SMOKE_HPARAMS`, `OK_LORA_SMOKE_DECODE_DEFAULTS`,
+  `OK_LORA_SMOKE_TIMEOUTS`, `OK_REPORT_SHAPE`. No blocking markers
+  active. `BLOCKED_OOD_PUBLIC` remains active and non-blocking with
+  `claims_enabled.ood_real=false`.
+- Tracker mutations: `current_phase` advanced `P2 -> P3`;
+  `current_task` advanced `P2_GATE -> P3.1`;
+  `last_completed_task=P2.2` held;
+  `phase_summary.P2=PASS`;
+  `orchestrator_approvals.P2=PHASE_APPROVE`;
+  `markers=[BLOCKED_OOD_PUBLIC]` held;
+  `blocked=false` held; `claims_enabled.ood_real=false` held;
+  `state_transport.last_accepted_report_commit` STAYS
+  `8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd` (PHASE_APPROVE accepted
+  on the same commit as the closing APPROVE_EXECUTION(P2.2); not
+  advanced);
+  `state_transport.expected_next_task=P3.1`.
+  `latest_approval_packet=PHASE_APPROVE(P2)` on `8c37ece`;
+  `prior_approval_packet=APPROVE_EXECUTION(P2.2)` on `8c37ece`;
+  `prior_approval_packet_p2_2_plan=APPROVE_PLAN(P2.2)` on `d78678a`.
+- P3.1 not started; awaiting orchestrator `APPROVE_PLAN(P3.1)` before
+  implementation (P3.1 requires Slurm GPU submission, Apptainer `--nv`,
+  the robust_asr SIF, and `configs/robust_asr/lora_smoke.yaml`).
+- No code, no test, no Slurm submission for this update. Only tracker
+  files modified.
 
 ## P2.2 APPROVE_EXECUTION recorded
 

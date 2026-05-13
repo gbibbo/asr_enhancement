@@ -2,8 +2,8 @@ project: robust_asr_lora_router
 branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
-current_phase: P2
-current_task: P2_GATE
+current_phase: P3
+current_task: P3.1
 last_completed_task: P2.2
 
 blocked: false
@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: null
+      phase: P2
+      decision: PHASE_APPROVE
+      accepted_report_commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd
+      next_expected_task: P3.1
+      required_fix: null
+      rationale: "P2 phase gate PASS. P2.1 and P2.2 are PASS; baseline parquet, baseline report, and lora_smoke.yaml are present and validated; OK_BACKEND_EVAL, OK_BACKEND_SUMMARY, OK_EVAL_TABLE, OK_LORA_SMOKE_* and OK_REPORT_SHAPE were emitted; no blocking markers are active. BLOCKED_OOD_PUBLIC remains active and non-blocking with claims_enabled.ood_real=false."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.2
       phase: P2
@@ -58,7 +68,7 @@ state_transport:
       next_expected_task: P2_GATE
       required_fix: null
       rationale: "P2.2 passed. lora_smoke.yaml was created, smoke_split and smoke_eval_split reference valid manifest rows, required hyperparameters/defaults/timeouts are present, OK_REPORT_SHAPE passed, and 85/85 non-regression tests passed. BLOCKED_OOD_PUBLIC remains active and non-blocking."
-  prior_approval_packet:
+  prior_approval_packet_p2_2_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.2
@@ -419,13 +429,13 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd
-  expected_next_task: P2_GATE
+  expected_next_task: P3.1
   last_tracker_mismatch: null
 
 phase_summary:
   P0: PASS
   P1: PASS
-  P2: null
+  P2: PASS
   P3: null
   P4: null
   P5: null
@@ -438,7 +448,7 @@ phase_summary:
 orchestrator_approvals:
   P0: PHASE_APPROVE
   P1: PHASE_APPROVE
-  P2: null
+  P2: PHASE_APPROVE
   P3: null
   P4: null
   P5: null
