@@ -7,8 +7,8 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P5 (AssemblyAI cloud baseline)
-- Current task: P5.1 (AssemblyAI cloud-baseline evaluation)
-- Last completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest) — P3_GATE PHASE_APPROVE recorded on the P3.2 acceptance commit; P3_GATE does not itself advance last_completed_task
+- Current task: P5_GATE
+- Last completed: P5.1 (HALTED — BLOCKED_API reason=key_unset; APPROVE_EXECUTION(P5.1) accepted on `c71e0a0`)
 - Prior completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
 - Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API]
@@ -22,9 +22,10 @@ Status: IN_PROGRESS
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 26db72df3215355a68029927980389216353526e (held at the P3.2 acceptance commit; P5.1 implementation does not advance it per orchestrator instruction)
+- state_transport.last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b (advanced to the P5.1 acceptance commit by APPROVE_EXECUTION(P5.1))
 - state_transport.expected_next_task: P5_GATE
-- latest_approval_packet: APPROVE_PLAN(P5.1) on `f7a845f` (next P5_GATE)
+- latest_approval_packet: APPROVE_EXECUTION(P5.1) on `c71e0a0` (next P5_GATE)
+- prior_approval_packet_p5_1_plan: APPROVE_PLAN(P5.1) on `f7a845f` (next P5_GATE)
 - prior_approval_packet_p5_1_scope_exec: APPROVE_EXECUTION(P5.1-scope-change) on `f7a845f` (next P5.1)
 - prior_approval_packet_p5_1_change_scope: CHANGE_SCOPE(P5.1) on `45b6cac` (next P5.1)
 - prior_approval_packet_p3_phase: PHASE_APPROVE(P3) on `26db72d` (next P5.1)
@@ -47,6 +48,42 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P5.1 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P5.1 phase=P5
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`c71e0a0bb25a5d2749801d8fc7444869ff331d1b`
+  next_expected_task=P5_GATE required_fix=null.
+- Rationale: P5.1 legally halted with `BLOCKED_API reason=key_unset`.
+  `ASSEMBLYAI_API_KEY` was unset, no HTTP request or paid API call was
+  made, pricing guard and tests passed, `claims_enabled.cloud_tradeoff=false`
+  was set, and `BLOCKED_OOD_PUBLIC` remains active and non-blocking.
+- Tracker mutations:
+  `current_task` advanced `P5.1 -> P5_GATE`;
+  `last_completed_task` advanced `P3.2 -> P5.1`;
+  `tasks.P5.1.status=HALTED` held;
+  `tasks.P5.1.marker=BLOCKED_API` held;
+  `tasks.P5.1.commit=c71e0a0bb25a5d2749801d8fc7444869ff331d1b`;
+  `state_transport.last_accepted_report_commit` advanced
+  `26db72d… -> c71e0a0bb25a5d2749801d8fc7444869ff331d1b`;
+  `state_transport.expected_next_task=P5_GATE` held;
+  `latest_approval_packet` = APPROVE_EXECUTION(P5.1) on `c71e0a0`;
+  prior `APPROVE_PLAN(P5.1)` demoted to `prior_approval_packet_p5_1_plan` on `f7a845f`.
+  Held: `current_phase=P5`, `markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API]`,
+  `blocked=false`, `blocker=null`, `claims_enabled.ood_real=false`,
+  `claims_enabled.cloud_tradeoff=false`, `claims_enabled.positive_lora=false`,
+  `claims_enabled.positive_system=pending`,
+  `lora_status=SKIPPED_BY_DECISION_A`,
+  `decisions.Decision_B_lora_full.include_lora_in_router=false`,
+  `tasks.P4.1=P4.2=P4.3=SKIPPED_BY_DECISION_A`,
+  `degradation_version=degradation_v1`,
+  `normalization_version=normalization_v1`, `metrics_version=metrics_v1`,
+  `phase_summary={P0,P1,P2,P3}=PASS`,
+  `orchestrator_approvals={P0,P1,P2,P3}=PHASE_APPROVE`.
+- P5_GATE not started. P6.1 not started. No code, no test, no Slurm
+  submission, no real-provider call for this update. Only tracker files
+  modified.
 
 ## P5.1 HALTED — BLOCKED_API (key_unset)
 

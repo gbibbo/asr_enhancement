@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P5
-current_task: P5.1
-last_completed_task: P3.2
+current_task: P5_GATE
+last_completed_task: P5.1
 
 blocked: false
 blocker: null
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P5.1
+      phase: P5
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b
+      next_expected_task: P5_GATE
+      required_fix: null
+      rationale: "P5.1 legally halted with BLOCKED_API reason=key_unset. ASSEMBLYAI_API_KEY was unset, no HTTP request or paid API call was made, pricing guard and tests passed, claims_enabled.cloud_tradeoff=false was set, and BLOCKED_OOD_PUBLIC remains active and non-blocking."
+  prior_approval_packet_p5_1_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P5.1
@@ -548,7 +558,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 26db72df3215355a68029927980389216353526e
+  last_accepted_report_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b
   expected_next_task: P5_GATE
   last_tracker_mismatch: null
 
@@ -2095,9 +2105,12 @@ tasks:
     next_task: null
   P5.1:
     status: HALTED
+    marker: BLOCKED_API
     blocked_marker: BLOCKED_API
     reason: key_unset
-    commit: pending_this_implementation_commit
+    commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b
+    approved_by: APPROVE_EXECUTION_P5.1
+    approved_at_commit: c71e0a0bb25a5d2749801d8fc7444869ff331d1b
     files_changed:
       - configs/robust_asr/pricing_v1.yaml
       - configs/robust_asr/eval_manifests_v1.yaml
