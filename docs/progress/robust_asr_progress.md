@@ -7,8 +7,9 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P3 (LoRA smoke and Decision A)
-- Current task: P3.2 (Decision A — mechanical decision from P3.1 smoke metrics)
+- Current task: P3.2 (held until APPROVE_EXECUTION(P3.2) → P3_GATE)
 - Last completed: P3.1 (PASS — Slurm job 2131980; OK_LORA_SMOKE_TRAIN + OK_LORA_SMOKE_EVAL + OK_LORA_EXPORT_SMOKE + OK_REPORT_SHAPE; 97/97 pytest)
+- P3.2 status: PASS — Decision_A_smoke.outcome = FAIL; OK_LORA_SMOKE_DECISION:FAIL; 109/109 pytest
 - Phase summary: P0=PASS, P1=PASS, P2=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
@@ -18,8 +19,10 @@ Status: IN_PROGRESS
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: 096fe43371f7357007ce41317ed758499d1ff131 (STAYS at the P3.1 acceptance commit; not advanced by the P3.2 scope-change implementation commit)
-- state_transport.expected_next_task: P3.2
-- latest_approval_packet: CHANGE_SCOPE(P3.2) on `ee92c8b` (next P3.2)
+- state_transport.expected_next_task: P3_GATE
+- latest_approval_packet: APPROVE_PLAN(P3.2) on `1025a24` (next P3_GATE)
+- prior_approval_packet_p3_2_scope_exec: APPROVE_EXECUTION(P3.2-scope-change) on `1025a24` (next P3.2)
+- prior_approval_packet_p3_2_change_scope: CHANGE_SCOPE(P3.2) on `ee92c8b` (next P3.2)
 - prior_approval_packet_p3_1_exec: APPROVE_EXECUTION(P3.1) on `096fe43` (next P3.2)
 - prior_approval_packet_p3_1_plan: APPROVE_PLAN(P3.1) on `3ed96f5` (next P3.2)
 - prior_approval_packet_p3_1_scope_exec: APPROVE_EXECUTION(P3.1-scope-change) on `3ed96f5` (next P3.1)
@@ -35,6 +38,51 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P3.2 PASS — Decision A = FAIL
+
+- Decision_A_smoke.outcome = **FAIL** (mechanical Section 5.1).
+- Sentinel: `OK_LORA_SMOKE_DECISION:FAIL`.
+- Mechanical reasons:
+  - `macro_wa_gain = -0.12843 < 0.005` (PASS branch A fails)
+  - `max_family_wa_gain = -0.11345 < 0.010` (PASS branch B / PARTIAL fail)
+  - `clean_wa_regression = 0.11345 > 0.010` and `> 0.020` (clean reg above both ceilings)
+  - `per_family_wa_gain_variance = 1.79e-4 ≠ 0` (degenerate guard not active)
+  - `export_smoke_result.outcome = PASS` (not HALTED, not EXPORT_BLOCKED)
+- Deliverables written:
+  - `scripts/robust_asr/decide_lora_smoke.py` (Section 5.1 CLI per §1263–§1285)
+  - `tests/robust_asr/test_decide_lora_smoke.py` (12 unit tests; CLI end-to-end)
+  - `reports/robust_asr/lora/lora_smoke_report.md` (first line: `FAIL`)
+  - `reports/robust_asr/lora/decision_a_smoke.md` (narrative + expected
+    P3-gate side effects per Section 0.1 / Section 5.10)
+  - `reports/robust_asr/task_reports/P3.2_decision_a.md`
+- Verification:
+  - `python3 -m pytest -q tests/robust_asr/test_decide_lora_smoke.py` → 12 passed
+  - `python3 scripts/robust_asr/decide_lora_smoke.py …` → `OK_LORA_SMOKE_DECISION:FAIL`
+  - `python3 -m pytest -q tests/robust_asr/` → 109 passed (was 97 pre-P3.2; +12 new)
+  - `python3 scripts/robust_asr/validate_report_shape.py …` → `OK_REPORT_SHAPE`
+- Tracker mutations:
+  `tasks.P3.2.status=PASS`;
+  `tasks.P3.2.sentinels=[OK_LORA_SMOKE_DECISION:FAIL]`;
+  `decisions.Decision_A_smoke.outcome=FAIL`;
+  `decisions.Decision_A_smoke.decided_at_task=P3.2`;
+  `state_transport.latest_approval_packet`=APPROVE_PLAN(P3.2) on `1025a24`
+  (next P3_GATE);
+  `prior_approval_packet_p3_2_scope_exec`=APPROVE_EXECUTION(P3.2-scope-change)
+  on `1025a24`;
+  `prior_approval_packet_p3_2_change_scope`=CHANGE_SCOPE(P3.2) on `ee92c8b`;
+  `state_transport.expected_next_task=P3_GATE`.
+  Held: `current_task=P3.2`, `last_completed_task=P3.1`,
+  `markers=[BLOCKED_OOD_PUBLIC]` (non-blocking), `blocked=false`,
+  `claims_enabled.ood_real=false`, `claims_enabled.positive_lora=pending`
+  (P3 gate enacts the transition to false), `lora_status=SMOKE_DONE`
+  (P3 gate enacts the transition to `SKIPPED_BY_DECISION_A`),
+  `state_transport.last_accepted_report_commit=096fe43...` (STAYS per
+  orchestrator instruction; NOT advanced to the P3.2 implementation commit).
+- P4 task statuses are NOT modified by P3.2. The P3 gate enacts
+  `tasks.P4.1=P4.2=P4.3=SKIPPED_BY_DECISION_A`, `lora_status=SKIPPED_BY_DECISION_A`,
+  `decisions.Decision_B_lora_full.include_lora_in_router=false`,
+  `claims_enabled.positive_lora=false`. Next post-gate task = P5.1.
 
 ## P3.2 CHANGE_SCOPE recorded
 
