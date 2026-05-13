@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-08
-last_completed_task: BR-07
+current_task: PHASE_GATE_DECISION
+last_completed_task: BR-08
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -15,10 +15,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/broute_br08_router_baseurl_fix.md
-  latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br08_recovery_approval_packet.yaml
-  expected_next_task: BR-08
+  latest_execution_report_path: reports/rp5/broute_phase_gate.md
+  latest_phase_gate_report_path: reports/rp5/broute_phase_gate.md
+  latest_approval_packet_path: reports/rp5/broute_br08_approval_packet.yaml
+  expected_next_task: PHASE_GATE_DECISION
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -258,3 +258,42 @@ tasks:
       - "future constraints verified: FC-B14-0-PUBLIC-GATE, FC-B14-1-FUNNEL, FC-B15-MULTI-NETWORK, FC-HANDOFF-DATAMOVE1"
     marker: null
     next_task: BR-08
+  BR-08:
+    task_id: BR-08
+    status: PASS
+    commit: 4a4f8e4b20ff3ff5f19647e7ec1f723f6492df25
+    files_changed:
+      - reports/rp5/broute_phase_gate.md
+    commands_run:
+      - "python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 8001 (temporary, background, ephemeral DEMO_RUNTIME_ROOT under /tmp; supervisor pid 787399; terminated before commit)"
+      - "python3 scripts/rp5/validate_plan_compiles.py --plan-dir docs/plans/broute --out /tmp/br08_FV-PLAN.md"
+      - "python3 scripts/rp5/validate_broute_schema_contract.py --out /tmp/br08_FV-SCHEMA.md"
+      - "python3 scripts/rp5/validate_broute_cache_key_contract.py --source-file libs/asr/router_runtime.py --out /tmp/br08_FV-CACHE.md"
+      - "python3 scripts/rp5/validate_broute_health_public_payload.py --base-url http://127.0.0.1:8001 --out /tmp/br08_FV-HEALTH.md"
+      - "ADMIN_STATS_USERNAME=admin ADMIN_STATS_PASSWORD=shh-smoke-only python3 scripts/rp5/validate_public_security_invariants.py --base-url http://127.0.0.1:8001 --out /tmp/br08_FV-SECURITY.md"
+      - "python3 scripts/rp5/validate_frontend_backend_contract.py --types-file services/frontend/app/demo/types.ts --out /tmp/br08_FV-FRONTEND.md"
+      - "python3 scripts/rp5/smoke_broute_manual.py --base-url http://127.0.0.1:8001 --out /tmp/br08_FV-MANUAL.md"
+      - "python3 scripts/rp5/smoke_broute_router_stub.py --base-url http://127.0.0.1:8001 --out /tmp/br08_FV-ROUTER.md"
+      - "python3 scripts/rp5/validate_future_constraints.py --constraints reports/rp5/broute_future_constraints.md --out /tmp/br08_FV-FUTURE.md"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_BROUTE_SCHEMA_CONTRACT
+      - OK_BROUTE_CACHE_KEY_CONTRACT
+      - OK_BROUTE_HEALTH_PUBLIC_PAYLOAD
+      - OK_PUBLIC_SECURITY_INVARIANTS
+      - OK_FRONTEND_BACKEND_CONTRACT
+      - OK_BROUTE_MANUAL_SMOKE
+      - OK_BROUTE_ROUTER_STUB_SMOKE
+      - OK_FUTURE_CONSTRAINTS
+      - B_ROUTE_PHASE_GATE_PASS
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      temporary_uvicorn_used: true
+      live_base_url: "http://127.0.0.1:8001"
+      phase_gate_decision_invoked: false
+      post_B_route_work_started: false
+      fv_security_initial_env_mismatch_resolved: true
+      repo_dependency_or_config_files_changed: false
+    marker: null
+    next_task: PHASE_GATE_DECISION
