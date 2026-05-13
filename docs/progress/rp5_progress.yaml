@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-02
-last_completed_task: BR-01
+current_task: BR-03
+last_completed_task: BR-02
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -14,11 +14,11 @@ human_action_requests:
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
-  latest_planning_report_path: reports/rp5/broute_validator_materialization_gap.md
-  latest_execution_report_path: reports/rp5/broute_validator_materialization_gap.md
+  latest_planning_report_path: reports/rp5/broute_health_contract.md
+  latest_execution_report_path: reports/rp5/broute_health_contract.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br02_recovery_approval_packet.yaml
-  expected_next_task: BR-02
+  latest_approval_packet_path: reports/rp5/broute_br02_approval_packet.yaml
+  expected_next_task: BR-03
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -75,3 +75,36 @@ tasks:
       - OK_CHANGED_FILES_PATH_LOCKED
     marker: null
     next_task: BR-02
+  BR-02:
+    task_id: BR-02
+    status: PASS
+    commit: b75322b04b39b0a01b8a4816baca7bfec9762b65
+    files_changed:
+      - services/api/app/demo_main.py
+      - scripts/rp5/validate_broute_health_public_payload.py
+      - scripts/rp5/fixtures/generate_fixture_validate_broute_health_public_payload.py
+      - scripts/rp5/validate_public_security_invariants.py
+      - scripts/rp5/fixtures/generate_fixture_validate_public_security_invariants.py
+      - reports/rp5/broute_health_contract.md
+      - reports/rp5/broute_public_security_invariants.md
+      - tests/demo/test_demo_api.py
+      - tests/demo/test_b12_1_admin_stats_fields.py
+    commands_run:
+      - "python3 -m pytest tests/demo/test_demo_api.py tests/demo/test_b12_1_admin_stats_fields.py -q"
+      - "python3 scripts/rp5/validate_broute_health_public_payload.py --app-module services.api.app.demo_main:app --out reports/rp5/broute_health_contract.md"
+      - "python3 scripts/rp5/validate_public_security_invariants.py --app-module services.api.app.demo_main:app --out reports/rp5/broute_public_security_invariants.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_broute_health_public_payload.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_broute_health_public_payload_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_public_security_invariants.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_public_security_invariants_manifest.json"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - "pytest touched tests: 30 passed"
+      - OK_BROUTE_HEALTH_PUBLIC_PAYLOAD
+      - OK_PUBLIC_SECURITY_INVARIANTS
+      - OK_FIXTURE_VALIDATE_BROUTE_HEALTH_PUBLIC_PAYLOAD
+      - OK_FIXTURE_VALIDATE_PUBLIC_SECURITY_INVARIANTS
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      environment_mutation: pip user-site install outside repository
+      repo_dependency_or_config_files_changed: false
+    marker: null
+    next_task: BR-03
