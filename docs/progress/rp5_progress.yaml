@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-04
-last_completed_task: BR-03
+current_task: BR-05
+last_completed_task: BR-04
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -14,11 +14,11 @@ human_action_requests:
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
-  latest_planning_report_path: reports/rp5/broute_frontend_validator_materialization_gap.md
-  latest_execution_report_path: reports/rp5/broute_frontend_validator_materialization_gap.md
+  latest_planning_report_path: reports/rp5/broute_frontend_backend_contract.md
+  latest_execution_report_path: reports/rp5/broute_frontend_backend_contract.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br04_recovery_approval_packet.yaml
-  expected_next_task: BR-04
+  latest_approval_packet_path: reports/rp5/broute_br04_approval_packet.yaml
+  expected_next_task: BR-05
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -142,3 +142,32 @@ tasks:
       - OK_CHANGED_FILES_PATH_LOCKED
     marker: null
     next_task: BR-04
+  BR-04:
+    task_id: BR-04
+    status: PASS
+    commit: 42d51ec644a8ede907ec44576cc59d87f6dcaa47
+    files_changed:
+      - scripts/rp5/write_broute_frontend_detection.py
+      - scripts/rp5/validate_frontend_backend_contract.py
+      - scripts/rp5/fixtures/generate_fixture_validate_frontend_backend_contract.py
+      - services/frontend/app/demo/types.ts
+      - reports/rp5/broute_frontend_detection.md
+      - reports/rp5/broute_frontend_backend_contract.md
+      - tests/demo/test_broute_frontend_contract.py
+    commands_run:
+      - "python3 scripts/rp5/write_broute_frontend_detection.py --out reports/rp5/broute_frontend_detection.md"
+      - "python3 -m pytest tests/demo/test_broute_frontend_contract.py -q"
+      - "python3 -m pytest tests/demo/test_b11_1b_frontend_privacy_static.py tests/demo/test_b11_1c_frontend_comparison_static.py -q"
+      - "python3 scripts/rp5/validate_frontend_backend_contract.py --types-file services/frontend/app/demo/types.ts --out reports/rp5/broute_frontend_backend_contract.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_frontend_backend_contract.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_frontend_backend_contract_manifest.json"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_BROUTE_FRONTEND_DETECTION
+      - "detection_named_types_ts: true"
+      - "pytest tests/demo/test_broute_frontend_contract.py: 5 passed"
+      - "pytest frontend static regression tests: 21 passed"
+      - OK_FRONTEND_BACKEND_CONTRACT
+      - OK_FIXTURE_VALIDATE_FRONTEND_BACKEND_CONTRACT
+      - OK_CHANGED_FILES_PATH_LOCKED
+    marker: null
+    next_task: BR-05
