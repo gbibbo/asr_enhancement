@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B-route
-current_task: BR-05
-last_completed_task: BR-04
+current_task: BR-06
+last_completed_task: BR-05
 markers: []
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
@@ -14,11 +14,11 @@ human_action_requests:
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
-  latest_planning_report_path: reports/rp5/broute_frontend_backend_contract.md
-  latest_execution_report_path: reports/rp5/broute_frontend_backend_contract.md
+  latest_planning_report_path: reports/rp5/broute_manual_smoke.md
+  latest_execution_report_path: reports/rp5/broute_manual_smoke.md
   latest_phase_gate_report_path: null
-  latest_approval_packet_path: reports/rp5/broute_br04_approval_packet.yaml
-  expected_next_task: BR-05
+  latest_approval_packet_path: reports/rp5/broute_br05_approval_packet.yaml
+  expected_next_task: BR-06
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -171,3 +171,35 @@ tasks:
       - OK_CHANGED_FILES_PATH_LOCKED
     marker: null
     next_task: BR-05
+  BR-05:
+    task_id: BR-05
+    status: PASS
+    commit: ab44760098adada4873d9f8803ad1b5186c8202a
+    files_changed:
+      - scripts/rp5/smoke_broute_manual.py
+      - scripts/rp5/fixtures/generate_fixture_validate_broute_e2e_manual_smoke.py
+      - reports/rp5/broute_manual_smoke.md
+    commands_run:
+      - "python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 8002 (background, scope-approved port deviation)"
+      - "python3 scripts/rp5/smoke_broute_manual.py --base-url http://127.0.0.1:8002 --out reports/rp5/broute_manual_smoke.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_broute_e2e_manual_smoke.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_broute_e2e_manual_smoke_manifest.json"
+      - "python3 scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_BROUTE_MANUAL_SMOKE
+      - OK_FIXTURE_VALIDATE_BROUTE_E2E_MANUAL_SMOKE
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "live smoke base URL: http://127.0.0.1:8002"
+      - "router_disabled_manual_mode_confirmed: true"
+      - "service_cleaned_up: true"
+    supplemental_evidence:
+      uvicorn_user_site_install_used: true
+      uvicorn_version: "0.46.0"
+      port_scope_change_used: true
+      live_smoke_base_url: "http://127.0.0.1:8002"
+      BR08_canonical_port_changed: false
+      repo_dependency_or_config_files_changed: false
+      privacy_scan_refinement_accepted: true
+      privacy_scan_rule: "scan /demo/health and /demo/providers/assemblyai/status for privacy needles; exclude /demo/examples because curated DemoExample.ground_truth is intentionally public by design"
+      router_field_scan_scope: "/demo/health, /demo/examples, and /demo/providers/assemblyai/status"
+    marker: null
+    next_task: BR-06
