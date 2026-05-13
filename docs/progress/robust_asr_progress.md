@@ -7,8 +7,8 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P2 (Whisper base baseline)
-- Current task: P2.2 (LoRA smoke split config)
-- Last completed: P2.1 (PASS — whisper_base_ct2_int8 baseline; 53,230 rows; OK_BACKEND_EVAL/OK_BACKEND_SUMMARY/OK_EVAL_TABLE; MISSING_EVIDENCE cleared)
+- Current task: P2_GATE (awaiting orchestrator PHASE_APPROVE(P2))
+- Last completed: P2.2 (PASS — LoRA smoke split config; 600 train / 200 eval audio_ids; OK_LORA_SMOKE_* sentinels; OK_REPORT_SHAPE; 85/85 pytest PASS)
 - Phase summary: P0=PASS, P1=PASS
 - Active markers: [BLOCKED_OOD_PUBLIC]
 - Blocked: false
@@ -16,10 +16,11 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932 (held; APPROVE_PLAN(P2.2) does not advance per orchestrator instruction)
+- state_transport.last_accepted_report_commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd (advanced from 83dd911... by APPROVE_EXECUTION(P2.2) at commit 8c37ece)
 - state_transport.expected_next_task: P2_GATE
-- latest_approval_packet: APPROVE_PLAN(P2.2) on `d78678a` (next P2_GATE)
-- prior_approval_packet: APPROVE_EXECUTION(P2.2-scope-change) on `d78678a` (next P2.2)
+- latest_approval_packet: APPROVE_EXECUTION(P2.2) on `8c37ece` (next P2_GATE)
+- prior_approval_packet: APPROVE_PLAN(P2.2) on `d78678a` (next P2_GATE)
+- prior_approval_packet_p2_2_scope_exec: APPROVE_EXECUTION(P2.2-scope-change) on `d78678a` (next P2.2)
 - prior_approval_packet_p2_2_change_scope: CHANGE_SCOPE(P2.2) on `821893c` (next P2.2)
 - prior_approval_packet_p2_1_exec: APPROVE_EXECUTION(P2.1) on `83dd911` (next P2.2)
 - prior_approval_packet_p2_1_rerun_plan: APPROVE_PLAN(P2.1-rerun) on `28dddae` (next P2.2)
@@ -27,6 +28,42 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P2.2 APPROVE_EXECUTION recorded
+
+- ORCHESTRATOR_DECISION: scope=task task=P2.2 phase=P2
+  decision=APPROVE_EXECUTION
+  accepted_report_commit=`8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd`
+  next_expected_task=P2_GATE.
+- Rationale: P2.2 passed. `configs/robust_asr/lora_smoke.yaml` was
+  created; `smoke_split` and `smoke_eval_split` reference valid
+  manifest rows (600 / 200 audio_ids); required hyperparameters,
+  Section 3 decode defaults, and timeouts are present; `OK_REPORT_SHAPE`
+  passed; 85/85 non-regression tests passed. `BLOCKED_OOD_PUBLIC`
+  remains active and non-blocking.
+- Tracker mutations: `current_phase=P2` held;
+  `current_task` advanced `P2.2 -> P2_GATE`;
+  `last_completed_task` advanced `P2.1 -> P2.2`;
+  `tasks.P2.2.status=PASS` held;
+  `tasks.P2.2.commit=8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd`;
+  `markers=[BLOCKED_OOD_PUBLIC]` held;
+  `blocked=false` held; `claims_enabled.ood_real=false` held;
+  `state_transport.last_accepted_report_commit` advanced
+  `83dd911 -> 8c37ece`;
+  `state_transport.expected_next_task=P2_GATE`.
+  `latest_approval_packet=APPROVE_EXECUTION(P2.2)` on `8c37ece`;
+  `prior_approval_packet=APPROVE_PLAN(P2.2)` on `d78678a`;
+  `prior_approval_packet_p2_2_scope_exec=APPROVE_EXECUTION(P2.2-scope-change)`
+  on `d78678a`;
+  `prior_approval_packet_p2_2_change_scope=CHANGE_SCOPE(P2.2)`
+  on `821893c`.
+- P2 gate predicate (Section 8 P2) fully satisfiable: `tasks.P2.1=PASS`,
+  `tasks.P2.2=PASS`, baseline eval table + report exist,
+  `configs/robust_asr/lora_smoke.yaml` exists with valid manifest
+  references, no MISSING_EVIDENCE / PLAN_CONFLICT. P2_GATE not started;
+  awaiting orchestrator `PHASE_APPROVE(P2)` before P3.1 may begin.
+- No code, no test, no Slurm submission for this update. Only tracker
+  files modified.
 
 ## P2.2 PASS
 

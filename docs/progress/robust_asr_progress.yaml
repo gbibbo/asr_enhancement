@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P2
-current_task: P2.2
-last_completed_task: P2.1
+current_task: P2_GATE
+last_completed_task: P2.2
 
 blocked: false
 blocker: null
@@ -53,12 +53,22 @@ state_transport:
       scope: task
       task_id: P2.2
       phase: P2
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd
+      next_expected_task: P2_GATE
+      required_fix: null
+      rationale: "P2.2 passed. lora_smoke.yaml was created, smoke_split and smoke_eval_split reference valid manifest rows, required hyperparameters/defaults/timeouts are present, OK_REPORT_SHAPE passed, and 85/85 non-regression tests passed. BLOCKED_OOD_PUBLIC remains active and non-blocking."
+  prior_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P2.2
+      phase: P2
       decision: APPROVE_PLAN
       accepted_report_commit: d78678aa9f7a18ddfd00743789bcf797fb191a98
       next_expected_task: P2_GATE
       required_fix: null
       rationale: "P2.2 plan accepted on the scope-change commit; implement configs/robust_asr/lora_smoke.yaml with smoke_split (600 rows, 200 speakers, 3 utt/speaker from librispeech_lora_train) and smoke_eval_split (200 rows, 40 speakers, 5 utt/speaker from librispeech_validation), deterministic seed=42, steps_max=200, Section 3 eval decode defaults, training_timeout_seconds=14400, eval_timeout_seconds=1800, manifest sha256 references; do not advance last_accepted_report_commit to the P2.2 implementation commit; do not start P2_GATE; do not clear BLOCKED_OOD_PUBLIC."
-  prior_approval_packet:
+  prior_approval_packet_p2_2_scope_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P2.2-scope-change
@@ -408,8 +418,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 83dd911bc124a9f1dd53bab17cc4812dbf0cf932
-  expected_next_task: P2.2
+  last_accepted_report_commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd
+  expected_next_task: P2_GATE
   last_tracker_mismatch: null
 
 phase_summary:
@@ -1598,7 +1608,7 @@ tasks:
 
   P2.2:
     status: PASS
-    commit: pending
+    commit: 8c37ece193d8f24e8416cf7c3a2b59f4f8ef18bd
     files_changed:
       - configs/robust_asr/lora_smoke.yaml
       - reports/robust_asr/task_reports/P2.2_lora_smoke_config.md
