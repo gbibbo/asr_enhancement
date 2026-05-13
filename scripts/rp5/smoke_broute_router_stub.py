@@ -104,7 +104,53 @@ def _json_or_empty(resp):
     return None
 
 
-def run_checks(app_module_spec):
+class _LiveClient:
+    def __init__(self, base_url):
+        import httpx
+        self._base = base_url.rstrip("/")
+        self._httpx = httpx
+        self._client = None
+
+    def __enter__(self):
+        self._client = self._httpx.Client(timeout=10.0)
+        return self
+
+    def __exit__(self, *a):
+        if self._client is not None:
+            self._client.close()
+
+    def get(self, path):
+        return self._client.get(self._base + path)
+
+
+class _InProcClient:
+    def __init__(self, app_module_spec):
+        self._spec = app_module_spec
+        self._cm = None
+        self._client = None
+
+    def __enter__(self):
+        from fastapi.testclient import TestClient
+        app = _import_app(self._spec)
+        self._cm = TestClient(app)
+        self._client = self._cm.__enter__()
+        return self
+
+    def __exit__(self, *a):
+        if self._cm is not None:
+            self._cm.__exit__(*a)
+
+    def get(self, path):
+        return self._client.get(path)
+
+
+def _open_client(base_url, app_module_spec):
+    if base_url:
+        return _LiveClient(base_url)
+    return _InProcClient(app_module_spec)
+
+
+def run_checks(app_module_spec, base_url=None):
     results = []
 
     # Router-runtime in-process checks ---------------------------------------
@@ -322,14 +368,12 @@ def run_checks(app_module_spec):
         cache_key_detail,
     ))
 
-    # HTTP surface checks via in-process TestClient ---------------------------
+    # HTTP surface checks via live base-url or in-process TestClient ----------
     try:
-        from fastapi.testclient import TestClient
-        app = _import_app(app_module_spec)
-        cm = TestClient(app)
+        cm = _open_client(base_url, app_module_spec)
     except Exception as exc:
         results.append(_check(
-            "open_in_process_client",
+            "open_http_client",
             False,
             f"{type(exc).__name__}: {exc}",
         ))
@@ -384,11 +428,23 @@ def main():
         default="services.api.app.demo_main:app",
         help="MODULE:VAR for in-process TestClient mode",
     )
+    parser.add_argument(
+        "--base-url",
+        default=None,
+        help="Live HTTP base URL, e.g. http://127.0.0.1:8001 (preferred when set)",
+    )
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
     out_path = pathlib.Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # When --base-url is supplied, the live service owns runtime isolation;
+    # this script does not touch DEMO_RUNTIME_ROOT or admin credentials.
+    if args.base_url:
+        results = run_checks(args.app_module, base_url=args.base_url)
+        transport = "base-url " + args.base_url
+        return _emit_report(out_path, results, transport)
 
     # In-process runtime isolation: point the demo app at an ephemeral
     # runtime root so it does not require a writable system DB path.
@@ -416,13 +472,18 @@ def main():
                     os.environ.pop(k, None)
                 else:
                     os.environ[k] = v
+    transport = "in-process app-module " + args.app_module
+    return _emit_report(out_path, results, transport)
+
+
+def _emit_report(out_path, results, transport):
     failures = [r for r in results if not r["passed"]]
 
     lines = [
         "# BR-06 Router Stub End-to-End Smoke Report",
         "",
         f"generated_at_utc: {datetime.datetime.utcnow().isoformat()}",
-        f"transport: in-process app-module {args.app_module}",
+        f"transport: {transport}",
         "router_mode: deterministic_stub (stub-v0)",
         f"checks: {len(results)}",
         f"failures: {len(failures)}",
