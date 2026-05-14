@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P8.1
+      phase: P8
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 440f2fa1e19aa7a536204548a9b5b9df935af1bf
+      next_expected_task: P8.1
+      required_fix: "Authorize scripts/robust_asr/evaluate_system.py in the P8.1 touch-policy row."
+      rationale: "P8.1 requires scripts/robust_asr/evaluate_system.py, but current touch_policy P8.1 row authorizes system_eval.md, P8.1 task report, trackers, and slurm job only."
+  prior_approval_packet_p7_phase:
+    ORCHESTRATOR_DECISION:
       scope: phase
       task_id: null
       phase: P7
@@ -748,9 +758,10 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: f236467af7776f5243439a69baeffe50ec5193135e231bbfa5bdbd063d310ddc
+    sha256: fc4a400037837562729db48fbb7a24387a453df887de979b27b9487444de8092
     produced_by_task: P0.2
-    last_amended_by: P7.3_scope_change
+    last_amended_by: P8.1_scope_change
+    prior_sha256: f236467af7776f5243439a69baeffe50ec5193135e231bbfa5bdbd063d310ddc
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
     sha256: 3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf

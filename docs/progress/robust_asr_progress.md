@@ -34,7 +34,8 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: PHASE_APPROVE(P7) on `d009c31` (next P8.1)
+- latest_approval_packet: CHANGE_SCOPE(P8.1) on `440f2fa` (next P8.1) — authorizes scripts/robust_asr/evaluate_system.py in the P8.1 touch-policy row
+- prior_approval_packet_p7_phase: PHASE_APPROVE(P7) on `d009c31` (next P8.1)
 - prior_approval_packet_p7_3_exec: APPROVE_EXECUTION(P7.3) on `d009c31` (next P7_GATE)
 - prior_approval_packet_p7_3_plan: APPROVE_PLAN(P7.3) on `394df2d` (next P7_GATE)
 - prior_approval_packet_p7_3_scope_exec: APPROVE_EXECUTION(P7.3-scope-change) on `394df2d` (next P7.3)
