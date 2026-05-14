@@ -56,7 +56,8 @@ markers:
   - B14_0_CRED_LEAK_DETECTED
   - B14_0_BROUTE_REGRESSION_UNDER_AUTH
 validators:
-  - validate_plan_compiles
+  - validate_b14_0_plan_compile  # B14.0 wrapper at scripts/rp5/validate_b14_0_plan_compile.py; B14.0-aware plan compiler (replaces the inherited B-route validate_plan_compiles invocation for B14.0 work); created by B14_0-00 execution
+  - validate_b14_0_path_locks    # B14.0 wrapper at scripts/rp5/validate_b14_0_path_locks.py; B14.0-aware path-lock classifier (replaces the inherited B-route validate_changed_files_against_path_locks invocation for B14.0 work); created by B14_0-00 execution
   - validate_b14_0_recruiter_auth_contract
   - validate_b14_0_auth_separation_invariants
   - validate_b14_0_health_payload_preserved_under_auth
@@ -66,11 +67,13 @@ validators:
   - validate_b14_0_broute_compatibility_under_auth
   - validate_future_constraints
   - validate_no_banned_phrases
-  - validate_changed_files_against_path_locks
   - validate_report_shape
   - validate_approval_packet
   - print_tracker_state
   - validate_public_security_invariants  # inherited from B-route; reused by RP-PUBLIC-SECURITY-REGRESSION diagnosis command in §11
+inherited_validators_context_only:
+  - validate_plan_compiles  # B-route script scripts/rp5/validate_plan_compiles.py; carries B-route-hardcoded artifact-name and patch-ledger checks; not invoked directly by any B14.0 task; replaced by validate_b14_0_plan_compile wrapper
+  - validate_changed_files_against_path_locks  # B-route script scripts/rp5/validate_changed_files_against_path_locks.py; carries B-route-hardcoded PATH_LOCKS list; not invoked directly by any B14.0 task; replaced by validate_b14_0_path_locks wrapper
 artifacts:
   - reports/rp5/b14_0_plan_compile.md
   - reports/rp5/b14_0_recruiter_auth_contract.md
@@ -107,12 +110,12 @@ repository:
 
 | Lock id | Type | Allowed components | Validator command | Max files | Marker on violation |
 |---|---|---|---|---:|---|
-| PL-B14_0-API-DEMO | exact_directory_with_predicate | recruiter middleware and dependency wiring in services/api/app/; admin auth code in services/api/app/ may be inspected but not modified except where the predicate explicitly allows | `python scripts/rp5/validate_path_lock_pl_b14_0_api_demo.py --diff HEAD~1..HEAD` | 6 | UNAUTHORIZED_FILE_TOUCHED |
-| PL-B14_0-FRONTEND | exact_directory_with_predicate | recruiter-auth UX under services/frontend/app/demo/; unrelated style-only files excluded | `python scripts/rp5/validate_path_lock_pl_b14_0_frontend.py --diff HEAD~1..HEAD` | 8 | UNAUTHORIZED_FILE_TOUCHED |
-| PL-B14_0-CONFIG | exact_file_or_create | .env.example placeholders only; real secrets forbidden; compose files (docker-compose*.yml, docker-compose.demo.yml) are forbidden in B14.0; if a future task requires a compose change, a CHANGE_SCOPE decision must update this lock row and the relevant §10 task contract together in one patch before the compose file may be touched | `python scripts/rp5/validate_changed_files_against_path_locks.py --lock PL-B14_0-CONFIG --diff HEAD~1..HEAD` | 2 | UNAUTHORIZED_FILE_TOUCHED |
-| PL-B14_0-TESTS | exact_directory_with_predicate | tests/demo/test_b14_0_*.py and tests/rp5/fixtures/ | `python scripts/rp5/validate_path_lock_pl_b14_0_tests.py --diff HEAD~1..HEAD` | 12 | UNAUTHORIZED_FILE_TOUCHED |
-| PL-B14_0-SCRIPTS | exact_directory_with_predicate | scripts/rp5/validate_b14_0_*.py and scripts/rp5/fixtures/generate_fixture_validate_b14_0_*.py and scripts/rp5/smoke_b14_0_*.py | `python scripts/rp5/validate_path_lock_pl_b14_0_scripts.py --diff HEAD~1..HEAD` | 18 | UNAUTHORIZED_FILE_TOUCHED |
-| PL-B14_0-REPORTS | exact_directory_with_predicate | reports/rp5/b14_0_*.md; B-route reports remain frozen | `python scripts/rp5/validate_changed_files_against_path_locks.py --lock PL-B14_0-REPORTS --diff HEAD~1..HEAD` | 20 | UNAUTHORIZED_FILE_TOUCHED |
+| PL-B14_0-API-DEMO | exact_directory_with_predicate | recruiter middleware and dependency wiring in services/api/app/; admin auth code in services/api/app/ may be inspected but not modified except where the predicate explicitly allows | `python scripts/rp5/validate_b14_0_path_locks.py --lock PL-B14_0-API-DEMO --diff HEAD~1..HEAD` | 6 | UNAUTHORIZED_FILE_TOUCHED |
+| PL-B14_0-FRONTEND | exact_directory_with_predicate | recruiter-auth UX under services/frontend/app/demo/; unrelated style-only files excluded | `python scripts/rp5/validate_b14_0_path_locks.py --lock PL-B14_0-FRONTEND --diff HEAD~1..HEAD` | 8 | UNAUTHORIZED_FILE_TOUCHED |
+| PL-B14_0-CONFIG | exact_file_or_create | .env.example placeholders only; real secrets forbidden; compose files (docker-compose*.yml, docker-compose.demo.yml) are forbidden in B14.0; if a future task requires a compose change, a CHANGE_SCOPE decision must update this lock row and the relevant §10 task contract together in one patch before the compose file may be touched | `python scripts/rp5/validate_b14_0_path_locks.py --lock PL-B14_0-CONFIG --diff HEAD~1..HEAD` | 2 | UNAUTHORIZED_FILE_TOUCHED |
+| PL-B14_0-TESTS | exact_directory_with_predicate | tests/demo/test_b14_0_*.py and tests/rp5/fixtures/ | `python scripts/rp5/validate_b14_0_path_locks.py --lock PL-B14_0-TESTS --diff HEAD~1..HEAD` | 12 | UNAUTHORIZED_FILE_TOUCHED |
+| PL-B14_0-SCRIPTS | exact_directory_with_predicate | scripts/rp5/validate_b14_0_*.py and scripts/rp5/fixtures/generate_fixture_validate_b14_0_*.py and scripts/rp5/smoke_b14_0_*.py | `python scripts/rp5/validate_b14_0_path_locks.py --lock PL-B14_0-SCRIPTS --diff HEAD~1..HEAD` | 18 | UNAUTHORIZED_FILE_TOUCHED |
+| PL-B14_0-REPORTS | exact_directory_with_predicate | reports/rp5/b14_0_*.md; B-route reports remain frozen | `python scripts/rp5/validate_b14_0_path_locks.py --lock PL-B14_0-REPORTS --diff HEAD~1..HEAD` | 20 | UNAUTHORIZED_FILE_TOUCHED |
 
 ## 2. Constants and decision rules
 
@@ -219,7 +222,7 @@ Authority lives in orchestrator_plan.md §3. Agent emits a phase_gate_report aft
 
 | Check id | Command essence | PASS sentinel | Artifact |
 |---|---|---|---|
-| FV-PLAN | validate_plan_compiles --plan-dir docs/plans/b14_0 | OK_PLAN_COMPILES | reports/rp5/b14_0_plan_compile.md |
+| FV-PLAN | validate_b14_0_plan_compile --plan-dir docs/plans/b14_0 | OK_PLAN_COMPILES | reports/rp5/b14_0_plan_compile.md |
 | FV-AUTH-CONTRACT | validate_b14_0_recruiter_auth_contract | OK_B14_0_RECRUITER_AUTH_CONTRACT | reports/rp5/b14_0_recruiter_auth_contract.md |
 | FV-AUTH-SEPARATION | validate_b14_0_auth_separation_invariants --base-url http://127.0.0.1:8001 | OK_B14_0_AUTH_SEPARATION | reports/rp5/b14_0_auth_separation_invariants.md |
 | FV-HEALTH-UNDER-AUTH | validate_b14_0_health_payload_preserved_under_auth --base-url http://127.0.0.1:8001 | OK_B14_0_HEALTH_UNDER_AUTH | reports/rp5/b14_0_health_payload_under_auth.md |
@@ -231,13 +234,15 @@ Authority lives in orchestrator_plan.md §3. Agent emits a phase_gate_report aft
 
 ## 8. Path lock contract
 
-Closure command: `python scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md`. Sentinel: OK_CHANGED_FILES_PATH_LOCKED. Failure marker: UNAUTHORIZED_FILE_TOUCHED. Result on unauthorized file: STOP_SCOPE_CONFLICT.
+Closure command: `python scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md`. Sentinel: OK_CHANGED_FILES_PATH_LOCKED. Failure marker: UNAUTHORIZED_FILE_TOUCHED. Result on unauthorized file: STOP_SCOPE_CONFLICT. The inherited B-route umbrella `scripts/rp5/validate_changed_files_against_path_locks.py` is not invoked by any B14.0 task because its PATH_LOCKS list only enumerates PL-BR-* lock ids.
 
 ## 9. Validator contracts and fixtures
 
-Each new validator has a paired fixture generator at scripts/rp5/fixtures/generate_fixture_validate_b14_0_<id>.py producing positive_and_negative fixtures with sha256 manifests. Generator sentinel format: OK_FIXTURE_VALIDATE_B14_0_<ID>. Failure marker matches the owning validator's marker per orchestrator_plan §6. Inherited validators (validate_plan_compiles, validate_changed_files_against_path_locks, validate_report_shape, validate_approval_packet, print_tracker_state, validate_future_constraints, validate_no_banned_phrases, validate_public_security_invariants) reuse the B-route scripts and fixture generators with --plan-dir docs/plans/b14_0/ where applicable.
+Each new validator has a paired fixture generator at scripts/rp5/fixtures/generate_fixture_validate_b14_0_<id>.py producing positive_and_negative fixtures with sha256 manifests. Generator sentinel format: OK_FIXTURE_VALIDATE_B14_0_<ID>. Failure marker matches the owning validator's marker per orchestrator_plan §6. Reusable B-route protocol validators (validate_report_shape, validate_approval_packet, print_tracker_state, validate_future_constraints, validate_no_banned_phrases, validate_public_security_invariants) are invoked directly because they read declarative schema/HAR/tracker inputs without any B-route-hardcoded lock or artifact-name knowledge. The two B14.0 wrappers (validate_b14_0_plan_compile, validate_b14_0_path_locks) replace the inherited B-route scripts that did carry such hardcoded knowledge; they are created by B14_0-00 execution and live under scripts/rp5/.
 
-validate_plan_compiles must_check contract is inherited from B-route §9, with the additional check `every_B14_0_task_next_state_exists`.
+validate_b14_0_plan_compile must_check contract is inherited from B-route §9, with the additional check `every_B14_0_task_next_state_exists` and with the B-route-specific artifact-name and patch-ledger checks replaced by parametric checks that derive the expected artifact name from the --plan-dir basename.
+
+validate_b14_0_path_locks reproduces the B-route umbrella classifier with PATH_LOCKS entries for PL-B14_0-API-DEMO, PL-B14_0-FRONTEND, PL-B14_0-CONFIG, PL-B14_0-TESTS, PL-B14_0-SCRIPTS, PL-B14_0-REPORTS plus the protocol entries PROTOCOL-TRACKER and PROTOCOL-RP-REPORTS; the `--lock` selector restricts reporting to a single lock id.
 
 ### 9.1 Fixture generator contracts for new B14.0 validators
 
@@ -255,7 +260,7 @@ validate_plan_compiles must_check contract is inherited from B-route §9, with t
 
 | Task | Preconditions | Action title | Deliverable | Validators | Done when | Stop |
 |---|---|---|---|---|---|---|
-| B14_0-00 | tracker readable; B-route APPROVED | plan compiler bootstrap and path-lock validator coverage for B14.0 locks | reports/rp5/b14_0_plan_compile.md | validate_plan_compiles, validate_changed_files_against_path_locks | OK_PLAN_COMPILES + OK_CHANGED_FILES_PATH_LOCKED | execution_report |
+| B14_0-00 | tracker readable; B-route APPROVED | create the two B14.0 wrapper validators (scripts/rp5/validate_b14_0_plan_compile.py and scripts/rp5/validate_b14_0_path_locks.py) and emit reports/rp5/b14_0_plan_compile.md; the wrappers replace the B-route-hardcoded inherited validators; deliverable commands: `python3 scripts/rp5/validate_b14_0_plan_compile.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_plan_compile.md` and `python3 scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md` | reports/rp5/b14_0_plan_compile.md | validate_b14_0_plan_compile (sentinel OK_PLAN_COMPILES, failure marker PLAN_CONFLICT or VALIDATOR_MATERIALIZATION_GAP); validate_b14_0_path_locks (sentinel OK_CHANGED_FILES_PATH_LOCKED, failure marker UNAUTHORIZED_FILE_TOUCHED) | OK_PLAN_COMPILES + OK_CHANGED_FILES_PATH_LOCKED | execution_report |
 | B14_0-01 | B14_0-00 PASS | recruiter auth contract and credential-bootstrap policy (env-var only) | reports/rp5/b14_0_recruiter_auth_contract.md | validate_b14_0_recruiter_auth_contract | OK_B14_0_RECRUITER_AUTH_CONTRACT | execution_report |
 | B14_0-02 | B14_0-01 PASS | recruiter HTTPBasic middleware on public /demo/* (preserving BR-02 health invariant on authenticated path) | services/api/app/* + reports/rp5/b14_0_*.md | validate_b14_0_recruiter_auth_contract (re-run), validate_b14_0_health_payload_preserved_under_auth | both OK sentinels | execution_report |
 | B14_0-03 | B14_0-02 PASS | admin vs recruiter separation invariants (distinct realm, distinct cred values, distinct error paths) | reports/rp5/b14_0_auth_separation_invariants.md | validate_b14_0_auth_separation_invariants | OK_B14_0_AUTH_SEPARATION | execution_report |
@@ -273,16 +278,16 @@ Every marker in §3 maps to exactly one recovery packet. Each packet defines: di
 
 | Packet id | Marker | Diagnosis command | Allowed inspect | Allowed modify | Retry | Recovered next | Exhausted next |
 |---|---|---|---|---|---:|---|---|
-| RP-PLAN-CONFLICT | PLAN_CONFLICT | `python scripts/rp5/validate_plan_compiles.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_plan_conflict.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task or B14_0-00 | CHANGE_SCOPE |
+| RP-PLAN-CONFLICT | PLAN_CONFLICT | `python scripts/rp5/validate_b14_0_plan_compile.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_plan_conflict.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task or B14_0-00 | CHANGE_SCOPE |
 | RP-TRACKER-MISSING | TRACKER_MISSING | `python scripts/rp5/print_tracker_state.py --tracker-path docs/progress/rp5_progress.yaml --out reports/rp5/b14_0_tracker_missing.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task or B14_0-00 | CHANGE_SCOPE |
 | RP-TRACKER-MISMATCH | TRACKER_MISMATCH | `python scripts/rp5/print_tracker_state.py --tracker-path docs/progress/rp5_progress.yaml --out reports/rp5/b14_0_tracker_mismatch.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task or B14_0-00 | CHANGE_SCOPE |
 | RP-REPORT-SCHEMA-INVALID | REPORT_SCHEMA_INVALID | `python scripts/rp5/validate_report_shape.py --schemas docs/plans/b14_0/state_packet_schemas.yaml --report-from-tracker latest_context --out reports/rp5/b14_0_report_schema_invalid.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
 | RP-APPROVAL-PACKET-MALFORMED | APPROVAL_PACKET_MALFORMED | `python scripts/rp5/validate_approval_packet.py --packet-from-tracker pending_approval_packet --out reports/rp5/b14_0_approval_packet_malformed.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
-| RP-EXECUTION-RAIL-GAP | EXECUTION_RAIL_GAP | `python scripts/rp5/validate_plan_compiles.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_execution_rail_gap.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
-| RP-PATH-LOCK-TOO-BROAD | PATH_LOCK_TOO_BROAD | `python scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/b14_0_path_lock_too_broad.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
-| RP-VALIDATOR-MATERIALIZATION-GAP | VALIDATOR_MATERIALIZATION_GAP | `python scripts/rp5/validate_plan_compiles.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_validator_materialization_gap.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
-| RP-RECOVERY-PACKET-GAP | RECOVERY_PACKET_GAP | `python scripts/rp5/validate_plan_compiles.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_recovery_packet_gap.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
-| RP-UNAUTHORIZED-FILE-TOUCHED | UNAUTHORIZED_FILE_TOUCHED | `python scripts/rp5/validate_changed_files_against_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/b14_0_unauthorized_file_touched.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | STOP_SCOPE_CONFLICT |
+| RP-EXECUTION-RAIL-GAP | EXECUTION_RAIL_GAP | `python scripts/rp5/validate_b14_0_plan_compile.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_execution_rail_gap.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
+| RP-PATH-LOCK-TOO-BROAD | PATH_LOCK_TOO_BROAD | `python scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/b14_0_path_lock_too_broad.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
+| RP-VALIDATOR-MATERIALIZATION-GAP | VALIDATOR_MATERIALIZATION_GAP | `python scripts/rp5/validate_b14_0_plan_compile.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_validator_materialization_gap.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
+| RP-RECOVERY-PACKET-GAP | RECOVERY_PACKET_GAP | `python scripts/rp5/validate_b14_0_plan_compile.py --plan-dir docs/plans/b14_0 --out reports/rp5/b14_0_recovery_packet_gap.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
+| RP-UNAUTHORIZED-FILE-TOUCHED | UNAUTHORIZED_FILE_TOUCHED | `python scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/b14_0_unauthorized_file_touched.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | STOP_SCOPE_CONFLICT |
 | RP-HUMAN-ACTION-REQUIRED | HUMAN_ACTION_REQUIRED | `python scripts/rp5/print_pending_human_action_requests.py --out reports/rp5/b14_0_pending_human_action.md` | docs/plans/b14_0, tracker, reports/rp5 | none until human_action_result is recorded | 0 | same task | CHANGE_SCOPE |
 | RP-FUTURE-CONSTRAINT-REGRESSION | FUTURE_CONSTRAINT_REGRESSION | `python scripts/rp5/validate_future_constraints.py --constraints reports/rp5/b14_0_future_constraints.md --out reports/rp5/b14_0_future_constraint_regression.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
 | RP-PUBLIC-SECURITY-REGRESSION | PUBLIC_SECURITY_REGRESSION | `python scripts/rp5/validate_public_security_invariants.py --base-url http://127.0.0.1:8001 --out reports/rp5/b14_0_public_security_regression.md` | docs/plans/b14_0, tracker, reports/rp5 | same task owned files only | 1 | same task | CHANGE_SCOPE |
