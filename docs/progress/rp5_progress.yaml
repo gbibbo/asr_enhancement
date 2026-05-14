@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.1
-current_task: B14_1-02
-last_completed_task: B14_1-01
+current_task: B14_1-03
+last_completed_task: B14_1-02
 last_completed_phase: B14.0
 markers: []
 phase_approvals:
@@ -85,10 +85,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_1_exposure_state_record.md
+  latest_execution_report_path: reports/rp5/b14_1_application_layer_gate_invariants.md
   latest_phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
-  expected_next_task: B14_1-02
+  expected_next_task: B14_1-03
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -1130,3 +1130,104 @@ tasks:
       hars_blocking_B14_1-01: none
     marker: null
     next_task: B14_1-02
+  B14_1-02:
+    task_id: B14_1-02
+    status: PASS
+    commit: bc250b443e44b8f9012a64db807f44aaac088f80
+    accepted_report_commit: bc250b443e44b8f9012a64db807f44aaac088f80
+    files_changed:
+      - reports/rp5/b14_1_application_layer_gate_invariants.md
+      - reports/rp5/b14_1_no_network_trust_authority.md
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority.py
+      - scripts/rp5/validate_b14_1_application_layer_gate_invariants.py
+      - scripts/rp5/validate_b14_1_no_network_trust_authority.py
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants/negative_auth_demo_health_body_degraded.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants/negative_unauth_demo_health_200.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants/negative_unauth_demo_health_wrong_realm.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants/positive_auth_demo_health_200_byte_exact.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants/positive_unauth_demo_health_401.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority/negative_source_trust_by_xff.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority/negative_unauth_tailscale_id_returned_200.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority/negative_unauth_xff_returned_200.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority/positive_source_no_forbidden_tokens.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority/positive_unauth_xff_10_0_0_1_still_401.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority_manifest.json
+    commands_run:
+      - "single-shell flow: export RECRUITER_USERNAME and RECRUITER_PASSWORD (synthetic ephemeral via secrets.token_hex/secrets.token_urlsafe; never committed, never echoed in reports) + DEMO_RUNTIME_ROOT=$(mktemp -d -t b14_1_02_runtime.XXXXXX) (existing runtime-only convention since B4.1)"
+      - "python3 -c 'import socket,sys; s=socket.socket(); rc=s.connect_ex((\"127.0.0.1\",8001)); s.close(); sys.exit(0 if rc!=0 else 1)' (port preflight; rc=111, free)"
+      - "PUBLIC_DEMO_EXPOSURE=true RECRUITER_USERNAME=$RECRUITER_USERNAME RECRUITER_PASSWORD=$RECRUITER_PASSWORD DEMO_RUNTIME_ROOT=$RUNTIME_DIR python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 8001 > /tmp/b14_1_02_app_run.log 2>&1 & (loopback only; readiness probe got 401 in 2 attempts)"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_1_application_layer_gate_invariants_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_1_no_network_trust_authority_manifest.json"
+      - "python3 scripts/rp5/validate_b14_1_application_layer_gate_invariants.py --base-url http://127.0.0.1:8001 --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --out reports/rp5/b14_1_application_layer_gate_invariants.md"
+      - "python3 scripts/rp5/validate_b14_1_no_network_trust_authority.py --base-url http://127.0.0.1:8001 --out reports/rp5/b14_1_no_network_trust_authority.md"
+      - "kill uvicorn pid; unset RECRUITER_USERNAME RECRUITER_PASSWORD; remove /tmp/b14_1_02_app_run.log and /tmp/b14_1_02_app.pid; remove $RUNTIME_DIR; confirm port 8001 free (rc=111)"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD --out /tmp/b14_1_02_path_lock_pre_commit.md"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD~1..HEAD --out /tmp/b14_1_02_path_lock_post_commit.md"
+      - "git commit (identity Gabriel Bibbó <gabobibbo@gmail.com>; no AI authorship trailers)"
+      - "git push origin feature/demo-runtime-rp5-v1"
+      - "final cleanup: remove /tmp/b14_1_02_path_lock_pre_commit.md /tmp/b14_1_02_path_lock_post_commit.md /tmp/b14_1_02_staged_files.txt /tmp/b14_1_02_status.txt /tmp/b14_1_02_app_run.log /tmp/b14_1_02_app.pid"
+    key_outputs:
+      - OK_FIXTURE_VALIDATE_B14_1_APPLICATION_LAYER_GATE
+      - OK_FIXTURE_VALIDATE_B14_1_NO_NETWORK_TRUST
+      - OK_B14_1_APPLICATION_LAYER_GATE
+      - OK_B14_1_NO_NETWORK_TRUST_AUTHORITY
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      path_lock_pre_commit_observed: true
+      path_lock_post_commit_observed: true
+      path_lock_pre_commit_diff_spec: "--diff HEAD"
+      path_lock_post_commit_diff_spec: "--diff HEAD~1..HEAD"
+      path_lock_lock_counts:
+        PL-B14_1-REPORTS: "2 / max 20"
+        PL-B14_1-SCRIPTS: "4 / max 18"
+        PL-B14_1-TESTS: "12 / max 12"
+      fixture_manifest_sha256:
+        application_layer_gate_invariants: "ea734d5c92069aad8492a8a3f3efb94177082226814bcd309dca1e790f58064e"
+        no_network_trust_authority: "31a507a6945385e37bf97d4f0abe78158936660d67265ea003738928bedf21ad"
+      authorized_files_set_size: 18
+      unauthorized_paths_in_commit: 0
+      local_only_transcripts_removed_before_final_status: true
+      runtime_cleanup_env_unset: true
+      runtime_cleanup_port_8001_free_after: true
+      runtime_cleanup_tmp_b14_1_02_residue: none
+      demo_runtime_root_retry_classification: APPROVAL_SAFE
+      demo_runtime_root_retry_rationale: "DEMO_RUNTIME_ROOT is an existing runtime-only convention (libs/common/demo_settings.py since B4.1; documented use in scripts/cleanup_uploads.py, validate_public_security_invariants.py, multiple B-route fixture generators, and B14_0-02/05/06 prior task runs in this tracker). First readiness-timeout attempt fully complied with the plan's stop-on-timeout cleanup rule; retry was a fresh attempt under the accepted convention. No application code change, no scope expansion, no security impact."
+      readiness_timeout_attempts_before_success: 1
+      readiness_timeout_root_cause: "default demo_db_path /home/gbibbo/asr_enhancement_runtime/db/demo.db owned by root with no user write permission on this host; lifespan failed at set_admin_state with sqlite3.OperationalError attempt to write a readonly database"
+      readiness_timeout_cleanup_compliant: true
+      tracker_mutated_during_execution: false
+      services_api_app_modified: false
+      services_api_app_main_modified: false
+      services_api_app_demo_main_modified: false
+      services_api_app_public_exposure_modified: false
+      services_api_app_recruiter_auth_modified: false
+      services_frontend_modified: false
+      libs_modified: false
+      libs_asr_router_runtime_modified: false
+      infra_modified: false
+      compose_modified: false
+      env_real_value_files_modified: false
+      runtime_modified: false
+      docs_plans_b14_1_modified: false
+      docs_plans_b14_0_modified: false
+      docs_plans_broute_modified: false
+      missing_protocol_validators_authored: false
+      missing_protocol_validators_invoked: false
+      reports_rp5_path_lock_validation_md_written: false
+      public_exposure_introduced: false
+      public_url_literal_committed: false
+      stable_hostname_literal_committed: false
+      tunnel_secret_committed: false
+      recruiter_password_committed: false
+      admin_password_committed: false
+      authorization_header_value_committed: false
+      forbidden_commit_trailers_present: false
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      har_b14_1_funnel_capability_001_status: pre_declared_unresolved
+      har_b14_1_stable_hostname_001_status: pre_declared_unresolved
+      hars_blocking_B14_1-02: none
+      hars_resolved_in_B14_1-02: false
+    marker: null
+    next_task: B14_1-03
