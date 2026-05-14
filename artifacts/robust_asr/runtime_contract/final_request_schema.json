@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robust-asr.local/schemas/rp5_request.final.json",
+  "title": "RP5 ASR request (final, P9.0)",
+  "description": "Finalized RP5 ASR runtime request schema for the robust_asr deployable runtime. Produced by P9.0 under OUTCOME_E_DETERMINISTIC_SELECTOR. The deployable backend set is whisper_base_ct2_int8 only. LoRA is excluded (lora_status=SKIPPED_BY_DECISION_A, claims_enabled.positive_lora=false). AssemblyAI is excluded (BLOCKED_API, claims_enabled.cloud_tradeoff=false). This schema is the contract consumed by the RP5 web runtime (handoff in P9.1).",
+  "x-robust-asr": {
+    "produced_by_task": "P9.0",
+    "schema_kind": "final",
+    "supersedes_skeleton_id": "https://robust-asr.local/schemas/rp5_request.skeleton.json",
+    "deployable_backends": ["whisper_base_ct2_int8"],
+    "excluded_backends": {
+      "lora_ct2_int8": "SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false",
+      "assemblyai": "BLOCKED_API; claims_enabled.cloud_tradeoff=false"
+    },
+    "router_kinds": ["deterministic_selector"],
+    "claims_enabled": {
+      "ood_real": false,
+      "cloud_tradeoff": false,
+      "positive_lora": false,
+      "positive_system": false
+    },
+    "carry_forward_constraints": [
+      "P8_2_demo_only_upstream_overlap deviation remains ENACTED",
+      "C4 (demo overlap disclosure) is a P9.1 obligation, not P9.0",
+      "C5 (demo exclusion verification) is a P10.1 obligation, not P9.0",
+      "Demo assets must not feed metrics, claims_enabled.*, or evaluation"
+    ]
+  },
+  "type": "object",
+  "required": ["request_id", "audio", "client", "constraints"],
+  "additionalProperties": true,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "audio": {
+      "type": "object",
+      "required": [
+        "encoding",
+        "sample_rate_hz",
+        "channels",
+        "duration_s",
+        "sha256",
+        "uri_or_inline"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "encoding": {
+          "enum": ["wav", "flac", "webm_opus"]
+        },
+        "sample_rate_hz": {
+          "type": "integer",
+          "const": 16000
+        },
+        "channels": {
+          "type": "integer",
+          "const": 1
+        },
+        "duration_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "uri_or_inline": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "client": {
+      "type": "object",
+      "required": ["browser_user_agent", "client_version"],
+      "additionalProperties": true,
+      "properties": {
+        "browser_user_agent": {
+          "type": "string"
+        },
+        "client_version": {
+          "type": "string"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "required": ["max_latency_ms", "allow_third_party", "profile"],
+      "additionalProperties": true,
+      "properties": {
+        "max_latency_ms": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "allow_third_party": {
+          "type": "boolean",
+          "x-robust-asr-final-constraint": "Must be false in the final P9.0 fixture because no third-party backend is deployable (BLOCKED_API, claims_enabled.cloud_tradeoff=false). The contract permits the field for forward-compatibility, but the deployable runtime treats true as an unsupported request that maps to the deterministic_selector local-first pathway."
+        },
+        "profile": {
+          "enum": ["balanced", "quality_first", "local_first"]
+        }
+      }
+    }
+  }
+}

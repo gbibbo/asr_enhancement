@@ -305,6 +305,115 @@ def run_assertions(
     return out
 
 
+# ---------------------------------------------------------------------------
+# Final-mode schemas (P9.0)
+# ---------------------------------------------------------------------------
+# Mirror of the JSON files at artifacts/robust_asr/runtime_contract/
+# final_request_schema.json and final_response_schema.json. The 19 assertions
+# in run_assertions() and the --strict-final mode of validate_runtime_contract.py
+# are unchanged; these constants are declarative finalizations that narrow
+# enums to the deployable backend set (whisper_base_ct2_int8 only),
+# the active router_kind (deterministic_selector), and forbid a third-party
+# provider in the response. LoRA and AssemblyAI are excluded by status.
+
+FINAL_DEPLOYABLE_BACKENDS = ("whisper_base_ct2_int8",)
+FINAL_ROUTER_KINDS = ("deterministic_selector",)
+
+FINAL_REQUEST_SCHEMA: Dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://robust-asr.local/schemas/rp5_request.final.json",
+    "title": "RP5 ASR request (final, P9.0)",
+    "type": "object",
+    "required": ["request_id", "audio", "client", "constraints"],
+    "properties": {
+        "request_id": {"type": "string", "minLength": 1},
+        "audio": {
+            "type": "object",
+            "required": [
+                "encoding", "sample_rate_hz", "channels",
+                "duration_s", "sha256", "uri_or_inline",
+            ],
+            "properties": {
+                "encoding": {"enum": list(AUDIO_ENCODINGS)},
+                "sample_rate_hz": {"type": "integer", "const": SAMPLE_RATE_HZ},
+                "channels": {"type": "integer", "const": CHANNELS},
+                "duration_s": {"type": "number", "exclusiveMinimum": 0},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "uri_or_inline": {"type": "string", "minLength": 1},
+            },
+        },
+        "client": {
+            "type": "object",
+            "required": ["browser_user_agent", "client_version"],
+            "properties": {
+                "browser_user_agent": {"type": "string"},
+                "client_version": {"type": "string"},
+            },
+        },
+        "constraints": {
+            "type": "object",
+            "required": ["max_latency_ms", "allow_third_party", "profile"],
+            "properties": {
+                "max_latency_ms": {"type": "integer", "exclusiveMinimum": 0},
+                "allow_third_party": {"type": "boolean"},
+                "profile": {"enum": list(PROFILES)},
+            },
+        },
+    },
+}
+
+FINAL_RESPONSE_SCHEMA: Dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://robust-asr.local/schemas/rp5_response.final.json",
+    "title": "RP5 ASR response (final, P9.0)",
+    "type": "object",
+    "required": [
+        "request_id", "transcript", "raw_transcript", "confidence",
+        "ask_repeat", "selected_backend", "router_kind",
+        "routing_features", "latency_ms", "cost_usd",
+        "third_party_provider", "report_links", "errors",
+    ],
+    "properties": {
+        "request_id": {"type": "string", "minLength": 1},
+        "transcript": {"type": ["string", "null"]},
+        "raw_transcript": {"type": ["string", "null"]},
+        "confidence": {
+            "type": ["number", "null"],
+            "minimum": 0.0, "maximum": 1.0,
+        },
+        "ask_repeat": {"type": "boolean"},
+        "selected_backend": {
+            "anyOf": [
+                {"type": "null"},
+                {"enum": list(FINAL_DEPLOYABLE_BACKENDS)},
+            ],
+        },
+        "router_kind": {"enum": list(FINAL_ROUTER_KINDS)},
+        "routing_features": {"type": "object"},
+        "latency_ms": {
+            "type": "object",
+            "required": ["backend", "server", "end_to_end"],
+            "properties": {
+                "backend": {"type": "integer", "minimum": 0},
+                "server": {"type": "integer", "minimum": 0},
+                "end_to_end": {"type": "integer", "minimum": 0},
+            },
+        },
+        "cost_usd": {"type": ["number", "null"], "minimum": 0.0},
+        "third_party_provider": {"type": "null"},
+        "report_links": {
+            "type": "object",
+            "required": ["model_card", "router_card"],
+            "properties": {
+                "model_card": {"type": "string", "minLength": 1},
+                "router_card": {"type": "string", "minLength": 1},
+            },
+        },
+        "errors": {"type": "array"},
+    },
+}
+
+
 __all__ = [
     "AUDIO_ENCODINGS",
     "PROFILES",
@@ -314,5 +423,9 @@ __all__ = [
     "SHA256_HEX_LEN",
     "REQUEST_SCHEMA",
     "RESPONSE_SCHEMA",
+    "FINAL_DEPLOYABLE_BACKENDS",
+    "FINAL_ROUTER_KINDS",
+    "FINAL_REQUEST_SCHEMA",
+    "FINAL_RESPONSE_SCHEMA",
     "run_assertions",
 ]

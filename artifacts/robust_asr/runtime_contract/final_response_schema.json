@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robust-asr.local/schemas/rp5_response.final.json",
+  "title": "RP5 ASR response (final, P9.0)",
+  "description": "Finalized RP5 ASR runtime response schema for the robust_asr deployable runtime. Produced by P9.0 under OUTCOME_E_DETERMINISTIC_SELECTOR. selected_backend is restricted to whisper_base_ct2_int8 (or null when ask_repeat=true). router_kind is restricted to deterministic_selector. third_party_provider is restricted to null. report_links.model_card and report_links.router_card must be non-empty strings in --strict-final.",
+  "x-robust-asr": {
+    "produced_by_task": "P9.0",
+    "schema_kind": "final",
+    "supersedes_skeleton_id": "https://robust-asr.local/schemas/rp5_response.skeleton.json",
+    "deployable_backends": ["whisper_base_ct2_int8"],
+    "excluded_backends": {
+      "lora_ct2_int8": "SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false",
+      "assemblyai": "BLOCKED_API; claims_enabled.cloud_tradeoff=false"
+    },
+    "router_kinds": ["deterministic_selector"],
+    "claims_enabled": {
+      "ood_real": false,
+      "cloud_tradeoff": false,
+      "positive_lora": false,
+      "positive_system": false
+    },
+    "carry_forward_constraints": [
+      "P8_2_demo_only_upstream_overlap deviation remains ENACTED",
+      "C4 (demo overlap disclosure) is a P9.1 obligation, not P9.0",
+      "C5 (demo exclusion verification) is a P10.1 obligation, not P9.0",
+      "Demo assets must not feed metrics, claims_enabled.*, or evaluation"
+    ]
+  },
+  "type": "object",
+  "required": [
+    "request_id",
+    "transcript",
+    "raw_transcript",
+    "confidence",
+    "ask_repeat",
+    "selected_backend",
+    "router_kind",
+    "routing_features",
+    "latency_ms",
+    "cost_usd",
+    "third_party_provider",
+    "report_links",
+    "errors"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "transcript": {
+      "type": ["string", "null"]
+    },
+    "raw_transcript": {
+      "type": ["string", "null"]
+    },
+    "confidence": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "ask_repeat": {
+      "type": "boolean"
+    },
+    "selected_backend": {
+      "anyOf": [
+        {"type": "null"},
+        {"enum": ["whisper_base_ct2_int8"]}
+      ]
+    },
+    "router_kind": {
+      "enum": ["deterministic_selector"]
+    },
+    "routing_features": {
+      "type": "object"
+    },
+    "latency_ms": {
+      "type": "object",
+      "required": ["backend", "server", "end_to_end"],
+      "additionalProperties": true,
+      "properties": {
+        "backend": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "server": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_to_end": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "cost_usd": {
+      "type": ["number", "null"],
+      "minimum": 0.0
+    },
+    "third_party_provider": {
+      "type": "null"
+    },
+    "report_links": {
+      "type": "object",
+      "required": ["model_card", "router_card"],
+      "additionalProperties": true,
+      "properties": {
+        "model_card": {
+          "type": "string",
+          "minLength": 1
+        },
+        "router_card": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "errors": {
+      "type": "array"
+    }
+  }
+}

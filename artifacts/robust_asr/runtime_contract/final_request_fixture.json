@@ -1,0 +1,21 @@
+{
+  "_comment": "P9.0 final contract fixture (synthetic). NOT derived from demo audio, demo manifest rows, demo upstream_audio_id values, or demo WAV hashes. The sha256 below is a clearly synthetic 64-hex placeholder for contract validation only, NOT evidence of any real audio. The fixture exercises the whisper_base_ct2_int8 deployable backend pathway under deterministic_selector with allow_third_party=false (BLOCKED_API + claims_enabled.cloud_tradeoff=false).",
+  "request_id": "p9-0-final-fixture-22222222-2222-4222-8222-222222222222",
+  "audio": {
+    "encoding": "wav",
+    "sample_rate_hz": 16000,
+    "channels": 1,
+    "duration_s": 4.0,
+    "sha256": "00000000000000000000000000000000000000000000000000000000000000ff",
+    "uri_or_inline": "storage://robust_asr/contract_fixture/p9_0_synthetic_audio.wav"
+  },
+  "client": {
+    "browser_user_agent": "RP5-Final/1.0",
+    "client_version": "1.0.0"
+  },
+  "constraints": {
+    "max_latency_ms": 2000,
+    "allow_third_party": false,
+    "profile": "local_first"
+  }
+}

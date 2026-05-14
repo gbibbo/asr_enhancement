@@ -1,0 +1,28 @@
+{
+  "_comment": "P9.0 final contract fixture (synthetic). Paired with final_request_fixture.json. Exercises the only deployable backend pathway: whisper_base_ct2_int8 via deterministic_selector. third_party_provider is null (no AssemblyAI). selected_backend is the local CT2 INT8 baseline. report_links point at the P0.5 model and router cards. No demo content, no demo hashes, no demo upstream identifiers.",
+  "request_id": "p9-0-final-fixture-22222222-2222-4222-8222-222222222222",
+  "transcript": "this is a synthetic contract fixture transcript",
+  "raw_transcript": "This is a synthetic contract fixture transcript.",
+  "confidence": 0.88,
+  "ask_repeat": false,
+  "selected_backend": "whisper_base_ct2_int8",
+  "router_kind": "deterministic_selector",
+  "routing_features": {
+    "snr_db_est": 21.0,
+    "voiced_ratio": 0.65,
+    "profile": "local_first",
+    "deterministic_selector_version": "deterministic_selector_v1"
+  },
+  "latency_ms": {
+    "backend": 250,
+    "server": 300,
+    "end_to_end": 340
+  },
+  "cost_usd": 0.0,
+  "third_party_provider": null,
+  "report_links": {
+    "model_card": "docs/reports/robust_asr/model_card_lora.md",
+    "router_card": "docs/reports/robust_asr/router_card.md"
+  },
+  "errors": []
+}
