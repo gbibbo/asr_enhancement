@@ -1,6 +1,6 @@
 tracker_file: docs/progress/rp5_progress.yaml
-current_phase: B14.1_PENDING_ORCHESTRATOR_INSTRUCTION
-current_task: B14.1_PENDING_ORCHESTRATOR_INSTRUCTION
+current_phase: B14.1_PLAN_AUTHORING
+current_task: B14.1_PLAN_AUTHORING
 last_completed_task: B14_0-08
 last_completed_phase: B14.0
 markers: []
@@ -64,7 +64,7 @@ state_transport:
   latest_execution_report_path: reports/rp5/b14_0_phase_gate.md
   latest_phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_0_phase_approval_packet.yaml
-  expected_next_task: B14.1_PENDING_ORCHESTRATOR_INSTRUCTION
+  expected_next_task: B14.1_PLAN_AUTHORING
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
