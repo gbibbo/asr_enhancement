@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.0
-current_task: B14_0-04
-last_completed_task: B14_0-03
+current_task: B14_0-05
+last_completed_task: B14_0-04
 last_completed_phase: B-route
 markers: []
 phase_approvals:
@@ -52,10 +52,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_0_auth_separation_invariants.md
+  latest_execution_report_path: reports/rp5/b14_0_frontend_auth_contract.md
   latest_phase_gate_report_path: reports/rp5/broute_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
-  expected_next_task: B14_0-04
+  expected_next_task: B14_0-05
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -545,3 +545,45 @@ tasks:
       forbidden_commit_trailers_present: false
     marker: null
     next_task: B14_0-04
+  B14_0-04:
+    task_id: B14_0-04
+    status: PASS
+    commit: aa9e742d43a36641d5b0813c71ca897c9807fedd
+    files_changed:
+      - scripts/rp5/validate_b14_0_frontend_auth_contract.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_0_frontend_auth_contract.py
+      - reports/rp5/b14_0_frontend_auth_contract.md
+    commands_run:
+      - "python3 scripts/rp5/validate_b14_0_frontend_auth_contract.py --types-file services/frontend/app/demo/types.ts --frontend-demo-dir services/frontend/app/demo --out reports/rp5/b14_0_frontend_auth_contract.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_0_frontend_auth_contract.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_frontend_auth_contract_manifest.json"
+      - "python3 scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_B14_0_FRONTEND_AUTH
+      - OK_FIXTURE_VALIDATE_B14_0_FRONTEND_AUTH
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "frontend_files_modified: false"
+      - "types_ts_modified: false"
+    supplemental_evidence:
+      static_scan_checks_passed: 7
+      static_scan_checks_total: 7
+      positive_fixture_count: 1
+      negative_fixture_count: 7
+      adversarial_failures: 0
+      frontend_files_modified: false
+      types_ts_modified: false
+      router_fields_shape_unchanged: true
+      router_fields_shape_observed_sha256: "b893f8f84f6d5b81fa406da5c3272cab116d8098445f4f14673bb9474195225c"
+      router_fields_shape_expected_sha256: "b893f8f84f6d5b81fa406da5c3272cab116d8098445f4f14673bb9474195225c"
+      fixture_manifest_local_only_sha256: "4b706d76ddf715df74ea61eca95d9e925146d27ab7eacaef60b5a56383e0ab3f"
+      path_lock_validation_local_only_sha256: "2e4c81c5ba59aee1736eeb3987929be24f259031407f253188d117a3cfaeb873"
+      tracker_mutated_during_execution: false
+      local_only_fixtures_removed_before_final_status: true
+      approval_packet_file_created: false
+      approval_packet_recording_policy: in_tracker_only_per_BR_NN_established_pattern
+      services_frontend_app_demo_modified: false
+      services_api_app_modified: false
+      libs_asr_router_runtime_modified: false
+      repo_dependency_or_config_files_changed: false
+      forbidden_commit_trailers_present: false
+    marker: null
+    next_task: B14_0-05
