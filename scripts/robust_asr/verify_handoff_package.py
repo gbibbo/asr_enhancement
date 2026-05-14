@@ -12,8 +12,17 @@ docs/plans/robust_asr_agent_plan_v3_4_7.md Section 4, lines 1037-1055:
   5. handoff_validation_template.md exists.
   6. Backend configs do not contain literal secrets
      (grep for ASSEMBLYAI_API_KEY, sk_, Bearer ).
-  7. If --strict, a tag of the form handoff/<date>-<short_sha> exists
-     locally and on origin.
+  7. If --strict, the canonical handoff/<YYYYMMDD>-<short_sha> tag
+     recorded by the handoff package exists locally and on origin, and
+     local and origin point at the same commit. The canonical tag is
+     resolved from README.md (concrete handoff/<8digits>-<hex>) when
+     present; otherwise from `git tag --list 'handoff/*'` when exactly
+     one concrete handoff tag exists in the repo. The previous
+     HEAD-derived construction
+     `handoff/$(date -u +%Y%m%d)-$(git rev-parse --short HEAD)` is no
+     longer used (FIX_BEFORE_CLOSE P9.2: it failed at every commit
+     after the package tag commit even when the canonical tag was
+     valid and unchanged).
 
 Emits OK_HANDOFF_PACKAGE on full PASS.
 Exit 0 on PASS; exit 1 on any FAIL.
@@ -50,6 +59,11 @@ ARTIFACT_TABLE_RE = re.compile(
     r"^\|\s*`?(?P<path>[^`|]+?)`?\s*\|\s*`?(?P<sha>[0-9a-f]{64})`?\s*\|",
     re.MULTILINE,
 )
+
+# Concrete handoff tag, e.g. handoff/20260514-64eba43. Distinct from the
+# README's placeholder `handoff/<YYYYMMDD>-<short_sha>` which is rejected
+# by this regex (placeholder contains `<` characters and non-hex chars).
+HANDOFF_TAG_RE = re.compile(r"\bhandoff/\d{8}-[0-9a-f]{7,40}\b")
 
 
 def emit(aid: str, ok: bool, msg: str) -> None:
@@ -169,32 +183,129 @@ def assert_no_secrets(handoff_dir: Path, failed: list) -> None:
          "no ASSEMBLYAI_API_KEY / sk_ / Bearer in backend_configs/")
 
 
-def assert_tag(failed: list) -> None:
-    today = subprocess.check_output(
-        ["date", "-u", "+%Y%m%d"], text=True
-    ).strip()
-    short_sha = subprocess.check_output(
-        ["git", "rev-parse", "--short", "HEAD"], text=True
-    ).strip()
-    tag = f"handoff/{today}-{short_sha}"
+def _extract_provenance_section(readme_text: str) -> str:
+    """Return the body of `## 7. Provenance` from the handoff README.
+
+    The body is everything from the `## 7. Provenance` heading up to
+    the next top-level `## ` heading (`## 8. Contact and license`).
+    Returns the empty string if §7 is not present.
+    """
+    if not readme_text:
+        return ""
+    start_marker = "## 7. Provenance"
+    start = readme_text.find(start_marker)
+    if start == -1:
+        return ""
+    rest = readme_text[start + len(start_marker):]
+    # Find the next top-level `## ` heading. The README's body cannot
+    # contain another line starting with `## ` until the next section.
+    end_rel = rest.find("\n## ")
+    if end_rel == -1:
+        return rest
+    return rest[:end_rel]
+
+
+def _resolve_canonical_handoff_tag(readme_text: str) -> tuple:
+    """Return (tag, source) for the canonical handoff tag.
+
+    Resolution order (per FIX_BEFORE_CLOSE P9.2):
+
+    1. Scan handoff README.md §7 Provenance for a concrete
+       handoff/<YYYYMMDD>-<hex> tag string. The README's placeholder
+       `handoff/<YYYYMMDD>-<short_sha>` is rejected by HANDOFF_TAG_RE
+       because it contains `<` and non-hex characters. Scoping to §7
+       avoids accidentally picking up the example tag in §5.2 rollback
+       usage (`handoff/20260101-abcd123`).
+    2. Fall back to enumerating local refs/tags/handoff/* via
+       `git tag --list 'handoff/*'`; if exactly one concrete handoff
+       tag exists, use it as canonical.
+    3. As a last resort, return ("", "") and let the caller emit a
+       deterministic A7 failure. The HEAD-derived tag construction
+       used in the previous implementation is no longer attempted.
+
+    Returns (tag, source) where source is one of
+    {"readme_section_7", "git_tag_list", "readme_git_intersect", ""}.
+    """
+    section_7 = _extract_provenance_section(readme_text)
+    matches = HANDOFF_TAG_RE.findall(section_7)
+    unique = []
+    for t in matches:
+        if t not in unique:
+            unique.append(t)
+    if len(unique) == 1:
+        return unique[0], "readme_section_7"
+
+    result = subprocess.run(
+        ["git", "tag", "--list", "handoff/*"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        tags = [
+            line.strip()
+            for line in (result.stdout or "").splitlines()
+            if HANDOFF_TAG_RE.fullmatch(line.strip())
+        ]
+        unique_tags = []
+        for t in tags:
+            if t not in unique_tags:
+                unique_tags.append(t)
+        if len(unique_tags) == 1:
+            return unique_tags[0], "git_tag_list"
+        if len(unique_tags) > 1 and len(unique) > 1:
+            # Both sources ambiguous: pick the §7/git-tag intersection
+            # if it is a single tag.
+            intersect = [t for t in unique if t in unique_tags]
+            if len(intersect) == 1:
+                return intersect[0], "readme_git_intersect"
+
+    return "", ""
+
+
+def assert_tag(failed: list, readme_text: str) -> None:
+    tag, source = _resolve_canonical_handoff_tag(readme_text)
+    if not tag:
+        emit("A7", False,
+             "no canonical handoff/<date>-<sha> tag found in README "
+             "and no unique handoff/* tag in the repo")
+        failed.append("A7")
+        return
 
     local = subprocess.run(
         ["git", "rev-parse", "--verify", f"refs/tags/{tag}"],
         capture_output=True, text=True,
     )
     if local.returncode != 0:
-        emit("A7", False, f"local tag missing: {tag}")
+        emit("A7", False, f"local tag missing: {tag} (source={source})")
         failed.append("A7")
         return
+    local_commit = (local.stdout or "").strip()
+
     remote = subprocess.run(
         ["git", "ls-remote", "--tags", "origin", tag],
         capture_output=True, text=True,
     )
     if remote.returncode != 0 or tag not in (remote.stdout or ""):
-        emit("A7", False, f"tag not on origin: {tag}")
+        emit("A7", False, f"tag not on origin: {tag} (source={source})")
         failed.append("A7")
         return
-    emit("A7", True, f"tag exists locally and on origin: {tag}")
+    remote_commit = ""
+    for line in (remote.stdout or "").splitlines():
+        parts = line.split()
+        if len(parts) == 2 and parts[1] == f"refs/tags/{tag}":
+            remote_commit = parts[0]
+            break
+    if remote_commit and local_commit and remote_commit != local_commit:
+        emit("A7", False,
+             f"tag commit drift for {tag}: local={local_commit} "
+             f"origin={remote_commit}")
+        failed.append("A7")
+        return
+
+    emit(
+        "A7", True,
+        f"canonical tag exists locally and on origin: {tag} "
+        f"-> {local_commit} (source={source})",
+    )
 
 
 def main() -> int:
@@ -225,7 +336,7 @@ def main() -> int:
     assert_validation_template(handoff_dir, failed)
     assert_no_secrets(handoff_dir, failed)
     if args.strict:
-        assert_tag(failed)
+        assert_tag(failed, readme_text)
 
     if failed:
         print(f"FAIL_HANDOFF_PACKAGE: {','.join(sorted(set(failed)))}")

@@ -45,7 +45,8 @@ session_log:
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
   latest_planning_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
-  latest_execution_report: reports/robust_asr/task_reports/P9.2_rp5_runtime_spec.md
+  latest_execution_report: reports/robust_asr/task_reports/P9.2_strict_tag_validator_fix.md
+  prior_execution_report_p9_2: reports/robust_asr/task_reports/P9.2_rp5_runtime_spec.md
   latest_phase_gate_report: reports/robust_asr/task_reports/P8_GATE_attempt2.md
   latest_supplemental_evidence_report: null
   latest_approval_packet:
@@ -1542,7 +1543,8 @@ artifacts:
       retag_performed: false
       verify_handoff_package_non_strict_sentinel: OK_HANDOFF_PACKAGE
       verify_handoff_package_strict_a1_a6: PASS
-      verify_handoff_package_strict_a7: FAIL_HEAD_SHORT_SHA_DRIFT_PRE_EXISTING_NOT_CAUSED_BY_P9_2
+      verify_handoff_package_strict_a7_pre_fix: FAIL_HEAD_SHORT_SHA_DRIFT_PRE_EXISTING_NOT_CAUSED_BY_P9_2
+      verify_handoff_package_strict_a7_post_fix: "PASS (canonical tag handoff/20260514-64eba43 -> 64eba43...; resolver source=git_tag_list; superseded by P9_2_STRICT_HANDOFF_TAG_VALIDATOR_FIX)"
   final_verification:
     path: reports/robust_asr/final_verification.md
     sha256: null
@@ -3657,8 +3659,53 @@ tasks:
         exit_code: 0
       verify_handoff_package_strict:
         command: "python3 scripts/robust_asr/verify_handoff_package.py --strict --handoff artifacts/robust_asr/handoff"
-        a1_a6: PASS
-        a7: "FAIL_HEAD_SHORT_SHA_DRIFT (expected tag handoff/20260514-<HEAD-short_sha>; canonical tag handoff/20260514-64eba43 still on origin pointing at 64eba4345f3207af38f0fba8ac2c43c6084e8852 unchanged); pre-existing condition; identical result observed pre-P9.2 at HEAD 9f54b028; NOT caused by P9.2; halt condition NEEDS_SCOPE_CHANGE_README_SHA256_TABLE NOT triggered (A2 PASS)"
+        a1_a7_post_fix: ALL_PASS
+        a7_canonical_tag: handoff/20260514-64eba43
+        a7_canonical_tag_commit: 64eba4345f3207af38f0fba8ac2c43c6084e8852
+        a7_resolver_source: git_tag_list
+        a7_local_equals_origin: true
+        pre_fix_a1_a6: PASS
+        pre_fix_a7: "FAIL_HEAD_SHORT_SHA_DRIFT (expected tag handoff/20260514-<HEAD-short_sha>); the prior strict validator constructed the expected tag from current HEAD, causing A7 to fail at every commit after the package tag commit even when the canonical handoff tag was valid and unchanged; superseded by P9_2_STRICT_HANDOFF_TAG_VALIDATOR_FIX (see strict_tag_validator_fix block below); the halt condition NEEDS_SCOPE_CHANGE_README_SHA256_TABLE was never triggered (A2 PASS pre- and post-P9.2 and pre- and post-fix)"
+    strict_tag_validator_fix:
+      fix_id: P9_2_STRICT_HANDOFF_TAG_VALIDATOR_FIX
+      issue: "strict validator A7 used current HEAD short SHA to derive the expected handoff tag (handoff/$(date -u +%Y%m%d)-$(git rev-parse --short HEAD)); failed at every HEAD after the P9.1 package tag commit"
+      fix: "strict validator A7 now resolves the canonical handoff tag from README §7 Provenance (concrete handoff/<8digits>-<hex>); falls back to enumerating git tag --list 'handoff/*' if exactly one concrete handoff tag exists in the repo; HEAD is no longer used to construct the expected tag; A7 also verifies local commit == origin commit"
+      script: scripts/robust_asr/verify_handoff_package.py
+      canonical_tag: handoff/20260514-64eba43
+      canonical_tag_commit: 64eba4345f3207af38f0fba8ac2c43c6084e8852
+      canonical_tag_local_present: true
+      canonical_tag_on_origin: true
+      canonical_tag_local_equals_origin: true
+      resolver_source_observed: git_tag_list
+      readme_section_7_concrete_tag_present: false
+      readme_section_7_placeholder_present: true
+      strict_a1_a7_post_fix: ALL_PASS
+      non_strict_result_post_fix: OK_HANDOFF_PACKAGE
+      pytest_full_robust_asr: "137 passed"
+      report_shape: OK_REPORT_SHAPE
+      progress_yaml_parse: OK_PROGRESS_YAML_PARSE
+      readme_unchanged: true
+      handoff_tag_unchanged: true
+      rp5_runtime_spec_unchanged: true
+      handoff_prior_files_unchanged: true
+      runtime_contract_artifacts_unchanged: true
+      demo_assets_unchanged: true
+      no_retag_performed: true
+      no_new_tag_created: true
+      p9_gate_opened: false
+      a1_a6_behavior_unchanged: true
+      a6_secret_scanning_weakened: false
+      success_sentinel: OK_HANDOFF_PACKAGE
+      failure_sentinel: FAIL_HANDOFF_PACKAGE
+      orchestrator_packet: "FIX_BEFORE_CLOSE(P9.2) on accepted_report_commit f900d80837cc23dd5289c0bdb5630009c6e9b9af"
+      original_p9_2_execution_commit: f900d80837cc23dd5289c0bdb5630009c6e9b9af
+      report_path: reports/robust_asr/task_reports/P9.2_strict_tag_validator_fix.md
+      files_changed:
+        - scripts/robust_asr/verify_handoff_package.py
+        - reports/robust_asr/task_reports/P9.2_strict_tag_validator_fix.md
+        - docs/progress/robust_asr_progress.yaml
+        - docs/progress/robust_asr_progress.md
+        - docs/progress/robust_asr_state_capsule.md
     six_required_sections_verified: true
     backend_presence_validation: OK
     backend_set:
