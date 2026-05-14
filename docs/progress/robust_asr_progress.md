@@ -7,7 +7,7 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P8 (system evaluation and demo examples)
-- Current task: P8.2 (IMPLEMENTED_PENDING_APPROVAL — provenance repaired by P8.2-provenance-rerun using operator-supplied asr-rp5 evidence; provenance_audit.md verdict INSUFFICIENT → PASS; MISSING_EVIDENCE cleared; blocked=false; awaiting orchestrator APPROVE_EXECUTION(P8.2))
+- Current task: P8.2 (HALTED — DEMO_UPSTREAM_LOCKED_OVERLAP; provenance fields PASS but upstream LibriSpeech dev-clean utterances/speakers are 5/5 in validation + degradation_v1_eval + every per-family subset; see reports/robust_asr/demo/provenance_audit.md F2; awaiting operator-side resolution per Recommended next steps (A)/(B)/(C))
 - Last completed: P8.1 (PASS — system_eval.md first line `positive_system: false`; OK_SYSTEM_EVAL:false on stdout; pytest 137/137; full BCa bootstrap 10000 iter seed 20250514; Slurm job 2132279 COMPLETED 0:0)
 - Prior completed: P7.3 (PASS — deterministic selector packaged under OUTCOME_E Branch B; PHASE_APPROVE(P7) recorded against the same P7.3 acceptance commit and does not itself advance last_completed_task)
 - Prior completed: P6.1 (PASS — selector-evidence path)
@@ -16,9 +16,9 @@ Status: IN_PROGRESS
 - Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS, P5=PASS, P6=PASS, P7=PASS
 - tasks.P7.1.status: SKIPPED_BY_OUTCOME_E (decided_at_task=P6_GATE, next_task=P7.3)
 - tasks.P7.2.status: SKIPPED_BY_OUTCOME_E (decided_at_task=P6_GATE, next_task=P7.3)
-- Active markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]
-- Blocked: false
-- Blocker: null
+- Active markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR, MISSING_EVIDENCE]
+- Blocked: true
+- Blocker: DEMO_UPSTREAM_LOCKED_OVERLAP — operator must supply 8 public demo audios with upstream_audio_id AND upstream_speaker_id disjoint from every LibriSpeech locked manifest, OR record an approved plan deviation (APPROVE_PLAN(P8.2-deviation)) with documented constraints, OR re-partition data_v1.yaml to free a held-out speaker pool and re-render demo via asr-rp5 (see reports/robust_asr/demo/provenance_audit.md "Recommended next steps")
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - claims_enabled.cloud_tradeoff: false (set by P5.1 BLOCKED_API; ASSEMBLYAI_API_KEY unset)
 - claims_enabled.positive_lora: false (transitioned from pending by P3 gate Branch B)
@@ -85,6 +85,93 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P8.2-upstream-leakage-audit — upstream disjointness FAIL — P8.2 re-HALTED with DEMO_UPSTREAM_LOCKED_OVERLAP
+
+The provenance repair at commit `003fc0d` resolved the public-corpus
+/ license / attribution gap and disclosed that the upstream is
+LibriSpeech `dev-clean`. This audit measures the upstream-level
+disjointness gap that disclosure exposed.
+
+Method: extract `upstream_audio_id` (5 unique values; 3 OOD-param
+illustrative entries reuse 3 of the 5) and `upstream_speaker_id`
+(5 unique values: `1272`, `1673`, `174`, `1993`, `2086`) from
+`artifacts/robust_asr/demo/demo_examples_manifest.json`. Compare
+against every LibriSpeech locked manifest (4 librispeech_*.parquet
++ 2 degradation_v1_*_eval.parquet + 10 per-family subsets), in two
+formats: raw string (which silently returns 0 because the manifest
+uses `librispeech/dev-clean/<spk>/<chap>/<utt>` while locked
+manifests use the flat schema `librispeech/dev-clean/<utt>`) and
+schema-normalized (the true functional check).
+
+Result:
+
+| layer                                       | result |
+|---------------------------------------------|--------|
+| upstream `audio_id` ∩ locked (raw)          | 0 (silent format mismatch — F3) |
+| upstream `audio_id` ∩ locked (normalized)   | **5/5** in 13 of 16 locked manifests |
+| upstream `speaker_id` ∩ locked              | **5/5** in 13 of 16 locked manifests |
+| demo-side `audio_id` ∩ locked               | 0 (held disjoint) |
+| demo-side `speaker_id` ∩ locked             | 0 (held disjoint) |
+| demo-side `audio_sha256` ∩ locked            | 0 (held disjoint) |
+
+The 5 demo upstream utterances `librispeech/dev-clean/{1272-128104-0000, 1673-143396-0002, 174-168635-0000, 1993-147149-0000, 2086-149214-0000}` and the 5 demo upstream speakers `{1272, 1673, 174, 1993, 2086}` are present in `librispeech_validation`, `degradation_v1_id_eval`, `degradation_v1_ood_param_eval`, and every per-family `degradation_v1_<family>_{id,ood_param}.parquet` subset (LibriSpeech `dev-clean` has exactly 40 speakers and all 2,703 utterances, and `librispeech_validation.parquet` is the full 2,703-row mirror of `dev-clean`).
+
+Section 3 leakage rule 5 ("Demo examples may not be drawn from
+locked evaluation sets") is **violated at the upstream level**.
+The demo-side disjointness recorded by the existing leakage test
+(`audio_id` `demo/...`, `speaker_id` `exNNN`, on-disk WAV
+`audio_sha256`) remains intact and `pytest tests/robust_asr/test_leakage.py`
+still reports 5/5 — but it is **insufficient** because the test does
+not check `upstream_audio_id` or `upstream_speaker_id` (deliberate
+scope; extension recommended in F3 for a future scope-change).
+
+A latent gap (F3): the manifest's `upstream_audio_id` uses a
+directory-style format that does not match the locked flat schema;
+a naive string-intersection silently returns 0 and misses the real
+leakage. The audit normalized to the locked schema to expose the
+overlap. The manifest was NOT edited; the format-mismatch fix is
+recorded as F3 for a future P8.2 scope-change.
+
+Files written this commit (3 narrative artifacts + 3 tracker files):
+
+- `reports/robust_asr/demo/provenance_audit.md` — verdict header is now dual: `PASS (provenance fields)` / `FAIL (upstream disjointness)`. Findings F1–F4. "Recommended next steps" lists three operator-side options. Prior verdicts (PASS from provenance-rerun, INSUFFICIENT from initial run) held verbatim under "Prior verdicts" sections for the audit trail.
+- `reports/robust_asr/task_reports/P8.2_demo_manifest.md` — new "Update — P8.2-upstream-leakage-audit (re-HALT after upstream overlap detected)" section appended; status header changed to `HALTED — DEMO_UPSTREAM_LOCKED_OVERLAP`.
+- `docs/progress/robust_asr_progress.{yaml,md}` and `docs/progress/robust_asr_state_capsule.md`.
+
+Files unchanged intentionally (verified `git diff` empty):
+
+- `artifacts/robust_asr/demo/audio/*.wav` (8 files; sha256 unchanged)
+- `artifacts/robust_asr/demo/demo_examples_manifest.json` (byte-unchanged; flagged for future format-mismatch fix per F3)
+- `scripts/robust_asr/build_demo_examples.py`
+- `tests/robust_asr/test_leakage.py`
+
+Tracker mutations:
+
+- `tasks.P8.2.status`: `IMPLEMENTED_PENDING_APPROVAL` → **`HALTED`**.
+- `tasks.P8.2.marker`: `null` → `MISSING_EVIDENCE`.
+- `tasks.P8.2.reason`: `null` → `DEMO_UPSTREAM_LOCKED_OVERLAP`.
+- `tasks.P8.2.prior_status` / `prior_marker` / `prior_reason` recorded for trail (`IMPLEMENTED_PENDING_APPROVAL`, `MISSING_EVIDENCE`, `DEMO_PROVENANCE_INSUFFICIENT`).
+- `markers`: `[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]` → `[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR, MISSING_EVIDENCE]` (only `MISSING_EVIDENCE` re-added; others held).
+- `blocked`: `false` → **`true`**; `blocker` set with full required-external-action text and a pointer to `provenance_audit.md` "Recommended next steps".
+- New `tasks.P8.2-upstream-leakage-audit.status=PASS` entry recorded with the overlap table, F3 latent-gap finding, and three Recommended-next-steps options.
+- `state_transport.expected_next_task=P8.2` (held; corrected from `P8_GATE` since P8.2 is now re-HALTED).
+- `state_transport.last_accepted_report_commit=deb8085…` HELD (NOT advanced to this audit commit per orchestrator instruction).
+
+Verification:
+
+- `pytest tests/robust_asr/test_leakage.py` → **5 passed** — but **explicitly insufficient** because the test does not check `upstream_audio_id` / `upstream_speaker_id`. Recorded in `provenance_audit.md` "Recommended next steps".
+- `pytest tests/robust_asr/` → **137 passed** (full suite cheap, ~3.7 s).
+- `python scripts/robust_asr/validate_report_shape.py …` → `OK_REPORT_SHAPE`.
+- `python -c "import yaml; yaml.safe_load(open(...))"` → `OK_PROGRESS_YAML_PARSE`.
+- `python3 -c "recompute on-disk WAV sha256 vs manifest entries"` → `OK_SHA256_UNCHANGED` (8/8).
+
+State held:
+
+- `current_phase=P8`, `current_task=P8.2`, `last_completed_task=P8.1`.
+- `claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false` — held; **none changed**.
+- `tasks.P8.2-provenance-rerun.status=PASS` held (the rerun did its job correctly; the upstream-leakage gap is a separate P8.2 acceptance criterion).
+- `tasks.P8_GATE.status=FAIL` (attempt 1) held. P8_GATE not started. P9.0 not started. No real-provider call. No GPU. No Slurm submission. No demo audio rebuilt. No WAV bytes touched.
 
 ## P8.2-provenance-rerun — provenance repaired from operator-supplied asr-rp5 evidence — verdict PASS
 
