@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.0
-current_task: B14_0-06
-last_completed_task: B14_0-05
+current_task: B14_0-07
+last_completed_task: B14_0-06
 last_completed_phase: B-route
 markers: []
 phase_approvals:
@@ -52,10 +52,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_0_manual_smoke_with_auth.md
+  latest_execution_report_path: reports/rp5/b14_0_no_credential_leak.md
   latest_phase_gate_report_path: reports/rp5/broute_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
-  expected_next_task: B14_0-06
+  expected_next_task: B14_0-07
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -667,3 +667,79 @@ tasks:
       forbidden_commit_trailers_present: false
     marker: null
     next_task: B14_0-06
+  B14_0-06:
+    task_id: B14_0-06
+    status: PASS
+    commit: cd2160745ebcff422b3f70430f5202493194a734
+    files_changed:
+      - scripts/rp5/validate_b14_0_no_credential_leak.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_0_no_credential_leak.py
+      - reports/rp5/b14_0_no_credential_leak.md
+    commands_run:
+      - "preflight: socket.connect_ex 127.0.0.1:8001 reported free (rc=0)"
+      - "single-shell flow: export RECRUITER_USERNAME/RECRUITER_PASSWORD/ADMIN_STATS_USERNAME/ADMIN_STATS_PASSWORD (synthetic ephemeral via secrets.token_urlsafe; never committed, never echoed in reports) + DEMO_RUNTIME_ROOT=/tmp/asr_demo_b14_0_06_runtime"
+      - "nohup python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 8001 > /tmp/b14_0_06_uvicorn.log 2>&1 &"
+      - "python3 scripts/rp5/validate_b14_0_no_credential_leak.py --base-url http://127.0.0.1:8001 --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --admin-username-env ADMIN_STATS_USERNAME --admin-password-env ADMIN_STATS_PASSWORD --uvicorn-log /tmp/b14_0_06_uvicorn.log --out reports/rp5/b14_0_no_credential_leak.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_0_no_credential_leak.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_no_credential_leak_manifest.json"
+      - "git add scripts/rp5/validate_b14_0_no_credential_leak.py scripts/rp5/fixtures/generate_fixture_validate_b14_0_no_credential_leak.py reports/rp5/b14_0_no_credential_leak.md"
+      - "python3 scripts/rp5/validate_b14_0_e2e_manual_smoke_with_auth.py --staged-diff-guard --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --admin-username-env ADMIN_STATS_USERNAME --admin-password-env ADMIN_STATS_PASSWORD --staged-paths <three approved paths> (PASS)"
+      - "python3 scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+      - "kill uvicorn pid; unset RECRUITER_USERNAME RECRUITER_PASSWORD ADMIN_STATS_USERNAME ADMIN_STATS_PASSWORD DEMO_RUNTIME_ROOT; remove /tmp scratch (uvicorn log, pid, synth env file, runtime root) and tests/rp5 fixture tree + manifest; remove reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_B14_0_NO_CRED_LEAK
+      - OK_FIXTURE_VALIDATE_B14_0_NO_CRED_LEAK
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "staged_diff_no_secret_or_exposure: true"
+      - "uvicorn_log_no_credential_leak: true"
+      - "credential_values_absent_from_401_bodies: true"
+      - "credential_values_absent_from_error_bodies: true"
+      - "credential_values_absent_from_response_headers: true"
+      - "port_8001_released: true"
+      - "synthetic_vars_unset: true"
+    supplemental_evidence:
+      no_credential_leak_checks_passed: 24
+      no_credential_leak_checks_total: 24
+      positive_fixture_count: 1
+      negative_fixture_count: 8
+      adversarial_failures: 0
+      protected_routes_probed: 6
+      invariant_families_covered:
+        - INV-CL-001
+        - INV-CL-002
+        - INV-CL-003
+        - INV-CL-004
+        - INV-CL-005
+        - INV-CL-006
+        - INV-CL-007
+        - INV-CL-008
+        - INV-CL-009
+        - INV-CL-010
+      staged_diff_guard_reused_from_b14_0_05: true
+      staged_diff_guard_check_count: 5
+      staged_diff_guard_failures: 0
+      fixture_manifest_local_only_sha256: "7d789982447ec6442e289f39a7843697a6afbf32014f70e6ae2a99526b736d85"
+      uvicorn_log_local_only_sha256: "26ff3f7477e31b74cb09b6c0a4a21e7dc06f70c975cf23b2506799b83228a28d"
+      path_lock_validation_local_only_sha256: "8527bd941e2d838fbea1e91e021d634836cd15584874003f1f3cd9db9ea54fa5"
+      uvicorn_log_credential_leak_scan_issues: 0
+      port_8001_released_after_smoke: true
+      synthetic_credentials_persisted: false
+      local_only_env_file_removed_before_final_status: true
+      local_only_fixtures_removed_before_final_status: true
+      tracker_mutated_during_execution: false
+      approval_packet_file_created: false
+      approval_packet_recording_policy: in_tracker_only_per_BR_NN_established_pattern
+      credential_values_recorded_in_tracker: false
+      credential_values_committed_to_repo: false
+      services_modified: false
+      libs_modified: false
+      services_api_app_modified: false
+      services_frontend_app_demo_modified: false
+      dependency_or_config_files_changed: false
+      repo_dependency_or_config_files_changed: false
+      public_exposure_introduced: false
+      candidate_processes_killed: false
+      docker_containers_stopped: false
+      alternate_port_used: false
+      forbidden_commit_trailers_present: false
+    marker: null
+    next_task: B14_0-07
