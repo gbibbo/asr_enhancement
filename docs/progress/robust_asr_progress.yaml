@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: P8.2-provenance
+      phase: P8
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 6783789b61bc4c8e05b263c0b245b67c9d33dc77
+      next_expected_task: P8.2
+      required_fix: "Repair P8.2 demo provenance before approval. Manifest currently records operator-staged demo_reference_artifacts/v1 with license demo_reserve_public, but no recognized public corpus, license URL, upstream ID, or redistribution evidence."
+      rationale: "P8.2 functional checks passed, but public-demo provenance is insufficient for P9/P10 handoff and legal/license audit. Do not approve P8.2 until the manifest and report carry verifiable provenance or the task halts with a provenance blocker."
+  prior_approval_packet_p8_2_plan:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P8.2
       phase: P8
@@ -828,10 +838,10 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: e3a824bd4a9734a2a165af393e7384e12331b9af8e9c7207bb75fa7fee270c12
+    sha256: 33243a494e3865dc7519008e75687bfcb232c27a5ec3dfd7cc6a8a00de0e80d7
     produced_by_task: P0.2
-    last_amended_by: P8.2_scope_change
-    prior_sha256: fc4a400037837562729db48fbb7a24387a453df887de979b27b9487444de8092
+    last_amended_by: P8.2_provenance_scope_change
+    prior_sha256: e3a824bd4a9734a2a165af393e7384e12331b9af8e9c7207bb75fa7fee270c12
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
     sha256: 33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae

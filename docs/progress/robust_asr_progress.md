@@ -37,7 +37,8 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: APPROVE_PLAN(P8.2) on `c01a260` (next P8_GATE) — implement build_demo_examples.py + 8 public demo WAVs + manifest + leakage-test edit; LibriSpeech-derived public path (BLOCKED_OOD_PUBLIC, claims_enabled.ood_real=false); state_transport.last_accepted_report_commit must NOT advance to the P8.2 implementation commit
+- latest_approval_packet: CHANGE_SCOPE(P8.2-provenance) on `6783789` (next P8.2) — repair P8.2 demo provenance before approval; manifest currently records `source: demo_reference_artifacts/v1` and `license: demo_reserve_public` with no recognized public corpus, license URL, upstream ID, or redistribution evidence; touch_policy P8.2 row += `reports/robust_asr/demo/provenance_audit.md` (write); reuse_policy unchanged (`reports/robust_asr/**` already lists P8.2); state_transport.last_accepted_report_commit STAYS `1b9f33e` (NOT advanced)
+- prior_approval_packet_p8_2_plan: APPROVE_PLAN(P8.2) on `c01a260` (next P8_GATE) — implement build_demo_examples.py + 8 public demo WAVs + manifest + leakage-test edit; LibriSpeech-derived public path (BLOCKED_OOD_PUBLIC, claims_enabled.ood_real=false); state_transport.last_accepted_report_commit must NOT advance to the P8.2 implementation commit
 - prior_approval_packet_p8_2_scope_exec: APPROVE_EXECUTION(P8.2-scope-change) on `c01a260` (next P8.2) — reuse_policy + touch_policy P8.2 amendments now binding
 - prior_approval_packet_p8_2_change_scope: CHANGE_SCOPE(P8.2) on `7f72213` (next P8.2) — authorizes build_demo_examples.py, demo/audio/** (8-file carveout), demo manifest, P8.2 task report, and test_leakage.py edits
 - prior_approval_packet_p8_phase_reject: PHASE_REJECT(P8) on `null` (next P8.2) — gate predicate incomplete (P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 deferred); tasks.P8_GATE attempt 1 status=FAIL reason=P8.2_NOT_STARTED
@@ -80,6 +81,36 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P8.2 CHANGE_SCOPE recorded (provenance repair) — touch_policy P8.2 row += provenance_audit.md
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P8.2-provenance phase=P8
+  decision=CHANGE_SCOPE
+- accepted_report_commit: 6783789b61bc4c8e05b263c0b245b67c9d33dc77
+- next_expected_task: P8.2
+- required_fix: "Repair P8.2 demo provenance before approval. Manifest currently records operator-staged demo_reference_artifacts/v1 with license demo_reserve_public, but no recognized public corpus, license URL, upstream ID, or redistribution evidence."
+- rationale: "P8.2 functional checks passed, but public-demo provenance is insufficient for P9/P10 handoff and legal/license audit. Do not approve P8.2 until the manifest and report carry verifiable provenance or the task halts with a provenance blocker."
+
+Policy amendments (binding from this commit):
+
+- `reports/robust_asr/touch_policy.md` P8.2 row amended — `allowed_write_paths` now also includes `reports/robust_asr/demo/provenance_audit.md` (the public-corpus / license / upstream-attribution audit required for P9.1 handoff and P10 final verification). All other P8.2 writes (`scripts/robust_asr/build_demo_examples.py`, `artifacts/robust_asr/demo/demo_examples_manifest.json`, `artifacts/robust_asr/demo/audio/**`, `reports/robust_asr/task_reports/P8.2_demo_manifest.md`, `tests/robust_asr/test_leakage.py`, `configs/robust_asr/reuse_policy_v1.yaml`, `reports/robust_asr/touch_policy.md`, three trackers) preserved verbatim. Authorized reads, default-no-touch, mandatory no-touch patterns, and external-paths rows preserved verbatim.
+- `configs/robust_asr/reuse_policy_v1.yaml` UNCHANGED: `reports/robust_asr/**` already lists `P8.2` in `allowed_tasks`, so `reports/robust_asr/demo/provenance_audit.md` is already classified as `active_state` / `read_write` / `commit_allowed: true` for P8.2.
+
+Recorded sha256s (post-edit):
+
+- `reports/robust_asr/touch_policy.md`: `33243a494e3865dc7519008e75687bfcb232c27a5ec3dfd7cc6a8a00de0e80d7` (was `e3a824bd4a9734a2a165af393e7384e12331b9af8e9c7207bb75fa7fee270c12`); `last_amended_by: P8.2_provenance_scope_change`
+- `configs/robust_asr/reuse_policy_v1.yaml`: `33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae` (UNCHANGED); `last_amended_by: P8.2_scope_change` (held)
+
+State held:
+
+- `current_phase=P8`, `current_task=P8.2`, `last_completed_task=P8.1` — held.
+- `tasks.P8.2.status=IMPLEMENTED_PENDING_APPROVAL` — held; **NOT** advanced to PASS.
+- `markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]` — held; **none cleared**.
+- `blocked=false` — held.
+- `claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false` — held; **none changed**.
+- `state_transport.expected_next_task=P8_GATE` held.
+- `state_transport.last_accepted_report_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd` HELD per orchestrator instruction (NOT advanced to this scope-change commit).
+- This commit modifies only the touch policy and the three tracker files. No demo audio rebuilt; no WAV bytes touched; no `build_demo_examples.py` edited; no `demo_examples_manifest.json` edited; no `provenance_audit.md` written yet (those edits arrive with the next APPROVE_PLAN(P8.2-provenance) cycle). P8_GATE not started. P9.0 not started.
 
 ## P8.2 IMPLEMENTED — 8 public demo entries, leakage-test strengthened (PASS pending APPROVE_EXECUTION)
 
