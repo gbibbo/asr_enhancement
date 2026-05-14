@@ -2,9 +2,9 @@ project: robust_asr_lora_router
 branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
-current_phase: P8
-current_task: P8_GATE
-last_completed_task: P8.2
+current_phase: P9
+current_task: P9.0
+last_completed_task: P8_GATE
 
 blocked: false
 blocker: null
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: reports/robust_asr/task_reports/P8_GATE_attempt2.md
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: P8_GATE
+      phase: P8
+      decision: PHASE_APPROVE
+      accepted_report_commit: 0b221c9e213c68636ce0cbf0da75b67baae7d31a
+      next_expected_task: P9.0
+      required_fix: null
+      rationale: "P8_GATE attempt 2 returned predicate_result=PASS. The gate report applied the orchestrator's Reading A pre-ruling for the demo-side disjointness conjunct under the enacted P8_2_demo_only_upstream_overlap deviation. Upstream overlap remains real and carried forward for P9.1 disclosure and P10.1 exclusion verification. Demo artifacts remain UI/demo-only and do not support any claims_enabled.* flag. Live checks passed: tests/robust_asr/test_leakage.py 5 passed; tests/robust_asr/ 137 passed. Current_task was held at P8_GATE pending this phase approval."
+  prior_approval_packet_p8_gate_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P8_GATE
@@ -878,8 +888,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 0073e7b4076ce76d36233bec2eacb4411ba28722
-  expected_next_task: P8_GATE
+  last_accepted_report_commit: 0b221c9e213c68636ce0cbf0da75b67baae7d31a
+  expected_next_task: P9.0
   last_tracker_mismatch: null
 
 phase_summary:
@@ -904,7 +914,7 @@ orchestrator_approvals:
   P5: PHASE_APPROVE
   P6: PHASE_APPROVE
   P7: PHASE_APPROVE
-  P8: null
+  P8: PHASE_APPROVE
   P9: null
   P10: null
 
