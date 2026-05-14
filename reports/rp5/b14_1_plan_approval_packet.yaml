@@ -1,0 +1,35 @@
+ORCHESTRATOR_DECISION:
+  scope: plan_authoring
+  task_id: null
+  phase: B14.1
+  decision: APPROVE_FOR_EXECUTION
+  accepted_report_commit: 4bd54c207867ff8698348850d965516b54ea0285
+  next_expected_task: B14_1-00
+  required_fix: null
+  rationale: The B14.1 plan package was authored as DRAFT_NOT_APPROVED_FOR_EXECUTION, contains the required orchestrator/agent/schema files, preserves B14.0 future constraints, defines a deterministic task sequence, and did not start B14.1 execution.
+plan_files_approved:
+  - docs/plans/b14_1/orchestrator_plan.md
+  - docs/plans/b14_1/agent_plan.md
+  - docs/plans/b14_1/state_packet_schemas.yaml
+predecessor_phase_approval:
+  phase: B14.0
+  accepted_phase_gate_report_commit: 7e9ce1f7067f938d2b58a7a4e8615101b0012c58
+  accepted_tracker_closure_commit: 7730a4f53744eeb99d118f6f5b283c2f1c35dfc8
+  phase_approval_commit: 0bdaea89c665dd5cabd7904556dbf536ef409f9f
+tracker_advancement:
+  current_phase: B14.1
+  current_task: B14_1-00
+  last_completed_phase: B14.0
+  last_completed_task: B14_0-08
+  markers: []
+  expected_next_task: B14_1-00
+har_carried_forward:
+  - id: HAR-B14_1-FUNNEL-CAPABILITY-001
+    status: pre_declared_unresolved
+    blocks: B14_1-04 closure and B14_1-08 closure
+    does_not_block: B14_1-00, B14_1-01, B14_1-02, B14_1-03
+  - id: HAR-B14_1-STABLE-HOSTNAME-001
+    status: pre_declared_unresolved
+    blocks: B14_1-08 success-claim (recorded as explicit blocker if unresolved at B14_1-08)
+    does_not_block: B14_1-00, B14_1-01, B14_1-02, B14_1-03, B14_1-04, B14_1-05, B14_1-06, B14_1-07
+implementation_task_started: false

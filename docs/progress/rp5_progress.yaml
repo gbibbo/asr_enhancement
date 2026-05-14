@@ -1,6 +1,6 @@
 tracker_file: docs/progress/rp5_progress.yaml
-current_phase: B14.1_PLAN_AUTHORING
-current_task: B14.1_PLAN_AUTHORING
+current_phase: B14.1
+current_task: B14_1-00
 last_completed_task: B14_0-08
 last_completed_phase: B14.0
 markers: []
@@ -49,6 +49,30 @@ plan_authoring_approvals:
         credential_values_not_shared_in_chat: true
         credential_values_not_committed_to_repo: true
         credential_values_available_only_as_host_env_secrets: true
+  B14.1:
+    status: APPROVED_FOR_EXECUTION
+    decision: APPROVE_FOR_EXECUTION
+    accepted_plan_revision_commit: 4bd54c207867ff8698348850d965516b54ea0285
+    approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
+    plan_files:
+      - docs/plans/b14_1/orchestrator_plan.md
+      - docs/plans/b14_1/agent_plan.md
+      - docs/plans/b14_1/state_packet_schemas.yaml
+    implementation_task_started: false
+    predecessor_phase_approval:
+      phase: B14.0
+      accepted_phase_gate_report_commit: 7e9ce1f7067f938d2b58a7a4e8615101b0012c58
+      accepted_tracker_closure_commit: 7730a4f53744eeb99d118f6f5b283c2f1c35dfc8
+      phase_approval_commit: 0bdaea89c665dd5cabd7904556dbf536ef409f9f
+    har_carried_forward:
+      - id: HAR-B14_1-FUNNEL-CAPABILITY-001
+        status: pre_declared_unresolved
+        blocks: B14_1-04 closure and B14_1-08 closure
+        does_not_block: B14_1-00, B14_1-01, B14_1-02, B14_1-03
+      - id: HAR-B14_1-STABLE-HOSTNAME-001
+        status: pre_declared_unresolved
+        blocks: B14_1-08 success-claim (recorded as explicit blocker if unresolved at B14_1-08)
+        does_not_block: B14_1-00, B14_1-01, B14_1-02, B14_1-03, B14_1-04, B14_1-05, B14_1-06, B14_1-07
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
     status: resolved
@@ -63,8 +87,8 @@ state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
   latest_execution_report_path: reports/rp5/b14_0_phase_gate.md
   latest_phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
-  latest_approval_packet_path: reports/rp5/b14_0_phase_approval_packet.yaml
-  expected_next_task: B14.1_PLAN_AUTHORING
+  latest_approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
+  expected_next_task: B14_1-00
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
