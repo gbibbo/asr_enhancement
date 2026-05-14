@@ -37,7 +37,8 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: PHASE_REJECT(P8) on `null` (next P8.2) — gate predicate incomplete (P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 deferred); tasks.P8_GATE attempt 1 status=FAIL reason=P8.2_NOT_STARTED
+- latest_approval_packet: CHANGE_SCOPE(P8.2) on `7f72213` (next P8.2) — authorizes scripts/robust_asr/build_demo_examples.py, artifacts/robust_asr/demo/audio/** (8 small public WAV carveout), artifacts/robust_asr/demo/demo_examples_manifest.json, reports/robust_asr/task_reports/P8.2_demo_manifest.md, and tests/robust_asr/test_leakage.py edits in the P8.2 touch-policy row; reuse_policy_v1.yaml amended (tests/robust_asr/** += P8.2; new artifacts/robust_asr/demo/audio/** carveout row); state_transport.last_accepted_report_commit STAYS 1b9f33e (not advanced to the scope-change commit)
+- prior_approval_packet_p8_phase_reject: PHASE_REJECT(P8) on `null` (next P8.2) — gate predicate incomplete (P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 deferred); tasks.P8_GATE attempt 1 status=FAIL reason=P8.2_NOT_STARTED
 - prior_approval_packet_p8_1_exec: APPROVE_EXECUTION(P8.1) on `1b9f33e` (next P8_GATE) — system eval implementation accepted; Decision_D=false; state_transport.last_accepted_report_commit advanced d009c31 → 1b9f33e
 - prior_approval_packet_p8_1_plan: APPROVE_PLAN(P8.1) on `f23a270` (next P8_GATE) — system evaluator implementation approved; Decision D evaluates to false under OUTCOME_E
 - prior_approval_packet_p8_1_scope_exec: APPROVE_EXECUTION(P8.1-scope-change) on `f23a270` (next P8.1) — touch_policy P8.1 row + progress.yaml parse-fix accepted
@@ -77,6 +78,54 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P8.2 CHANGE_SCOPE recorded — demo example builder, public WAV carveout, leakage-test edit
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P8.2 phase=P8
+  decision=CHANGE_SCOPE
+- accepted_report_commit: 7f7221338010daaff5a66a3f530c8a1d9dea5923
+- next_expected_task: P8.2
+- required_fix: "Authorize demo example builder, 8 public demo WAV files, demo manifest, and leakage-test update."
+- rationale: "P8.2 requires scripts/robust_asr/build_demo_examples.py, artifacts/robust_asr/demo/audio/**, and tests/robust_asr/test_leakage.py, but current policy does not authorize those P8.2 writes."
+
+Policy amendments (binding from this commit):
+
+- `configs/robust_asr/reuse_policy_v1.yaml`:
+  - `tests/robust_asr/**` `allowed_tasks` += `P8.2` (note appended documenting P8.2 leakage-test edit scope)
+  - new specific carveout row above the generic `*.wav` no_touch rule:
+    - path `artifacts/robust_asr/demo/audio/**`
+    - class `active_state` / permitted_use `write` / allowed_tasks `[P8.2, P9.1]`
+    - validator `demo_examples_manifest_references_all_files`
+    - checksum_required `true` / large_artifact `false` / commit_allowed `true`
+    - notes "Exactly 8 small public deterministic WAV demo files. Explicit carveout from the generic audio no-touch rule (*.wav)."
+  - `scripts/robust_asr/**` `allowed_tasks` already includes `P8.2` (no change required)
+  - generic `*.wav` no_touch rule note clarified to point to the carveout
+
+- `reports/robust_asr/touch_policy.md` P8.2 row rewritten to authorize writes:
+  - `scripts/robust_asr/build_demo_examples.py`
+  - `artifacts/robust_asr/demo/demo_examples_manifest.json`
+  - `artifacts/robust_asr/demo/audio/**` (carveout)
+  - `reports/robust_asr/task_reports/P8.2_demo_manifest.md`
+  - `tests/robust_asr/test_leakage.py` (edit only — read demo manifest for audio_id/sha256 disjointness)
+  - `configs/robust_asr/reuse_policy_v1.yaml` (scope-change rows)
+  - `reports/robust_asr/touch_policy.md` (this row)
+  - `docs/progress/robust_asr_progress.yaml`, `docs/progress/robust_asr_progress.md`, `docs/progress/robust_asr_state_capsule.md`
+- and reads: plan files; `configs/robust_asr/{reuse_policy_v1,data_v1,eval_manifests_v1,degradation_v1}.yaml`; `libs/audio/degradations.py`, `libs/audio/**`, `libs/common/{eval_schema.yaml,normalization.py,metrics.py,versions.py,**}`; `artifacts/robust_asr/manifests/*.parquet` (locked-eval disjointness); `artifacts/robust_asr/router/selected_router/**`; `reports/robust_asr/system/system_eval.md`; `scripts/robust_asr/validate_report_shape.py`; `/mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/demo_reference_artifacts/examples/**` (read-only); LibriSpeech source roots (read-only).
+- All mandatory no-touch patterns held except the 8-file carveout above; *.flac/*.mp3/*.m4a remain forbidden; *.pt/*.pth/*.ckpt/*.bin/*.safetensors remain forbidden; .env / .env.* / *.key / *.pem / *.token remain forbidden.
+
+Recorded sha256s (post-edit):
+
+- `reports/robust_asr/touch_policy.md`: `e3a824bd4a9734a2a165af393e7384e12331b9af8e9c7207bb75fa7fee270c12` (was `fc4a400037837562729db48fbb7a24387a453df887de979b27b9487444de8092`); `last_amended_by: P8.2_scope_change`
+- `configs/robust_asr/reuse_policy_v1.yaml`: `33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae` (was `3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf`); `last_amended_by: P8.2_scope_change`
+
+State held:
+
+- current_phase=P8, current_task=P8.2, last_completed_task=P8.1
+- markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]; blocked=false
+- claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false
+- state_transport.expected_next_task=P8.2
+- state_transport.last_accepted_report_commit STAYS `1b9f33e681276f977c1e87db4978963ee2a3a9bd` (NOT advanced to this scope-change commit; advance only on APPROVE_EXECUTION of P8.2 implementation)
+- P8.2 not implemented this commit; no scripts/tests/audio/manifest authored; tasks.P8.2.status remains absent / not PASS; phase_summary.P8 remains null; orchestrator_approvals.P8 remains null
 
 ## P7 PHASE_APPROVE recorded — Branch B deterministic selector
 

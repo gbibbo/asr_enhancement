@@ -149,7 +149,7 @@
 - path: tests/robust_asr/**
   class: active_state
   permitted_use: read_write
-  allowed_tasks: [P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P7.3, P8.1]
+  allowed_tasks: [P1.1, P1.2, P1.4, P3.1, P4.1, P5.1, P7.3, P8.1, P8.2]
   validator: none
   checksum_required: false
   large_artifact: false
@@ -158,7 +158,11 @@
          tests/robust_asr/test_assemblyai.py. P7.3 scope-change
          (CHANGE_SCOPE e9ebbfe) authorizes tests/robust_asr/test_router_runtime.py
          for the deterministic-selector runtime regression required by P7 gate
-         Branch B.
+         Branch B. P8.2 scope-change (CHANGE_SCOPE 7f72213) authorizes editing
+         tests/robust_asr/test_leakage.py to read the new
+         artifacts/robust_asr/demo/demo_examples_manifest.json and assert
+         demo audio_id / speaker_id / audio_sha256 disjointness from locked
+         eval sets per Section 3 leakage guard.
 
 - path: docs/reports/robust_asr/**
   class: active_state
@@ -765,6 +769,25 @@
   commit_allowed: false
   notes: Python bytecode
 
+# Specific override of the generic "*.wav" no_touch rule below (P8.2
+# scope-change CHANGE_SCOPE 7f72213). Exactly 8 small public deterministic
+# WAV demo files produced by scripts/robust_asr/build_demo_examples.py.
+# Audio is LibriSpeech-derived (CC BY 4.0) + degradation_v1; no API audio,
+# no model audio, no checkpoints. Read by P9.1 handoff packaging.
+- path: artifacts/robust_asr/demo/audio/**
+  class: active_state
+  permitted_use: write
+  allowed_tasks: [P8.2, P9.1]
+  validator: demo_examples_manifest_references_all_files
+  checksum_required: true
+  large_artifact: false
+  commit_allowed: true
+  notes: Exactly 8 small public deterministic WAV demo files. This is an
+         explicit carveout from the generic audio no-touch rule (*.wav).
+         Each file is referenced by a row in
+         artifacts/robust_asr/demo/demo_examples_manifest.json with a
+         recorded audio_sha256.
+
 - path: "*.wav"
   class: no_touch
   permitted_use: forbidden
@@ -773,7 +796,8 @@
   checksum_required: false
   large_artifact: true
   commit_allowed: false
-  notes: Audio files
+  notes: Audio files. Specific carveout for
+         artifacts/robust_asr/demo/audio/** is declared above (P8.2).
 
 - path: "*.flac"
   class: no_touch
