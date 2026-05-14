@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.0
-current_task: B14_0-02
-last_completed_task: B14_0-01
+current_task: B14_0-03
+last_completed_task: B14_0-02
 last_completed_phase: B-route
 markers: []
 phase_approvals:
@@ -27,8 +27,19 @@ plan_authoring_approvals:
     implementation_task_started: true
     har_carried_forward:
       - id: HAR-B14_0-RECRUITER-CREDS-001
-        status: pre_declared_unresolved
+        status: resolved
         blocks: B14_0-02 closure
+        resolution_recorded_at_commit: ca4730b8d3285d5f6abd1f25425f00fbce33e5f1
+        recruiter_initial_username_supplied: true
+        recruiter_initial_username_differs_from_admin_username: true
+        recruiter_initial_password_supplied: true
+        recruiter_initial_password_length_between_16_and_128: true
+        recruiter_initial_password_entropy_at_least_96_bits: true
+        recruiter_initial_password_differs_from_admin_password: true
+        recruiter_credential_rotation_cadence: manual-rotation-on-incident
+        credential_values_not_shared_in_chat: true
+        credential_values_not_committed_to_repo: true
+        credential_values_available_only_as_host_env_secrets: true
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
     status: resolved
@@ -41,10 +52,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_0_recruiter_auth_contract.md
+  latest_execution_report_path: reports/rp5/b14_0_health_payload_under_auth.md
   latest_phase_gate_report_path: reports/rp5/broute_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
-  expected_next_task: B14_0-02
+  expected_next_task: B14_0-03
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -395,3 +406,76 @@ tasks:
       forbidden_commit_trailers_present: false
     marker: null
     next_task: B14_0-02
+  B14_0-02:
+    task_id: B14_0-02
+    status: PASS
+    commit: ca4730b8d3285d5f6abd1f25425f00fbce33e5f1
+    files_changed:
+      - services/api/app/recruiter_auth.py
+      - services/api/app/demo_main.py
+      - .env.example
+      - scripts/rp5/validate_b14_0_health_payload_preserved_under_auth.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_0_health_payload_preserved_under_auth.py
+      - reports/rp5/b14_0_health_payload_under_auth.md
+    commands_run:
+      - "python3 -c \"import importlib, os; os.environ.pop('RECRUITER_USERNAME', None); os.environ.pop('RECRUITER_PASSWORD', None); importlib.import_module('services.api.app.demo_main')\""
+      - "RECRUITER_USERNAME=x RECRUITER_PASSWORD=y python3 -c \"import services.api.app.demo_main\""
+      - "python3 scripts/rp5/validate_b14_0_recruiter_auth_contract.py --out /tmp/b14_0_02_contract_rerun.md"
+      - "RECRUITER_USERNAME=<synthetic-smoke> RECRUITER_PASSWORD=<synthetic-smoke> ADMIN_STATS_USERNAME=admin ADMIN_STATS_PASSWORD=<synthetic-smoke> DEMO_RUNTIME_ROOT=/tmp/asr_demo_b14_0_02_smoke nohup python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 8001 > /tmp/b14_0_02_uvicorn.log 2>&1 &"
+      - "python3 scripts/rp5/validate_b14_0_health_payload_preserved_under_auth.py --base-url http://127.0.0.1:8001 --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --admin-password-env ADMIN_STATS_PASSWORD --uvicorn-log /tmp/b14_0_02_uvicorn.log --out reports/rp5/b14_0_health_payload_under_auth.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_0_health_payload_preserved_under_auth.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_health_payload_preserved_under_auth_manifest.json"
+      - "python3 scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_B14_0_RECRUITER_AUTH_CONTRACT
+      - OK_B14_0_HEALTH_UNDER_AUTH
+      - OK_FIXTURE_VALIDATE_B14_0_HEALTH_UNDER_AUTH
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "import_without_recruiter_env_ok: true"
+      - "import_with_recruiter_env_ok: true"
+      - "no_real_or_synthetic_secrets_committed: true"
+      - "no_public_url_literals: true"
+      - "HAR_resolved: true"
+    supplemental_evidence:
+      contract_design: request_time_fail_closed
+      app_import_succeeds_without_recruiter_env: true
+      protected_routes_count: 6
+      protected_routes:
+        - "GET /demo/health"
+        - "GET /demo/examples"
+        - "POST /demo/run-cached"
+        - "POST /demo/jobs"
+        - "GET /demo/jobs/{job_id}"
+        - "GET /demo/providers/assemblyai/status"
+      unauthenticated_status_observed: 401
+      www_authenticate_header_observed: 'Basic realm="asr-demo-recruiter"'
+      challenge_body_observed: empty
+      authenticated_health_byte_exact_observed: '{"status":"ok"}'
+      env_unset_dependency_raises_RecruiterAuthChallenge: true
+      constant_time_comparison_used: true
+      admin_auth_unchanged: true
+      bRoute_health_invariant_preserved_under_auth: true
+      health_under_auth_check_count: 11
+      health_under_auth_failures: 0
+      fixture_positive_count: 2
+      fixture_negative_count: 7
+      fixture_manifest_local_only_sha256: "23a7661285ae19df7b60934e1a3dfaf649ef9cd7796e161677924fb11fbcbb96"
+      contract_rerun_local_only_sha256: "17de9b5d4481920c6d794dad7b2f0305d4abd9c60db8f65ccb88645b41a51af8"
+      uvicorn_log_local_only_sha256: "9064cf68646cb5a238737d92d8e282b9e09a5c5f76333fc84dc870c7ca672f01"
+      path_lock_validation_local_only_sha256: "f7683059893579c3f0758e7154899710098d30a50c8f2eedd3e52f488bfca9b1"
+      uvicorn_log_credential_leak_scan_issues: 0
+      local_only_evidence_removed_before_final_status: true
+      tracker_mutated_during_execution: false
+      approval_packet_file_created: false
+      approval_packet_recording_policy: in_tracker_only_per_BR_NN_established_pattern
+      HAR-B14_0-RECRUITER-CREDS-001_status: resolved
+      credential_values_recorded_in_tracker: false
+      credential_values_committed_to_repo: false
+      credential_values_available_only_as_host_env_secrets: true
+      recruiter_credential_rotation_cadence: manual-rotation-on-incident
+      synthetic_smoke_credentials_persisted: false
+      port_8001_released_after_smoke: true
+      repo_dependency_or_config_files_changed: false
+      forbidden_commit_trailers_present: false
+      state_conflict_resolved_via: PATH_A_ACCEPT_EXISTING_EXECUTION
+    marker: null
+    next_task: B14_0-03
