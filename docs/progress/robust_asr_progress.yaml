@@ -53,6 +53,16 @@ state_transport:
       scope: task
       task_id: P8.2-deviation
       phase: P8
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 24811206ce7ef1eab4a5d768b5dc860787642f0f
+      next_expected_task: P8.2
+      required_fix: null
+      rationale: "P8.2-deviation enactment passed. The demo-only upstream-overlap deviation was enacted with PASS_WITH_DEMO_ONLY_DEVIATION, all 8 WAV sha256s remained unchanged, provenance audit and manifest were updated with binding constraints C1-C5, MISSING_EVIDENCE was cleared, blocked=false, leakage tests and full robust_asr pytest passed, OK_REPORT_SHAPE and OK_PROGRESS_YAML_PARSE passed. Parent P8.2 remains IMPLEMENTED_PENDING_APPROVAL and is not approved in this turn."
+  prior_approval_packet_p8_2_deviation_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.2-deviation
+      phase: P8
       decision: APPROVE_PLAN
       accepted_report_commit: ec8813cdbd6df73edcc63aaa67ef997078538ad5
       next_expected_task: P8.2
@@ -838,8 +848,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 29ce65a036555bf4140ee1ac5eded6a9c2b53272
-  expected_next_task: P8_GATE
+  last_accepted_report_commit: 24811206ce7ef1eab4a5d768b5dc860787642f0f
+  expected_next_task: P8.2
   last_tracker_mismatch: null
 
 phase_summary:
