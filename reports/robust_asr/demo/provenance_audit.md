@@ -1,5 +1,58 @@
 PASS (provenance fields)
 FAIL (upstream disjointness)
+PASS_WITH_DEMO_ONLY_DEVIATION (final)
+
+# P8.2 — Demo provenance audit (final verdict: PASS_WITH_DEMO_ONLY_DEVIATION)
+
+**Final verdict (after P8.2-deviation enactment):** `PASS_WITH_DEMO_ONLY_DEVIATION`
+
+The provenance fields verdict (PASS) and upstream disjointness verdict
+(FAIL) recorded earlier in this document are unchanged. The final
+verdict is added on top under the demo-only deviation enacted via:
+
+- `CHANGE_SCOPE(P8.2-deviation)` on `a1c632d9b8b105d25ba54a4690aaf1dff953da90`
+- `APPROVE_EXECUTION(P8.2-deviation-scope-change)` on `ec8813cdbd6df73edcc63aaa67ef997078538ad5`
+- `APPROVE_PLAN(P8.2-deviation)` on `ec8813cdbd6df73edcc63aaa67ef997078538ad5`
+
+The deviation is recorded in `proposed_deviations.P8_2_demo_only_upstream_overlap`
+in `docs/progress/robust_asr_progress.yaml` (status `ENACTED`) and
+materialized as a top-level `deviation` block in
+`artifacts/robust_asr/demo/demo_examples_manifest.json`
+(`deviation_status=approved_for_demo_only_use_pending_p8_2_approval`,
+`upstream_disjointness=false`, `reason=DEMO_UPSTREAM_LOCKED_OVERLAP`).
+
+**This is NOT evaluation evidence.** The 8 demo WAVs and the
+`demo_examples_manifest.json` may be packaged ONLY as UI/demo assets
+(P9.1 handoff bundle, P10 handoff package, asr-rp5 demo runtime).
+They MUST NOT be used as inputs or evidence for any of:
+
+- WER, CER, or robustness metrics;
+- backend evaluation parquets under `artifacts/robust_asr/eval_tables/**`;
+- `selector_evidence.parquet`, `oracle/**.parquet`, system_eval inputs/outputs;
+- any `claims_enabled.*` flag (`positive_system`, `cloud_tradeoff`,
+  `positive_lora`, `ood_real`).
+
+P9.1 handoff README MUST disclose the upstream `dev-clean` overlap
+under §6 ("Risks, limits, disabled claims") naming the 5 upstream
+utterances and 5 upstream speakers (constraint C4, enforced_by_task=P9.1).
+P10.1 final verification MUST assert demo manifest paths and
+`audio_id` / `upstream_audio_id` values do not appear in any
+`eval_tables/**.parquet`, `selector_evidence.parquet`,
+`oracle/**.parquet`, or system_eval input set (constraint C5,
+enforced_by_task=P10.1).
+
+WAV bytes byte-unchanged across this enactment (every demo
+`audio_sha256` recomputed from on-disk WAV equals the value at
+commit `003fc0d` and the value at the audit commit `29ce65a`).
+
+The original audit findings, overlap table, and Recommended next
+steps remain below for the audit trail and apply only insofar as
+the operator at any future point chooses to satisfy them via
+options (A) or (C) instead of (B). Under (B) — the route taken —
+the demo bundle remains in place as a UI/demo asset under the
+binding constraints listed above.
+
+---
 
 # P8.2 — Demo provenance audit (provenance OK; upstream-level disjointness FAIL)
 

@@ -1,8 +1,8 @@
 {
   "manifest_set": "demo_examples_v1",
-  "manifest_version": "v1.1-provenance-repaired",
+  "manifest_version": "v1.2-deviation-enacted",
   "produced_by_task": "P8.2",
-  "provenance_repaired_by": "P8.2-provenance-rerun",
+  "provenance_repaired_by": "P8.2-provenance-rerun (provenance fields); P8.2-deviation (upstream disjointness deviation enacted demo-only)",
   "provenance_evidence_source": "asr-rp5 branch (operator-supplied)",
   "claims_enabled_ood_real": false,
   "blocked_ood_public_active": true,
@@ -259,5 +259,52 @@
       "provenance_notes": "Provenance supplied by operator from the asr-rp5 branch via scripts/demo/materialize_demo_examples.py. Demo audio is a deterministic degradation_v1 (seed=0) render of the LibriSpeech dev-clean utterance 174-168635-174-168635-0000 (source URL https://www.openslr.org/resources/12/dev-clean.tar.gz). upstream_audio_sha256 is null because the dev-clean .flac source is not materialized on datamove1; the value is recoverable from the asr-rp5 branch's materialization log. The demo-side audio_id (demo/<exNNN>/<stem>), speaker_id (exNNN), and audio_sha256 of the rendered WAV remain disjoint from every locked manifest (librispeech_lora_train, librispeech_router_train, librispeech_validation, librispeech_locked_test, degradation_v1_id_eval, degradation_v1_ood_param_eval), preserving Section 3 leakage rule 5 at the demo-side identifier level. Disclosure: the upstream LibriSpeech utterance is from the dev-clean subset which feeds the validation locked-eval manifest at the upstream level; the rendered demo bytes (with degradation_v1 transforms applied) are a derived artifact, not a copy of the locked-eval audio.",
       "notes": "OOD-param illustrative: broadband_hiss outside Section 3 families; BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false. Not used for any claim; not drawn from common_voice_demo_reserved."
     }
-  ]
+  ],
+  "deviation": {
+    "deviation_id": "P8_2_demo_only_upstream_overlap",
+    "deviation_status": "approved_for_demo_only_use_pending_p8_2_approval",
+    "authorized_at_commit": "a1c632d9b8b105d25ba54a4690aaf1dff953da90",
+    "enacted_at_commit_pending": true,
+    "enacted_under_packets": {
+      "change_scope": "CHANGE_SCOPE(P8.2-deviation) on a1c632d9b8b105d25ba54a4690aaf1dff953da90",
+      "approve_execution_scope_change": "APPROVE_EXECUTION(P8.2-deviation-scope-change) on ec8813cdbd6df73edcc63aaa67ef997078538ad5",
+      "approve_plan": "APPROVE_PLAN(P8.2-deviation) on ec8813cdbd6df73edcc63aaa67ef997078538ad5"
+    },
+    "upstream_disjointness": false,
+    "upstream_disjointness_evidence": "reports/robust_asr/demo/provenance_audit.md (verdict FAIL on upstream disjointness; 5/5 demo upstream utterances and 5/5 demo upstream speakers in librispeech_validation + degradation_v1_id_eval + degradation_v1_ood_param_eval + every per-family subset)",
+    "reason": "DEMO_UPSTREAM_LOCKED_OVERLAP",
+    "allowed_use": "UI/demo assets only (P9.1 handoff bundle, P10 handoff package, asr-rp5 demo runtime)",
+    "forbidden_use": "WER/CER/robustness metrics, eval tables (artifacts/robust_asr/eval_tables/**), selector_evidence, oracle, system_eval inputs/outputs, any claims_enabled flag (positive_system, cloud_tradeoff, positive_lora, ood_real), P8.1 system evaluation, P10.1 final verification metrics",
+    "binding_constraints": [
+      {
+        "id": "C1",
+        "rule": "P8.2 deviation is NOT an approval of evaluation leakage."
+      },
+      {
+        "id": "C2",
+        "rule": "Demo examples may be packaged ONLY as UI/demo assets."
+      },
+      {
+        "id": "C3",
+        "rule": "Demo examples MUST NOT be used for WER/CER/robustness metrics, eval tables, selector/system metrics, or any claims_enabled.* flag."
+      },
+      {
+        "id": "C4",
+        "rule": "P9.1 handoff README MUST disclose the upstream dev-clean overlap under \u00a76 (Risks, limits, disabled claims), naming the 5 upstream utterances and 5 upstream speakers, and stating explicitly that the demo bundle is NOT evidence for any claims_enabled.* flag.",
+        "enforced_by_task": "P9.1"
+      },
+      {
+        "id": "C5",
+        "rule": "P10.1 final verification MUST assert demo manifest paths and audio_id/upstream_audio_id values do not appear in any artifacts/robust_asr/eval_tables/**.parquet, in selector_evidence.parquet, in oracle/**.parquet, or in any system_eval input set.",
+        "enforced_by_task": "P10.1"
+      }
+    ],
+    "required_disclosure_tasks": [
+      "P9.1",
+      "P10.1"
+    ],
+    "tracker_link": "proposed_deviations.P8_2_demo_only_upstream_overlap",
+    "wav_bytes_unchanged": true,
+    "audio_sha256_unchanged_at_enactment": true
+  }
 }
