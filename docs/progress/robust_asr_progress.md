@@ -29,7 +29,7 @@ Status: IN_PROGRESS
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd (advanced from d009c318… by APPROVE_EXECUTION(P8.1))
+- state_transport.last_accepted_report_commit: deb8085b3915686597d9572d723f3b3d1f777355 (advanced from 1b9f33e… by APPROVE_EXECUTION(P8.2-provenance) on the provenance audit commit; P8.2 itself remains HALTED and is NOT approved)
 - state_transport.expected_next_task: P8.2
 - deterministic_selector_version: deterministic_selector_v1 (frozen at P6.1)
 - router_status: SELECTOR_PACKAGED
@@ -37,7 +37,8 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: APPROVE_PLAN(P8.2-provenance) on `5cf704a` (next P8.2) — audit demo provenance; if verifiable evidence exists enrich manifest + write provenance_audit.md PASS; if not, write provenance_audit.md INSUFFICIENT and HALT P8.2 with marker=MISSING_EVIDENCE reason=DEMO_PROVENANCE_INSUFFICIENT; do not invent license/provenance; do not edit WAV bytes; do not approve P8.2; state_transport.last_accepted_report_commit must NOT advance
+- latest_approval_packet: APPROVE_EXECUTION(P8.2-provenance) on `deb8085` (next P8.2) — provenance audit accepted; verdict INSUFFICIENT recorded without inventing license/provenance; all 8 WAV sha256s preserved; demo disjointness valid; leakage tests + full robust_asr pytest + report-shape + YAML-parse green; parent P8.2 remains HALTED with MISSING_EVIDENCE / DEMO_PROVENANCE_INSUFFICIENT pending operator-supplied provenance metadata; state_transport.last_accepted_report_commit advanced 1b9f33e → deb8085
+- prior_approval_packet_p8_2_provenance_plan: APPROVE_PLAN(P8.2-provenance) on `5cf704a` (next P8.2) — audit demo provenance; if verifiable evidence exists enrich manifest + write provenance_audit.md PASS; if not, write provenance_audit.md INSUFFICIENT and HALT P8.2 with marker=MISSING_EVIDENCE reason=DEMO_PROVENANCE_INSUFFICIENT; do not invent license/provenance; do not edit WAV bytes; do not approve P8.2; state_transport.last_accepted_report_commit must NOT advance to the audit commit
 - prior_approval_packet_p8_2_provenance_scope_exec: APPROVE_EXECUTION(P8.2-provenance-scope-change) on `5cf704a` (next P8.2) — touch_policy P8.2 row += provenance_audit.md write; reuse_policy unchanged
 - prior_approval_packet_p8_2_provenance_change_scope: CHANGE_SCOPE(P8.2-provenance) on `6783789` (next P8.2) — provenance repair authorized
 - prior_approval_packet_p8_2_plan: APPROVE_PLAN(P8.2) on `c01a260` (next P8_GATE) — implement build_demo_examples.py + 8 public demo WAVs + manifest + leakage-test edit; LibriSpeech-derived public path (BLOCKED_OOD_PUBLIC, claims_enabled.ood_real=false); state_transport.last_accepted_report_commit must NOT advance to the P8.2 implementation commit
@@ -83,6 +84,33 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P8.2-provenance APPROVE_EXECUTION recorded — audit accepted; parent P8.2 remains HALTED
+
+- ORCHESTRATOR_DECISION: scope=task task=P8.2-provenance phase=P8
+  decision=APPROVE_EXECUTION
+- accepted_report_commit: `deb8085b3915686597d9572d723f3b3d1f777355`
+- next_expected_task: P8.2
+- rationale: P8.2-provenance audit completed correctly — verdict INSUFFICIENT recorded without inventing license or upstream evidence; all 8 WAV sha256s preserved; demo disjointness valid; leakage tests + full robust_asr pytest + report-shape + YAML-parse green. Parent `tasks.P8.2.status=HALTED` with `marker=MISSING_EVIDENCE` and `reason=DEMO_PROVENANCE_INSUFFICIENT` pending operator-supplied provenance metadata.
+
+Tracker mutations on this commit only:
+
+- `latest_approval_packet`=APPROVE_EXECUTION(P8.2-provenance) on `deb8085b3915686597d9572d723f3b3d1f777355` (next `P8.2`); prior APPROVE_PLAN(P8.2-provenance) demoted to `prior_approval_packet_p8_2_provenance_plan` on `5cf704adda14b4d8b4184e258a72634abf4828d1` (next P8.2). All other prior packets held in their slots.
+- `state_transport.last_accepted_report_commit`: `1b9f33e681276f977c1e87db4978963ee2a3a9bd` → **`deb8085b3915686597d9572d723f3b3d1f777355`**.
+- `tasks.P8.2-provenance.approved_by=APPROVE_EXECUTION_P8.2-provenance`; `approved_at_commit=deb8085…`.
+
+State held (no changes per orchestrator instruction):
+
+- `current_phase=P8`, `current_task=P8.2`, `last_completed_task=P8.1`.
+- `tasks.P8.2.status=HALTED`, `marker=MISSING_EVIDENCE`, `reason=DEMO_PROVENANCE_INSUFFICIENT` — held; **NOT** approved.
+- `markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR, MISSING_EVIDENCE]` — held.
+- `blocked=true`; `blocker = "DEMO_PROVENANCE_INSUFFICIENT — operator must supply per-file upstream_corpus + upstream_audio_id + license_spdx + license_url + attribution at /mnt/fast/.../demo_reference_artifacts/ before P8.2 can be re-executed and approved"` — held.
+- `claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false` — held; **none changed**.
+- `state_transport.expected_next_task=P8.2` (was `P8_GATE`; corrected to `P8.2` per orchestrator instruction since P8.2 is HALTED and re-runs from `P8.2`).
+- `tasks.P8_GATE.status=FAIL` (attempt 1) held. `phase_summary.P8=null`, `orchestrator_approvals.P8=null` held.
+- No code, no test, no Slurm submission, no real-provider call. No demo audio touched. No manifest edited. No script edited. No test edited. No artifacts edited. Only the three tracker files were modified. P8_GATE not started. P9.0 not started.
+
+Required external action to unblock: see `reports/robust_asr/demo/provenance_audit.md` "Required external action to unblock" section.
 
 ## P8.2-provenance audit — INSUFFICIENT — P8.2 HALTED with MISSING_EVIDENCE / DEMO_PROVENANCE_INSUFFICIENT
 

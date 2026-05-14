@@ -53,6 +53,16 @@ state_transport:
       scope: task
       task_id: P8.2-provenance
       phase: P8
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: deb8085b3915686597d9572d723f3b3d1f777355
+      next_expected_task: P8.2
+      required_fix: null
+      rationale: "P8.2-provenance audit completed correctly. It found provenance INSUFFICIENT without inventing license or upstream evidence, preserved all 8 WAV sha256s, kept demo disjointness valid, passed leakage tests, full robust_asr tests, report-shape validation, and YAML parse. Parent P8.2 remains HALTED with MISSING_EVIDENCE reason DEMO_PROVENANCE_INSUFFICIENT pending operator-supplied provenance metadata."
+  prior_approval_packet_p8_2_provenance_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.2-provenance
+      phase: P8
       decision: APPROVE_PLAN
       accepted_report_commit: 5cf704adda14b4d8b4184e258a72634abf4828d1
       next_expected_task: P8.2
@@ -778,7 +788,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd
+  last_accepted_report_commit: deb8085b3915686597d9572d723f3b3d1f777355
   expected_next_task: P8.2
   last_tracker_mismatch: null
 
