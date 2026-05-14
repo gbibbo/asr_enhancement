@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P9
-current_task: P9.0
-last_completed_task: P8_GATE
+current_task: P9.1
+last_completed_task: P9.0
 
 blocked: false
 blocker: null
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: reports/robust_asr/task_reports/P8_GATE_attempt2.md
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P9.0
+      phase: P9
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: f7a195b8828278e42fcc642090cc315309404e07
+      next_expected_task: P9.1
+      required_fix: null
+      rationale: "P9.0 Final runtime contract completed and pushed. Final deployable backend set is [whisper_base_ct2_int8]; router_kind is deterministic_selector; LoRA and AssemblyAI are excluded; all claims_enabled flags remain false. OK_CONTRACT_FINAL observed with A01 through A19 PASS. Full robust_asr pytest passed with 137 passed. Report shape validation passed. Demo assets were not used as fixture source and demo assets remained unchanged. P8_2_demo_only_upstream_overlap remains ENACTED, with C4 routed to P9.1 and C5 routed to P10.1."
+  prior_approval_packet_p9_0_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P9.0
@@ -898,8 +908,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 0b221c9e213c68636ce0cbf0da75b67baae7d31a
-  expected_next_task: P9.0
+  last_accepted_report_commit: f7a195b8828278e42fcc642090cc315309404e07
+  expected_next_task: P9.1
   last_tracker_mismatch: null
 
 phase_summary:
