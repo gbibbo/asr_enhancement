@@ -1,0 +1,12 @@
+{
+  "authorization_header": "Basic <ephemeral>",
+  "expected_classification": "B14_1_HEALTH_PAYLOAD_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+  "expected_validator_outcome": "FAIL",
+  "label": "negative_auth_demo_health_body_pretty_printed",
+  "method": "GET",
+  "observed_body_bytes": "{\"status\": \"ok\"}",
+  "observed_body_sha256": "08e2c358ce13cb67f94ebb35b0f67c8763190a857c0db68da6eb196dfe9da46a",
+  "observed_status": 200,
+  "route": "/demo/health",
+  "violated_rule": "body must equal canonical bytes; whitespace forbidden"
+}

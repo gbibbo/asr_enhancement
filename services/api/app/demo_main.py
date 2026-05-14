@@ -50,6 +50,7 @@ from libs.demo.usage import (
 from libs.observability.error_buffer import build_error_buffer_handler
 from libs.observability.log_rotation import build_rotating_file_handler
 from libs.observability.logging import configure_logging
+from services.api.app.public_exposure import get_public_demo_exposure_flag
 from services.api.app.recruiter_auth import (
     RecruiterAuthChallenge,
     recruiter_auth_dependency,
@@ -84,7 +85,17 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="ASR Enhancement Demo", version="0.1.0", lifespan=lifespan)
+if get_public_demo_exposure_flag():
+    app = FastAPI(
+        title="ASR Enhancement Demo",
+        version="0.1.0",
+        lifespan=lifespan,
+        openapi_url=None,
+        docs_url=None,
+        redoc_url=None,
+    )
+else:
+    app = FastAPI(title="ASR Enhancement Demo", version="0.1.0", lifespan=lifespan)
 app.add_exception_handler(RecruiterAuthChallenge, recruiter_challenge_handler)
 
 

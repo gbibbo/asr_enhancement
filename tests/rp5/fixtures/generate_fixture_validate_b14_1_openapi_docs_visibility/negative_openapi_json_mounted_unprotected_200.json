@@ -1,0 +1,12 @@
+{
+  "expected_classification": "B14_1_OPENAPI_OR_DOCS_LEAK_DETECTED",
+  "expected_route_state": "mounted_unprotected",
+  "expected_validator_outcome": "FAIL",
+  "label": "negative_openapi_json_mounted_unprotected_200",
+  "method": "GET",
+  "observed_body_snippet": "{\"openapi\": \"3.1.0\", \"info\": {}}",
+  "observed_status": 200,
+  "observed_www_authenticate": null,
+  "route": "/openapi.json",
+  "violated_rule": "openapi route mounted unprotected under public exposure"
+}

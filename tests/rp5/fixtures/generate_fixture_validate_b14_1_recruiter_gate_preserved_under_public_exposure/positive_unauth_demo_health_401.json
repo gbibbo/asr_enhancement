@@ -1,0 +1,10 @@
+{
+  "authorization_header": null,
+  "expected_validator_outcome": "PASS",
+  "kind": "unauth_demo",
+  "label": "positive_unauth_demo_health_401",
+  "method": "GET",
+  "observed_status": 401,
+  "observed_www_authenticate": "Basic realm=\"asr-demo-recruiter\"",
+  "route": "/demo/health"
+}

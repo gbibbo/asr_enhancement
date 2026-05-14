@@ -1,0 +1,12 @@
+{
+  "authorization_header": "Basic <recruiter-ephemeral>",
+  "expected_classification": "B14_1_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+  "expected_validator_outcome": "FAIL",
+  "kind": "recruiter_into_admin",
+  "label": "negative_recruiter_into_admin_health_200",
+  "method": "GET",
+  "observed_status": 200,
+  "observed_www_authenticate": null,
+  "route": "/admin/health",
+  "violated_rule": "recruiter credentials must NOT authorize /admin/* (separation)"
+}

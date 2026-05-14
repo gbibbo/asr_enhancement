@@ -1,0 +1,12 @@
+{
+  "expected_classification": "B14_1_OPENAPI_OR_DOCS_LEAK_DETECTED",
+  "expected_route_state": "mounted_unprotected",
+  "expected_validator_outcome": "FAIL",
+  "label": "negative_openapi_behind_recruiter_realm",
+  "method": "GET",
+  "observed_body_snippet": "",
+  "observed_status": 401,
+  "observed_www_authenticate": "Basic realm=\"asr-demo-recruiter\"",
+  "route": "/openapi.json",
+  "violated_rule": "docs surface gated by recruiter realm is still a leak under default plan"
+}
