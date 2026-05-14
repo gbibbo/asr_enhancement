@@ -50,6 +50,11 @@ from libs.demo.usage import (
 from libs.observability.error_buffer import build_error_buffer_handler
 from libs.observability.log_rotation import build_rotating_file_handler
 from libs.observability.logging import configure_logging
+from services.api.app.recruiter_auth import (
+    RecruiterAuthChallenge,
+    recruiter_auth_dependency,
+    recruiter_challenge_handler,
+)
 
 
 _request_log = logging.getLogger("demo-api.request")
@@ -80,6 +85,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="ASR Enhancement Demo", version="0.1.0", lifespan=lifespan)
+app.add_exception_handler(RecruiterAuthChallenge, recruiter_challenge_handler)
 
 
 @app.middleware("http")
@@ -160,7 +166,7 @@ class _RunCachedRequest(BaseModel):
     enhancer_version: str | None = None
 
 
-@app.get("/demo/health")
+@app.get("/demo/health", dependencies=[Depends(recruiter_auth_dependency)])
 async def demo_health():
     return {"status": "ok"}
 
@@ -199,7 +205,7 @@ async def admin_health(
     }
 
 
-@app.get("/demo/examples")
+@app.get("/demo/examples", dependencies=[Depends(recruiter_auth_dependency)])
 async def list_demo_examples(request: Request):
     settings: DemoSettings = request.app.state.settings
     examples = load_examples(settings.demo_examples_config)
@@ -238,7 +244,7 @@ async def get_degraded_audio(example_id: str, degradation_id: str, request: Requ
     return FileResponse(target, media_type="audio/wav")
 
 
-@app.post("/demo/jobs", status_code=202)
+@app.post("/demo/jobs", status_code=202, dependencies=[Depends(recruiter_auth_dependency)])
 async def create_demo_job(request: Request):
     settings: DemoSettings = request.app.state.settings
     try:
@@ -255,7 +261,7 @@ async def create_demo_job(request: Request):
     return {"job_id": job_id, "status": "queued"}
 
 
-@app.post("/demo/run-cached")
+@app.post("/demo/run-cached", dependencies=[Depends(recruiter_auth_dependency)])
 async def run_cached(body: _RunCachedRequest, request: Request):
     settings: DemoSettings = request.app.state.settings
     examples = load_examples(settings.demo_examples_config)
@@ -386,13 +392,13 @@ async def upload_audio(
     return JSONResponse(status_code=202, content={"job_id": job_id, "status": "queued"})
 
 
-@app.get("/demo/providers/assemblyai/status")
+@app.get("/demo/providers/assemblyai/status", dependencies=[Depends(recruiter_auth_dependency)])
 async def get_assemblyai_status(request: Request):
     settings: DemoSettings = request.app.state.settings
     return compute_public_view(settings.demo_db_path, settings)
 
 
-@app.get("/demo/jobs/{job_id}")
+@app.get("/demo/jobs/{job_id}", dependencies=[Depends(recruiter_auth_dependency)])
 async def get_demo_job(job_id: str, request: Request):
     settings: DemoSettings = request.app.state.settings
     job = get_job(settings.demo_db_path, job_id)
