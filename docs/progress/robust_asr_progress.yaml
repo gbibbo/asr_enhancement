@@ -51,6 +51,16 @@ state_transport:
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
       scope: task
+      task_id: P8.2-upstream-leakage-audit
+      phase: P8
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 29ce65a036555bf4140ee1ac5eded6a9c2b53272
+      next_expected_task: P8.2
+      required_fix: null
+      rationale: "P8.2 upstream-leakage audit completed correctly. It found provenance fields PASS but upstream disjointness FAIL: the demo upstream LibriSpeech dev-clean utterances overlap locked validation and degradation_v1 eval manifests by upstream_audio_id and upstream_speaker_id. P8.2 remains HALTED with MISSING_EVIDENCE reason DEMO_UPSTREAM_LOCKED_OVERLAP. No demo WAV bytes, manifest, builder, or tests were modified; leakage tests and full robust_asr pytest passed, but current test_leakage is insufficient for upstream fields."
+  prior_approval_packet_p8_2_provenance_rerun_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
       task_id: P8.2-provenance-rerun
       phase: P8
       decision: APPROVE_PLAN
@@ -798,7 +808,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: deb8085b3915686597d9572d723f3b3d1f777355
+  last_accepted_report_commit: 29ce65a036555bf4140ee1ac5eded6a9c2b53272
   expected_next_task: P8.2
   last_tracker_mismatch: null
 
