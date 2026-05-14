@@ -37,7 +37,8 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: APPROVE_EXECUTION(P8.2-upstream-leakage-audit) on `29ce65a` (next P8.2) — upstream-leakage audit accepted; verdict provenance fields PASS / upstream disjointness FAIL (DEMO_UPSTREAM_LOCKED_OVERLAP); 5/5 demo upstream utterances and 5/5 demo upstream speakers overlap with validation + degradation_v1_eval + every per-family subset; parent P8.2 remains HALTED with MISSING_EVIDENCE / DEMO_UPSTREAM_LOCKED_OVERLAP; state_transport.last_accepted_report_commit advanced deb8085 → 29ce65a
+- latest_approval_packet: CHANGE_SCOPE(P8.2-deviation) on `a1c632d` (next P8.2) — authorizes a documented demo-only deviation framework for the upstream dev-clean overlap. Five binding constraints: C1 (deviation is NOT approval of evaluation leakage); C2 (demo packaged ONLY as UI/demo); C3 (no metric/claim use of demo); C4 (P9.1 README §6 must disclose overlap); C5 (P10.1 must assert demo excluded from all metric/eval inputs). Recording-only; not yet enacted. `tasks.P8.2.status=HALTED` held; markers, blocker, claims_enabled all held. state_transport.last_accepted_report_commit STAYS `29ce65a` (NOT advanced)
+- prior_approval_packet_p8_2_upstream_leakage_audit_exec: APPROVE_EXECUTION(P8.2-upstream-leakage-audit) on `29ce65a` (next P8.2) — upstream-leakage audit accepted; verdict provenance fields PASS / upstream disjointness FAIL (DEMO_UPSTREAM_LOCKED_OVERLAP); 5/5 demo upstream utterances and 5/5 demo upstream speakers overlap with validation + degradation_v1_eval + every per-family subset; parent P8.2 remains HALTED with MISSING_EVIDENCE / DEMO_UPSTREAM_LOCKED_OVERLAP; state_transport.last_accepted_report_commit advanced deb8085 → 29ce65a
 - prior_approval_packet_p8_2_provenance_rerun_plan: APPROVE_PLAN(P8.2-provenance-rerun) on `450409d` (next P8.2) — operator-supplied asr-rp5 provenance evidence accepted (LibriSpeech dev-clean / OpenSLR #12 / CC-BY-4.0; deterministic seed=0 degradation_v1 via scripts/demo/materialize_demo_examples.py); enriched demo_examples_manifest.json with upstream_corpus, upstream_audio_id, upstream_url, license_spdx, license_url, attribution, degradation_id/params, recording_method, provenance_notes; provenance_audit.md INSUFFICIENT→PASS
 - prior_approval_packet_p8_2_provenance_exec: APPROVE_EXECUTION(P8.2-provenance) on `deb8085` (next P8.2) — provenance audit accepted; verdict INSUFFICIENT recorded without inventing license/provenance; all 8 WAV sha256s preserved; demo disjointness valid; leakage tests + full robust_asr pytest + report-shape + YAML-parse green; parent P8.2 was HALTED with MISSING_EVIDENCE / DEMO_PROVENANCE_INSUFFICIENT pending operator-supplied provenance metadata; state_transport.last_accepted_report_commit advanced 1b9f33e → deb8085
 - prior_approval_packet_p8_2_provenance_plan: APPROVE_PLAN(P8.2-provenance) on `5cf704a` (next P8.2) — audit demo provenance; if verifiable evidence exists enrich manifest + write provenance_audit.md PASS; if not, write provenance_audit.md INSUFFICIENT and HALT P8.2 with marker=MISSING_EVIDENCE reason=DEMO_PROVENANCE_INSUFFICIENT; do not invent license/provenance; do not edit WAV bytes; do not approve P8.2; state_transport.last_accepted_report_commit must NOT advance to the audit commit
@@ -86,6 +87,42 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P8.2-deviation CHANGE_SCOPE recorded — demo-only overlap deviation framework authorized (NOT enacted)
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=P8.2-deviation phase=P8
+  decision=CHANGE_SCOPE
+- accepted_report_commit: `a1c632d9b8b105d25ba54a4690aaf1dff953da90`
+- next_expected_task: P8.2
+- required_fix: "Authorize a documented demo-only deviation for upstream dev-clean overlap, without allowing demo examples to support metrics or claims."
+- rationale: "P8.2 is blocked because demo upstream utterances overlap locked validation/eval manifests. The demo files are public LibriSpeech-derived and legally attributed, but not upstream-disjoint. A deviation may be acceptable only if the demo bundle is explicitly treated as UI/demo-only, never as evaluation evidence, and the overlap is disclosed in P9/P10 handoff materials."
+
+Recorded in tracker as `proposed_deviations.P8_2_demo_only_upstream_overlap` with `status=SCOPE_AUTHORIZED_NOT_YET_ENACTED`. Five binding constraints any future enactment must honor:
+
+- **C1** — P8.2 deviation is NOT an approval of evaluation leakage.
+- **C2** — Demo examples may be packaged ONLY as UI/demo assets (P9.1 handoff bundle, P10 handoff package, asr-rp5 demo runtime).
+- **C3** — Demo examples MUST NOT be used as inputs or evidence for any of: WER, CER, robustness metrics, `claims_enabled.positive_system`, `claims_enabled.cloud_tradeoff`, `claims_enabled.positive_lora`, `claims_enabled.ood_real`, P8.1 system evaluation, P10.1 final verification metrics, or any backend evaluation parquet under `artifacts/robust_asr/eval_tables/**`.
+- **C4** — P9.1 handoff README MUST disclose the upstream `dev-clean` overlap under §6 ("Risks, limits, disabled claims"), naming the 5 upstream utterances `librispeech/dev-clean/{1272-128104-0000, 1673-143396-0002, 174-168635-0000, 1993-147149-0000, 2086-149214-0000}` and the 5 upstream speakers `{1272, 1673, 174, 1993, 2086}` and stating explicitly that the demo bundle is NOT evidence for any `claims_enabled.*` flag. Enforced by P9.1.
+- **C5** — P10 final verification MUST check that the demo manifest is excluded from all metric/evaluation inputs. Specifically, P10.1 must assert `artifacts/robust_asr/demo/demo_examples_manifest.json` paths and `audio_id` / `upstream_audio_id` values do not appear in any `artifacts/robust_asr/eval_tables/**.parquet`, in `selector_evidence.parquet`, in `oracle/**.parquet`, or in any system_eval input set. Enforced by P10.1.
+
+Enactment path (NOT performed by this commit): a future `APPROVE_PLAN(P8.2-deviation)` cycle restates the 5 constraints; implementation amends `artifacts/robust_asr/demo/demo_examples_manifest.json` with a top-level `deviation` block referencing the constraints; `provenance_audit.md` updated with verdict `PASS-with-deviation`; `tasks.P8.2.status` mutated `HALTED → IMPLEMENTED_PENDING_APPROVAL` with marker/reason cleared; `markers` loses `MISSING_EVIDENCE`; `blocked=false`; `blocker=null`. P9.1 and P10.1 then implement constraints C4 and C5.
+
+Policy amendments on this commit: **none**.
+
+- `reports/robust_asr/touch_policy.md` UNCHANGED — the P8.2 row already authorizes all five paths the orchestrator listed (`provenance_audit.md`, `P8.2_demo_manifest.md`, three trackers) from the prior `P8.2-provenance` scope-change.
+- `configs/robust_asr/reuse_policy_v1.yaml` UNCHANGED — `reports/robust_asr/**` already lists `P8.2` in `allowed_tasks`.
+- `reports/robust_asr/demo/provenance_audit.md` UNCHANGED on this commit (current dual verdict `PASS (provenance fields)` / `FAIL (upstream disjointness)` remains the latest audit; the deviation enactment commit will append a new section).
+
+State held (no changes per orchestrator instruction):
+
+- `current_phase=P8`, `current_task=P8.2`, `last_completed_task=P8.1`.
+- `tasks.P8.2.status=HALTED`; `marker=MISSING_EVIDENCE`; `reason=DEMO_UPSTREAM_LOCKED_OVERLAP` — held.
+- `markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR, MISSING_EVIDENCE]` — held; **none cleared** (`MISSING_EVIDENCE` deliberately NOT cleared by this scope-change; clearance only on enactment).
+- `blocked=true`; `blocker` (DEMO_UPSTREAM_LOCKED_OVERLAP with full required external action) — held.
+- `claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false` — held; **none changed**.
+- `state_transport.expected_next_task=P8.2` — held.
+- `state_transport.last_accepted_report_commit=29ce65a036555bf4140ee1ac5eded6a9c2b53272` — HELD per orchestrator instruction (NOT advanced to this scope-change commit).
+- This commit modifies only the three tracker files. No demo audio touched. No manifest edited. No `build_demo_examples.py` edited. No `tests/robust_asr/test_leakage.py` edited. No `provenance_audit.md` edited. No artifacts edited. P8_GATE not started. P9.0 not started.
 
 ## P8.2-upstream-leakage-audit APPROVE_EXECUTION recorded — audit accepted; parent P8.2 remains HALTED with DEMO_UPSTREAM_LOCKED_OVERLAP
 
