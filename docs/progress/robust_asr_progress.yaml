@@ -51,13 +51,23 @@ state_transport:
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
       scope: task
+      task_id: P9.1
+      phase: P9
+      decision: APPROVE_PLAN
+      accepted_report_commit: 655a05cfa0f13aad97bb0133b94dfee06bd39684
+      next_expected_task: P9.1
+      required_fix: null
+      rationale: "P9.1 planning report approved. Execute the handoff package with the two-commit chronology if required: Commit A creates the package and becomes the handoff tag target; after tag creation and push, Commit B records strict validation, report, and tracker updates. C4 disclosure is required in README §6. C5 exclusion verification remains P10.1. Demo assets remain UI/demo-only and not evaluation evidence."
+  prior_approval_packet_p9_0_exec:
+    ORCHESTRATOR_DECISION:
+      scope: task
       task_id: P9.0
       phase: P9
       decision: APPROVE_EXECUTION
       accepted_report_commit: f7a195b8828278e42fcc642090cc315309404e07
       next_expected_task: P9.1
       required_fix: null
-      rationale: "P9.0 Final runtime contract completed and pushed. Final deployable backend set is [whisper_base_ct2_int8]; router_kind is deterministic_selector; LoRA and AssemblyAI are excluded; all claims_enabled flags remain false. OK_CONTRACT_FINAL observed with A01 through A19 PASS. Full robust_asr pytest passed with 137 passed. Report shape validation passed. Demo assets were not used as fixture source and demo assets remained unchanged. P8_2_demo_only_upstream_overlap remains ENACTED, with C4 routed to P9.1 and C5 routed to P10.1. Held in this position pending orchestrator APPROVE_EXECUTION(P9.1)."
+      rationale: "P9.0 Final runtime contract completed and pushed. Final deployable backend set is [whisper_base_ct2_int8]; router_kind is deterministic_selector; LoRA and AssemblyAI are excluded; all claims_enabled flags remain false. OK_CONTRACT_FINAL observed with A01 through A19 PASS. Full robust_asr pytest passed with 137 passed. Report shape validation passed. Demo assets were not used as fixture source and demo assets remained unchanged. P8_2_demo_only_upstream_overlap remains ENACTED, with C4 routed to P9.1 and C5 routed to P10.1. Held in latest_approval_packet through P9.1 execution; demoted to prior_approval_packet_p9_0_exec by the P9.1 protocol-fix commit that records the APPROVE_PLAN(P9.1) packet retroactively. P9.1 execution evidence (commit_a=64eba43, commit_b=5c8d9590, handoff_tag=handoff/20260514-64eba43, OK_HANDOFF_PACKAGE, OK_HANDOFF_SMOKE, pytest 137/137) is unchanged by this fix."
   prior_approval_packet_p9_0_plan:
     ORCHESTRATOR_DECISION:
       scope: task
