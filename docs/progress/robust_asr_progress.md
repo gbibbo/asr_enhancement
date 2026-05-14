@@ -29,7 +29,7 @@ Status: IN_PROGRESS
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6 (held at the P7.3 acceptance commit; PHASE_APPROVE(P7) was recorded against this commit and does not itself advance it, matching the P0/P1/P2/P3/P5/P6 pattern)
+- state_transport.last_accepted_report_commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd (advanced from d009c318… by APPROVE_EXECUTION(P8.1))
 - state_transport.expected_next_task: P8_GATE
 - deterministic_selector_version: deterministic_selector_v1 (frozen at P6.1)
 - router_status: SELECTOR_PACKAGED
@@ -37,7 +37,8 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: APPROVE_PLAN(P8.1) on `f23a270` (next P8_GATE) — system evaluator implementation approved; Decision D evaluates to false under OUTCOME_E
+- latest_approval_packet: APPROVE_EXECUTION(P8.1) on `1b9f33e` (next P8_GATE) — system eval implementation accepted; Decision_D=false; state_transport.last_accepted_report_commit advanced d009c31 → 1b9f33e
+- prior_approval_packet_p8_1_plan: APPROVE_PLAN(P8.1) on `f23a270` (next P8_GATE) — system evaluator implementation approved; Decision D evaluates to false under OUTCOME_E
 - prior_approval_packet_p8_1_scope_exec: APPROVE_EXECUTION(P8.1-scope-change) on `f23a270` (next P8.1) — touch_policy P8.1 row + progress.yaml parse-fix accepted
 - prior_approval_packet_p8_1_change_scope: CHANGE_SCOPE(P8.1) on `440f2fa` (next P8.1) — authorizes scripts/robust_asr/evaluate_system.py in the P8.1 touch-policy row
 - prior_approval_packet_p7_phase: PHASE_APPROVE(P7) on `d009c31` (next P8.1)

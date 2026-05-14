@@ -53,6 +53,16 @@ state_transport:
       scope: task
       task_id: P8.1
       phase: P8
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd
+      next_expected_task: P8_GATE
+      required_fix: null
+      rationale: "P8.1 passed. System evaluation completed with Slurm COMPLETED 0:0, system_eval.md first line is positive_system:false, OK_SYSTEM_EVAL:false emitted, Decision_D_positive_system=false recorded, claims_enabled.positive_system=false, OK_REPORT_SHAPE passed, full robust_asr pytest passed, and progress YAML parses. OUTCOME_E_NARROWED_SCOPE is correctly recorded."
+  prior_approval_packet_p8_1_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.1
+      phase: P8
       decision: APPROVE_PLAN
       accepted_report_commit: f23a27024ccb284175ed120030920220abc3e51c
       next_expected_task: P8_GATE
@@ -698,7 +708,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6
+  last_accepted_report_commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd
   expected_next_task: P8_GATE
   last_tracker_mismatch: null
 
@@ -1165,8 +1175,9 @@ artifacts:
     last_slurm_elapsed: "00:00:09"
   P8_1_task_report:
     path: reports/robust_asr/task_reports/P8.1_system_eval.md
-    sha256: null   # filled at commit time
+    sha256: f51c5e8e5452e937411c31742e1dfa492be7556a43b4b32abd027d705c92075f
     produced_by_task: P8.1
+    approved_at_commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd
   demo_examples_manifest:
     path: artifacts/robust_asr/demo/demo_examples_manifest.json
     sha256: null
@@ -2712,7 +2723,9 @@ tasks:
     notes: "P7 PHASE_APPROVE recorded against commit d009c318acd99041de3175af26b91df2adddffa6 (the P7.3 acceptance commit). Routing enacted per agent plan §2661-§2672 P7 Branch B for OUTCOME_E_DETERMINISTIC_SELECTOR: phase_summary.P7=PASS; orchestrator_approvals.P7=PHASE_APPROVE; decisions.P7_routing.branch=B_deterministic_selector; decisions.P7_routing.outcome_e_carried_forward=true; decisions.P7_routing.enacted_at=P7_GATE. Next task = P8.1 (system evaluation and Decision D). BLOCKED_OOD_PUBLIC held non-blocking; BLOCKED_API held non-blocking; OUTCOME_E_DETERMINISTIC_SELECTOR held as the active outcome. claims_enabled.ood_real=false held; claims_enabled.cloud_tradeoff=false held; claims_enabled.positive_lora=false held; claims_enabled.positive_system=pending held (set only by P8.1 per §5.6); lora_status=SKIPPED_BY_DECISION_A held; deterministic_selector_version=deterministic_selector_v1 held; router_status=SELECTOR_PACKAGED held. No code, no test, no Slurm submission, no real-provider call for this update. Only tracker files modified. P8.1 not started."
   P8.1:
     status: PASS
-    commit: pending_this_task_commit
+    commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd
+    approved_by: APPROVE_EXECUTION_P8.1
+    approved_at_commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd
     branch: B_deterministic_selector
     next_task: P8_GATE
     marker: OUTCOME_E_NARROWED_SCOPE
