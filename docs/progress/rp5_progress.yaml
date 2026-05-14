@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.1
-current_task: B14_1-01
-last_completed_task: B14_1-00
+current_task: B14_1-02
+last_completed_task: B14_1-01
 last_completed_phase: B14.0
 markers: []
 phase_approvals:
@@ -85,10 +85,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_1_plan_compile.md
+  latest_execution_report_path: reports/rp5/b14_1_exposure_state_record.md
   latest_phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
-  expected_next_task: B14_1-01
+  expected_next_task: B14_1-02
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -1039,3 +1039,94 @@ tasks:
       hars_blocking_B14_1-00: none
     marker: null
     next_task: B14_1-01
+  B14_1-01:
+    task_id: B14_1-01
+    status: PASS
+    commit: 5fab1b7a6fbab33cbd0e7cf76e216df5d13b4b11
+    accepted_report_commit: 5fab1b7a6fbab33cbd0e7cf76e216df5d13b4b11
+    files_changed:
+      - services/api/app/public_exposure.py
+      - .env.example
+      - reports/rp5/b14_1_exposure_state_record.md
+      - reports/rp5/b14_1_no_public_url_or_hostname_literal.md
+      - scripts/rp5/validate_b14_1_exposure_state_record.py
+      - scripts/rp5/validate_b14_1_no_public_url_or_hostname_literal.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal.py
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record/positive/record.md
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record/negative/negative_claim_blocked_without_blocker_id/record.md
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record/negative/negative_claim_success_with_blocker/record.md
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record/negative/negative_claim_success_without_supplied_reference/record.md
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record/negative/negative_exposure_mode_ephemeral_only/record.md
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal/positive/sample.txt
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal/negative/negative_cloudflare_cfargotunnel_hostname/sample.txt
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal/negative/negative_cloudflare_tunnel_url/sample.txt
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal/negative/negative_tailscale_funnel_hostname/sample.txt
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal/negative/negative_tailscale_funnel_url/sample.txt
+    commands_run:
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_1_exposure_state_record_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal_manifest.json"
+      - "python3 scripts/rp5/validate_b14_1_exposure_state_record.py --record reports/rp5/b14_1_exposure_state_record.md --out /tmp/b14_1_exposure_state_record_validation.md"
+      - "python3 scripts/rp5/validate_b14_1_no_public_url_or_hostname_literal.py --root . --out reports/rp5/b14_1_no_public_url_or_hostname_literal.md"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD --out /tmp/b14_1_path_lock_pre_commit.md"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD~1..HEAD --out /tmp/b14_1_path_lock_post_commit.md"
+    key_outputs:
+      - OK_FIXTURE_VALIDATE_B14_1_EXPOSURE_STATE
+      - OK_FIXTURE_VALIDATE_B14_1_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_B14_1_EXPOSURE_STATE_STABLE_OR_BLOCKED
+      - OK_B14_1_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      recovery_route: ROUTE_A_REVISE_PLAN_NO_SCOPE_CHANGE
+      prior_blocker_resolved: VALIDATOR_MATERIALIZATION_GAP (resolved without scope change; missing reusable protocol validators were not required by agent_plan §10/§8 for B14_1-01 closure)
+      path_lock_pre_commit_observed: true
+      path_lock_post_commit_observed: true
+      path_lock_pre_commit_diff_spec: "--diff HEAD"
+      path_lock_post_commit_diff_spec: "--diff HEAD~1..HEAD"
+      path_lock_lock_counts:
+        PL-B14_1-API-DEMO: "1 / max 6"
+        PL-B14_1-CONFIG: "1 / max 2"
+        PL-B14_1-REPORTS: "2 / max 20"
+        PL-B14_1-SCRIPTS: "4 / max 18"
+        PL-B14_1-TESTS: "12 / max 12"
+      fixture_manifest_sha256:
+        exposure_state_record: "ca3457dc4e2ff5cb9627c051bc9d76e0cb664361b8d9a0a6acc226cbab2fd1a6"
+        no_public_url_or_hostname_literal: "2b00d7c55e279215ce04baba1078bf38ab096cb0d2267e388bf17fd02dc8cb3c"
+      authorized_files_set_size: 20
+      unauthorized_paths_in_commit: 0
+      local_only_transcripts_removed_before_final_status: true
+      tracker_mutated_during_execution: false
+      missing_protocol_validators_authored: false
+      missing_protocol_validators_invoked: false
+      docs_plans_b14_1_modified: false
+      docs_plans_b14_0_modified: false
+      docs_plans_broute_modified: false
+      libs_modified: false
+      libs_asr_router_runtime_modified: false
+      services_api_app_main_modified: false
+      services_api_app_init_modified: false
+      services_api_app_demo_main_modified: false
+      services_api_app_recruiter_auth_modified: false
+      services_api_app_rate_limit_modified: false
+      services_api_app_upload_validation_modified: false
+      services_frontend_modified: false
+      infra_modified: false
+      compose_modified: false
+      env_real_value_files_modified: false
+      runtime_modified: false
+      public_exposure_introduced: false
+      public_url_literal_committed: false
+      stable_hostname_literal_committed: false
+      tunnel_secret_committed: false
+      recruiter_password_committed: false
+      admin_password_committed: false
+      authorization_header_value_committed: false
+      forbidden_commit_trailers_present: false
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      har_b14_1_funnel_capability_001_status: pre_declared_unresolved
+      har_b14_1_stable_hostname_001_status: pre_declared_unresolved
+      hars_blocking_B14_1-01: none
+    marker: null
+    next_task: B14_1-02
