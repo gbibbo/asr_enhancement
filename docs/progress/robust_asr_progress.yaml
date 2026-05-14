@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P9
-current_task: P9.1
-last_completed_task: P9.0
+current_task: P9.2
+last_completed_task: P9.1
 
 blocked: false
 blocker: null
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: reports/robust_asr/task_reports/P8_GATE_attempt2.md
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P9.1
+      phase: P9
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 6301dbc1637af0f0c74be6e06f77d182e050b77a
+      next_expected_task: P9.2
+      required_fix: null
+      rationale: "P9.1 Handoff package completed and corrected. The handoff package was created in commit 64eba4345f3207af38f0fba8ac2c43c6084e8852, the tag handoff/20260514-64eba43 was created and pushed to origin pointing at that package commit, and strict validation plus tracker/report evidence were recorded in commit 5c8d95909daedc853329ea4f4c4e7d1cd1a40a7c. The protocol fix commit 6301dbc1637af0f0c74be6e06f77d182e050b77a recorded the missing APPROVE_PLAN(P9.1) packet without changing the package, tag, evidence, claims, markers, or task state. OK_HANDOFF_PACKAGE, OK_HANDOFF_SMOKE, pytest 137 passed, OK_REPORT_SHAPE, and OK_PROGRESS_YAML_PARSE were observed. C4 disclosure is recorded in README §6.4; C5 exclusion verification remains assigned to P10.1."
+  prior_approval_packet_p9_1_plan:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P9.1
@@ -918,8 +928,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: f7a195b8828278e42fcc642090cc315309404e07
-  expected_next_task: P9.1
+  last_accepted_report_commit: 6301dbc1637af0f0c74be6e06f77d182e050b77a
+  expected_next_task: P9.2
   last_tracker_mismatch: null
 
 phase_summary:
