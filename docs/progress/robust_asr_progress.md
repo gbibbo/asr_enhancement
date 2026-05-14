@@ -7,8 +7,9 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P8 (system evaluation and demo examples)
-- Current task: P8.1 (system evaluation and Decision D)
-- Last completed: P7.3 (PASS — deterministic selector packaged under OUTCOME_E Branch B; PHASE_APPROVE(P7) recorded against the same P7.3 acceptance commit and does not itself advance last_completed_task)
+- Current task: P8_GATE (P8.1 PASS — system evaluation, Decision D = false under OUTCOME_E_NARROWED_SCOPE)
+- Last completed: P8.1 (PASS — system_eval.md first line `positive_system: false`; OK_SYSTEM_EVAL:false on stdout; pytest 137/137; full BCa bootstrap 10000 iter seed 20250514; Slurm job 2132279 COMPLETED 0:0)
+- Prior completed: P7.3 (PASS — deterministic selector packaged under OUTCOME_E Branch B; PHASE_APPROVE(P7) recorded against the same P7.3 acceptance commit and does not itself advance last_completed_task)
 - Prior completed: P6.1 (PASS — selector-evidence path)
 - Prior completed: P5.1 (HALTED — BLOCKED_API reason=key_unset)
 - Prior completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL)
@@ -21,20 +22,24 @@ Status: IN_PROGRESS
 - claims_enabled.ood_real: false (no Section 1.1 OOD-real fallback resolves on host)
 - claims_enabled.cloud_tradeoff: false (set by P5.1 BLOCKED_API; ASSEMBLYAI_API_KEY unset)
 - claims_enabled.positive_lora: false (transitioned from pending by P3 gate Branch B)
+- claims_enabled.positive_system: false (set by P8.1; Section 5.6 predicate fails under OUTCOME_E single-deployable-baseline scope; OUTCOME_E_NARROWED_SCOPE marker)
+- decisions.Decision_D_positive_system.outcome: false (decided at P8.1)
 - lora_status: SKIPPED_BY_DECISION_A (transitioned from SMOKE_DONE by P3 gate Branch B)
 - decisions.Decision_B_lora_full.include_lora_in_router: false (set by P3 gate Branch B)
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
 - state_transport.last_accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6 (held at the P7.3 acceptance commit; PHASE_APPROVE(P7) was recorded against this commit and does not itself advance it, matching the P0/P1/P2/P3/P5/P6 pattern)
-- state_transport.expected_next_task: P8.1
+- state_transport.expected_next_task: P8_GATE
 - deterministic_selector_version: deterministic_selector_v1 (frozen at P6.1)
 - router_status: SELECTOR_PACKAGED
 - tasks.P6.1.status: PASS (branch B selector-evidence)
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: CHANGE_SCOPE(P8.1) on `440f2fa` (next P8.1) — authorizes scripts/robust_asr/evaluate_system.py in the P8.1 touch-policy row
+- latest_approval_packet: APPROVE_PLAN(P8.1) on `f23a270` (next P8_GATE) — system evaluator implementation approved; Decision D evaluates to false under OUTCOME_E
+- prior_approval_packet_p8_1_scope_exec: APPROVE_EXECUTION(P8.1-scope-change) on `f23a270` (next P8.1) — touch_policy P8.1 row + progress.yaml parse-fix accepted
+- prior_approval_packet_p8_1_change_scope: CHANGE_SCOPE(P8.1) on `440f2fa` (next P8.1) — authorizes scripts/robust_asr/evaluate_system.py in the P8.1 touch-policy row
 - prior_approval_packet_p7_phase: PHASE_APPROVE(P7) on `d009c31` (next P8.1)
 - prior_approval_packet_p7_3_exec: APPROVE_EXECUTION(P7.3) on `d009c31` (next P7_GATE)
 - prior_approval_packet_p7_3_plan: APPROVE_PLAN(P7.3) on `394df2d` (next P7_GATE)

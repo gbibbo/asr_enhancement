@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P8
-current_task: P8.1
-last_completed_task: P7.3
+current_task: P8_GATE
+last_completed_task: P8.1
 
 blocked: false
 blocker: null
@@ -33,7 +33,7 @@ claims_enabled:
   ood_real: false
   cloud_tradeoff: false
   positive_lora: false
-  positive_system: pending
+  positive_system: false
 
 session_log:
   current_session_id: null
@@ -49,6 +49,26 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.1
+      phase: P8
+      decision: APPROVE_PLAN
+      accepted_report_commit: f23a27024ccb284175ed120030920220abc3e51c
+      next_expected_task: P8_GATE
+      required_fix: null
+      rationale: "P8.1 plan approved on the YAML-parse-fix commit f23a270. Implement scripts/robust_asr/evaluate_system.py, slurm/jobs/p8_1_system_eval.sh, reports/robust_asr/system/system_eval.md, and reports/robust_asr/task_reports/P8.1_system_eval.md. Run via slurm/tools/on_submit.sh; emit OK_SYSTEM_EVAL:<true|false>; update tracker.claims_enabled.positive_system from line 1 of system_eval.md; update decisions.Decision_D_positive_system.outcome. Under OUTCOME_E with single deployable baseline whisper_base_ct2_int8, Decision D is expected to be false. Do not advance last_accepted_report_commit to the P8.1 implementation commit. Do not start P8_GATE."
+  prior_approval_packet_p8_1_scope_exec:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.1-scope-change
+      phase: P8
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: f23a27024ccb284175ed120030920220abc3e51c
+      next_expected_task: P8.1
+      required_fix: null
+      rationale: "P8.1 scope-change accepted on the YAML-parse-fix commit f23a270. touch_policy.md (P8.1 row rewritten to authorize scripts/robust_asr/evaluate_system.py + the existing P8.1 writes) is now binding. progress.yaml is YAML-parseable again (degradation_v1_subset_manifests rows fixed). Policy sha256 recorded in artifacts.touch_policy.sha256=fc4a4000… with last_amended_by=P8.1_scope_change."
+  prior_approval_packet_p8_1_change_scope:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P8.1
@@ -679,7 +699,7 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: d009c318acd99041de3175af26b91df2adddffa6
-  expected_next_task: P8.1
+  expected_next_task: P8_GATE
   last_tracker_mismatch: null
 
 phase_summary:
@@ -1126,7 +1146,26 @@ artifacts:
     produced_by_task: P7.3
   system_eval_report:
     path: reports/robust_asr/system/system_eval.md
-    sha256: null
+    sha256: 4bdf8f670749537320c55b54c7bc17767d40891cb70693917ec2d3f349fe93ff
+    produced_by_task: P8.1
+    first_line: "positive_system: false"
+    last_emit: OK_SYSTEM_EVAL:false
+  evaluate_system_script:
+    path: scripts/robust_asr/evaluate_system.py
+    sha256: 8735d888d45c6c92eab187fbb207b3da334b24d3115e88f7d9e2a3cd89a0802b
+    produced_by_task: P8.1
+    last_emit: OK_SYSTEM_EVAL:false
+  p8_1_system_eval_job:
+    path: slurm/jobs/p8_1_system_eval.sh
+    sha256: 85c3052f58fd78b9b63eabfedc8976e836e1b2c03161f57ff80f13a72868e8e5
+    produced_by_task: P8.1
+    last_slurm_job_id: 2132279
+    last_slurm_state: COMPLETED
+    last_slurm_exit_code: "0:0"
+    last_slurm_elapsed: "00:00:09"
+  P8_1_task_report:
+    path: reports/robust_asr/task_reports/P8.1_system_eval.md
+    sha256: null   # filled at commit time
     produced_by_task: P8.1
   demo_examples_manifest:
     path: artifacts/robust_asr/demo/demo_examples_manifest.json
@@ -1183,8 +1222,10 @@ decisions:
     selected_impl: null
     decided_at_task: P7.1
   Decision_D_positive_system:
-    outcome: null
+    outcome: false
     decided_at_task: P8.1
+    marker: OUTCOME_E_NARROWED_SCOPE
+    rationale: "Section 5.6 predicate evaluated on selector_evidence (53,230 rows) against the single declared baseline whisper_base_ct2_int8 under OUTCOME_E_DETERMINISTIC_SELECTOR. Primary policy ask_repeat_wer=1.0: all 28 ask_repeat rows already have baseline_wer=1.0, so per-row delta is identically zero; mean_regret_selector=mean_regret_baseline=0.000000; predicate (i) mean_regret(chosen)<mean_regret(b) does not hold strictly; paired CI=[0,0] (percentile_fallback, BCa degenerate); predicate (ii) CI excludes 0 is False; predicate (iii) no disabled-flag dependency holds. Sensitivity ask_repeat_wer=0.5 reported as probe only (would yield CI=[-0.000385,-0.000188]) and does not affect Decision D under the §5.4 alpha=1.0 cost convention."
   P5_routing:
     branch: B_blocked_api_outcome_e
     deployable_backend_count: 1
@@ -2669,3 +2710,38 @@ tasks:
     next_task: P8.1
     blocker: null
     notes: "P7 PHASE_APPROVE recorded against commit d009c318acd99041de3175af26b91df2adddffa6 (the P7.3 acceptance commit). Routing enacted per agent plan §2661-§2672 P7 Branch B for OUTCOME_E_DETERMINISTIC_SELECTOR: phase_summary.P7=PASS; orchestrator_approvals.P7=PHASE_APPROVE; decisions.P7_routing.branch=B_deterministic_selector; decisions.P7_routing.outcome_e_carried_forward=true; decisions.P7_routing.enacted_at=P7_GATE. Next task = P8.1 (system evaluation and Decision D). BLOCKED_OOD_PUBLIC held non-blocking; BLOCKED_API held non-blocking; OUTCOME_E_DETERMINISTIC_SELECTOR held as the active outcome. claims_enabled.ood_real=false held; claims_enabled.cloud_tradeoff=false held; claims_enabled.positive_lora=false held; claims_enabled.positive_system=pending held (set only by P8.1 per §5.6); lora_status=SKIPPED_BY_DECISION_A held; deterministic_selector_version=deterministic_selector_v1 held; router_status=SELECTOR_PACKAGED held. No code, no test, no Slurm submission, no real-provider call for this update. Only tracker files modified. P8.1 not started."
+  P8.1:
+    status: PASS
+    commit: pending_this_task_commit
+    branch: B_deterministic_selector
+    next_task: P8_GATE
+    marker: OUTCOME_E_NARROWED_SCOPE
+    sentinels: [OK_SYSTEM_EVAL_false, OK_REPORT_SHAPE, pytest_tests_robust_asr_137_of_137]
+    files_changed:
+      - scripts/robust_asr/evaluate_system.py
+      - slurm/jobs/p8_1_system_eval.sh
+      - reports/robust_asr/system/system_eval.md
+      - reports/robust_asr/task_reports/P8.1_system_eval.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "./slurm/tools/on_submit.sh sbatch slurm/jobs/p8_1_system_eval.sh -> job 2132279 COMPLETED 0:0 elapsed 00:00:09"
+      - "head -n 1 reports/robust_asr/system/system_eval.md -> 'positive_system: false'"
+      - "OK_SYSTEM_EVAL:false emitted on stdout (job 2132279 log) and as the last non-blank line of system_eval.md"
+      - "python scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures -> OK_REPORT_SHAPE"
+      - "./slurm/tools/on_submit.sh sbatch /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/logs/p8_1_pytest_helper.sh -> job 2132280 COMPLETED 0:0; pytest tests/robust_asr 137/137"
+      - "python -c 'import yaml; yaml.safe_load(open(...))' -> OK_PROGRESS_YAML_PARSE"
+    key_outputs:
+      - "reports/robust_asr/system/system_eval.md (sha256 4bdf8f670749537320c55b54c7bc17767d40891cb70693917ec2d3f349fe93ff); first line 'positive_system: false'; final non-blank line 'OK_SYSTEM_EVAL:false'"
+      - "scripts/robust_asr/evaluate_system.py (sha256 8735d888d45c6c92eab187fbb207b3da334b24d3115e88f7d9e2a3cd89a0802b)"
+      - "slurm/jobs/p8_1_system_eval.sh (sha256 85c3052f58fd78b9b63eabfedc8976e836e1b2c03161f57ff80f13a72868e8e5)"
+      - "Decision_D_positive_system.outcome = false; claims_enabled.positive_system pending -> false"
+      - "Primary policy ask_repeat_wer=1.0: mean_wer_selector=mean_wer_baseline=0.209797; mean_regret_selector=mean_regret_baseline=0.000000; paired 95% CI=[0.000000,0.000000] (percentile_fallback); Wilcoxon n=0 stat=NaN p=NaN; predicate (i)=False, (ii)=False, (iii)=True"
+      - "Sensitivity ask_repeat_wer=0.5 (probe only): mean_wer_selector=0.209534, mean_regret_selector=-0.000263, BCa 95% CI=[-0.000385,-0.000188], Wilcoxon n=28 stat=0.0 p=1.213e-07; not used for Decision D under §5.4 alpha=1.0 cost convention"
+      - "selector action mix on 53,230 rows: whisper_base_ct2_int8 53,202 (99.9474%); ask_repeat 28 (0.0526%); assemblyai 0; whisper_lora_ct2_int8 0"
+      - "WER parity drift between selector_evidence and eval table: max abs diff = 0.0"
+    decided_at_task: P8.1
+    decision: Decision_D_positive_system.outcome = false
+    blocker: null
+    notes: "P8.1 PASS — Outcome E Branch B. evaluate_system.py loads selected_router/, joins selector_evidence.parquet to eval_tables/whisper_base_ct2_int8.parquet on audio_id (parity 0.0), computes paired delta = wer(selector_action_i) - wer(baseline_i), runs BCa bootstrap (10000 iter, seed 20250514) with percentile_fallback when degenerate, runs Wilcoxon signed-rank, evaluates §5.6 Decision D predicate, writes reports/robust_asr/system/system_eval.md with 'positive_system: false' on line 1, emits OK_SYSTEM_EVAL:false. Under OUTCOME_E only one transcript-producing backend is deployable (whisper_base_ct2_int8); declared baselines=[whisper_base_ct2_int8]; all 28 ask_repeat rows have baseline_wer=1.0 so at primary ask_repeat_wer=1.0 per-row delta=0 and §5.6 predicates (i)+(ii) cannot hold; predicate (iii) holds (no claim depends on cloud_tradeoff/ood_real/positive_lora). Sensitivity ask_repeat_wer=0.5 is reported as a probe only and does not affect Decision D. Slurm job 2132279 COMPLETED 0:0 (elapsed 00:00:09, MaxRSS 7012K). Full robust_asr pytest 137/137 via Slurm job 2132280. validate_report_shape.py OK_REPORT_SHAPE. progress.yaml parses (yaml.safe_load OK). current_task advanced P8.1 -> P8_GATE; last_completed_task advanced P7.3 -> P8.1; claims_enabled.positive_system pending -> false; decisions.Decision_D_positive_system.outcome=false marker=OUTCOME_E_NARROWED_SCOPE. state_transport.last_accepted_report_commit STAYS d009c318acd99041de3175af26b91df2adddffa6 per orchestrator instruction (NOT advanced to this P8.1 implementation commit, matching P5.1/P6.1/P7.3 pattern). state_transport.expected_next_task=P8_GATE. Markers held: BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR (none cleared). claims_enabled.ood_real=false held; .cloud_tradeoff=false held; .positive_lora=false held. router_status=SELECTOR_PACKAGED held. No real-provider call, no audio/model/secret writes. P8_GATE not started. P8.2 not started."
