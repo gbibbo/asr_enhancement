@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.0
-current_task: B14_0-01
-last_completed_task: B14_0-00
+current_task: B14_0-02
+last_completed_task: B14_0-01
 last_completed_phase: B-route
 markers: []
 phase_approvals:
@@ -41,10 +41,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_0_plan_compile.md
+  latest_execution_report_path: reports/rp5/b14_0_recruiter_auth_contract.md
   latest_phase_gate_report_path: reports/rp5/broute_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
-  expected_next_task: B14_0-01
+  expected_next_task: B14_0-02
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -353,3 +353,45 @@ tasks:
       forbidden_commit_trailers_present: false
     marker: null
     next_task: B14_0-01
+  B14_0-01:
+    task_id: B14_0-01
+    status: PASS
+    commit: 35d72232f345780b73135660c6deaa7418cc50d2
+    files_changed:
+      - scripts/rp5/validate_b14_0_recruiter_auth_contract.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_0_recruiter_auth_contract.py
+      - reports/rp5/b14_0_recruiter_auth_contract.md
+    commands_run:
+      - "python3 scripts/rp5/validate_b14_0_recruiter_auth_contract.py --out reports/rp5/b14_0_recruiter_auth_contract.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_0_recruiter_auth_contract.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_recruiter_auth_contract_manifest.json"
+      - "python3 scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_B14_0_RECRUITER_AUTH_CONTRACT
+      - OK_FIXTURE_VALIDATE_B14_0_RECRUITER_AUTH_CONTRACT
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "no_real_secrets_committed: true"
+      - "no_public_url_literals: true"
+      - "HAR_resolved: false"
+    supplemental_evidence:
+      schema_conformance_checks_passed: 5
+      schema_conformance_checks_total: 5
+      recruiter_auth_invariant_records_emitted: 1
+      credential_storage_policy_records_emitted: 2
+      auth_separation_invariant_records_emitted: 5
+      fixture_positive_count: 2
+      fixture_negative_count: 10
+      fixture_manifest_local_only_sha256: "db4434e92d99ac40bf64d6fd523eb30db954d7729d12c5795fc7dc5dbec0a51b"
+      path_lock_validation_local_only_sha256: "578f5c3074d88dfc9aa6b3c358c89cea677ee7050f91682098e395cbf44ed4b5"
+      local_only_fixtures_removed_before_final_status: true
+      tracker_mutated_during_execution: false
+      approval_packet_file_created: false
+      approval_packet_recording_policy: in_tracker_only_per_BR_NN_established_pattern
+      HAR-B14_0-RECRUITER-CREDS-001_status: pre_declared_unresolved
+      HAR-B14_0-RECRUITER-CREDS-001_blocks: B14_0-02 closure only
+      rotation_policy_token: "deferred_to_HAR-B14_0-RECRUITER-CREDS-001"
+      env_example_modified: false
+      middleware_implemented: false
+      repo_dependency_or_config_files_changed: false
+      forbidden_commit_trailers_present: false
+    marker: null
+    next_task: B14_0-02
