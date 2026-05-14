@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P10
-current_task: P10.1
-last_completed_task: P9_GATE
+current_task: P10.2
+last_completed_task: P10.1
 
 blocked: false
 blocker: null
@@ -55,11 +55,21 @@ state_transport:
       scope: task
       task_id: P10.1
       phase: P10
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 37a588b6aa4ee3116c32778092990b8dc9d023b0
+      next_expected_task: P10.2
+      required_fix: null
+      rationale: "P10.1 Final verification completed successfully. Observed validations: pytest tests/robust_asr/ returned 137 passed; validate_eval_table.py returned OK_EVAL_TABLE for artifacts/robust_asr/eval_tables/whisper_base_ct2_int8.parquet; validate_selector_evidence.py returned OK_SELECTOR_EVIDENCE for artifacts/robust_asr/router/selector_evidence.parquet under Branch B / OUTCOME_E_DETERMINISTIC_SELECTOR; verify_handoff_package.py --strict returned OK_HANDOFF_PACKAGE with A1-A7 PASS; validate_runtime_contract.py --strict-final returned OK_CONTRACT_FINAL with A01-A19 PASS; C5 exclusion verification returned PASS across eval table, selector evidence, oracle scope, and system_eval inputs. claims_enabled.* remained false; markers remained active; forbidden paths were unchanged; final verification report and P10.1 task report were written and pushed."
+  prior_approval_packet_p10_1_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P10.1
+      phase: P10
       decision: APPROVE_PLAN
       accepted_report_commit: d08dfa821957d4dfa5c3049fc1a60a850d2097ac
       next_expected_task: P10.1
       required_fix: null
-      rationale: "P10.1 planning report accepted. P9 is phase-approved and current_task is P10.1. Branch B is active under OUTCOME_E_DETERMINISTIC_SELECTOR, so P10.1 must validate selector_evidence rather than oracle/router matrices. C5 exclusion verification is now in scope and must assert that demo manifest paths, demo audio_id values, upstream_audio_id values where comparable columns exist, demo audio_sha256 values, and demo audio paths are excluded from eval tables, selector evidence, oracle parquet if any, and system_eval input sets. Claims remain false. Markers remain active. P10.2 must not start without a later APPROVE_EXECUTION(P10.1)."
+      rationale: "P10.1 planning report accepted. P9 is phase-approved and current_task is P10.1. Branch B is active under OUTCOME_E_DETERMINISTIC_SELECTOR, so P10.1 must validate selector_evidence rather than oracle/router matrices. C5 exclusion verification is now in scope and must assert that demo manifest paths, demo audio_id values, upstream_audio_id values where comparable columns exist, demo audio_sha256 values, and demo audio paths are excluded from eval tables, selector evidence, oracle parquet if any, and system_eval input sets. Claims remain false. Markers remain active. P10.2 must not start without a later APPROVE_EXECUTION(P10.1). Demoted from latest_approval_packet to prior_approval_packet_p10_1_plan by the APPROVE_EXECUTION(P10.1) recording commit."
   prior_approval_packet_p9_gate_phase_approve:
     ORCHESTRATOR_DECISION:
       scope: phase
@@ -980,8 +990,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: a3c7d3713809e6d77e4d53e423cc50973b5fa5a4
-  expected_next_task: P10.1
+  last_accepted_report_commit: 37a588b6aa4ee3116c32778092990b8dc9d023b0
+  expected_next_task: P10.2
   last_tracker_mismatch: null
 
 phase_summary:
