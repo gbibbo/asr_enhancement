@@ -916,9 +916,9 @@ artifacts:
     phone_band_id:           {path: artifacts/robust_asr/manifests/degradation_v1_phone_band_id.parquet,           sha256: b0e7cabe99c5a5843a05a2e25ab50f778822b247b29ad11a175134591c9d7f48, rows: 5323, bad_output_count: 0}
     phone_band_ood_param:    {path: artifacts/robust_asr/manifests/degradation_v1_phone_band_ood_param.parquet,    sha256: 218e5bf894aa5dff3de16879d6999e00d96750ab8f96ae72848f9a45762beab5, rows: 5323, bad_output_count: 0}
     far_field_room_id:       {path: artifacts/robust_asr/manifests/degradation_v1_far_field_room_id.parquet,       sha256: ec1be39c6aea26f8dab58d941951066162cffb404491a9597f1237db972be354, rows: 5323, bad_output_count: 0}
-    far_field_room_ood_param:{path: artifacts/robust_asr/manifests/degradation_v1_far_field_room_ood_param.parquet,sha256: 3ea8c734dce4cd902b4e47e3e6336b7b6f60927a861c133f4b9870f5d4e86892, rows: 5323, bad_output_count: 0}
+    far_field_room_ood_param: {path: artifacts/robust_asr/manifests/degradation_v1_far_field_room_ood_param.parquet, sha256: 3ea8c734dce4cd902b4e47e3e6336b7b6f60927a861c133f4b9870f5d4e86892, rows: 5323, bad_output_count: 0}
     muffled_lowpass_id:      {path: artifacts/robust_asr/manifests/degradation_v1_muffled_lowpass_id.parquet,      sha256: 742e25ab9a95a399c7e77ea1a81e8cc188da87488eaafbb9707df5788052d82a, rows: 5323, bad_output_count: 0}
-    muffled_lowpass_ood_param:{path: artifacts/robust_asr/manifests/degradation_v1_muffled_lowpass_ood_param.parquet,sha256: 5c6c4dc1ac0d9e0553045254dde9ae9aac47ebb802b4722c3e58ab9edac8bae9, rows: 5323, bad_output_count: 0}
+    muffled_lowpass_ood_param: {path: artifacts/robust_asr/manifests/degradation_v1_muffled_lowpass_ood_param.parquet, sha256: 5c6c4dc1ac0d9e0553045254dde9ae9aac47ebb802b4722c3e58ab9edac8bae9, rows: 5323, bad_output_count: 0}
   degradation_v1_build_summary_json:
     path: artifacts/robust_asr/manifests/degradation_v1_build_summary.json
     sha256: 678aeb1533aec191496247fd65105537f91dfa490269df21ee71961f78e4e7ef
