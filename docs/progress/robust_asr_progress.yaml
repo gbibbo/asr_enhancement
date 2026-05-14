@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P9
-current_task: P9.2
-last_completed_task: P9.1
+current_task: P9_GATE
+last_completed_task: P9.2
 
 blocked: false
 blocker: null
@@ -54,11 +54,21 @@ state_transport:
       scope: task
       task_id: P9.2
       phase: P9
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 6711768743bbed4e947bea884a92b12ab095ebf7
+      next_expected_task: P9_GATE
+      required_fix: null
+      rationale: "P9.2 RP5 runtime spec completed and corrected. The original P9.2 implementation commit f900d80837cc23dd5289c0bdb5630009c6e9b9af created artifacts/robust_asr/handoff/rp5_runtime_spec.md (sha256 bbcf912d69b15382631f9b92e0597e79ec95259d9a2a9a246e9a86d71dbac197) with the required six lowercase-anchored sections (input contract; server-side validation; inference steps; response shape mapping; latency budgets and deterministic_selector fallback; failure modes and response.errors mapping) and backend presence validation (whisper_base_ct2_int8 PRESENT; ACTION_CLOUD/assemblyai documented as non-deployed dead code under BLOCKED_API + claims_enabled.cloud_tradeoff=false; no LoRA). The FIX_BEFORE_CLOSE commit 6711768743bbed4e947bea884a92b12ab095ebf7 corrected strict handoff tag validation in scripts/robust_asr/verify_handoff_package.py: A7 now resolves the canonical handoff tag from README §7 Provenance with a git tag --list 'handoff/*' fallback, instead of constructing handoff/<date>-<HEAD-short_sha>. Post-fix strict validation: A1-A7 PASS with OK_HANDOFF_PACKAGE (canonical tag handoff/20260514-64eba43 -> 64eba4345f3207af38f0fba8ac2c43c6084e8852; resolver source=git_tag_list; local commit == origin commit). pytest tests/robust_asr/ -> 137 passed; OK_REPORT_SHAPE; OK_PROGRESS_YAML_PARSE observed. Handoff tag handoff/20260514-64eba43 unchanged and still on origin pointing at 64eba4345f3207af38f0fba8ac2c43c6084e8852. README.md, runtime contract artifacts (final_request_schema.json, final_response_schema.json, final_request_fixture.json, final_response_fixture.json), demo assets (manifest sha256 850c02db... held), selected_router artifacts, handoff_smoke.py, rollback_to_previous_handoff.py, handoff_validation_template.md, backend_configs/whisper_base_ct2_int8.yaml all byte-unchanged. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false all held; markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; OUTCOME_E_NARROWED_SCOPE held on tasks.P8.1/decisions.Decision_D_positive_system. proposed_deviations.P8_2_demo_only_upstream_overlap.status=ENACTED held. C5 (demo exclusion verification) remains assigned to P10.1. Tracker mutations on this approval-recording commit: current_task P9.2 -> P9_GATE; last_completed_task P9.1 -> P9.2; state_transport.expected_next_task P9.2 -> P9_GATE; state_transport.last_accepted_report_commit 6301dbc1637af0f0c74be6e06f77d182e050b77a -> 6711768743bbed4e947bea884a92b12ab095ebf7; latest_approval_packet -> APPROVE_EXECUTION(P9.2); APPROVE_PLAN(P9.2) demoted to prior_approval_packet_p9_2_plan; APPROVE_EXECUTION(P9.1) further demoted to prior_approval_packet_p9_1_exec_demoted (held). phase_summary.P9 held null; orchestrator_approvals.P9 held null. P9 phase gate NOT executed in this commit."
+  prior_approval_packet_p9_2_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P9.2
+      phase: P9
       decision: APPROVE_PLAN
       accepted_report_commit: 9f54b028f6d24cac6fcd5b6b75ea7770d5783475
       next_expected_task: P9.2
       required_fix: null
-      rationale: "P9.2 plan approved on the accepted planning_report commit 9f54b028f6d24cac6fcd5b6b75ea7770d5783475. Write artifacts/robust_asr/handoff/rp5_runtime_spec.md with the six required lowercase-anchored sections (input contract; server-side validation; inference steps; response shape mapping; latency budgets and deterministic_selector fallback; failure modes and response.errors mapping); validate backend presence (whisper_base_ct2_int8 present; ACTION_CLOUD/assemblyai non-deployed dead code; no LoRA). Backend set remains whisper_base_ct2_int8 only; router_kind remains deterministic_selector. LoRA excluded (SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false); AssemblyAI excluded (BLOCKED_API; claims_enabled.cloud_tradeoff=false). C5 (demo exclusion verification) remains P10.1. Handoff tag handoff/20260514-64eba43 unchanged. README.md §2 not updated; new spec recorded as known artifact-set delta. Runtime contract artifacts unchanged. Do not advance state_transport.last_accepted_report_commit to the P9.2 implementation commit; orchestrator advances on APPROVE_EXECUTION(P9.2). Do not open the P9 phase gate."
+      rationale: "P9.2 plan approved on the accepted planning_report commit 9f54b028f6d24cac6fcd5b6b75ea7770d5783475. Write artifacts/robust_asr/handoff/rp5_runtime_spec.md with the six required lowercase-anchored sections (input contract; server-side validation; inference steps; response shape mapping; latency budgets and deterministic_selector fallback; failure modes and response.errors mapping); validate backend presence (whisper_base_ct2_int8 present; ACTION_CLOUD/assemblyai non-deployed dead code; no LoRA). Backend set remains whisper_base_ct2_int8 only; router_kind remains deterministic_selector. LoRA excluded (SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false); AssemblyAI excluded (BLOCKED_API; claims_enabled.cloud_tradeoff=false). C5 (demo exclusion verification) remains P10.1. Handoff tag handoff/20260514-64eba43 unchanged. README.md §2 not updated; new spec recorded as known artifact-set delta. Runtime contract artifacts unchanged. Do not advance state_transport.last_accepted_report_commit to the P9.2 implementation commit; orchestrator advances on APPROVE_EXECUTION(P9.2). Do not open the P9 phase gate. Demoted from latest_approval_packet to prior_approval_packet_p9_2_plan by the APPROVE_EXECUTION(P9.2) recording commit."
   prior_approval_packet_p9_1_exec:
     ORCHESTRATOR_DECISION:
       scope: task
@@ -939,8 +949,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 6301dbc1637af0f0c74be6e06f77d182e050b77a
-  expected_next_task: P9.2
+  last_accepted_report_commit: 6711768743bbed4e947bea884a92b12ab095ebf7
+  expected_next_task: P9_GATE
   last_tracker_mismatch: null
 
 phase_summary:
