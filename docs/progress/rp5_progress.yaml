@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.0
-current_task: B14_0-03
-last_completed_task: B14_0-02
+current_task: B14_0-04
+last_completed_task: B14_0-03
 last_completed_phase: B-route
 markers: []
 phase_approvals:
@@ -52,10 +52,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_0_health_payload_under_auth.md
+  latest_execution_report_path: reports/rp5/b14_0_auth_separation_invariants.md
   latest_phase_gate_report_path: reports/rp5/broute_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_0_plan_approval_packet.yaml
-  expected_next_task: B14_0-03
+  expected_next_task: B14_0-04
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -479,3 +479,69 @@ tasks:
       state_conflict_resolved_via: PATH_A_ACCEPT_EXISTING_EXECUTION
     marker: null
     next_task: B14_0-03
+  B14_0-03:
+    task_id: B14_0-03
+    status: PASS
+    commit: c14cb8320a58969868445d21097ba2862fca85b5
+    files_changed:
+      - scripts/rp5/validate_b14_0_auth_separation_invariants.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_0_auth_separation_invariants.py
+      - reports/rp5/b14_0_auth_separation_invariants.md
+    commands_run:
+      - "single-shell flow: export RECRUITER_USERNAME/RECRUITER_PASSWORD/ADMIN_STATS_USERNAME/ADMIN_STATS_PASSWORD (synthetic ephemeral, never committed)"
+      - "nohup python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 8001 > /tmp/b14_0_03_uvicorn.log 2>&1 &"
+      - "python3 scripts/rp5/validate_b14_0_auth_separation_invariants.py --base-url http://127.0.0.1:8001 --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --admin-username-env ADMIN_STATS_USERNAME --admin-password-env ADMIN_STATS_PASSWORD --component all --uvicorn-log /tmp/b14_0_03_uvicorn.log --out reports/rp5/b14_0_auth_separation_invariants.md"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_0_auth_separation_invariants.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_0_auth_separation_invariants_manifest.json"
+      - "staged-diff guards 10a-d (forbidden substrings, non-loopback URLs, synthetic password values, high-entropy token sweep) + uvicorn-log credential-leak scan 10e, all clean BEFORE unset"
+      - "python3 scripts/rp5/validate_b14_0_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+      - "kill uvicorn pid; unset RECRUITER_USERNAME RECRUITER_PASSWORD ADMIN_STATS_USERNAME ADMIN_STATS_PASSWORD; remove /tmp scratch and tests/rp5 manifest+fixtures"
+    key_outputs:
+      - OK_B14_0_AUTH_SEPARATION
+      - OK_FIXTURE_VALIDATE_B14_0_AUTH_SEPARATION
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "port_8001_released: true"
+      - "uvicorn_log_no_credential_leak: true"
+      - "staged_diff_no_secret_or_exposure: true"
+      - "high_entropy_guard_passed: true"
+      - "synthetic_vars_unset: true"
+      - "HAR_resolved: true"
+    supplemental_evidence:
+      separation_dimensions_covered:
+        - realm
+        - username
+        - password
+        - route_prefix
+        - error_path
+        - cred_separation
+      health_separation_check_count: 11
+      health_separation_failures: 0
+      route_prefix_recruiter_routes_under_demo: true
+      route_prefix_admin_routes_under_admin: true
+      route_prefix_sets_disjoint: true
+      error_path_demo_body_length: 0
+      error_path_admin_body_non_empty: true
+      error_path_bodies_distinct: true
+      cred_separation_usernames_distinct: true
+      cred_separation_passwords_distinct: true
+      fixture_positive_count: 1
+      fixture_negative_count: 7
+      fixture_manifest_local_only_sha256: "316196ef300569de67651803088fdd487953d03943207a2e48e93b5976f1046d"
+      uvicorn_log_local_only_sha256: "c0c0f83085ad32b652373822b2052cd9dfc27a09afc92e81f8540a677915aed8"
+      path_lock_validation_local_only_sha256: "08d54eaf740dc25b2185a22e04cfbc3b58674030d88754fd35bfb7c6ec620812"
+      first_execution_attempt_failed_before_commit: true
+      first_execution_attempt_failure_reason: "validator probe_route_prefix used sys.path.insert(parents[1]) which is scripts/, not repo root; ModuleNotFoundError: services"
+      first_execution_attempt_cleanup_complete: true
+      first_execution_attempt_secret_leak_detected: false
+      successful_rerun_used_fresh_synthetic_credentials: true
+      synthetic_credentials_persisted: false
+      services_api_app_modified: false
+      tracker_mutated_during_execution: false
+      approval_packet_file_created: false
+      approval_packet_recording_policy: in_tracker_only_per_BR_NN_established_pattern
+      local_only_fixtures_removed_before_final_status: true
+      credential_values_recorded_in_tracker: false
+      credential_values_committed_to_repo: false
+      repo_dependency_or_config_files_changed: false
+      forbidden_commit_trailers_present: false
+    marker: null
+    next_task: B14_0-04
