@@ -993,6 +993,37 @@ state_transport:
   last_accepted_report_commit: 37a588b6aa4ee3116c32778092990b8dc9d023b0
   expected_next_task: P10.2
   last_tracker_mismatch: null
+  latest_scope_change_packet:
+    ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: reuse_policy_p10_2_script_allowance
+      phase: P10
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 9452afcf3c3f6b1874d86650724606d8e902b286
+      next_expected_task: P10.2
+      required_fix: "Allow P10.2 to create scripts/robust_asr/final_asset_audit.py, because the active agent plan requires P10.2 to run final_asset_audit.py but configs/robust_asr/reuse_policy_v1.yaml currently omits P10.2 from the scripts/robust_asr/** allowed_tasks row."
+      rationale: "P10.2 planning established that scripts/robust_asr/final_asset_audit.py is absent, while the active plan defines its normative contract in Section 4.1 and P10.2 requires running it. This administrative policy fix prevents the P10.2 implementation from violating the reuse policy."
+      enacted_at_commit: pending_this_scope_change_commit
+      report: reports/robust_asr/task_reports/reuse_policy_p10_2_script_allowance.md
+      reuse_policy_row_changed: scripts/robust_asr/**
+      allowed_tasks_before: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2]
+      allowed_tasks_after: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2, P10.2]
+      reuse_policy_sha256_before: 33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae
+      reuse_policy_sha256_after: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
+      latest_approval_packet_held: "APPROVE_EXECUTION(P10.1) on 37a588b6aa4ee3116c32778092990b8dc9d023b0 (held; not displaced by this scope-change packet, matching the FIX_BEFORE_CLOSE / scope-change precedent at P9.2 strict-tag-validator-fix and P8.2-deviation enactment)"
+      held_after_scope_change:
+        current_task: P10.2
+        last_completed_task: P10.1
+        current_phase: P10
+        state_transport_expected_next_task: P10.2
+        state_transport_last_accepted_report_commit: 37a588b6aa4ee3116c32778092990b8dc9d023b0
+        phase_summary_p10: null
+        orchestrator_approvals_p10: null
+        tasks_p10_1_status: PASS
+        claims_enabled: {ood_real: false, cloud_tradeoff: false, positive_lora: false, positive_system: false}
+        markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]
+        proposed_deviations_P8_2_status: ENACTED
+        scripts_robust_asr_final_asset_audit_py_exists: false
 
 phase_summary:
   P0: PASS
@@ -1076,10 +1107,18 @@ artifacts:
     prior_sha256: e3a824bd4a9734a2a165af393e7384e12331b9af8e9c7207bb75fa7fee270c12
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: 33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae
+    sha256: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
     produced_by_task: P0.2
-    last_amended_by: P8.2_scope_change
-    prior_sha256: 3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf
+    last_amended_by: reuse_policy_p10_2_script_allowance
+    prior_sha256: 33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae
+    sha256_history:
+      - sha256: 3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf
+        amended_by: P0.2 (initial)
+      - sha256: 33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae
+        amended_by: P8.2_scope_change
+      - sha256: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
+        amended_by: reuse_policy_p10_2_script_allowance
+        change: "scripts/robust_asr/** allowed_tasks extended by [P10.2]; row class/permitted_use/no-touch unchanged; notes annotated. Authorizes P10.2 to create scripts/robust_asr/final_asset_audit.py per agent plan §4275 + §1105–§1119."
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
