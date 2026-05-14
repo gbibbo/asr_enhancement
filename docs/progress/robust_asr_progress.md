@@ -30,7 +30,7 @@ Status: IN_PROGRESS
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 2e1c46e8f1595fd1934ecb07743b713057652d29 (advanced from 24811206… by APPROVE_EXECUTION(P8.2); P8.2 PASS under enacted demo-only deviation; current_task advanced P8.2 → P8_GATE; last_completed_task advanced P8.1 → P8.2)
+- state_transport.last_accepted_report_commit: 0073e7b4076ce76d36233bec2eacb4411ba28722 (advanced from 2e1c46e… by CHANGE_SCOPE(plan_index_refresh); administrative pointer refresh anchored on this commit; P8 evidence and P8_GATE state held)
 - state_transport.expected_next_task: P8_GATE
 - deterministic_selector_version: deterministic_selector_v1 (frozen at P6.1)
 - router_status: SELECTOR_PACKAGED
@@ -38,7 +38,8 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: APPROVE_EXECUTION(P8.2) on `2e1c46e` (next P8_GATE) — P8.2 closed as PASS under enacted demo-only deviation `P8_2_demo_only_upstream_overlap` (PASS_WITH_DEMO_ONLY_DEVIATION; binding constraints C1-C5; 8 unchanged WAVs; explicit provenance; demo bundle is UI/demo-only and NOT evidence for any claims_enabled.* flag); current_task advanced P8.2 → P8_GATE; last_completed_task advanced P8.1 → P8.2; state_transport.last_accepted_report_commit advanced 24811206 → 2e1c46e
+- latest_approval_packet: CHANGE_SCOPE(plan_index_refresh) on `0073e7b` (next P8_GATE) — administrative pointer refresh: plan.md and the upper Sections 1–23 of CLAUDE.md now explicitly defer to ROBUST_ASR_PROFILE; legacy docs/plans/training_datamove1_plan.md classified as legacy/template-only and must not be restored; P8 evidence, P8_GATE state, claims_enabled.*, markers, lora_status, router_status all held; state_transport.last_accepted_report_commit advanced 2e1c46e → 0073e7b
+- prior_approval_packet_p8_2_exec: APPROVE_EXECUTION(P8.2) on `2e1c46e` (next P8_GATE) — P8.2 closed as PASS under enacted demo-only deviation `P8_2_demo_only_upstream_overlap` (PASS_WITH_DEMO_ONLY_DEVIATION; binding constraints C1-C5; 8 unchanged WAVs; explicit provenance; demo bundle is UI/demo-only and NOT evidence for any claims_enabled.* flag); current_task advanced P8.2 → P8_GATE; last_completed_task advanced P8.1 → P8.2; state_transport.last_accepted_report_commit advanced 24811206 → 2e1c46e
 - prior_approval_packet_p8_2_deviation_exec: APPROVE_EXECUTION(P8.2-deviation) on `2481120` (next P8.2) — deviation enactment accepted; PASS_WITH_DEMO_ONLY_DEVIATION; all 8 WAV sha256s preserved; provenance_audit.md and manifest carry binding constraints C1-C5; MISSING_EVIDENCE cleared; blocked=false; leakage tests + full robust_asr pytest + report-shape + YAML-parse green; parent P8.2 was IMPLEMENTED_PENDING_APPROVAL at that commit
 - prior_approval_packet_p8_2_deviation_plan: APPROVE_PLAN(P8.2-deviation) on `ec8813c` (next P8.2) — enact the authorized demo-only deviation; manifest top-level `deviation` block added (deviation_id=P8_2_demo_only_upstream_overlap, status=approved_for_demo_only_use_pending_p8_2_approval, upstream_disjointness=false, allowed_use=UI/demo-only, forbidden_use=metrics+eval+selector+system+claims_enabled, binding_constraints=[C1..C5]); provenance_audit.md final verdict PASS_WITH_DEMO_ONLY_DEVIATION; tasks.P8.2 status HALTED → IMPLEMENTED_PENDING_APPROVAL; markers loses MISSING_EVIDENCE; blocked false; blocker null; proposed_deviations.P8_2_demo_only_upstream_overlap.status SCOPE_AUTHORIZED_NOT_YET_ENACTED → ENACTED
 - prior_approval_packet_p8_2_deviation_scope_exec: APPROVE_EXECUTION(P8.2-deviation-scope-change) on `ec8813c` (next P8.2) — scope-change accepted; deviation framework with C1-C5 is binding policy
@@ -92,6 +93,53 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## plan_index_refresh CHANGE_SCOPE recorded — branch entry-point pointer refresh; P8 evidence and P8_GATE state held
+
+- ORCHESTRATOR_DECISION: scope=scope_change task=plan_index_refresh phase=P8
+  decision=CHANGE_SCOPE
+- accepted_report_commit: `0073e7b4076ce76d36233bec2eacb4411ba28722`
+- next_expected_task: P8_GATE
+- required_fix: prevent future orchestrators or Claude sessions from misreading stale legacy pointers as the active plan; make the active robust_asr profile and active plan files unambiguous; legacy `docs/plans/training_datamove1_plan.md` must remain absent and must not be restored
+- rationale: the live corrected State Packet established that `ROBUST_ASR_PROFILE` is active, that `docs/plans/robust_asr_orchestrator_plan_v3_4_7.md` and `docs/plans/robust_asr_agent_plan_v3_4_7.md` are the active plans, and that `docs/plans/training_datamove1_plan.md` is legacy/template-only; this change refreshes pointers only and does not alter P8 evidence, P8_GATE predicates, or project technical state
+
+Tracker mutations on this commit:
+
+- `plan.md`: replaced with a branch entry point pointing to `ROBUST_ASR_PROFILE`, the active orchestrator/agent plans, the active schemas, and the active trackers; legacy `docs/plans/training_datamove1_plan.md` and `docs/progress/training_datamove1_progress.{yaml,md}` classified as read-only historical references; explicit "must not be restored" note for the canonical training plan path.
+- `CLAUDE.md`: branch-specific warning inserted above Section 1 (outside the `BEGIN`/`END ROBUST_ASR_PROFILE` delimiters) declaring Sections 1–23 as legacy training-template content superseded by `ROBUST_ASR_PROFILE` for this branch; `ROBUST_ASR_PROFILE` block body byte-unchanged.
+- `latest_approval_packet`: `CHANGE_SCOPE(plan_index_refresh)` on `0073e7b4076ce76d36233bec2eacb4411ba28722` (next `P8_GATE`); the prior `APPROVE_EXECUTION(P8.2)` on `2e1c46e…` demoted to `prior_approval_packet_p8_2_exec`. All other prior packets held in their slots.
+- `state_transport.last_accepted_report_commit`: `2e1c46e8f1595fd1934ecb07743b713057652d29` → **`0073e7b4076ce76d36233bec2eacb4411ba28722`**.
+- `tasks.plan_index_refresh`: new entry recorded `status=PASS` with `type=scope_change`, `phase=P8`, `authorized_at_commit=0073e7b…`, `next_task=P8_GATE`, and the full files_changed / commands_run / key_outputs / notes block; this records the administrative pointer refresh as the binding scope-change row.
+- `reports/robust_asr/task_reports/plan_index_refresh.md`: compact evidence report written for this scope change.
+
+State held (no changes per orchestrator instruction):
+
+- `current_task`: `P8_GATE` — held.
+- `last_completed_task`: `P8.2` — held.
+- `state_transport.expected_next_task`: `P8_GATE` — held.
+- `tasks.P8_GATE.status`: `FAIL` (attempt 1) — held; no attempt counter advance; no `phase_summary.P8` PASS/FAIL written.
+- `tasks.P8.2.status`: `PASS` — held (under enacted deviation `P8_2_demo_only_upstream_overlap`; `deviation_status=ENACTED` held).
+- `tasks.P8.1.status`: `PASS` — held.
+- `phase_summary.P8`: `null` — held. `orchestrator_approvals.P8`: `null` — held.
+- `markers`: `[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]` — held; no marker cleared, no marker added.
+- `claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}`: all `false` — held.
+- `blocked`: `false` — held; `blocker`: `null` — held.
+- `lora_status`: `SKIPPED_BY_DECISION_A` — held. `router_status`: `SELECTOR_PACKAGED` — held.
+- `decisions.Decision_D_positive_system.outcome`: `false` — held.
+- `proposed_deviations.P8_2_demo_only_upstream_overlap.status`: `ENACTED` — held.
+- `current_phase`: `P8` — held. `project_status`: `IN_PROGRESS` — held.
+
+Files not touched (intentional, per orchestrator no-touch list):
+
+- `docs/plans/archive/**` — read-only legacy artifacts; the archived training plan copy at `docs/plans/archive/legacy_reference_plans/20260507T223435Z/training_datamove1_plan.md` is unchanged.
+- `docs/plans/training_datamove1_plan.md` — remains absent from the live tree; not restored.
+- `docs/progress/training_datamove1_progress.{yaml,md}` — read-only legacy trackers; byte-unchanged.
+- `configs/robust_asr/reuse_policy_v1.yaml` — unchanged.
+- `reports/robust_asr/touch_policy.md` — unchanged.
+- The `BEGIN ROBUST_ASR_PROFILE` / `END ROBUST_ASR_PROFILE` block body inside `CLAUDE.md` — byte-unchanged.
+- No P8 evidence files; no demo audio bytes; no manifest; no `build_demo_examples.py`; no `tests/robust_asr/test_leakage.py`; no `reports/robust_asr/system/system_eval.md`; no `reports/robust_asr/demo/provenance_audit.md`; no `reports/robust_asr/task_reports/P8.{1,2}_*.md`. No real-provider call. No GPU. No Slurm submission. No commit pushed beyond the authorized files.
+
+Next legal action: a PLAN_ONLY planning report for P8_GATE attempt 2, awaiting orchestrator `APPROVE_PLAN(P8_GATE)` before any `phase_gate_report` is emitted; on `APPROVE_PLAN`, EXECUTION evaluates the P8 gate predicate (agent plan §2676–§2691) against the current tree and emits a `phase_gate_report` with the tracker write of `tasks.P8_GATE.attempt=2`, `tasks.P8_GATE.status` (PASS|FAIL), and `phase_summary.P8` (PASS|FAIL). No P9 task may open without `PHASE_APPROVE(P8)`.
 
 ## P8.2 APPROVE_EXECUTION recorded — PASS under enacted demo-only deviation; current_task advances P8.2 → P8_GATE
 

@@ -50,6 +50,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: plan_index_refresh
+      phase: P8
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 0073e7b4076ce76d36233bec2eacb4411ba28722
+      next_expected_task: P8_GATE
+      required_fix: "Prevent future orchestrators or Claude sessions from misreading stale legacy pointers as the active plan. Update the repository entry-point documentation so that the active robust_asr profile and active robust_asr plan files are unambiguous. The legacy docs/plans/training_datamove1_plan.md path must remain absent and must not be restored."
+      rationale: "The live corrected State Packet established that ROBUST_ASR_PROFILE is active, that docs/plans/robust_asr_orchestrator_plan_v3_4_7.md and docs/plans/robust_asr_agent_plan_v3_4_7.md are the active plans, and that docs/plans/training_datamove1_plan.md is legacy/template-only. The stale references in plan.md and the upper training/datamove1 section of CLAUDE.md caused a false PLAN_CONFLICT. This change refreshes pointers only; it does not alter P8 evidence, P8_GATE predicates, or project technical state."
+  prior_approval_packet_p8_2_exec:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P8.2
       phase: P8
@@ -858,7 +868,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 2e1c46e8f1595fd1934ecb07743b713057652d29
+  last_accepted_report_commit: 0073e7b4076ce76d36233bec2eacb4411ba28722
   expected_next_task: P8_GATE
   last_tracker_mismatch: null
 
@@ -3171,6 +3181,38 @@ tasks:
     decision: tasks.P8.2 status IMPLEMENTED_PENDING_APPROVAL -> HALTED; marker -> MISSING_EVIDENCE; reason -> DEMO_UPSTREAM_LOCKED_OVERLAP; markers += MISSING_EVIDENCE; blocked false -> true; provenance_audit.md updated with FAIL verdict on upstream disjointness
     blocker: "DEMO_UPSTREAM_LOCKED_OVERLAP — see top-level blocker for full required external action"
     notes: "P8.2-upstream-leakage-audit performed under read-only inspection per orchestrator execute-mode directive. Extracted upstream_audio_id and upstream_speaker_id from artifacts/robust_asr/demo/demo_examples_manifest.json (5 unique upstream utterances, 5 unique upstream speakers; 3 OOD-param illustrative entries reuse 3 of the 5 clean-source upstreams). Compared against 4 librispeech_*.parquet manifests + 2 degradation_v1_*_eval.parquet manifests + 10 per-family degradation_v1_<family>_{id,ood_param}.parquet subset manifests, both raw (literal string match) and schema-normalized (reducing manifest's directory-style upstream_audio_id 'librispeech/dev-clean/<spk>/<chap>/<utt>' to the locked-schema flat form 'librispeech/dev-clean/<utt>' observed in librispeech_validation.parquet:audio_id). Result: upstream_audio_id ∩ (raw) = 0 everywhere (silent format mismatch); upstream_audio_id ∩ (normalized) = 5/5 in 13 of 16 locked manifests (validation + deg_id_eval + deg_ood_param_eval + all 10 per-family subsets); upstream_speaker_id ∩ = 5/5 in the same 13 manifests. Section 3 leakage rule 5 violated at the upstream level. Manifest byte-unchanged (orchestrator hard restriction 'Do not delete the enriched manifest' interpreted as also forbidding format mutation in this audit; format-mismatch fix recorded as F3 for a future P8.2 scope-change). Demo WAV bytes byte-unchanged (per-row sha256 verified pre-audit and post-validation; OK_SHA256_UNCHANGED). build_demo_examples.py byte-unchanged. tests/robust_asr/test_leakage.py byte-unchanged (deliberately — extending it to read upstream_audio_id/upstream_speaker_id with schema normalization is a future scope-change recommended in provenance_audit.md F3). claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false held; none changed. Markers BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR held (none cleared); MISSING_EVIDENCE re-added (cleared by P8.2-provenance-rerun, now restored due to upstream leakage). blocked: false -> true with full blocker text identifying the overlap and three operator-side recommended-next-steps options. tasks.P8.2.status mutated IMPLEMENTED_PENDING_APPROVAL -> HALTED with marker=MISSING_EVIDENCE and reason=DEMO_UPSTREAM_LOCKED_OVERLAP; prior_status/prior_marker/prior_reason recorded for trail. tasks.P8.2 NOT advanced to PASS. tasks.P8.2-provenance-rerun NOT approved (held PASS as a sub-task — the rerun did its job correctly; the upstream-leakage gap is a separate P8.2 acceptance criterion). current_task=P8.2 held; last_completed_task=P8.1 held. state_transport.expected_next_task=P8.2 (corrected from P8_GATE since P8.2 is now re-HALTED). state_transport.last_accepted_report_commit=deb8085b3915686597d9572d723f3b3d1f777355 HELD per orchestrator instruction (NOT advanced to this audit commit; orchestrator did not explicitly require recording an approval packet that would advance the anchor). Verification: pytest tests/robust_asr/test_leakage.py -> 5 passed (insufficient — does not check upstream fields, recorded explicitly per orchestrator instruction); pytest tests/robust_asr/ -> 137 passed (full suite cheap, ~3.7 s); validate_report_shape.py -> OK_REPORT_SHAPE; progress.yaml parses (OK_PROGRESS_YAML_PARSE); on-disk WAV sha256 == manifest audio_sha256 (8/8, OK_SHA256_UNCHANGED). No real-provider call. No GPU. No Slurm submission. No demo audio rebuilt. No WAV bytes touched. P8_GATE not started. P9.0 not started. Required next step: orchestrator routes operator-side action per provenance_audit.md 'Recommended next steps' (A) supply 8 disjoint public demo audios / (B) APPROVE_PLAN(P8.2-deviation) accepting the overlap with documented constraints / (C) re-partition data_v1.yaml and re-render demo. In addition, future P8.2 scope-change should extend tests/robust_asr/test_leakage.py to read upstream_audio_id/upstream_speaker_id with schema normalization (F3)."
+  plan_index_refresh:
+    status: PASS
+    type: scope_change
+    phase: P8
+    authorized_at_commit: 0073e7b4076ce76d36233bec2eacb4411ba28722
+    enacted_under_packets:
+      - "CHANGE_SCOPE(plan_index_refresh) on 0073e7b4076ce76d36233bec2eacb4411ba28722"
+    files_changed:
+      - plan.md
+      - CLAUDE.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+      - reports/robust_asr/task_reports/plan_index_refresh.md
+    commands_run:
+      - "Edit plan.md: replace contents with branch entry point pointing to ROBUST_ASR_PROFILE, active orchestrator/agent plans + schemas + trackers, and legacy archival references; remove the stale statement that docs/plans/training_datamove1_plan.md is an active current implementation plan"
+      - "Edit CLAUDE.md: insert a branch-specific warning above Section 1 (outside the BEGIN/END ROBUST_ASR_PROFILE block) declaring Sections 1-23 as legacy training-template content superseded by ROBUST_ASR_PROFILE for this branch; ROBUST_ASR_PROFILE block body unchanged"
+      - "Edit docs/progress/robust_asr_progress.yaml: latest_approval_packet -> CHANGE_SCOPE(plan_index_refresh); APPROVE_EXECUTION(P8.2) demoted to prior_approval_packet_p8_2_exec; state_transport.last_accepted_report_commit advanced 2e1c46e -> 0073e7b; tasks.plan_index_refresh recorded; tasks.P8_GATE/P8.2/P8.1 unchanged; current_task=P8_GATE held; last_completed_task=P8.2 held; state_transport.expected_next_task=P8_GATE held; phase_summary.P8=null held; orchestrator_approvals.P8=null held; claims_enabled.* held; markers held; blocked=false held"
+      - "Edit docs/progress/robust_asr_progress.md and docs/progress/robust_asr_state_capsule.md to record the same pointer refresh and stale-pointer-debt mitigation; no PASS/FAIL written for P8_GATE; no P9 task opened"
+      - "Write reports/robust_asr/task_reports/plan_index_refresh.md (compact evidence report for the scope change)"
+      - "git status; git diff (authorized files only); grep verification commands per orchestrator packet"
+      - "git add plan.md CLAUDE.md docs/progress/robust_asr_progress.yaml docs/progress/robust_asr_progress.md docs/progress/robust_asr_state_capsule.md reports/robust_asr/task_reports/plan_index_refresh.md; git commit; git push"
+    key_outputs:
+      - "plan.md declares ROBUST_ASR_PROFILE as the active profile for feature/robust-asr-lora-router-datamove1-v1 and names docs/plans/robust_asr_orchestrator_plan_v3_4_7.md + docs/plans/robust_asr_agent_plan_v3_4_7.md + docs/plans/state_packet_schemas_v1.yaml + docs/progress/robust_asr_progress.yaml as the active set"
+      - "plan.md classifies docs/plans/training_datamove1_plan.md and docs/progress/training_datamove1_progress.{yaml,md} as legacy/read-only; explicitly states training_datamove1_plan.md must not be restored; archived copy path recorded"
+      - "CLAUDE.md upper-section content is now framed by a branch-specific warning that names the ROBUST_ASR_PROFILE block as normative for this branch; the ROBUST_ASR_PROFILE block itself is byte-unchanged"
+      - "Legacy file docs/plans/training_datamove1_plan.md remains absent from the live tree (verified by test ! -f)"
+      - "No P8 evidence touched; tasks.P8_GATE attempt counter not advanced; phase_summary.P8 not written; claims_enabled.* held; BLOCKED_OOD_PUBLIC + BLOCKED_API + OUTCOME_E_DETERMINISTIC_SELECTOR held; router_status + lora_status held; docs/plans/archive/** not edited; configs/robust_asr/reuse_policy_v1.yaml not edited; reports/robust_asr/touch_policy.md not edited; docs/progress/training_datamove1_progress.{yaml,md} not edited"
+    marker: null
+    next_task: P8_GATE
+    blocker: null
+    notes: "CHANGE_SCOPE(plan_index_refresh) recorded. Pointer-refresh administrative scope change only. Pre-existing stale references in plan.md and the upper Sections 1-23 of CLAUDE.md (training/datamove1 profile body) were superseded for this branch by the BEGIN/END ROBUST_ASR_PROFILE block per the path classification rule 'plan.md and training_datamove1_plan.md are templates only'. This commit refreshes the branch entry-point documentation to make that classification explicit and prevent recurrence of the false PLAN_CONFLICT diagnosed by the prior State Packet sequence. No P8 evidence is altered; the P8 gate predicate inputs are untouched; tasks.P8_GATE remains FAIL on attempt 1; current_task=P8_GATE held; state_transport.expected_next_task=P8_GATE held. The next legal action after this scope change is a PLAN_ONLY planning report for P8_GATE attempt 2, awaiting orchestrator APPROVE_PLAN(P8_GATE) before any phase_gate_report is emitted."
 
 proposed_deviations:
   P8_2_demo_only_upstream_overlap:

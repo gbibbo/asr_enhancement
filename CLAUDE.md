@@ -1,5 +1,18 @@
 # ASR Enhancement Training: Claude Code Rules for datamove1
 
+> **Branch-specific warning for `feature/robust-asr-lora-router-datamove1-v1`:**
+> on this branch, the normative profile is the `ROBUST_ASR_PROFILE` block
+> further down in this file (delimited by `BEGIN ROBUST_ASR_PROFILE` /
+> `END ROBUST_ASR_PROFILE`). The active plans are
+> `docs/plans/robust_asr_orchestrator_plan_v3_4_7.md` and
+> `docs/plans/robust_asr_agent_plan_v3_4_7.md`; the live tracker is
+> `docs/progress/robust_asr_progress.yaml`. The training/datamove1
+> content in Sections 1–23 below is **legacy training-template content
+> superseded by `ROBUST_ASR_PROFILE` for this branch**.
+> `docs/plans/training_datamove1_plan.md` is legacy/template-only, is
+> intentionally absent from the live tree, and **must not be restored or
+> used as active state**. See `plan.md` for the branch entry point.
+
 This file is the active root `CLAUDE.md` on the `feature/training-datamove1-v1` branch. The reference copy lives at `docs/profiles/CLAUDE.training.md`. To prevent merge conflicts when syncing between branches, ensure `.gitattributes` declares `CLAUDE.md merge=ours` on this branch and the local merge driver is configured with `git config merge.ours.driver true`.
 
 ## 1. Project identity
