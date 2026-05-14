@@ -45,7 +45,7 @@ session_log:
 state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
   latest_planning_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
-  latest_execution_report: reports/robust_asr/task_reports/P9.0_runtime_contract.md
+  latest_execution_report: reports/robust_asr/task_reports/P9.1_handoff_package.md
   latest_phase_gate_report: reports/robust_asr/task_reports/P8_GATE_attempt2.md
   latest_supplemental_evidence_report: null
   latest_approval_packet:
@@ -57,7 +57,7 @@ state_transport:
       accepted_report_commit: f7a195b8828278e42fcc642090cc315309404e07
       next_expected_task: P9.1
       required_fix: null
-      rationale: "P9.0 Final runtime contract completed and pushed. Final deployable backend set is [whisper_base_ct2_int8]; router_kind is deterministic_selector; LoRA and AssemblyAI are excluded; all claims_enabled flags remain false. OK_CONTRACT_FINAL observed with A01 through A19 PASS. Full robust_asr pytest passed with 137 passed. Report shape validation passed. Demo assets were not used as fixture source and demo assets remained unchanged. P8_2_demo_only_upstream_overlap remains ENACTED, with C4 routed to P9.1 and C5 routed to P10.1."
+      rationale: "P9.0 Final runtime contract completed and pushed. Final deployable backend set is [whisper_base_ct2_int8]; router_kind is deterministic_selector; LoRA and AssemblyAI are excluded; all claims_enabled flags remain false. OK_CONTRACT_FINAL observed with A01 through A19 PASS. Full robust_asr pytest passed with 137 passed. Report shape validation passed. Demo assets were not used as fixture source and demo assets remained unchanged. P8_2_demo_only_upstream_overlap remains ENACTED, with C4 routed to P9.1 and C5 routed to P10.1. Held in this position pending orchestrator APPROVE_EXECUTION(P9.1)."
   prior_approval_packet_p9_0_plan:
     ORCHESTRATOR_DECISION:
       scope: task
@@ -1455,9 +1455,38 @@ artifacts:
     notes: "Final runtime contract artifacts produced by P9.0. Synthetic fixtures (NOT derived from demo audio, demo manifest rows, demo audio_id, demo upstream_audio_id, demo speaker_id, or demo WAV hashes). selected_backend restricted to whisper_base_ct2_int8 (or null on ask_repeat); router_kind restricted to deterministic_selector; third_party_provider restricted to null. report_links.{model_card, router_card} non-empty strings (point at docs/reports/robust_asr/model_card_lora.md and docs/reports/robust_asr/router_card.md created under P0.5; --strict-final A19 enforces non-empty). P8_2_demo_only_upstream_overlap deviation remains ENACTED: C4 (disclosure) routed to P9.1; C5 (exclusion verification) routed to P10.1; neither performed in P9.0. tasks.P9.0.status=PASS held at IMPLEMENTED_PENDING_APPROVAL pending APPROVE_EXECUTION(P9.0); current_task=P9.0 held; last_completed_task=P8_GATE held; state_transport.expected_next_task=P9.0 held; state_transport.last_accepted_report_commit held at 0b221c9e213c68636ce0cbf0da75b67baae7d31a per the P5.1/P6.1/P7.3/P8.1/P8.2 acceptance pattern (NOT advanced to the P9.0 implementation commit; orchestrator advances on APPROVE_EXECUTION(P9.0))."
   handoff_package:
     path: artifacts/robust_asr/handoff
-    sha256: null
-    tag: null
+    sha256: cfde7d69601fce86e01ddcf54954752c399513d02bff0c7ef3fcb8cc40e77fa3   # canonical anchor: handoff_smoke.py
+    tag: handoff/20260514-64eba43
     produced_by_task: P9.1
+    tag_commit: 64eba4345f3207af38f0fba8ac2c43c6084e8852
+    verify_handoff_package_sentinel: OK_HANDOFF_PACKAGE
+    verify_handoff_package_strict: true
+    verify_handoff_package_assertions_passed: 7
+    handoff_smoke_sentinel: OK_HANDOFF_SMOKE
+    pytest_full_robust_asr: "137 passed"
+    report_shape: OK_REPORT_SHAPE
+    progress_yaml_parse: OK_PROGRESS_YAML_PARSE
+    deployable_backends: [whisper_base_ct2_int8]
+    excluded_backends:
+      lora_ct2_int8: "SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false"
+      assemblyai: "BLOCKED_API; claims_enabled.cloud_tradeoff=false"
+    router_kind: deterministic_selector
+    disclosed_overlap_utterances: ["1272-128104-0000", "1673-143396-0002", "174-168635-0000", "1993-147149-0000", "2086-149214-0000"]
+    disclosed_overlap_speakers: ["1272", "1673", "174", "1993", "2086"]
+    c4_disclosure_recorded_in: "artifacts/robust_asr/handoff/README.md §6.4"
+    c5_exclusion_verification_routed_to: P10.1
+    demo_wav_bytes_copied_into_handoff: false
+    demo_manifest_sha256_held: 850c02dbc612882fa7cc0f98e15321b6d4c923c2363351cb1d65a880844863ba
+    selected_router_source_unchanged: true
+    handoff_artifact_checksums:
+      "backend_configs/whisper_base_ct2_int8.yaml":        "011af9618d6e68d2834bfe5d2979ef5d823de00cd33ca4df9a5003c5f1f32951"
+      "handoff_smoke.py":                                  "cfde7d69601fce86e01ddcf54954752c399513d02bff0c7ef3fcb8cc40e77fa3"
+      "handoff_validation_template.md":                    "225f251ddd1b5e78c1b5c78bd0a418924529d2d7c85ae671a7ecee3b8bbd6435"
+      "rollback_to_previous_handoff.py":                   "998b8068c31e9a5923d7892dbdba686781c5d711c0e080e2e7f370c7d0ce8a33"
+      "selected_router/deterministic_selector.json":       "41d194218b52c13b795d782eb92c381ac3eaa696f56fd217cab43e6a059df3fd"
+      "selected_router/metadata.json":                     "93dfd0cc2b385d4859cb6c723664fbf1cb4876e27c513590d3f8842d915ff924"
+      "selected_router/rp5_inference.py":                  "62f0caab558dbd26dd63e9cdf3c931831b527a0ec9f520811d145e7408378427"
+      "selected_router/test_vectors.json":                 "e57fc83e8e19763389a02e9aa6798e3e70026f7a2c041162fa33a3dec732739d"
   rp5_runtime_spec:
     path: artifacts/robust_asr/handoff/rp5_runtime_spec.md
     sha256: null
@@ -3416,6 +3445,141 @@ tasks:
     next_task: P9.0
     blocker: null
     notes: "P9.0 final runtime contract executed under orchestrator APPROVE_PLAN(P9.0) on accepted_report_commit 4c6fb87. Deliverables (4 JSON artifacts + libs/common/runtime_contract.py extension + task report) emit OK_CONTRACT_FINAL with 19/19 assertions PASS in --strict-final mode. Deployable backend set is whisper_base_ct2_int8 only. LoRA is excluded (lora_status=SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false). AssemblyAI is excluded (BLOCKED_API; claims_enabled.cloud_tradeoff=false). router_kind is deterministic_selector. third_party_provider in the final response schema and fixture is null. report_links.{model_card, router_card} in the fixture are non-empty strings pointing at docs/reports/robust_asr/model_card_lora.md and docs/reports/robust_asr/router_card.md (created under P0.5; --strict-final A19 enforces non-empty). The P0.4 skeleton fixtures (rp5_request_fixture.json, rp5_response_fixture.json), the skeleton smoke report (runtime_contract_smoke.md), the validator script, and tests/robust_asr/test_runtime_contract_skeleton.py are byte-unchanged; libs/common/runtime_contract.py is extended in-place per reuse_policy row 357-365 (allowed_tasks=[P0.4, P9.0]) by adding FINAL_REQUEST_SCHEMA, FINAL_RESPONSE_SCHEMA, FINAL_DEPLOYABLE_BACKENDS, FINAL_ROUTER_KINDS as new declarative constants — the skeleton REQUEST_SCHEMA, RESPONSE_SCHEMA, AUDIO_ENCODINGS, PROFILES, ROUTER_KINDS, SAMPLE_RATE_HZ, CHANNELS, SHA256_HEX_LEN, run_assertions, _AID helpers, _is_bool/_is_int_pos/_is_int_nonneg/_is_str/_get, and the strict_final A19 enforcement of non-empty report_links are all unchanged. Final fixtures are synthetic (audio.sha256='00000000000000000000000000000000000000000000000000000000000000ff' explicitly marked in the fixture _comment as a contract validation placeholder, not evidence; uri_or_inline points at storage://robust_asr/contract_fixture/p9_0_synthetic_audio.wav which does not exist on disk and is not loaded; request_id is a synthetic UUID-shaped string; routing_features carries a synthetic snr_db_est/voiced_ratio/profile + deterministic_selector_version='deterministic_selector_v1' to match selector_evidence semantics). No demo audio, demo manifest, demo audio_id, demo upstream_audio_id, demo speaker_id, or demo WAV hash was used as fixture data — verified by inspection of the fixture _comment and the fact that no demo file was opened during fixture authorship. Demo manifest sha256 (850c02db...) is byte-unchanged (verified via sha256sum). P8_2_demo_only_upstream_overlap deviation status=ENACTED held; C4 (P9.1 disclosure) and C5 (P10.1 exclusion verification) explicitly carried forward in the task report's risks/limits/carry-forward section. Tracker mutations on this commit: latest_approval_packet -> APPROVE_PLAN(P9.0) on 4c6fb87; PHASE_APPROVE(P8) demoted to prior_approval_packet_p8_phase_approve; tasks.P9.0 added with status=PASS + full deliverables/sha256/validator block; artifacts.runtime_contract_fixture.contract_final_validation_passed false->true and contract_final_validation_passed_at_task added; artifacts.final_runtime_contract sha256 null->c0162941... + request/response schema and fixture sha256 fields added + deployable_backends/excluded_backends/router_kinds/fixture_source/demo_assets_used_as_fixture_source fields added + notes added; state_transport.latest_execution_report advanced to P9.0_runtime_contract.md. Held: current_task=P9.0 (orchestrator advances on APPROVE_EXECUTION(P9.0)); last_completed_task=P8_GATE; state_transport.expected_next_task=P9.0; state_transport.last_accepted_report_commit HELD at 0b221c9e213c68636ce0cbf0da75b67baae7d31a per the P5.1/P6.1/P7.3/P8.1/P8.2 acceptance pattern (NOT advanced to the P9.0 implementation commit; orchestrator advances on APPROVE_EXECUTION(P9.0)); phase_summary.P9 held null (P9.1 and P9.2 still pending); orchestrator_approvals.P9 held null; markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held (none cleared); OUTCOME_E_NARROWED_SCOPE on tasks.P8.1 / decisions.Decision_D_positive_system held; claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false (none changed); blocked=false; blocker=null; router_status=SELECTOR_PACKAGED; lora_status=SKIPPED_BY_DECISION_A; system_status=NOT_STARTED; deterministic_selector_version=deterministic_selector_v1; metrics_version=metrics_v1; degradation_version=degradation_v1; normalization_version=normalization_v1; proposed_deviations.P8_2_demo_only_upstream_overlap.status=ENACTED. No forbidden path touched (verified by git diff scope): docs/plans/training_datamove1_plan.md absent; docs/progress/training_datamove1_progress.{yaml,md} unchanged; docs/plans/** unchanged; plan.md unchanged; CLAUDE.md unchanged; artifacts/robust_asr/demo/** unchanged; reports/robust_asr/demo/** unchanged; reports/robust_asr/system/** unchanged; reports/robust_asr/task_reports/P8_GATE_attempt2.md unchanged; tests/robust_asr/** unchanged; scripts/robust_asr/validate_runtime_contract.py unchanged; configs/robust_asr/** unchanged; router/eval/oracle artifacts unchanged. No real-provider call. No GPU. No Slurm submission (pytest run inline on login node; CPU-only; total wall <10s, well below the long-Python-job threshold per CLAUDE.md §7). P9.1 not opened. Next legal action: orchestrator returns APPROVE_EXECUTION(P9.0), FIX_BEFORE_CLOSE, or CHANGE_SCOPE. On APPROVE_EXECUTION(P9.0): current_task P9.0 -> P9.1; last_completed_task P8_GATE -> P9.0; state_transport.expected_next_task P9.0 -> P9.1; state_transport.last_accepted_report_commit advances from 0b221c9e to the P9.0 implementation commit; latest_approval_packet -> APPROVE_EXECUTION(P9.0); APPROVE_PLAN(P9.0) demoted to prior_approval_packet_p9_0_plan."
+
+  P9.1:
+    status: PASS
+    routing_branch: "P9 (handoff package; OUTCOME_E_DETERMINISTIC_SELECTOR + BLOCKED_API + SKIPPED_BY_DECISION_A)"
+    reason: null
+    execution_method: two_commit_sequence
+    commit_a: 64eba4345f3207af38f0fba8ac2c43c6084e8852
+    commit_a_message: "Package robust ASR handoff"
+    handoff_tag: handoff/20260514-64eba43
+    handoff_tag_commit: 64eba4345f3207af38f0fba8ac2c43c6084e8852
+    handoff_tag_on_origin: true
+    deliverables:
+      - artifacts/robust_asr/handoff/README.md
+      - artifacts/robust_asr/handoff/handoff_smoke.py
+      - artifacts/robust_asr/handoff/rollback_to_previous_handoff.py
+      - artifacts/robust_asr/handoff/handoff_validation_template.md
+      - artifacts/robust_asr/handoff/backend_configs/whisper_base_ct2_int8.yaml
+      - artifacts/robust_asr/handoff/selected_router/deterministic_selector.json
+      - artifacts/robust_asr/handoff/selected_router/metadata.json
+      - artifacts/robust_asr/handoff/selected_router/rp5_inference.py
+      - artifacts/robust_asr/handoff/selected_router/test_vectors.json
+      - scripts/robust_asr/verify_handoff_package.py
+      - reports/robust_asr/task_reports/P9.1_handoff_package.md
+    sha256:
+      readme: "see artifacts.handoff_package.handoff_artifact_checksums (recorded in Commit B)"
+      backend_config_whisper_base_ct2_int8: "011af9618d6e68d2834bfe5d2979ef5d823de00cd33ca4df9a5003c5f1f32951"
+      handoff_smoke_py: "cfde7d69601fce86e01ddcf54954752c399513d02bff0c7ef3fcb8cc40e77fa3"
+      rollback_to_previous_handoff_py: "998b8068c31e9a5923d7892dbdba686781c5d711c0e080e2e7f370c7d0ce8a33"
+      handoff_validation_template_md: "225f251ddd1b5e78c1b5c78bd0a418924529d2d7c85ae671a7ecee3b8bbd6435"
+      selected_router_deterministic_selector_json: "41d194218b52c13b795d782eb92c381ac3eaa696f56fd217cab43e6a059df3fd"
+      selected_router_metadata_json: "93dfd0cc2b385d4859cb6c723664fbf1cb4876e27c513590d3f8842d915ff924"
+      selected_router_rp5_inference_py: "62f0caab558dbd26dd63e9cdf3c931831b527a0ec9f520811d145e7408378427"
+      selected_router_test_vectors_json: "e57fc83e8e19763389a02e9aa6798e3e70026f7a2c041162fa33a3dec732739d"
+    validator:
+      command: "python3 scripts/robust_asr/verify_handoff_package.py --strict --handoff artifacts/robust_asr/handoff"
+      sentinel: OK_HANDOFF_PACKAGE
+      assertions_total: 7
+      assertions_passed: 7
+      assertions_failed: 0
+      assertion_results:
+        A1: "PASS — 8 numbered README sections present in order"
+        A2: "PASS — 8 artifact(s) verified with matching SHA-256"
+        A3: "PASS — handoff_smoke.py is executable (mode=0o755)"
+        A4: "PASS — rollback_to_previous_handoff.py is executable (mode=0o755)"
+        A5: "PASS — handoff_validation_template.md present"
+        A6: "PASS — no ASSEMBLYAI_API_KEY / sk_ / Bearer in backend_configs/"
+        A7: "PASS — tag exists locally and on origin: handoff/20260514-64eba43"
+    handoff_smoke:
+      command: "python3 artifacts/robust_asr/handoff/handoff_smoke.py"
+      sentinel: OK_HANDOFF_SMOKE
+      audio_loaded: "artifacts/robust_asr/demo/audio/ex001__broadband_hiss.wav"
+      sample_rate: 16000
+      n_frames: 93680
+      selected_backend: whisper_base_ct2_int8
+      router_kind: deterministic_selector
+    pytest_full_robust_asr: "137 passed"
+    report_shape: OK_REPORT_SHAPE
+    progress_yaml_parse: OK_PROGRESS_YAML_PARSE
+    backend_set:
+      deployable_backends: [whisper_base_ct2_int8]
+      excluded_backends:
+        lora_ct2_int8: "SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false; LoRA must not be represented as a deployed backend"
+        assemblyai: "BLOCKED_API; claims_enabled.cloud_tradeoff=false; AssemblyAI must not be represented as an enabled backend; backend_configs/ secret-grep PASS (0 matches for ASSEMBLYAI_API_KEY/sk_/Bearer)"
+      router_kind: deterministic_selector
+    c4_disclosure:
+      recorded_in: "artifacts/robust_asr/handoff/README.md §6.4"
+      disclosed_overlap_utterances: ["1272-128104-0000", "1673-143396-0002", "174-168635-0000", "1993-147149-0000", "2086-149214-0000"]
+      disclosed_overlap_speakers: ["1272", "1673", "174", "1993", "2086"]
+      non_evidence_statement_verbatim: "The demo bundle is NOT evidence for any `claims_enabled.*` flag."
+    c5_routed_to: P10.1
+    demo_invariants:
+      demo_wav_bytes_copied_into_handoff: false
+      demo_manifest_sha256_byte_unchanged: 850c02dbc612882fa7cc0f98e15321b6d4c923c2363351cb1d65a880844863ba
+      handoff_smoke_audio_read_in_place: true
+    selected_router_source_invariants:
+      source_byte_unchanged: true
+      source_path: artifacts/robust_asr/router/selected_router/
+      copies_byte_identical: true
+    files_changed:
+      commit_a:
+        - artifacts/robust_asr/handoff/README.md
+        - artifacts/robust_asr/handoff/handoff_smoke.py
+        - artifacts/robust_asr/handoff/rollback_to_previous_handoff.py
+        - artifacts/robust_asr/handoff/handoff_validation_template.md
+        - artifacts/robust_asr/handoff/backend_configs/whisper_base_ct2_int8.yaml
+        - artifacts/robust_asr/handoff/selected_router/deterministic_selector.json
+        - artifacts/robust_asr/handoff/selected_router/metadata.json
+        - artifacts/robust_asr/handoff/selected_router/rp5_inference.py
+        - artifacts/robust_asr/handoff/selected_router/test_vectors.json
+        - scripts/robust_asr/verify_handoff_package.py
+      commit_b:
+        - reports/robust_asr/task_reports/P9.1_handoff_package.md
+        - docs/progress/robust_asr_progress.yaml
+        - docs/progress/robust_asr_progress.md
+        - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "git status --short; git rev-parse HEAD; git branch --show-current"
+      - "Read CLAUDE.md (ROBUST_ASR_PROFILE), agent plan P9.1 §4143-4189 + verify_handoff_package.py §1037-1055, orchestrator plan P9 §664-695, state_packet schemas, tracker yaml/md/state_capsule, P9.0 task report, runtime_contract artifacts, selected_router/, demo manifest"
+      - "Write scripts/robust_asr/verify_handoff_package.py (7 assertions); chmod 0755"
+      - "Write artifacts/robust_asr/handoff/handoff_smoke.py; chmod 0755"
+      - "Write artifacts/robust_asr/handoff/rollback_to_previous_handoff.py; chmod 0755"
+      - "Write artifacts/robust_asr/handoff/handoff_validation_template.md"
+      - "Write artifacts/robust_asr/handoff/backend_configs/whisper_base_ct2_int8.yaml (no secrets)"
+      - "cp artifacts/robust_asr/router/selected_router/{deterministic_selector.json,metadata.json,rp5_inference.py,test_vectors.json} artifacts/robust_asr/handoff/selected_router/"
+      - "sha256sum on each copy vs source -> 4/4 match; source byte-unchanged"
+      - "Write artifacts/robust_asr/handoff/README.md (8 sections + C4 disclosure)"
+      - "python3 scripts/robust_asr/verify_handoff_package.py --handoff artifacts/robust_asr/handoff -> A1..A6 PASS; OK_HANDOFF_PACKAGE"
+      - "python3 artifacts/robust_asr/handoff/handoff_smoke.py -> OK_HANDOFF_SMOKE (exit 0)"
+      - "python3 -m pytest tests/robust_asr/ -> 137 passed"
+      - "git add <Commit A files>; git commit -m 'Package robust ASR handoff'; git push -> commit_a=64eba43"
+      - "TAG=handoff/$(date -u +%Y%m%d)-$(git rev-parse --short HEAD) -> handoff/20260514-64eba43; git tag $TAG; git push origin $TAG"
+      - "git ls-remote --tags origin handoff/20260514-64eba43 -> tag on origin"
+      - "python3 scripts/robust_asr/verify_handoff_package.py --strict --handoff artifacts/robust_asr/handoff -> A1..A7 PASS; OK_HANDOFF_PACKAGE"
+      - "python3 -m pytest tests/robust_asr/ -> 137 passed (re-run after tag)"
+      - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures -> OK_REPORT_SHAPE"
+      - "python3 -c 'import yaml; yaml.safe_load(open(\"docs/progress/robust_asr_progress.yaml\"))' -> OK_PROGRESS_YAML_PARSE"
+      - "sha256sum artifacts/robust_asr/demo/demo_examples_manifest.json -> 850c02db... (held)"
+      - "Write reports/robust_asr/task_reports/P9.1_handoff_package.md"
+      - "Edit docs/progress/robust_asr_progress.yaml: latest_execution_report -> P9.1_handoff_package.md; artifacts.handoff_package populated (path, sha256, tag, tag_commit, verify_handoff_package_sentinel=OK_HANDOFF_PACKAGE, assertions_passed=7, handoff_smoke_sentinel=OK_HANDOFF_SMOKE, deployable_backends, excluded_backends, router_kind, disclosed_overlap_utterances/speakers, c4_disclosure_recorded_in, c5_exclusion_verification_routed_to=P10.1, demo_wav_bytes_copied_into_handoff=false, demo_manifest_sha256_held, selected_router_source_unchanged=true, handoff_artifact_checksums); tasks.P9.1 added with status=PASS + full block; current_task/last_completed_task/state_transport.expected_next_task/state_transport.last_accepted_report_commit/latest_approval_packet ALL HELD per acceptance pattern; phase_summary.P9 held null; markers held; claims_enabled.* held false; proposed_deviations.P8_2_demo_only_upstream_overlap.status held ENACTED"
+      - "Edit docs/progress/robust_asr_progress.md + docs/progress/robust_asr_state_capsule.md mirroring the above"
+      - "git add <Commit B files>; git commit -m 'Record P9 handoff package validation'; git push"
+    key_outputs:
+      - "Handoff package produced under artifacts/robust_asr/handoff/ with 9 artifact files + 1 README. verify_handoff_package.py --strict emits OK_HANDOFF_PACKAGE with all 7 assertions PASS (A1: 8 README sections in order; A2: 8 artifact sha256 match; A3: handoff_smoke.py executable; A4: rollback_to_previous_handoff.py executable; A5: handoff_validation_template.md present; A6: no secrets in backend_configs/; A7: handoff/20260514-64eba43 tag on local + origin)."
+      - "handoff_smoke.py emits OK_HANDOFF_SMOKE with audio=ex001__broadband_hiss.wav (sr=16000, n_frames=93680, ch=1; demo WAV read in place, not copied), selected_backend=whisper_base_ct2_int8, router_kind=deterministic_selector."
+      - "Handoff tag handoff/20260514-64eba43 -> commit_a 64eba4345f3207af38f0fba8ac2c43c6084e8852 pushed to origin."
+      - "C4 disclosure recorded in README §6.4 with the 5 affected upstream utterances {1272-128104-0000, 1673-143396-0002, 174-168635-0000, 1993-147149-0000, 2086-149214-0000} and 5 affected upstream speakers {1272, 1673, 174, 1993, 2086} named verbatim, plus the explicit non-evidence statement 'The demo bundle is NOT evidence for any claims_enabled.* flag.'"
+      - "C5 (exclusion verification) explicitly routed to P10.1 in README §6.4 and tracker.artifacts.handoff_package.c5_exclusion_verification_routed_to."
+      - "Backend set: deployable_backends=[whisper_base_ct2_int8]; LoRA excluded (lora_status=SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false; no lora_ct2_int8/ dir); AssemblyAI excluded (BLOCKED_API; claims_enabled.cloud_tradeoff=false; backend_configs/ contains no ASSEMBLYAI_API_KEY/sk_/Bearer). router_kind=deterministic_selector."
+      - "Held invariants: claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false (none changed); markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; router_status=SELECTOR_PACKAGED; lora_status=SKIPPED_BY_DECISION_A; system_status=NOT_STARTED; phase_summary.P9=null held; orchestrator_approvals.P9=null held; proposed_deviations.P8_2_demo_only_upstream_overlap.status=ENACTED held; blocked=false; blocker=null."
+      - "No demo WAV bytes copied into the handoff package (handoff_smoke.py reads in place from artifacts/robust_asr/demo/audio/). Demo manifest sha256 byte-unchanged (held at 850c02db...). selected_router source tree byte-unchanged (copies into handoff are byte-identical, verified via sha256sum)."
+      - "No real-provider call. No GPU. No Slurm submission. No AI-authorship trailer on either commit. Author identity Gabriel Bibbó <gabobibbo@gmail.com>."
+    marker: null
+    next_task: P9.1
+    blocker: null
+    notes: "P9.1 handoff package executed under orchestrator APPROVE_EXECUTION(P9.0) acceptance commit f7a195b8 + previously approved P9.1 plan. Two-commit sequence per orchestrator's critical execution constraint: Commit A (64eba43) = 'Package robust ASR handoff' creates the 9 handoff artifacts + README + verify_handoff_package.py; tag handoff/20260514-64eba43 created locally pointing at 64eba43 and pushed to origin; verify_handoff_package.py --strict emits OK_HANDOFF_PACKAGE with all 7 assertions PASS; handoff_smoke.py emits OK_HANDOFF_SMOKE; pytest 137/137; validate_report_shape.py OK_REPORT_SHAPE; progress.yaml parses (OK_PROGRESS_YAML_PARSE); Commit B (this commit) = 'Record P9 handoff package validation' writes the P9.1 task report and updates tracker/md/capsule with the strict validation result, tag, and held invariants. Backend set is whisper_base_ct2_int8 only; LoRA excluded (no lora_ct2_int8/ dir; reason SKIPPED_BY_DECISION_A + claims_enabled.positive_lora=false); AssemblyAI excluded (no api_key reference in handoff backend_configs/; reason BLOCKED_API + claims_enabled.cloud_tradeoff=false; A6 secret-grep PASS). router_kind=deterministic_selector. C4 disclosure recorded in README §6.4 with the 5 affected upstream utterances + 5 affected upstream speakers named verbatim, plus the explicit non-evidence statement 'The demo bundle is NOT evidence for any claims_enabled.* flag.' C5 exclusion verification is routed to P10.1 (recorded in README §6.4 and tracker.artifacts.handoff_package.c5_exclusion_verification_routed_to=P10.1). Demo invariants: no demo WAV bytes copied into the handoff (handoff_smoke.py reads ex001__broadband_hiss.wav in place from artifacts/robust_asr/demo/audio/); demo_examples_manifest.json sha256 byte-unchanged at 850c02db...; selected_router source tree at artifacts/robust_asr/router/selected_router/ byte-unchanged (the 4 copies into artifacts/robust_asr/handoff/selected_router/ are byte-identical, verified via sha256sum diff). The validator's A6 (no-secrets) is scoped to artifacts/robust_asr/handoff/backend_configs/ per agent plan §1049-1050 text 'Backend configs do not contain literal secrets'; disclosure prose elsewhere (README §6.3 and handoff_validation_template.md) legitimately names ASSEMBLYAI_API_KEY as the env var name that must be absent — the scoped check correctly PASSes on the backend_configs/ subtree which contains only whisper_base_ct2_int8.yaml with no secret strings. Tracker mutations on Commit B: latest_execution_report -> P9.1_handoff_package.md (latest_approval_packet held at APPROVE_EXECUTION(P9.0) on f7a195b8 per orchestrator hard instruction; orchestrator demotes to prior_approval_packet_p9_0_exec on APPROVE_EXECUTION(P9.1)); artifacts.handoff_package populated with sha256=cfde7d69... (canonical anchor: handoff_smoke.py), tag=handoff/20260514-64eba43, tag_commit=64eba43..., verify_handoff_package_sentinel=OK_HANDOFF_PACKAGE, verify_handoff_package_strict=true, verify_handoff_package_assertions_passed=7, handoff_smoke_sentinel=OK_HANDOFF_SMOKE, pytest_full_robust_asr='137 passed', report_shape=OK_REPORT_SHAPE, progress_yaml_parse=OK_PROGRESS_YAML_PARSE, deployable_backends=[whisper_base_ct2_int8], excluded_backends.{lora_ct2_int8, assemblyai} with reasons, router_kind=deterministic_selector, disclosed_overlap_utterances/speakers, c4_disclosure_recorded_in='README §6.4', c5_exclusion_verification_routed_to=P10.1, demo_wav_bytes_copied_into_handoff=false, demo_manifest_sha256_held=850c02db..., selected_router_source_unchanged=true, handoff_artifact_checksums for 8 non-README files; tasks.P9.1 added with status=PASS + commit_a=64eba43 + handoff_tag=handoff/20260514-64eba43 + handoff_tag_commit=64eba43 + handoff_tag_on_origin=true + full deliverables/sha256/validator/handoff_smoke/backend_set/c4_disclosure/c5_routed_to/demo_invariants/selected_router_source_invariants/files_changed/commands_run/key_outputs/notes block. Held: current_task=P9.1 (NOT advanced to P9.2; orchestrator advances on APPROVE_EXECUTION(P9.1)); last_completed_task=P9.0 (NOT advanced; orchestrator advances on APPROVE_EXECUTION(P9.1)); state_transport.expected_next_task=P9.1 (NOT advanced); state_transport.last_accepted_report_commit HELD at f7a195b8828278e42fcc642090cc315309404e07 per the P5.1/P6.1/P7.3/P8.1/P8.2/P9.0 acceptance pattern (NOT advanced to either P9.1 implementation commit; orchestrator advances on APPROVE_EXECUTION(P9.1)); phase_summary.P9 held null (P9.2 still pending; P9 gate not yet evaluated); orchestrator_approvals.P9 held null; latest_approval_packet held at APPROVE_EXECUTION(P9.0). Markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held (none cleared); OUTCOME_E_NARROWED_SCOPE on tasks.P8.1 / decisions.Decision_D_positive_system held; claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false (none changed); blocked=false; blocker=null; router_status=SELECTOR_PACKAGED; lora_status=SKIPPED_BY_DECISION_A; system_status=NOT_STARTED; deterministic_selector_version=deterministic_selector_v1; metrics_version=metrics_v1; degradation_version=degradation_v1; normalization_version=normalization_v1; proposed_deviations.P8_2_demo_only_upstream_overlap.status=ENACTED. No forbidden path touched (verified by git diff scope on both commits): docs/plans/training_datamove1_plan.md absent; docs/progress/training_datamove1_progress.{yaml,md} unchanged; docs/plans/** unchanged; plan.md unchanged; CLAUDE.md unchanged; artifacts/robust_asr/runtime_contract/** unchanged; libs/common/runtime_contract.py unchanged; reports/robust_asr/task_reports/P9.0_runtime_contract.md unchanged; artifacts/robust_asr/demo/** unchanged; reports/robust_asr/demo/** unchanged; reports/robust_asr/system/** unchanged; reports/robust_asr/task_reports/P8_GATE_attempt2.md unchanged; tests/robust_asr/** unchanged; scripts/robust_asr/validate_runtime_contract.py unchanged; configs/robust_asr/** unchanged; artifacts/robust_asr/router/selected_router/** unchanged. No real-provider call. No GPU. No Slurm submission. No AI-authorship trailer. Next legal action: orchestrator returns APPROVE_EXECUTION(P9.1), FIX_BEFORE_CLOSE, or CHANGE_SCOPE. On APPROVE_EXECUTION(P9.1): current_task P9.1 -> P9.2; last_completed_task P9.0 -> P9.1; state_transport.expected_next_task P9.1 -> P9.2; state_transport.last_accepted_report_commit advances from f7a195b8 to the Commit B hash; latest_approval_packet -> APPROVE_EXECUTION(P9.1); APPROVE_EXECUTION(P9.0) demoted to prior_approval_packet_p9_0_exec."
 
 proposed_deviations:
   P8_2_demo_only_upstream_overlap:
