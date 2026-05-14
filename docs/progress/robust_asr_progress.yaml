@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P8
-current_task: P8.2
-last_completed_task: P8.1
+current_task: P8_GATE
+last_completed_task: P8.2
 
 blocked: false
 blocker: null
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.2
+      phase: P8
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 2e1c46e8f1595fd1934ecb07743b713057652d29
+      next_expected_task: P8_GATE
+      required_fix: null
+      rationale: "P8.2 is now complete after demo provenance repair, upstream-leakage audit, and enacted demo-only deviation. The final accepted state has PASS_WITH_DEMO_ONLY_DEVIATION, 8 unchanged demo WAVs, explicit provenance, binding constraints C1-C5, blocked=false, MISSING_EVIDENCE cleared, leakage tests passed, full robust_asr pytest passed, OK_REPORT_SHAPE passed, and progress YAML parses. P8.2 may be approved as demo-only UI asset delivery, not as evaluation evidence or support for claims_enabled flags."
+  prior_approval_packet_p8_2_deviation_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P8.2-deviation
@@ -848,8 +858,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 24811206ce7ef1eab4a5d768b5dc860787642f0f
-  expected_next_task: P8.2
+  last_accepted_report_commit: 2e1c46e8f1595fd1934ecb07743b713057652d29
+  expected_next_task: P8_GATE
   last_tracker_mismatch: null
 
 phase_summary:
@@ -1334,7 +1344,8 @@ artifacts:
         commit: 003fc0d725d57875a7ecde79af4bb4d801deae9d
       - sha256: 850c02dbc612882fa7cc0f98e15321b6d4c923c2363351cb1d65a880844863ba
         produced_by_task: P8.2-deviation
-        commit: pending
+        commit: 24811206ce7ef1eab4a5d768b5dc860787642f0f
+        approved_at_commit: 2e1c46e8f1595fd1934ecb07743b713057652d29
     notes: "Rendered by asr-rp5 scripts/demo/materialize_demo_examples.py (seed=0, degradation_v1) from LibriSpeech dev-clean (OpenSLR #12, CC-BY-4.0). Initial manifest (sha256 94b049f8...) authored at commit 6783789 with assertional source/license placeholders; enriched at commit 003fc0d (sha256 9d9ce68f...) with operator-supplied per-entry provenance fields (upstream_corpus, upstream_audio_id, license_spdx, attribution, etc.); deviation block added at this commit (sha256 850c02db...) with deviation_id=P8_2_demo_only_upstream_overlap, status=approved_for_demo_only_use_pending_p8_2_approval, upstream_disjointness=false, reason=DEMO_UPSTREAM_LOCKED_OVERLAP, allowed_use=UI/demo-only, forbidden_use=metrics+eval+selector+system+claims_enabled, binding_constraints=[C1..C5], required_disclosure_tasks=[P9.1,P10.1]. manifest_version advanced v1.1-provenance-repaired -> v1.2-deviation-enacted. WAV bytes byte-unchanged across all three commits; per-entry audio_sha256 unchanged."
   demo_audio_dir:
     path: artifacts/robust_asr/demo/audio
@@ -1360,7 +1371,8 @@ artifacts:
         commit: 29ce65a036555bf4140ee1ac5eded6a9c2b53272
       - verdict: PASS_WITH_DEMO_ONLY_DEVIATION (final)
         produced_by_task: P8.2-deviation
-        commit: pending
+        commit: 24811206ce7ef1eab4a5d768b5dc860787642f0f
+        approved_at_commit: 2e1c46e8f1595fd1934ecb07743b713057652d29
     notes: "Final verdict PASS_WITH_DEMO_ONLY_DEVIATION added at this commit on top of the prior dual verdict (provenance fields PASS / upstream disjointness FAIL). Final verdict reflects enactment of proposed_deviations.P8_2_demo_only_upstream_overlap with 5 binding constraints (C1-C5). Demo bundle is UI/demo-only; MUST NOT be used as evidence for any claims_enabled.* flag, any metric, any eval table, selector_evidence, oracle, or system_eval. P9.1 (C4) and P10.1 (C5) must enforce disclosure and exclusion respectively. All prior verdicts held verbatim in provenance_audit.md under 'Prior verdict' sections for the audit trail."
   final_runtime_contract:
     path: artifacts/robust_asr/runtime_contract/final_response_schema.json
@@ -2966,9 +2978,16 @@ tasks:
     blocker: null
     notes: "P8 gate FAIL on attempt 1. PHASE_REJECT(P8) per orchestrator decision packet (rationale: P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 not yet run). Routing per §2688-§2691 'on FAIL: return to the failed P8 task' = P8.2. P8.1 remains PASS (approved_at_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd); Decision_D_positive_system.outcome=false held; claims_enabled.positive_system=false held; OUTCOME_E_NARROWED_SCOPE held on tasks.P8.1 and decisions.Decision_D_positive_system. Markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; none cleared. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system} all held. state_transport.last_accepted_report_commit STAYS 1b9f33e681276f977c1e87db4978963ee2a3a9bd (no advance from PHASE_REJECT). state_transport.expected_next_task=P8.2. No code, no test, no Slurm submission, no real-provider call, no scripts/artifacts/configs edited. Only tracker files modified. P8.2 not started. P9.0 not started."
   P8.2:
-    status: IMPLEMENTED_PENDING_APPROVAL
+    status: PASS
+    approved_by: APPROVE_EXECUTION_P8.2
+    commit: 2e1c46e8f1595fd1934ecb07743b713057652d29
+    approved_at_commit: 2e1c46e8f1595fd1934ecb07743b713057652d29
+    next_task: P8_GATE
     marker: null
     reason: null
+    deviation: P8_2_demo_only_upstream_overlap
+    deviation_status: ENACTED
+    notes_on_pass: "PASS recorded as demo-only UI asset delivery under enacted deviation P8_2_demo_only_upstream_overlap with binding constraints C1-C5. NOT evaluation evidence; NOT support for any claims_enabled.* flag. P9.1 (C4) and P10.1 (C5) must enforce disclosure and exclusion."
     prior_status_history:
       - status: IMPLEMENTED_PENDING_APPROVAL
         marker: null

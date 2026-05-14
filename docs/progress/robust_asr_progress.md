@@ -7,8 +7,9 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P8 (system evaluation and demo examples)
-- Current task: P8.2 (IMPLEMENTED_PENDING_APPROVAL under enacted demo-only deviation `P8_2_demo_only_upstream_overlap`; provenance fields PASS, upstream disjointness FAIL, final verdict PASS_WITH_DEMO_ONLY_DEVIATION; demo bundle is UI/demo-only; awaiting orchestrator APPROVE_EXECUTION(P8.2-deviation) and then APPROVE_EXECUTION(P8.2))
-- Last completed: P8.1 (PASS — system_eval.md first line `positive_system: false`; OK_SYSTEM_EVAL:false on stdout; pytest 137/137; full BCa bootstrap 10000 iter seed 20250514; Slurm job 2132279 COMPLETED 0:0)
+- Current task: P8_GATE (P8.2 PASS recorded under enacted demo-only deviation P8_2_demo_only_upstream_overlap; awaiting P8 phase gate evaluation — P8_GATE attempt 1 had FAILed; this acceptance enables a fresh attempt)
+- Last completed: P8.2 (PASS — demo bundle accepted as UI/demo-only delivery under enacted deviation; final provenance verdict PASS_WITH_DEMO_ONLY_DEVIATION; binding constraints C1-C5; 8 unchanged WAV bytes; manifest sha256 850c02db…; approved_at_commit 2e1c46e…)
+- Prior completed: P8.1 (PASS — system_eval.md first line `positive_system: false`; OK_SYSTEM_EVAL:false on stdout; pytest 137/137; full BCa bootstrap 10000 iter seed 20250514; Slurm job 2132279 COMPLETED 0:0)
 - Prior completed: P7.3 (PASS — deterministic selector packaged under OUTCOME_E Branch B; PHASE_APPROVE(P7) recorded against the same P7.3 acceptance commit and does not itself advance last_completed_task)
 - Prior completed: P6.1 (PASS — selector-evidence path)
 - Prior completed: P5.1 (HALTED — BLOCKED_API reason=key_unset)
@@ -29,15 +30,16 @@ Status: IN_PROGRESS
 - tasks.P4.1 / P4.2 / P4.3: SKIPPED_BY_DECISION_A (set by P3 gate Branch B)
 - normalization_version: normalization_v1 (frozen at P1.2)
 - metrics_version: metrics_v1 (preserved; libs/audio/metrics.py unchanged)
-- state_transport.last_accepted_report_commit: 24811206ce7ef1eab4a5d768b5dc860787642f0f (advanced from 29ce65a… by APPROVE_EXECUTION(P8.2-deviation); P8.2 itself remains IMPLEMENTED_PENDING_APPROVAL under enacted demo-only deviation and is NOT approved)
-- state_transport.expected_next_task: P8.2
+- state_transport.last_accepted_report_commit: 2e1c46e8f1595fd1934ecb07743b713057652d29 (advanced from 24811206… by APPROVE_EXECUTION(P8.2); P8.2 PASS under enacted demo-only deviation; current_task advanced P8.2 → P8_GATE; last_completed_task advanced P8.1 → P8.2)
+- state_transport.expected_next_task: P8_GATE
 - deterministic_selector_version: deterministic_selector_v1 (frozen at P6.1)
 - router_status: SELECTOR_PACKAGED
 - tasks.P6.1.status: PASS (branch B selector-evidence)
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: APPROVE_EXECUTION(P8.2-deviation) on `2481120` (next P8.2) — deviation enactment accepted; PASS_WITH_DEMO_ONLY_DEVIATION; all 8 WAV sha256s preserved; provenance_audit.md and manifest carry binding constraints C1-C5; MISSING_EVIDENCE cleared; blocked=false; leakage tests + full robust_asr pytest + report-shape + YAML-parse green; parent P8.2 remains IMPLEMENTED_PENDING_APPROVAL and is NOT approved in this turn; state_transport.last_accepted_report_commit advanced 29ce65a → 2481120
+- latest_approval_packet: APPROVE_EXECUTION(P8.2) on `2e1c46e` (next P8_GATE) — P8.2 closed as PASS under enacted demo-only deviation `P8_2_demo_only_upstream_overlap` (PASS_WITH_DEMO_ONLY_DEVIATION; binding constraints C1-C5; 8 unchanged WAVs; explicit provenance; demo bundle is UI/demo-only and NOT evidence for any claims_enabled.* flag); current_task advanced P8.2 → P8_GATE; last_completed_task advanced P8.1 → P8.2; state_transport.last_accepted_report_commit advanced 24811206 → 2e1c46e
+- prior_approval_packet_p8_2_deviation_exec: APPROVE_EXECUTION(P8.2-deviation) on `2481120` (next P8.2) — deviation enactment accepted; PASS_WITH_DEMO_ONLY_DEVIATION; all 8 WAV sha256s preserved; provenance_audit.md and manifest carry binding constraints C1-C5; MISSING_EVIDENCE cleared; blocked=false; leakage tests + full robust_asr pytest + report-shape + YAML-parse green; parent P8.2 was IMPLEMENTED_PENDING_APPROVAL at that commit
 - prior_approval_packet_p8_2_deviation_plan: APPROVE_PLAN(P8.2-deviation) on `ec8813c` (next P8.2) — enact the authorized demo-only deviation; manifest top-level `deviation` block added (deviation_id=P8_2_demo_only_upstream_overlap, status=approved_for_demo_only_use_pending_p8_2_approval, upstream_disjointness=false, allowed_use=UI/demo-only, forbidden_use=metrics+eval+selector+system+claims_enabled, binding_constraints=[C1..C5]); provenance_audit.md final verdict PASS_WITH_DEMO_ONLY_DEVIATION; tasks.P8.2 status HALTED → IMPLEMENTED_PENDING_APPROVAL; markers loses MISSING_EVIDENCE; blocked false; blocker null; proposed_deviations.P8_2_demo_only_upstream_overlap.status SCOPE_AUTHORIZED_NOT_YET_ENACTED → ENACTED
 - prior_approval_packet_p8_2_deviation_scope_exec: APPROVE_EXECUTION(P8.2-deviation-scope-change) on `ec8813c` (next P8.2) — scope-change accepted; deviation framework with C1-C5 is binding policy
 - prior_approval_packet_p8_2_deviation_change_scope: CHANGE_SCOPE(P8.2-deviation) on `a1c632d` (next P8.2) — authorizes a documented demo-only deviation framework for the upstream dev-clean overlap; recording-only at scope-change time, enacted at this commit
@@ -90,6 +92,42 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P8.2 APPROVE_EXECUTION recorded — PASS under enacted demo-only deviation; current_task advances P8.2 → P8_GATE
+
+- ORCHESTRATOR_DECISION: scope=task task=P8.2 phase=P8
+  decision=APPROVE_EXECUTION
+- accepted_report_commit: `2e1c46e8f1595fd1934ecb07743b713057652d29`
+- next_expected_task: P8_GATE
+- rationale: P8.2 is now complete after demo provenance repair, upstream-leakage audit, and enacted demo-only deviation. The final accepted state has `PASS_WITH_DEMO_ONLY_DEVIATION`, 8 unchanged demo WAVs, explicit provenance, binding constraints C1-C5, `blocked=false`, `MISSING_EVIDENCE` cleared, leakage tests passed, full robust_asr pytest passed, `OK_REPORT_SHAPE` passed, and progress YAML parses. P8.2 may be approved as **demo-only UI asset delivery, not as evaluation evidence or support for `claims_enabled` flags**.
+
+Tracker mutations on this commit:
+
+- `tasks.P8.2.status`: `IMPLEMENTED_PENDING_APPROVAL` → **`PASS`**.
+- `tasks.P8.2.approved_by`: `APPROVE_EXECUTION_P8.2`.
+- `tasks.P8.2.commit` / `tasks.P8.2.approved_at_commit`: `2e1c46e8f1595fd1934ecb07743b713057652d29`.
+- `tasks.P8.2.next_task`: `P8_GATE`.
+- `tasks.P8.2.deviation`: `P8_2_demo_only_upstream_overlap` (status `ENACTED`); `notes_on_pass` records demo-only scope and the C1–C5 enforcement assignments to P9.1 and P10.1.
+- `current_task`: `P8.2` → **`P8_GATE`**.
+- `last_completed_task`: `P8.1` → **`P8.2`**.
+- `latest_approval_packet`=APPROVE_EXECUTION(P8.2) on `2e1c46e8f1595fd1934ecb07743b713057652d29` (next `P8_GATE`); APPROVE_EXECUTION(P8.2-deviation) demoted to `prior_approval_packet_p8_2_deviation_exec` on `24811206…` (next P8.2). All other prior packets held in their slots.
+- `state_transport.last_accepted_report_commit`: `24811206ce7ef1eab4a5d768b5dc860787642f0f` → **`2e1c46e8f1595fd1934ecb07743b713057652d29`**.
+- `state_transport.expected_next_task`: `P8.2` → **`P8_GATE`**.
+- `artifacts.demo_examples_manifest.sha256_history` and `artifacts.demo_provenance_audit.verdict_history`: latest entries gain `approved_at_commit=2e1c46e…`.
+
+State held (no changes per orchestrator instruction):
+
+- `current_phase=P8` — held.
+- `tasks.P8.2-provenance.status=PASS`, `tasks.P8.2-provenance-rerun.status=PASS`, `tasks.P8.2-upstream-leakage-audit.status=PASS`, `tasks.P8.2-deviation.status=PASS` — held.
+- `proposed_deviations.P8_2_demo_only_upstream_overlap.status=ENACTED` — held.
+- `markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]` — held; **none cleared**.
+- `blocked=false`; `blocker=null` — held.
+- `claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false` — held; **none changed**.
+- `tasks.P8_GATE.status=FAIL` (attempt 1) held; new gate attempt **NOT started** in this commit.
+- `phase_summary.P8=null`, `orchestrator_approvals.P8=null` held.
+- No code, no test, no Slurm submission, no real-provider call. No demo audio touched. No manifest edited. No script edited. No test edited. No artifacts edited. Only the three tracker files were modified. P8_GATE not started. P9.0 not started.
+
+P9.1 must enforce constraint C4 (README §6 disclosure of upstream `dev-clean` overlap). P10.1 must enforce constraint C5 (assertion that demo manifest is excluded from all metric / eval inputs).
 
 ## P8.2-deviation APPROVE_EXECUTION recorded — enactment accepted; parent P8.2 remains IMPLEMENTED_PENDING_APPROVAL
 
