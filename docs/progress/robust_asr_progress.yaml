@@ -2,9 +2,9 @@ project: robust_asr_lora_router
 branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
-current_phase: P9
-current_task: P9_GATE
-last_completed_task: P9.2
+current_phase: P10
+current_task: P10.1
+last_completed_task: P9_GATE
 
 blocked: false
 blocker: null
@@ -51,6 +51,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: P9_GATE
+      phase: P9
+      decision: PHASE_APPROVE
+      accepted_report_commit: a3c7d3713809e6d77e4d53e423cc50973b5fa5a4
+      next_expected_task: P10.1
+      required_fix: null
+      rationale: "P9_GATE attempt 1 returned predicate_result=PASS. Live checks passed: validate_runtime_contract.py --strict-final emitted OK_CONTRACT_FINAL with A01-A19 PASS; verify_handoff_package.py --strict emitted OK_HANDOFF_PACKAGE with A1-A7 PASS; pytest tests/robust_asr/ returned 137 passed; README had the 8 required sections; handoff_smoke.py and rollback_to_previous_handoff.py were executable; rp5_runtime_spec.md existed with sha256 bbcf912d69b15382631f9b92e0597e79ec95259d9a2a9a246e9a86d71dbac197; the canonical handoff tag handoff/20260514-64eba43 remained local and on origin pointing to 64eba4345f3207af38f0fba8ac2c43c6084e8852. P10 was not opened by the gate commit. C5 exclusion verification remains assigned to P10.1."
+  prior_approval_packet_p9_gate_plan:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P9_GATE
       phase: P9
@@ -58,7 +68,7 @@ state_transport:
       accepted_report_commit: ec9b7caea99c27d63fca3cb458eca8f06e7f6260
       next_expected_task: P9_GATE
       required_fix: null
-      rationale: "P9_GATE planning report accepted. This is P9_GATE attempt 1. The gate must evaluate the active P9 predicate from the robust_asr agent plan using live checks. P9.0, P9.1, and P9.2 are already PASS. The final runtime contract, handoff package, handoff tag, RP5 runtime spec, and strict handoff validator fix are present. C5 exclusion verification remains assigned to P10.1 and must not be performed during P9_GATE. P10 must not open without a subsequent PHASE_APPROVE(P9) packet. Demoted from latest_approval_packet to prior_approval_packet_p9_2_exec by this gate-evidence commit: APPROVE_EXECUTION(P9.2) on 6711768743bbed4e947bea884a92b12ab095ebf7."
+      rationale: "P9_GATE planning report accepted. This is P9_GATE attempt 1. The gate must evaluate the active P9 predicate from the robust_asr agent plan using live checks. P9.0, P9.1, and P9.2 are already PASS. The final runtime contract, handoff package, handoff tag, RP5 runtime spec, and strict handoff validator fix are present. C5 exclusion verification remains assigned to P10.1 and must not be performed during P9_GATE. P10 must not open without a subsequent PHASE_APPROVE(P9) packet. Demoted from latest_approval_packet to prior_approval_packet_p9_gate_plan by the PHASE_APPROVE(P9) recording commit."
   prior_approval_packet_p9_2_exec:
     ORCHESTRATOR_DECISION:
       scope: task
@@ -959,8 +969,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 6711768743bbed4e947bea884a92b12ab095ebf7
-  expected_next_task: P9_GATE
+  last_accepted_report_commit: a3c7d3713809e6d77e4d53e423cc50973b5fa5a4
+  expected_next_task: P10.1
   last_tracker_mismatch: null
 
 phase_summary:
@@ -986,7 +996,7 @@ orchestrator_approvals:
   P6: PHASE_APPROVE
   P7: PHASE_APPROVE
   P8: PHASE_APPROVE
-  P9: null
+  P9: PHASE_APPROVE
   P10: null
 
 profile:
