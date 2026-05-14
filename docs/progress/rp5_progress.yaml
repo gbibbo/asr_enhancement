@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.1
-current_task: B14_1-00
-last_completed_task: B14_0-08
+current_task: B14_1-01
+last_completed_task: B14_1-00
 last_completed_phase: B14.0
 markers: []
 phase_approvals:
@@ -58,7 +58,7 @@ plan_authoring_approvals:
       - docs/plans/b14_1/orchestrator_plan.md
       - docs/plans/b14_1/agent_plan.md
       - docs/plans/b14_1/state_packet_schemas.yaml
-    implementation_task_started: false
+    implementation_task_started: true
     predecessor_phase_approval:
       phase: B14.0
       accepted_phase_gate_report_commit: 7e9ce1f7067f938d2b58a7a4e8615101b0012c58
@@ -85,10 +85,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_0_phase_gate.md
+  latest_execution_report_path: reports/rp5/b14_1_plan_compile.md
   latest_phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
-  expected_next_task: B14_1-00
+  expected_next_task: B14_1-01
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -984,3 +984,58 @@ tasks:
       preflight_head_supplemental_evidence_reference: "B14_0-08 supplemental evidence report (chat-level); HEAD lineage 5a9b484 -> 7c44afd -> 7e9ce1f confirmed by git log --oneline --decorate --max-count=5"
     marker: null
     next_task: PHASE_GATE_DECISION
+  B14_1-00:
+    task_id: B14_1-00
+    status: PASS
+    commit: 8e40543bfdd22206559f5509f60504e61a7bd5c6
+    accepted_report_commit: 8e40543bfdd22206559f5509f60504e61a7bd5c6
+    files_changed:
+      - scripts/rp5/validate_b14_1_plan_compile.py
+      - scripts/rp5/validate_b14_1_path_locks.py
+      - reports/rp5/b14_1_plan_compile.md
+    commands_run:
+      - "python3 scripts/rp5/validate_b14_1_plan_compile.py --plan-dir docs/plans/b14_1 --out reports/rp5/b14_1_plan_compile.md"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD --out /tmp/b14_1_00_path_lock_pre_commit.md"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD~1..HEAD --out reports/rp5/path_lock_validation.md"
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "plan_compile must_check items: 15/15 PASS"
+      - "pre_commit_path_lock: --diff HEAD vs d6e3de6 classified 3 paths (PL-B14_1-SCRIPTS x2, PL-B14_1-REPORTS x1), 0 unauthorized"
+      - "post_commit_path_lock: --diff HEAD~1..HEAD classified 3 paths (PL-B14_1-SCRIPTS x2, PL-B14_1-REPORTS x1), 0 unauthorized"
+    supplemental_evidence:
+      preflight_head_at_entry: "d6e3de63ce23ffa801a618cc44da3b9af68a2b9d"
+      pre_commit_path_lock_local_only_sha256: "87892e0e52c36752a5069e7db01d110263c82adef144c5516b2812705fddc42e"
+      pre_commit_path_lock_local_only_size_bytes: 516
+      post_commit_path_lock_local_only_sha256: "f0b41583a5f90db1c3f0f5a58e2479408bb9a39985d94c45e68d5d9c2ae84d18"
+      post_commit_path_lock_local_only_size_bytes: 524
+      local_only_path_lock_transcripts_removed_before_push: true
+      committed_path_lock_validation_md: false
+      plan_compile_artifact_sha256_recorded: not_required_for_B14_1-00_closure
+      validators_created:
+        - scripts/rp5/validate_b14_1_plan_compile.py
+        - scripts/rp5/validate_b14_1_path_locks.py
+      inherited_validators_replaced_for_B14_1:
+        - scripts/rp5/validate_plan_compiles.py
+        - scripts/rp5/validate_changed_files_against_path_locks.py
+      tracker_mutated_during_execution: false
+      docs_plans_b14_1_modified: false
+      docs_plans_b14_0_modified: false
+      docs_plans_broute_modified: false
+      services_modified: false
+      libs_modified: false
+      libs_asr_router_runtime_modified: false
+      infra_modified: false
+      compose_modified: false
+      env_files_modified: false
+      runtime_modified: false
+      tests_modified: false
+      frontend_modified: false
+      public_exposure_introduced: false
+      forbidden_commit_trailers_present: false
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      har_b14_1_funnel_capability_001_status: pre_declared_unresolved
+      har_b14_1_stable_hostname_001_status: pre_declared_unresolved
+      hars_blocking_B14_1-00: none
+    marker: null
+    next_task: B14_1-01
