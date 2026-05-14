@@ -3,7 +3,7 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P8
-current_task: P8_GATE
+current_task: P8.2
 last_completed_task: P8.1
 
 blocked: false
@@ -49,6 +49,16 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: null
+      phase: P8
+      decision: PHASE_REJECT
+      accepted_report_commit: null
+      next_expected_task: P8.2
+      required_fix: "Complete P8.2 before P8 phase approval."
+      rationale: "P8 gate cannot pass because tasks.P8.2.status is not PASS, artifacts/robust_asr/demo/demo_examples_manifest.json is absent, and test_leakage must be rerun after demo example selection. P8.1 is PASS and Decision_D_positive_system=false, but the P8 gate predicate is incomplete."
+  prior_approval_packet_p8_1_exec:
     ORCHESTRATOR_DECISION:
       scope: task
       task_id: P8.1
@@ -709,7 +719,7 @@ state_transport:
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
   last_accepted_report_commit: 1b9f33e681276f977c1e87db4978963ee2a3a9bd
-  expected_next_task: P8_GATE
+  expected_next_task: P8.2
   last_tracker_mismatch: null
 
 phase_summary:
@@ -2758,3 +2768,30 @@ tasks:
     decision: Decision_D_positive_system.outcome = false
     blocker: null
     notes: "P8.1 PASS — Outcome E Branch B. evaluate_system.py loads selected_router/, joins selector_evidence.parquet to eval_tables/whisper_base_ct2_int8.parquet on audio_id (parity 0.0), computes paired delta = wer(selector_action_i) - wer(baseline_i), runs BCa bootstrap (10000 iter, seed 20250514) with percentile_fallback when degenerate, runs Wilcoxon signed-rank, evaluates §5.6 Decision D predicate, writes reports/robust_asr/system/system_eval.md with 'positive_system: false' on line 1, emits OK_SYSTEM_EVAL:false. Under OUTCOME_E only one transcript-producing backend is deployable (whisper_base_ct2_int8); declared baselines=[whisper_base_ct2_int8]; all 28 ask_repeat rows have baseline_wer=1.0 so at primary ask_repeat_wer=1.0 per-row delta=0 and §5.6 predicates (i)+(ii) cannot hold; predicate (iii) holds (no claim depends on cloud_tradeoff/ood_real/positive_lora). Sensitivity ask_repeat_wer=0.5 is reported as a probe only and does not affect Decision D. Slurm job 2132279 COMPLETED 0:0 (elapsed 00:00:09, MaxRSS 7012K). Full robust_asr pytest 137/137 via Slurm job 2132280. validate_report_shape.py OK_REPORT_SHAPE. progress.yaml parses (yaml.safe_load OK). current_task advanced P8.1 -> P8_GATE; last_completed_task advanced P7.3 -> P8.1; claims_enabled.positive_system pending -> false; decisions.Decision_D_positive_system.outcome=false marker=OUTCOME_E_NARROWED_SCOPE. state_transport.last_accepted_report_commit STAYS d009c318acd99041de3175af26b91df2adddffa6 per orchestrator instruction (NOT advanced to this P8.1 implementation commit, matching P5.1/P6.1/P7.3 pattern). state_transport.expected_next_task=P8_GATE. Markers held: BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR (none cleared). claims_enabled.ood_real=false held; .cloud_tradeoff=false held; .positive_lora=false held. router_status=SELECTOR_PACKAGED held. No real-provider call, no audio/model/secret writes. P8_GATE not started. P8.2 not started."
+  P8_GATE:
+    status: FAIL
+    attempt: 1
+    routing_branch: "P8 gate (predicate incomplete; P8.2 not started)"
+    reason: P8.2_NOT_STARTED
+    predicate_inputs:
+      P8_1_status: PASS
+      P8_2_status: NOT_STARTED
+      system_eval_md_exists: true
+      system_eval_first_line: "positive_system: false"
+      claims_enabled_positive_system: false
+      demo_examples_manifest_exists: false
+      pytest_test_leakage_post_p8_2: not_runnable_until_P8_2
+    files_changed:
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "Edit progress.yaml/md/state_capsule: phase_summary.P8 held null; orchestrator_approvals.P8 held null; current_task=P8_GATE->P8.2; latest_approval_packet=PHASE_REJECT(P8) on null commit; prior APPROVE_EXECUTION(P8.1) demoted to prior_approval_packet_p8_1_exec on 1b9f33e681276f977c1e87db4978963ee2a3a9bd; state_transport.expected_next_task=P8.2; state_transport.last_accepted_report_commit held at 1b9f33e681276f977c1e87db4978963ee2a3a9bd"
+      - "git add ...; git commit; git push"
+    key_outputs:
+      - "P8 gate predicate evaluation per agent plan §2676-§2691: tasks[P8.1].status=PASS satisfies one conjunct; system_eval.md with 'positive_system: false' on line 1 + paired BCa CI [0,0] + Wilcoxon n=0 satisfies the system_eval conjuncts; claims_enabled.positive_system=false ∈ {true,false} satisfies the claims_enabled conjunct; tasks[P8.2].status==PASS FAILS (P8.2 not started); artifacts/robust_asr/demo/demo_examples_manifest.json exists+disjointness_proof FAILS (file absent); pytest tests/robust_asr/test_leakage.py PASS deferred (must be rerun on post-P8.2 tree)."
+      - "PHASE_REJECT(P8) recorded; current_task corrected to P8.2; no claims_enabled flag flipped; no marker cleared"
+    marker: null
+    next_task: P8.2
+    blocker: null
+    notes: "P8 gate FAIL on attempt 1. PHASE_REJECT(P8) per orchestrator decision packet (rationale: P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 not yet run). Routing per §2688-§2691 'on FAIL: return to the failed P8 task' = P8.2. P8.1 remains PASS (approved_at_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd); Decision_D_positive_system.outcome=false held; claims_enabled.positive_system=false held; OUTCOME_E_NARROWED_SCOPE held on tasks.P8.1 and decisions.Decision_D_positive_system. Markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; none cleared. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system} all held. state_transport.last_accepted_report_commit STAYS 1b9f33e681276f977c1e87db4978963ee2a3a9bd (no advance from PHASE_REJECT). state_transport.expected_next_task=P8.2. No code, no test, no Slurm submission, no real-provider call, no scripts/artifacts/configs edited. Only tracker files modified. P8.2 not started. P9.0 not started."
