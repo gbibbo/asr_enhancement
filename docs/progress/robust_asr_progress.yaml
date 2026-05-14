@@ -6,8 +6,8 @@ current_phase: P8
 current_task: P8.2
 last_completed_task: P8.1
 
-blocked: false
-blocker: null
+blocked: true
+blocker: "DEMO_PROVENANCE_INSUFFICIENT — P8.2 demo audio bundle is functionally correct (8 WAVs, disjoint from every locked manifest, leakage tests green) but lacks public-corpus provenance, license identification, and upstream attribution required by P9.1 handoff README §6/§8 and P10.1/P10.2 verification + asset audit. Source dir /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/demo_reference_artifacts/ contains 30 WAV files and ZERO metadata files (no README, LICENSE, provenance.json, attribution); operator must supply per-file upstream_corpus, upstream_audio_id, license_spdx, license_url, attribution before P8.2 can be re-executed and approved. See reports/robust_asr/demo/provenance_audit.md (verdict INSUFFICIENT) for required external action."
 
 lora_status: SKIPPED_BY_DECISION_A
 router_status: SELECTOR_PACKAGED
@@ -27,7 +27,7 @@ product_baseline: whisper_base_ct2_int8
 artifact_root: artifacts/robust_asr
 handoff_root: artifacts/robust_asr/handoff
 
-markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]
+markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR, MISSING_EVIDENCE]
 
 claims_enabled:
   ood_real: false
@@ -49,6 +49,26 @@ state_transport:
   latest_phase_gate_report: null
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.2-provenance
+      phase: P8
+      decision: APPROVE_PLAN
+      accepted_report_commit: 5cf704adda14b4d8b4184e258a72634abf4828d1
+      next_expected_task: P8.2
+      required_fix: null
+      rationale: "P8.2-provenance plan approved on the provenance scope-change commit 5cf704a. Audit demo provenance under read-only inspection of demo_examples_manifest.json, build_demo_examples.py, and the operator-staged demo_reference_artifacts/** tree (including any README/LICENSE/metadata files). If verifiable provenance exists, enrich the manifest with upstream_corpus, upstream_audio_id, upstream_audio_sha256, license (SPDX/URL), and attribution, write reports/robust_asr/demo/provenance_audit.md PASS, and update the P8.2 task report. If verifiable provenance does NOT exist, write reports/robust_asr/demo/provenance_audit.md INSUFFICIENT and HALT P8.2 with marker=MISSING_EVIDENCE reason=DEMO_PROVENANCE_INSUFFICIENT. Do not invent license/provenance. Do not edit WAV bytes. Do not approve P8.2. Do not advance last_accepted_report_commit to the P8.2-provenance implementation commit. Do not start P8_GATE."
+  prior_approval_packet_p8_2_provenance_scope_exec:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.2-provenance-scope-change
+      phase: P8
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 5cf704adda14b4d8b4184e258a72634abf4828d1
+      next_expected_task: P8.2
+      required_fix: null
+      rationale: "P8.2-provenance scope-change accepted on the provenance scope-change commit 5cf704a. touch_policy.md (P8.2 row amended to authorize reports/robust_asr/demo/provenance_audit.md write; all other P8.2 writes preserved verbatim) is now binding. reuse_policy_v1.yaml unchanged: reports/robust_asr/** already lists P8.2 in allowed_tasks. Policy sha256 recorded in artifacts.touch_policy.sha256=33243a49... with last_amended_by=P8.2_provenance_scope_change."
+  prior_approval_packet_p8_2_provenance_change_scope:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P8.2-provenance
@@ -2837,8 +2857,10 @@ tasks:
     blocker: null
     notes: "P8 gate FAIL on attempt 1. PHASE_REJECT(P8) per orchestrator decision packet (rationale: P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 not yet run). Routing per §2688-§2691 'on FAIL: return to the failed P8 task' = P8.2. P8.1 remains PASS (approved_at_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd); Decision_D_positive_system.outcome=false held; claims_enabled.positive_system=false held; OUTCOME_E_NARROWED_SCOPE held on tasks.P8.1 and decisions.Decision_D_positive_system. Markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; none cleared. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system} all held. state_transport.last_accepted_report_commit STAYS 1b9f33e681276f977c1e87db4978963ee2a3a9bd (no advance from PHASE_REJECT). state_transport.expected_next_task=P8.2. No code, no test, no Slurm submission, no real-provider call, no scripts/artifacts/configs edited. Only tracker files modified. P8.2 not started. P9.0 not started."
   P8.2:
-    status: IMPLEMENTED_PENDING_APPROVAL
-    routing_branch: "BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false (LibriSpeech-derived public path; common_voice_demo_reserved unused)"
+    status: HALTED
+    marker: MISSING_EVIDENCE
+    reason: DEMO_PROVENANCE_INSUFFICIENT
+    routing_branch: "BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false (LibriSpeech-derived public path; common_voice_demo_reserved unused). Functional build PASSED at commit 6783789 (8 WAVs + manifest + leakage tests + 137/137 robust_asr pytest); HALTED at provenance audit (commit pending) because reports/robust_asr/demo/provenance_audit.md verdict=INSUFFICIENT — operator-staged source dir contains zero metadata files (no README, LICENSE, provenance.json, attribution); manifest license=demo_reserve_public is not a recognized SPDX identifier; no upstream_corpus, upstream_audio_id, license_url, or attribution recorded. Required external action: operator supplies per-file upstream_corpus + upstream_audio_id + license (SPDX) + license_url + attribution at /mnt/fast/.../demo_reference_artifacts/, then P8.2 re-executed under fresh APPROVE_PLAN(P8.2-provenance-rerun)."
     sentinels:
       - OK_DEMO_EXAMPLES
       - OK_REPORT_SHAPE
@@ -2879,3 +2901,37 @@ tasks:
     decision: 8 demo entries selected; PASS gate pending APPROVE_EXECUTION(P8.2)
     blocker: null
     notes: "P8.2 implemented under BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false (LibriSpeech-derived public path per agent plan §4.7; common_voice_demo_reserved unused). Source pool: operator-staged demo_reference_artifacts/examples/ (read-only authorized for P8.2 in reuse_policy_v1.yaml). Selection deterministic by sorted speaker_id then family — 5 ID-family entries (clean/cafe_noise/phone_band/far_field_room/muffled_lowpass) + 3 OOD-param illustrative (broadband_hiss). 8 small WAV files (16 kHz mono PCM16) copied to artifacts/robust_asr/demo/audio/ — bit-identical to reference (audio_sha256 preserved). Disjointness from every locked manifest verified by audio_id, speaker_id, and audio_sha256 inside both build_demo_examples.py (refuse to write on overlap) and tests/robust_asr/test_leakage.py (3 explicit sub-tests + per-row sha256 recompute). Full robust_asr pytest 137/137. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false held; markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; none cleared. tasks.P8.2.status held at IMPLEMENTED_PENDING_APPROVAL — orchestrator advances to PASS via APPROVE_EXECUTION(P8.2). current_task=P8.2 held; last_completed_task=P8.1 held. state_transport.last_accepted_report_commit STAYS 1b9f33e681276f977c1e87db4978963ee2a3a9bd per orchestrator instruction (NOT advanced to this P8.2 implementation commit, matching the P5.1/P6.1/P7.3/P8.1 acceptance pattern). state_transport.expected_next_task=P8_GATE (from APPROVE_PLAN(P8.2)). No real-provider call, no GPU, no Slurm submission. P8_GATE not started. P9.0 not started."
+  P8.2-provenance:
+    status: PASS
+    routing_branch: "BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false; provenance audit branch INSUFFICIENT -> HALT P8.2"
+    sentinels:
+      - PROVENANCE_AUDIT_INSUFFICIENT
+      - OK_REPORT_SHAPE
+      - OK_PROGRESS_YAML_PARSE
+      - pytest_tests_robust_asr_137_of_137
+      - pytest_test_leakage_5_of_5
+      - OK_SHA256_UNCHANGED
+    files_changed:
+      - reports/robust_asr/demo/provenance_audit.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "find /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/demo_reference_artifacts -type f  ->  30 files, all .wav (zero README/LICENSE/provenance metadata)"
+      - "python3 -c 'recompute on-disk sha256 vs manifest entries'  ->  all 8 unchanged; 8 WAV files on disk"
+      - "pytest tests/robust_asr/test_leakage.py  ->  5 passed"
+      - "pytest tests/robust_asr/  ->  137 passed"
+      - "python scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures  ->  OK_REPORT_SHAPE"
+      - "python -c \"import yaml; yaml.safe_load(open('docs/progress/robust_asr_progress.yaml')); print('OK_PROGRESS_YAML_PARSE')\"  ->  OK_PROGRESS_YAML_PARSE"
+    key_outputs:
+      - "reports/robust_asr/demo/provenance_audit.md (verdict INSUFFICIENT on first non-blank line; 5 findings F1-F5; required external action documented)"
+      - "F1: source dir /mnt/fast/.../demo_reference_artifacts/ contains 30 WAV files and ZERO metadata files (no README, LICENSE, provenance.json, attribution, SPDX identifier, speaker consent, recording method, dataset version)"
+      - "F2: build_demo_examples.py is a bit-identical copier (shutil.copyfile from operator-staged scratch reserve); never opens LibriSpeech .flac, never imports libs.audio.degradations, never reads license file"
+      - "F3: manifest provenance fields are assertional only (source='demo_reference_artifacts/v1 (operator-staged...)'; license='demo_reserve_public' — not SPDX); no upstream_corpus / upstream_audio_id / license_url / attribution / origin block on any of 8 entries"
+      - "F4: plan drift vs §4.7 'LibriSpeech-derived public' — data_v1.yaml partition consumes all 331 LibriSpeech speakers on host (251 train-clean-100 + 40 dev-clean + 40 test-clean), leaving zero free pool"
+      - "F5: disjointness vs locked manifests intact (audio_id ∩ = ∅; speaker_id ∩ = ∅; audio_sha256 ∩ = ∅); all 8 on-disk sha256 == manifest sha256; 8 WAVs present"
+      - "Demo WAV bytes UNCHANGED (every demo audio_sha256 still equals build-time value); manifest UNCHANGED; build script UNCHANGED"
+    decided_at_task: P8.2-provenance
+    decision: tasks.P8.2.status -> HALTED; marker=MISSING_EVIDENCE; reason=DEMO_PROVENANCE_INSUFFICIENT; markers += MISSING_EVIDENCE; blocked=true
+    blocker: "DEMO_PROVENANCE_INSUFFICIENT — operator must supply per-file upstream_corpus + upstream_audio_id + license_spdx + license_url + attribution at /mnt/fast/.../demo_reference_artifacts/ before P8.2 can be re-executed and approved"
+    notes: "P8.2-provenance audit completed under read-only inspection per CHANGE_SCOPE(P8.2-provenance) on commit 6783789 + APPROVE_PLAN(P8.2-provenance) on commit 5cf704a. Verdict INSUFFICIENT on demo provenance — no verifiable upstream corpus, license URL, SPDX identifier, recording method, speaker consent, or attribution exists for any of the 8 demo entries. Per orchestrator instruction 'Do not invent license/provenance.', no manifest fields were added; demo_examples_manifest.json is byte-unchanged from commit 6783789. Demo WAV bytes are byte-unchanged. build_demo_examples.py is byte-unchanged. tasks.P8.2.status mutated IMPLEMENTED_PENDING_APPROVAL -> HALTED with marker=MISSING_EVIDENCE and reason=DEMO_PROVENANCE_INSUFFICIENT per orchestrator INSUFFICIENT-branch instruction. markers += MISSING_EVIDENCE (now [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR, MISSING_EVIDENCE]). blocked=true with blocker text identifying the provenance gap (matching the P2.1 HALTED+MISSING_EVIDENCE precedent). current_task=P8.2 held; last_completed_task=P8.1 held. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false held. state_transport.expected_next_task=P8_GATE held (orchestrator will re-route once provenance is supplied). state_transport.last_accepted_report_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd HELD per orchestrator instruction (NOT advanced to this provenance-audit implementation commit). No code, no test, no Slurm submission, no real-provider call, no demo audio rebuilt, no WAV bytes touched, no manifest edited. Only reports/robust_asr/demo/provenance_audit.md (new) and the three tracker files were modified. P8_GATE not started. P9.0 not started."
