@@ -7,14 +7,14 @@ Status: IN_PROGRESS
 ## Current state
 
 - Phase: P8 (system evaluation and demo examples)
-- Current task: P8_GATE (P8.2 PASS recorded under enacted demo-only deviation P8_2_demo_only_upstream_overlap; awaiting P8 phase gate evaluation — P8_GATE attempt 1 had FAILed; this acceptance enables a fresh attempt)
+- Current task: P8_GATE (attempt 2 PASS; phase_summary.P8 advanced to PASS; awaiting orchestrator PHASE_APPROVE(P8); current_task NOT yet advanced to P9.0)
 - Last completed: P8.2 (PASS — demo bundle accepted as UI/demo-only delivery under enacted deviation; final provenance verdict PASS_WITH_DEMO_ONLY_DEVIATION; binding constraints C1-C5; 8 unchanged WAV bytes; manifest sha256 850c02db…; approved_at_commit 2e1c46e…)
 - Prior completed: P8.1 (PASS — system_eval.md first line `positive_system: false`; OK_SYSTEM_EVAL:false on stdout; pytest 137/137; full BCa bootstrap 10000 iter seed 20250514; Slurm job 2132279 COMPLETED 0:0)
 - Prior completed: P7.3 (PASS — deterministic selector packaged under OUTCOME_E Branch B; PHASE_APPROVE(P7) recorded against the same P7.3 acceptance commit and does not itself advance last_completed_task)
 - Prior completed: P6.1 (PASS — selector-evidence path)
 - Prior completed: P5.1 (HALTED — BLOCKED_API reason=key_unset)
 - Prior completed: P3.2 (PASS — Decision_A_smoke.outcome=FAIL)
-- Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS, P5=PASS, P6=PASS, P7=PASS
+- Phase summary: P0=PASS, P1=PASS, P2=PASS, P3=PASS, P5=PASS, P6=PASS, P7=PASS, P8=PASS
 - tasks.P7.1.status: SKIPPED_BY_OUTCOME_E (decided_at_task=P6_GATE, next_task=P7.3)
 - tasks.P7.2.status: SKIPPED_BY_OUTCOME_E (decided_at_task=P6_GATE, next_task=P7.3)
 - Active markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]
@@ -38,7 +38,10 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: CHANGE_SCOPE(plan_index_refresh) on `0073e7b` (next P8_GATE) — administrative pointer refresh: plan.md and the upper Sections 1–23 of CLAUDE.md now explicitly defer to ROBUST_ASR_PROFILE; legacy docs/plans/training_datamove1_plan.md classified as legacy/template-only and must not be restored; P8 evidence, P8_GATE state, claims_enabled.*, markers, lora_status, router_status all held; state_transport.last_accepted_report_commit advanced 2e1c46e → 0073e7b
+- latest_approval_packet: APPROVE_PLAN(P8_GATE) on `643efe5` (next P8_GATE) — Reading A approved for the disjointness-proof conjunct (demo-side disjointness under enacted P8_2_demo_only_upstream_overlap satisfies the predicate); demo bundle remains UI/demo-only; upstream overlap real and disclosed; demo artifacts excluded from claims_enabled.*; P9.1 must disclose, P10.1 must verify exclusion; gate report must not convert deviation into positive evidence
+- tasks.P8_GATE.status: PASS (attempt 2; predicate satisfied; phase_summary.P8 advanced to PASS; awaiting orchestrator PHASE_APPROVE(P8); attempt 1 FAIL preserved under tasks.P8_GATE.prior_attempts.attempt_1)
+- state_transport.latest_phase_gate_report: reports/robust_asr/task_reports/P8_GATE_attempt2.md
+- prior_approval_packet_plan_index_refresh: CHANGE_SCOPE(plan_index_refresh) on `0073e7b` (next P8_GATE) — administrative pointer refresh: plan.md and the upper Sections 1–23 of CLAUDE.md now explicitly defer to ROBUST_ASR_PROFILE; legacy docs/plans/training_datamove1_plan.md classified as legacy/template-only and must not be restored; P8 evidence, P8_GATE state, claims_enabled.*, markers, lora_status, router_status all held; state_transport.last_accepted_report_commit advanced 2e1c46e → 0073e7b
 - prior_approval_packet_p8_2_exec: APPROVE_EXECUTION(P8.2) on `2e1c46e` (next P8_GATE) — P8.2 closed as PASS under enacted demo-only deviation `P8_2_demo_only_upstream_overlap` (PASS_WITH_DEMO_ONLY_DEVIATION; binding constraints C1-C5; 8 unchanged WAVs; explicit provenance; demo bundle is UI/demo-only and NOT evidence for any claims_enabled.* flag); current_task advanced P8.2 → P8_GATE; last_completed_task advanced P8.1 → P8.2; state_transport.last_accepted_report_commit advanced 24811206 → 2e1c46e
 - prior_approval_packet_p8_2_deviation_exec: APPROVE_EXECUTION(P8.2-deviation) on `2481120` (next P8.2) — deviation enactment accepted; PASS_WITH_DEMO_ONLY_DEVIATION; all 8 WAV sha256s preserved; provenance_audit.md and manifest carry binding constraints C1-C5; MISSING_EVIDENCE cleared; blocked=false; leakage tests + full robust_asr pytest + report-shape + YAML-parse green; parent P8.2 was IMPLEMENTED_PENDING_APPROVAL at that commit
 - prior_approval_packet_p8_2_deviation_plan: APPROVE_PLAN(P8.2-deviation) on `ec8813c` (next P8.2) — enact the authorized demo-only deviation; manifest top-level `deviation` block added (deviation_id=P8_2_demo_only_upstream_overlap, status=approved_for_demo_only_use_pending_p8_2_approval, upstream_disjointness=false, allowed_use=UI/demo-only, forbidden_use=metrics+eval+selector+system+claims_enabled, binding_constraints=[C1..C5]); provenance_audit.md final verdict PASS_WITH_DEMO_ONLY_DEVIATION; tasks.P8.2 status HALTED → IMPLEMENTED_PENDING_APPROVAL; markers loses MISSING_EVIDENCE; blocked false; blocker null; proposed_deviations.P8_2_demo_only_upstream_overlap.status SCOPE_AUTHORIZED_NOT_YET_ENACTED → ENACTED
@@ -93,6 +96,66 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P8_GATE attempt 2 PASS — phase_summary.P8 advanced to PASS; awaiting orchestrator PHASE_APPROVE(P8)
+
+- ORCHESTRATOR_DECISION: scope=task task=P8_GATE phase=P8
+  decision=APPROVE_PLAN
+- accepted_report_commit: `643efe520904caeff84e29b11cb764ad07bbe3d9`
+- next_expected_task: P8_GATE
+- pre_ruling: **Reading A approved** — the disjointness-proof conjunct is satisfied by demo-side `audio_id`/`speaker_id`/`audio_sha256` disjointness under the enacted `P8_2_demo_only_upstream_overlap` deviation. Upstream-level overlap is real and remains disclosed; it does not by itself fail P8_GATE because P8.2 was accepted as demo-only UI asset delivery, not evaluation evidence. The gate report carries the deviation forward; demo artifacts remain ineligible to support `claims_enabled.*` flags or feed any evaluation pipeline.
+
+P8 gate predicate (agent plan §2676–§2691) — all five conjuncts PASS:
+
+- `tracker.tasks[P8.1].status == PASS` → PASS (`tasks.P8.1.status: PASS`, approved_at_commit `1b9f33e6…`).
+- `tracker.tasks[P8.2].status == PASS` → PASS (`tasks.P8.2.status: PASS`, `deviation_status: ENACTED`, approved_at_commit `2e1c46e8…`).
+- `reports/robust_asr/system/system_eval.md` exists with first line `positive_system: false` and paired BCa bootstrap (10000 iter, seed 20250514) / Wilcoxon signed-rank body → PASS.
+- `tracker.claims_enabled.positive_system in {true, false}` → PASS (observed `false`).
+- `artifacts/robust_asr/demo/demo_examples_manifest.json` exists with disjointness proof → PASS under Reading A: `n_examples == 8`, `manifest_version == v1.2-deviation-enacted`, `deviation_id == P8_2_demo_only_upstream_overlap`, `upstream_disjointness == false`, `binding_constraints == [C1, C2, C3, C4, C5]`; demo-side disjointness proven by `tests/robust_asr/test_leakage.py::test_demo_examples_disjoint_from_eval_sets`; cross-reference `reports/robust_asr/demo/provenance_audit.md` final verdict `PASS_WITH_DEMO_ONLY_DEVIATION`.
+- `pytest tests/robust_asr/test_leakage.py` PASS → 5 passed in 7.56 s (Python 3.9.13, pytest 8.4.2). Full-suite cross-check `pytest tests/robust_asr/` → 137 passed in 15.85 s.
+
+Tracker mutations on this commit:
+
+- `latest_approval_packet` → `APPROVE_PLAN(P8_GATE)` on `643efe520904caeff84e29b11cb764ad07bbe3d9` with the Reading A pre-ruling and constraint list (recorded in full inside `state_transport.latest_approval_packet.rationale`).
+- `CHANGE_SCOPE(plan_index_refresh)` on `0073e7b4076ce76d36233bec2eacb4411ba28722` demoted to `prior_approval_packet_plan_index_refresh` (next P8_GATE).
+- `tasks.P8_GATE.attempt`: `1` → **`2`**; `tasks.P8_GATE.status`: `FAIL` → **`PASS`**; `tasks.P8_GATE.reason` cleared; `tasks.P8_GATE.routing_branch` updated; `tasks.P8_GATE.predicate_inputs` updated with the six observed values plus deviation/manifest fields; the attempt-1 FAIL record preserved verbatim under `tasks.P8_GATE.prior_attempts.attempt_1`.
+- `phase_summary.P8`: `null` → **`PASS`**.
+- `state_transport.latest_phase_gate_report`: `null` → **`reports/robust_asr/task_reports/P8_GATE_attempt2.md`**.
+- `state_transport.last_accepted_report_commit`: **HELD** at `0073e7b4076ce76d36233bec2eacb4411ba28722` (NOT advanced by this gate-evidence commit; orchestrator advances on `PHASE_APPROVE(P8)` per the P5.1 / P6.1 / P7.3 / P8.1 / P8.2 acceptance pattern).
+
+State held (no changes):
+
+- `current_task = P8_GATE` (held; **NOT advanced to P9.0**).
+- `last_completed_task = P8.2` (held; advanced only on `PHASE_APPROVE(P8)`).
+- `state_transport.expected_next_task = P8_GATE` (held; orchestrator pivots to P9.0 on `PHASE_APPROVE(P8)`).
+- `orchestrator_approvals.P8 = null` (held).
+- `markers = [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]` — none cleared, none added; `OUTCOME_E_NARROWED_SCOPE` held on `tasks.P8.1` / `decisions.Decision_D_positive_system`.
+- `claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system} = false` — all held.
+- `blocked = false`; `blocker = null`.
+- `router_status = SELECTOR_PACKAGED`; `lora_status = SKIPPED_BY_DECISION_A`; `deterministic_selector_version = deterministic_selector_v1`.
+- `proposed_deviations.P8_2_demo_only_upstream_overlap.status = ENACTED`.
+- `decisions.Decision_D_positive_system.outcome = false`.
+- `tasks.P8.1.status = PASS`, `tasks.P8.2.status = PASS`, `tasks.P8.2-{deviation, provenance, provenance-rerun, upstream-leakage-audit}.status = PASS` — all held.
+
+Files explicitly not touched:
+
+- `docs/plans/training_datamove1_plan.md` — remains absent; not restored.
+- `docs/plans/archive/**` — byte-unchanged.
+- `docs/progress/training_datamove1_progress.{yaml,md}` — byte-unchanged.
+- `artifacts/robust_asr/demo/demo_examples_manifest.json` — byte-unchanged (manifest sha256 `850c02db…` held).
+- `artifacts/robust_asr/demo/audio/*.wav` — 8 files byte-unchanged.
+- `tests/robust_asr/test_leakage.py` — byte-unchanged.
+- `reports/robust_asr/system/system_eval.md` — byte-unchanged.
+- `reports/robust_asr/demo/provenance_audit.md` — byte-unchanged.
+- `reports/robust_asr/task_reports/P8.1_system_eval.md` and `reports/robust_asr/task_reports/P8.2_demo_manifest.md` — byte-unchanged.
+- `configs/robust_asr/reuse_policy_v1.yaml` — byte-unchanged.
+- `reports/robust_asr/touch_policy.md` — byte-unchanged.
+- `BEGIN ROBUST_ASR_PROFILE` / `END ROBUST_ASR_PROFILE` block in `CLAUDE.md` — byte-unchanged.
+- `plan.md` — byte-unchanged.
+
+No real-provider call. No GPU. No Slurm submission (pytest run inline on login node — cheap CPU tests, wall clock <25 s combined, well below the long-Python-job threshold; the gate predicate's literal `pytest` invocation does not mandate the Slurm wrapper for cheap tests). P9.0 not opened.
+
+Next legal action: orchestrator returns `PHASE_APPROVE(P8)`, `PHASE_REJECT(P8)`, or `CHANGE_SCOPE`. On `PHASE_APPROVE(P8)`, a subsequent `PHASE_APPROVAL_RECORDING` step advances `current_task` `P8_GATE → P9.0`, `last_completed_task` `P8.2 → P8_GATE`, sets `orchestrator_approvals.P8 = PHASE_APPROVE`, advances `state_transport.last_accepted_report_commit` from `0073e7b…` to the `PHASE_APPROVE`-accepted commit, sets `state_transport.expected_next_task = P9.0`, and demotes `APPROVE_PLAN(P8_GATE)` to `prior_approval_packet_p8_gate_plan`.
 
 ## plan_index_refresh CHANGE_SCOPE recorded — branch entry-point pointer refresh; P8 evidence and P8_GATE state held
 

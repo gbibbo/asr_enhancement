@@ -46,9 +46,19 @@ state_transport:
   latest_state_capsule: docs/progress/robust_asr_state_capsule.md
   latest_planning_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
   latest_execution_report: reports/robust_asr/task_reports/P1.1_data_inventory.md
-  latest_phase_gate_report: null
+  latest_phase_gate_report: reports/robust_asr/task_reports/P8_GATE_attempt2.md
   latest_supplemental_evidence_report: null
   latest_approval_packet:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8_GATE
+      phase: P8
+      decision: APPROVE_PLAN
+      accepted_report_commit: 643efe520904caeff84e29b11cb764ad07bbe3d9
+      next_expected_task: P8_GATE
+      required_fix: null
+      rationale: "Reading A approved for P8_GATE attempt 2: the disjointness-proof conjunct is satisfied by demo-side audio_id/speaker_id/audio_sha256 disjointness under the enacted P8_2_demo_only_upstream_overlap deviation. Upstream-level overlap is real and remains disclosed; it does not by itself fail P8_GATE because P8.2 was accepted as demo-only UI asset delivery, not evaluation evidence. Constraints: demo examples may be packaged only as UI/demo assets; demo examples must not feed WER/CER/robustness metrics, claims_enabled.*, P8.1 system evaluation, P10.1 final verification metrics, backend evaluation parquet, selector_evidence.parquet, oracle parquet, or any system_eval input set; P9.1 must disclose the overlap and name the affected utterances/speakers; P10.1 must verify exclusion of demo manifest paths and audio_id/upstream_audio_id values from evaluation artifacts; the gate report must explicitly carry this deviation forward and must not convert it into positive evidence."
+  prior_approval_packet_plan_index_refresh:
     ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: plan_index_refresh
@@ -881,7 +891,7 @@ phase_summary:
   P5: PASS
   P6: PASS
   P7: PASS
-  P8: null
+  P8: PASS
   P9: null
   P10: null
 
@@ -2961,30 +2971,79 @@ tasks:
     blocker: null
     notes: "P8.1 PASS — Outcome E Branch B. evaluate_system.py loads selected_router/, joins selector_evidence.parquet to eval_tables/whisper_base_ct2_int8.parquet on audio_id (parity 0.0), computes paired delta = wer(selector_action_i) - wer(baseline_i), runs BCa bootstrap (10000 iter, seed 20250514) with percentile_fallback when degenerate, runs Wilcoxon signed-rank, evaluates §5.6 Decision D predicate, writes reports/robust_asr/system/system_eval.md with 'positive_system: false' on line 1, emits OK_SYSTEM_EVAL:false. Under OUTCOME_E only one transcript-producing backend is deployable (whisper_base_ct2_int8); declared baselines=[whisper_base_ct2_int8]; all 28 ask_repeat rows have baseline_wer=1.0 so at primary ask_repeat_wer=1.0 per-row delta=0 and §5.6 predicates (i)+(ii) cannot hold; predicate (iii) holds (no claim depends on cloud_tradeoff/ood_real/positive_lora). Sensitivity ask_repeat_wer=0.5 is reported as a probe only and does not affect Decision D. Slurm job 2132279 COMPLETED 0:0 (elapsed 00:00:09, MaxRSS 7012K). Full robust_asr pytest 137/137 via Slurm job 2132280. validate_report_shape.py OK_REPORT_SHAPE. progress.yaml parses (yaml.safe_load OK). current_task advanced P8.1 -> P8_GATE; last_completed_task advanced P7.3 -> P8.1; claims_enabled.positive_system pending -> false; decisions.Decision_D_positive_system.outcome=false marker=OUTCOME_E_NARROWED_SCOPE. state_transport.last_accepted_report_commit STAYS d009c318acd99041de3175af26b91df2adddffa6 per orchestrator instruction (NOT advanced to this P8.1 implementation commit, matching P5.1/P6.1/P7.3 pattern). state_transport.expected_next_task=P8_GATE. Markers held: BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR (none cleared). claims_enabled.ood_real=false held; .cloud_tradeoff=false held; .positive_lora=false held. router_status=SELECTOR_PACKAGED held. No real-provider call, no audio/model/secret writes. P8_GATE not started. P8.2 not started."
   P8_GATE:
-    status: FAIL
-    attempt: 1
-    routing_branch: "P8 gate (predicate incomplete; P8.2 not started)"
-    reason: P8.2_NOT_STARTED
+    status: PASS
+    attempt: 2
+    routing_branch: "P8 gate (predicate satisfied under Reading A pre-ruling on disjointness-proof conjunct; demo-only deviation P8_2_demo_only_upstream_overlap carried forward)"
+    reason: null
     predicate_inputs:
       P8_1_status: PASS
-      P8_2_status: NOT_STARTED
+      P8_2_status: PASS
+      P8_2_deviation_status: ENACTED
       system_eval_md_exists: true
       system_eval_first_line: "positive_system: false"
+      system_eval_paired_test_results_present: true
       claims_enabled_positive_system: false
-      demo_examples_manifest_exists: false
-      pytest_test_leakage_post_p8_2: not_runnable_until_P8_2
+      demo_examples_manifest_exists: true
+      demo_examples_manifest_n_examples: 8
+      demo_examples_manifest_version: "v1.2-deviation-enacted"
+      demo_examples_manifest_deviation_id: "P8_2_demo_only_upstream_overlap"
+      demo_examples_manifest_upstream_disjointness: false
+      demo_examples_manifest_binding_constraints: [C1, C2, C3, C4, C5]
+      demo_side_disjointness_proof: PASS
+      pytest_test_leakage: "5 passed in 7.56s"
+      pytest_full_robust_asr_cross_check: "137 passed in 15.85s"
+      provenance_audit_final_verdict: "PASS_WITH_DEMO_ONLY_DEVIATION"
     files_changed:
       - docs/progress/robust_asr_progress.yaml
       - docs/progress/robust_asr_progress.md
       - docs/progress/robust_asr_state_capsule.md
+      - reports/robust_asr/task_reports/P8_GATE_attempt2.md
     commands_run:
-      - "Edit progress.yaml/md/state_capsule: phase_summary.P8 held null; orchestrator_approvals.P8 held null; current_task=P8_GATE->P8.2; latest_approval_packet=PHASE_REJECT(P8) on null commit; prior APPROVE_EXECUTION(P8.1) demoted to prior_approval_packet_p8_1_exec on 1b9f33e681276f977c1e87db4978963ee2a3a9bd; state_transport.expected_next_task=P8.2; state_transport.last_accepted_report_commit held at 1b9f33e681276f977c1e87db4978963ee2a3a9bd"
-      - "git add ...; git commit; git push"
+      - "pwd; git branch --show-current; git status --short; git rev-parse HEAD"
+      - "head -n 1 reports/robust_asr/system/system_eval.md (returned 'positive_system: false')"
+      - "head -n 5 reports/robust_asr/demo/provenance_audit.md (confirmed PASS_WITH_DEMO_ONLY_DEVIATION (final))"
+      - "python3 json.load(artifacts/robust_asr/demo/demo_examples_manifest.json) — n_examples=8, manifest_version=v1.2-deviation-enacted, deviation_id=P8_2_demo_only_upstream_overlap, upstream_disjointness=False, binding_constraints=[C1,C2,C3,C4,C5]"
+      - "python3 yaml.safe_load(docs/progress/robust_asr_progress.yaml) — claims_enabled.positive_system=False, tasks.P8.1.status=PASS, tasks.P8.2.status=PASS, tasks.P8.2.deviation_status=ENACTED, proposed_deviations.P8_2_demo_only_upstream_overlap.status=ENACTED"
+      - "python3 -m pytest tests/robust_asr/test_leakage.py -v -> 5 passed in 7.56s (Python 3.9.13, pytest 8.4.2)"
+      - "python3 -m pytest tests/robust_asr/ -> 137 passed in 15.85s"
+      - "Write reports/robust_asr/task_reports/P8_GATE_attempt2.md (phase gate report)"
+      - "Edit docs/progress/robust_asr_progress.yaml: latest_approval_packet -> APPROVE_PLAN(P8_GATE) on 643efe5; CHANGE_SCOPE(plan_index_refresh) demoted to prior_approval_packet_plan_index_refresh; tasks.P8_GATE updated to attempt=2 status=PASS with predicate_inputs; phase_summary.P8 null -> PASS; state_transport.latest_phase_gate_report set; current_task=P8_GATE held; last_completed_task=P8.2 held; orchestrator_approvals.P8=null held; state_transport.last_accepted_report_commit HELD at 0073e7b (NOT advanced by gate-evidence commit, per P5.1/P6.1/P7.3/P8.1/P8.2 acceptance pattern; orchestrator advances on PHASE_APPROVE(P8))"
+      - "Edit docs/progress/robust_asr_progress.md and docs/progress/robust_asr_state_capsule.md to record the gate PASS, the Reading A pre-ruling carry-forward, the deviation carry-forward, and the held invariants"
+      - "git add reports/robust_asr/task_reports/P8_GATE_attempt2.md docs/progress/robust_asr_progress.yaml docs/progress/robust_asr_progress.md docs/progress/robust_asr_state_capsule.md; git commit; git push"
     key_outputs:
-      - "P8 gate predicate evaluation per agent plan §2676-§2691: tasks[P8.1].status=PASS satisfies one conjunct; system_eval.md with 'positive_system: false' on line 1 + paired BCa CI [0,0] + Wilcoxon n=0 satisfies the system_eval conjuncts; claims_enabled.positive_system=false ∈ {true,false} satisfies the claims_enabled conjunct; tasks[P8.2].status==PASS FAILS (P8.2 not started); artifacts/robust_asr/demo/demo_examples_manifest.json exists+disjointness_proof FAILS (file absent); pytest tests/robust_asr/test_leakage.py PASS deferred (must be rerun on post-P8.2 tree)."
-      - "PHASE_REJECT(P8) recorded; current_task corrected to P8.2; no claims_enabled flag flipped; no marker cleared"
+      - "P8 gate predicate (agent plan §2676-§2691) evaluation: tasks[P8.1].status=PASS PASS; tasks[P8.2].status=PASS PASS (deviation_status=ENACTED); system_eval.md exists + first line 'positive_system: false' + paired BCa CI [0,0]/Wilcoxon n=0 PASS; claims_enabled.positive_system=false in {true,false} PASS; demo_examples_manifest.json exists + disjointness proof PASS (Reading A: demo-side disjointness under enacted P8_2_demo_only_upstream_overlap; upstream-level overlap real and disclosed); pytest tests/robust_asr/test_leakage.py 5/5 PASS"
+      - "phase_summary.P8 null -> PASS; attempt 1 FAIL record preserved by prior_attempts (attempt counter advanced 1 -> 2; reason cleared; routing_branch updated)"
+      - "Reading A pre-ruling explicitly carried into the gate report; demo-only deviation carried forward; upstream overlap remains real and disclosed; demo artifacts excluded from evaluation evidence and from any claims_enabled.* support; P9.1 (C4) + P10.1 (C5) disclosure/exclusion obligations restated"
+      - "No marker cleared; no claims_enabled flag changed; no current_task advancement; no orchestrator_approvals.P8 set; no P9 task opened; legacy paths untouched"
     marker: null
-    next_task: P8.2
+    next_task: P8_GATE
+    prior_attempts:
+      attempt_1:
+        status: FAIL
+        routing_branch: "P8 gate (predicate incomplete; P8.2 not started)"
+        reason: P8.2_NOT_STARTED
+        predicate_inputs:
+          P8_1_status: PASS
+          P8_2_status: NOT_STARTED
+          system_eval_md_exists: true
+          system_eval_first_line: "positive_system: false"
+          claims_enabled_positive_system: false
+          demo_examples_manifest_exists: false
+          pytest_test_leakage_post_p8_2: not_runnable_until_P8_2
+        files_changed:
+          - docs/progress/robust_asr_progress.yaml
+          - docs/progress/robust_asr_progress.md
+          - docs/progress/robust_asr_state_capsule.md
+        commands_run:
+          - "Edit progress.yaml/md/state_capsule: phase_summary.P8 held null; orchestrator_approvals.P8 held null; current_task=P8_GATE->P8.2; latest_approval_packet=PHASE_REJECT(P8) on null commit; prior APPROVE_EXECUTION(P8.1) demoted to prior_approval_packet_p8_1_exec on 1b9f33e681276f977c1e87db4978963ee2a3a9bd; state_transport.expected_next_task=P8.2; state_transport.last_accepted_report_commit held at 1b9f33e681276f977c1e87db4978963ee2a3a9bd"
+          - "git add ...; git commit; git push"
+        key_outputs:
+          - "P8 gate predicate evaluation per agent plan §2676-§2691: tasks[P8.1].status=PASS satisfies one conjunct; system_eval.md with 'positive_system: false' on line 1 + paired BCa CI [0,0] + Wilcoxon n=0 satisfies the system_eval conjuncts; claims_enabled.positive_system=false ∈ {true,false} satisfies the claims_enabled conjunct; tasks[P8.2].status==PASS FAILS (P8.2 not started); artifacts/robust_asr/demo/demo_examples_manifest.json exists+disjointness_proof FAILS (file absent); pytest tests/robust_asr/test_leakage.py PASS deferred (must be rerun on post-P8.2 tree)."
+          - "PHASE_REJECT(P8) recorded; current_task corrected to P8.2; no claims_enabled flag flipped; no marker cleared"
+        marker: null
+        next_task: P8.2
+        notes: "P8 gate FAIL on attempt 1. PHASE_REJECT(P8) per orchestrator decision packet (rationale: P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 not yet run). Routing per §2688-§2691 'on FAIL: return to the failed P8 task' = P8.2. P8.1 remains PASS (approved_at_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd); Decision_D_positive_system.outcome=false held; claims_enabled.positive_system=false held; OUTCOME_E_NARROWED_SCOPE held on tasks.P8.1 and decisions.Decision_D_positive_system. Markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; none cleared. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system} all held. state_transport.last_accepted_report_commit STAYS 1b9f33e681276f977c1e87db4978963ee2a3a9bd (no advance from PHASE_REJECT). state_transport.expected_next_task=P8.2. No code, no test, no Slurm submission, no real-provider call, no scripts/artifacts/configs edited. Only tracker files modified. P8.2 not started. P9.0 not started."
+    notes: "P8 gate PASS on attempt 2 under orchestrator APPROVE_PLAN(P8_GATE) (accepted_report_commit=643efe520904caeff84e29b11cb764ad07bbe3d9) with Reading A pre-ruling on the disjointness-proof conjunct. All five P8 gate predicate conjuncts (agent plan §2676-§2691) evaluate PASS: (1) tasks[P8.1].status=PASS (held since 1b9f33e6 acceptance); (2) tasks[P8.2].status=PASS under enacted deviation P8_2_demo_only_upstream_overlap (deviation_status=ENACTED, held since 2e1c46e8 acceptance, demoted via plan_index_refresh to prior_approval_packet_p8_2_exec); (3) reports/robust_asr/system/system_eval.md exists with first line 'positive_system: false' and paired BCa bootstrap / Wilcoxon body; (4) claims_enabled.positive_system=false ∈ {true,false}; (5) artifacts/robust_asr/demo/demo_examples_manifest.json exists (n_examples=8, manifest_version v1.2-deviation-enacted, deviation_id P8_2_demo_only_upstream_overlap, upstream_disjointness=false, binding_constraints=[C1..C5]) with demo-side audio_id/speaker_id/audio_sha256 disjointness proof carried by tests/robust_asr/test_leakage.py (Reading A interpretation pre-ruled by the orchestrator); (6) pytest tests/robust_asr/test_leakage.py -> 5 passed in 7.56s (Python 3.9.13, pytest 8.4.2); cross-check pytest tests/robust_asr/ -> 137 passed in 15.85s. Reading A explicitly carried forward into reports/robust_asr/task_reports/P8_GATE_attempt2.md: upstream-level overlap real and disclosed (utterances {1272-128104-0000, 1673-143396-0002, 174-168635-0000, 1993-147149-0000, 2086-149214-0000}; speakers {1272, 1673, 174, 1993, 2086}; 13 of 16 locked manifests under normalized schema); demo bundle is UI/demo only; demo artifacts must NOT feed metrics, claims_enabled.*, system evaluation, final verification, backend eval parquet, selector_evidence parquet, oracle parquet, or any system_eval input set; P9.1 must enforce C4 (disclosure); P10.1 must enforce C5 (exclusion). Tracker mutations on this commit: latest_approval_packet -> APPROVE_PLAN(P8_GATE) on 643efe5; CHANGE_SCOPE(plan_index_refresh) demoted to prior_approval_packet_plan_index_refresh; tasks.P8_GATE: attempt 1 -> 2, status FAIL -> PASS, reason cleared, prior_attempts.attempt_1 preserves full attempt-1 record; phase_summary.P8 null -> PASS; state_transport.latest_phase_gate_report set to reports/robust_asr/task_reports/P8_GATE_attempt2.md; state_transport.last_accepted_report_commit HELD at 0073e7b4076ce76d36233bec2eacb4411ba28722 per the P5.1/P6.1/P7.3/P8.1/P8.2 acceptance pattern (NOT advanced to the gate-evidence commit; orchestrator advances on PHASE_APPROVE(P8)); state_transport.expected_next_task=P8_GATE held; current_task=P8_GATE held; last_completed_task=P8.2 held; orchestrator_approvals.P8=null held. Held: markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] (none cleared); OUTCOME_E_NARROWED_SCOPE on tasks.P8.1 / decisions.Decision_D_positive_system held; claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false (none changed); blocked=false; blocker=null; router_status=SELECTOR_PACKAGED; lora_status=SKIPPED_BY_DECISION_A; deterministic_selector_version=deterministic_selector_v1; metrics_version=metrics_v1; degradation_version=degradation_v1; normalization_version=normalization_v1; proposed_deviations.P8_2_demo_only_upstream_overlap.status=ENACTED; decisions.Decision_D_positive_system.outcome=false; tasks.P8.1/P8.2/P8.2-deviation/P8.2-provenance/P8.2-provenance-rerun/P8.2-upstream-leakage-audit unchanged in status. No demo WAV bytes touched (manifest sha256 850c02db... held); no manifest content edited; no test file edited; no evaluation report edited; no plan file edited; no legacy training_datamove1 path touched; ROBUST_ASR_PROFILE block in CLAUDE.md byte-unchanged; no real-provider call; no GPU; no Slurm submission (pytest run inline on login node; both runs CPU-only, total wall <25 s, well below the long-Python-job threshold per CLAUDE.md §7 — Slurm wrapper was not required for this cheap-test gate evaluation per the agent plan's literal pytest invocation in the P8 gate predicate). P9.0 not opened. Next legal action: orchestrator returns PHASE_APPROVE(P8), PHASE_REJECT(P8), or CHANGE_SCOPE; on PHASE_APPROVE(P8), a subsequent PHASE_APPROVAL_RECORDING step advances current_task P8_GATE -> P9.0, last_completed_task P8.2 -> P8_GATE, state_transport.expected_next_task=P9.0, state_transport.last_accepted_report_commit advances from 0073e7b to the PHASE_APPROVE-accepted commit, orchestrator_approvals.P8=PHASE_APPROVE, and demotes APPROVE_PLAN(P8_GATE) to prior_approval_packet_p8_gate_plan."
     blocker: null
     notes: "P8 gate FAIL on attempt 1. PHASE_REJECT(P8) per orchestrator decision packet (rationale: P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 not yet run). Routing per §2688-§2691 'on FAIL: return to the failed P8 task' = P8.2. P8.1 remains PASS (approved_at_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd); Decision_D_positive_system.outcome=false held; claims_enabled.positive_system=false held; OUTCOME_E_NARROWED_SCOPE held on tasks.P8.1 and decisions.Decision_D_positive_system. Markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; none cleared. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system} all held. state_transport.last_accepted_report_commit STAYS 1b9f33e681276f977c1e87db4978963ee2a3a9bd (no advance from PHASE_REJECT). state_transport.expected_next_task=P8.2. No code, no test, no Slurm submission, no real-provider call, no scripts/artifacts/configs edited. Only tracker files modified. P8.2 not started. P9.0 not started."
   P8.2:
