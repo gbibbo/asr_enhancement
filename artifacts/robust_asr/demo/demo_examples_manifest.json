@@ -1,0 +1,106 @@
+{
+  "manifest_set": "demo_examples_v1",
+  "produced_by_task": "P8.2",
+  "claims_enabled_ood_real": false,
+  "blocked_ood_public_active": true,
+  "selection_rule": "Deterministic 8-entry selection from the operator-staged demo_reference_artifacts/examples/ pool. 5 ID-family entries (clean, cafe_noise, phone_band, far_field_room, muffled_lowpass) drawn one each from sorted speakers (ex001, ex003, ex004, ex007, ex010); 3 OOD-param illustrative entries (broadband_hiss, family outside Section 3) drawn one each from sorted speakers (ex001, ex003, ex004). Per agent plan Section 4.7 BLOCKED_OOD_PUBLIC branch (claims_enabled.ood_real=false): no entry from common_voice_demo_reserved.",
+  "n_examples": 8,
+  "examples": [
+    {
+      "audio_id": "demo/ex001/clean",
+      "speaker_id": "ex001",
+      "family": "clean",
+      "tier": "id",
+      "source": "demo_reference_artifacts/v1 (operator-staged public demo reserve; reuse_policy P8.2 read_only)",
+      "license": "demo_reserve_public",
+      "duration_s": 5.855,
+      "audio_sha256": "799f78ed4beb4de7ceae3a809262d4ce242394342ccd1d58cef7d49dbc2def46",
+      "file_path": "artifacts/robust_asr/demo/audio/ex001__clean.wav",
+      "notes": "Section 4.7 ID family: clean."
+    },
+    {
+      "audio_id": "demo/ex003/cafe_background",
+      "speaker_id": "ex003",
+      "family": "cafe_noise",
+      "tier": "id",
+      "source": "demo_reference_artifacts/v1 (operator-staged public demo reserve; reuse_policy P8.2 read_only)",
+      "license": "demo_reserve_public",
+      "duration_s": 7.85,
+      "audio_sha256": "05cd65e8496ae70569d9f246379d998010192b5052b7d22a4bee4d5447daa961",
+      "file_path": "artifacts/robust_asr/demo/audio/ex003__cafe_background.wav",
+      "notes": "Section 4.7 ID family: cafe_noise (cafe_background reference)."
+    },
+    {
+      "audio_id": "demo/ex004/phone_call",
+      "speaker_id": "ex004",
+      "family": "phone_band",
+      "tier": "id",
+      "source": "demo_reference_artifacts/v1 (operator-staged public demo reserve; reuse_policy P8.2 read_only)",
+      "license": "demo_reserve_public",
+      "duration_s": 4.53,
+      "audio_sha256": "678efe82dd10946d899f4e833a567b21d3a1a219fd3cc5c6d508d8c6608e2d2e",
+      "file_path": "artifacts/robust_asr/demo/audio/ex004__phone_call.wav",
+      "notes": "Section 4.7 ID family: phone_band (phone_call reference)."
+    },
+    {
+      "audio_id": "demo/ex007/far_field_room",
+      "speaker_id": "ex007",
+      "family": "far_field_room",
+      "tier": "id",
+      "source": "demo_reference_artifacts/v1 (operator-staged public demo reserve; reuse_policy P8.2 read_only)",
+      "license": "demo_reserve_public",
+      "duration_s": 6.715,
+      "audio_sha256": "4721085b74ca6422db61746bfad86795a6c84751bf7e66e118712c5a2e41c996",
+      "file_path": "artifacts/robust_asr/demo/audio/ex007__far_field_room.wav",
+      "notes": "Section 4.7 ID family: far_field_room."
+    },
+    {
+      "audio_id": "demo/ex010/muffled",
+      "speaker_id": "ex010",
+      "family": "muffled_lowpass",
+      "tier": "id",
+      "source": "demo_reference_artifacts/v1 (operator-staged public demo reserve; reuse_policy P8.2 read_only)",
+      "license": "demo_reserve_public",
+      "duration_s": 9.81,
+      "audio_sha256": "68d9a1c41254bd8fbc6c5be2339c89c21a94bf71e8ff6c91d8d600b6a3a7eedb",
+      "file_path": "artifacts/robust_asr/demo/audio/ex010__muffled.wav",
+      "notes": "Section 4.7 ID family: muffled_lowpass (muffled reference)."
+    },
+    {
+      "audio_id": "demo/ex001/broadband_hiss",
+      "speaker_id": "ex001",
+      "family": "broadband_hiss",
+      "tier": "ood_param_illustrative",
+      "source": "demo_reference_artifacts/v1 (operator-staged public demo reserve; reuse_policy P8.2 read_only)",
+      "license": "demo_reserve_public",
+      "duration_s": 5.855,
+      "audio_sha256": "490de44d785167be8a46279fb526a47a75e987ab9d451cdd8480d10ddca79e45",
+      "file_path": "artifacts/robust_asr/demo/audio/ex001__broadband_hiss.wav",
+      "notes": "OOD-param illustrative: broadband_hiss outside Section 3 families; BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false. Not used for any claim; not drawn from common_voice_demo_reserved."
+    },
+    {
+      "audio_id": "demo/ex003/broadband_hiss",
+      "speaker_id": "ex003",
+      "family": "broadband_hiss",
+      "tier": "ood_param_illustrative",
+      "source": "demo_reference_artifacts/v1 (operator-staged public demo reserve; reuse_policy P8.2 read_only)",
+      "license": "demo_reserve_public",
+      "duration_s": 7.85,
+      "audio_sha256": "5ae95b34541fbe9afb7411352bbf46ecee2273ef9825a4ef72cec603a5bb7d6a",
+      "file_path": "artifacts/robust_asr/demo/audio/ex003__broadband_hiss.wav",
+      "notes": "OOD-param illustrative: broadband_hiss outside Section 3 families; BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false. Not used for any claim; not drawn from common_voice_demo_reserved."
+    },
+    {
+      "audio_id": "demo/ex004/broadband_hiss",
+      "speaker_id": "ex004",
+      "family": "broadband_hiss",
+      "tier": "ood_param_illustrative",
+      "source": "demo_reference_artifacts/v1 (operator-staged public demo reserve; reuse_policy P8.2 read_only)",
+      "license": "demo_reserve_public",
+      "duration_s": 4.53,
+      "audio_sha256": "16b5316119181a43a2060de4119c83c03d476e1fe1fd1a864e31584b0a6d07bf",
+      "file_path": "artifacts/robust_asr/demo/audio/ex004__broadband_hiss.wav",
+      "notes": "OOD-param illustrative: broadband_hiss outside Section 3 families; BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false. Not used for any claim; not drawn from common_voice_demo_reserved."
+    }
+  ]
+}

@@ -111,27 +111,106 @@ def test_locked_test_sets_disjoint_from_train(data_v1) -> None:
 
 
 def test_demo_examples_disjoint_from_eval_sets(data_v1) -> None:
-    # demo manifests are produced at P8.2; under BLOCKED_OOD_PUBLIC the
-    # common_voice_demo_reserved split is empty. We construct a placeholder
-    # demo set from common_voice_demo_reserved (currently empty) plus any
-    # future LibriSpeech-derived demo seeds; eval sets are validation +
-    # locked_test + ood_real_locked.
-    demo = _speakers(data_v1, "common_voice_demo_reserved")
-    eval_set = (
+    """Section 3 leakage rule 5: demo examples may not be drawn from any
+    locked evaluation set, and must be disjoint from training audio as
+    well per the P8.2 hard requirement (audio_id, speaker_id, audio_sha256
+    against lora_train, router_train, validation, locked_test,
+    degradation_v1_id_eval, degradation_v1_ood_param_eval).
+
+    Pre-P8.2 fallback: if the demo manifest is absent, the test still
+    passes via the speaker-level data_v1 check (common_voice_demo_reserved
+    empty under BLOCKED_OOD_PUBLIC). After P8.2 it asserts manifest-level
+    disjointness against the parquet manifests.
+    """
+    import json
+    import pyarrow.parquet as pq
+
+    demo_manifest = REPO_ROOT / "artifacts" / "robust_asr" / "demo" / "demo_examples_manifest.json"
+
+    # Speaker-level legacy check (pre-P8.2 / OOD-real).
+    cv_demo_speakers = _speakers(data_v1, "common_voice_demo_reserved")
+    eval_speakers = (
         _speakers(data_v1, "validation")
         | _speakers(data_v1, "locked_test")
         | _speakers(data_v1, "ood_real_locked")
     )
-    # Empty demo set is trivially disjoint; record SKIP note.
-    if not demo:
+    if not demo_manifest.exists():
+        # Empty demo set is trivially disjoint; record SKIP note.
         LEAKAGE_DIR.mkdir(parents=True, exist_ok=True)
         with open(LEAKAGE_DIR / "test_demo_examples_disjoint_from_eval_sets.note.txt", "w", encoding="utf-8") as f:
             f.write(
-                "SKIP_OOD_PUBLIC_DEFERRED: demo split empty under BLOCKED_OOD_PUBLIC; "
-                "claims_enabled.ood_real=false. Re-run when P8.2 produces real demo manifests.\n"
+                "SKIP_OOD_PUBLIC_DEFERRED: demo manifest absent and "
+                "common_voice_demo_reserved empty under BLOCKED_OOD_PUBLIC; "
+                "claims_enabled.ood_real=false. Re-run after P8.2 produces "
+                "the real demo manifest.\n"
             )
+        _assert_disjoint(
+            "test_demo_examples_disjoint_from_eval_sets",
+            cv_demo_speakers, eval_speakers,
+        )
+        return
+
+    # Post-P8.2: assert audio_id / speaker_id / audio_sha256 disjointness
+    # against every locked manifest.
+    with open(demo_manifest, "r", encoding="utf-8") as f:
+        m = json.load(f)
+    examples = m["examples"]
+    assert len(examples) == 8, f"expected 8 demo entries, got {len(examples)}"
+
+    demo_audio_ids = {str(e["audio_id"]) for e in examples}
+    demo_speakers = {str(e["speaker_id"]) for e in examples}
+    demo_sha256s = {str(e["audio_sha256"]) for e in examples}
+
+    locked_manifests = [
+        "artifacts/robust_asr/manifests/librispeech_lora_train.parquet",
+        "artifacts/robust_asr/manifests/librispeech_router_train.parquet",
+        "artifacts/robust_asr/manifests/librispeech_validation.parquet",
+        "artifacts/robust_asr/manifests/librispeech_locked_test.parquet",
+        "artifacts/robust_asr/manifests/degradation_v1_id_eval.parquet",
+        "artifacts/robust_asr/manifests/degradation_v1_ood_param_eval.parquet",
+    ]
+    locked_audio_ids: Set[str] = set()
+    locked_speakers: Set[str] = set()
+    locked_sha256s: Set[str] = set()
+    for rel in locked_manifests:
+        path = REPO_ROOT / rel
+        assert path.exists(), f"locked manifest missing: {rel}"
+        df = pq.read_table(str(path)).to_pandas()
+        locked_audio_ids.update(df["audio_id"].astype(str).unique())
+        locked_speakers.update(df["speaker_id"].astype(str).unique())
+        if "audio_sha256" in df.columns:
+            locked_sha256s.update(df["audio_sha256"].astype(str).unique())
+
     _assert_disjoint(
-        "test_demo_examples_disjoint_from_eval_sets", demo, eval_set
+        "test_demo_examples_disjoint_from_eval_sets__audio_id",
+        demo_audio_ids, locked_audio_ids,
+    )
+    _assert_disjoint(
+        "test_demo_examples_disjoint_from_eval_sets__speaker_id",
+        demo_speakers, locked_speakers,
+    )
+    _assert_disjoint(
+        "test_demo_examples_disjoint_from_eval_sets__audio_sha256",
+        demo_sha256s, locked_sha256s,
+    )
+
+    # Verify on-disk audio matches each manifest sha256 (no silent drift).
+    import hashlib
+    for e in examples:
+        ap = REPO_ROOT / e["file_path"]
+        assert ap.exists(), f"demo file_path missing: {e['file_path']}"
+        h = hashlib.sha256()
+        with open(ap, "rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+        assert h.hexdigest() == e["audio_sha256"], (
+            f"sha256 mismatch for {e['file_path']}"
+        )
+
+    # Legacy speaker-level check held for the OOD-real branch.
+    _assert_disjoint(
+        "test_demo_examples_disjoint_from_eval_sets",
+        cv_demo_speakers, eval_speakers,
     )
 
 

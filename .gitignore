@@ -70,6 +70,11 @@ artifacts/robust_asr/lora_ct2_int8/
 *.mp3
 *.m4a
 
+# P8.2 demo carveout: exactly 8 small public deterministic WAV demo
+# files. Authorized by configs/robust_asr/reuse_policy_v1.yaml row
+# `artifacts/robust_asr/demo/audio/**` (commit_allowed: true).
+!artifacts/robust_asr/demo/audio/*.wav
+
 # Model and checkpoint exports
 *.pt
 *.pth

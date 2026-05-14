@@ -50,6 +50,26 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.2
+      phase: P8
+      decision: APPROVE_PLAN
+      accepted_report_commit: c01a260256d48a13fdb374ba9363173d38713f29
+      next_expected_task: P8_GATE
+      required_fix: null
+      rationale: "P8.2 plan approved on the scope-change commit c01a260. Implement scripts/robust_asr/build_demo_examples.py producing artifacts/robust_asr/demo/demo_examples_manifest.json with exactly 8 entries and exactly 8 small public WAV files under artifacts/robust_asr/demo/audio/, all disjoint from lora_train/router_train/validation/locked_test/degradation_v1_id_eval/degradation_v1_ood_param_eval by audio_id/speaker_id/audio_sha256. LibriSpeech-derived public path under BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false; common_voice_demo_reserved not used. Update tests/robust_asr/test_leakage.py for demo manifest disjointness only. Emit OK_DEMO_EXAMPLES; full robust_asr pytest must pass; OK_REPORT_SHAPE; OK_PROGRESS_YAML_PARSE. Do not advance last_accepted_report_commit to the P8.2 implementation commit. Do not start P8_GATE."
+  prior_approval_packet_p8_2_scope_exec:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P8.2-scope-change
+      phase: P8
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: c01a260256d48a13fdb374ba9363173d38713f29
+      next_expected_task: P8.2
+      required_fix: null
+      rationale: "P8.2 scope-change accepted on the scope-change commit c01a260. reuse_policy_v1.yaml (tests/robust_asr/** += P8.2; new artifacts/robust_asr/demo/audio/** carveout row above the generic *.wav no_touch rule with validator demo_examples_manifest_references_all_files, allowed_tasks=[P8.2,P9.1], commit_allowed=true) and touch_policy.md (P8.2 row rewritten to authorize scripts/robust_asr/build_demo_examples.py, artifacts/robust_asr/demo/audio/**, demo_examples_manifest.json, P8.2 task report, and tests/robust_asr/test_leakage.py edits) are now binding. Policy sha256s recorded in artifacts.touch_policy.sha256=e3a824bd... and artifacts.reuse_policy_config.sha256=33bcc25c... with last_amended_by=P8.2_scope_change."
+  prior_approval_packet_p8_2_change_scope:
+    ORCHESTRATOR_DECISION:
       scope: scope_change
       task_id: P8.2
       phase: P8
@@ -2806,3 +2826,46 @@ tasks:
     next_task: P8.2
     blocker: null
     notes: "P8 gate FAIL on attempt 1. PHASE_REJECT(P8) per orchestrator decision packet (rationale: P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 not yet run). Routing per §2688-§2691 'on FAIL: return to the failed P8 task' = P8.2. P8.1 remains PASS (approved_at_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd); Decision_D_positive_system.outcome=false held; claims_enabled.positive_system=false held; OUTCOME_E_NARROWED_SCOPE held on tasks.P8.1 and decisions.Decision_D_positive_system. Markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; none cleared. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system} all held. state_transport.last_accepted_report_commit STAYS 1b9f33e681276f977c1e87db4978963ee2a3a9bd (no advance from PHASE_REJECT). state_transport.expected_next_task=P8.2. No code, no test, no Slurm submission, no real-provider call, no scripts/artifacts/configs edited. Only tracker files modified. P8.2 not started. P9.0 not started."
+  P8.2:
+    status: IMPLEMENTED_PENDING_APPROVAL
+    routing_branch: "BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false (LibriSpeech-derived public path; common_voice_demo_reserved unused)"
+    sentinels:
+      - OK_DEMO_EXAMPLES
+      - OK_REPORT_SHAPE
+      - OK_PROGRESS_YAML_PARSE
+      - pytest_tests_robust_asr_137_of_137
+      - pytest_test_leakage_5_of_5
+    files_changed:
+      - scripts/robust_asr/build_demo_examples.py
+      - artifacts/robust_asr/demo/demo_examples_manifest.json
+      - artifacts/robust_asr/demo/audio/ex001__broadband_hiss.wav
+      - artifacts/robust_asr/demo/audio/ex001__clean.wav
+      - artifacts/robust_asr/demo/audio/ex003__broadband_hiss.wav
+      - artifacts/robust_asr/demo/audio/ex003__cafe_background.wav
+      - artifacts/robust_asr/demo/audio/ex004__broadband_hiss.wav
+      - artifacts/robust_asr/demo/audio/ex004__phone_call.wav
+      - artifacts/robust_asr/demo/audio/ex007__far_field_room.wav
+      - artifacts/robust_asr/demo/audio/ex010__muffled.wav
+      - tests/robust_asr/test_leakage.py
+      - reports/robust_asr/task_reports/P8.2_demo_manifest.md
+      - docs/progress/robust_asr_progress.yaml
+      - docs/progress/robust_asr_progress.md
+      - docs/progress/robust_asr_state_capsule.md
+    commands_run:
+      - "python3 scripts/robust_asr/build_demo_examples.py --eval-manifests configs/robust_asr/eval_manifests_v1.yaml --out-manifest artifacts/robust_asr/demo/demo_examples_manifest.json --out-audio-dir artifacts/robust_asr/demo/audio  ->  OK_DEMO_EXAMPLES with 8 selected. (exit 0)"
+      - "pytest tests/robust_asr/test_leakage.py  ->  5 passed"
+      - "pytest tests/robust_asr/  ->  137 passed"
+      - "python3 scripts/robust_asr/validate_report_shape.py --schemas docs/plans/state_packet_schemas_v1.yaml --fixtures artifacts/robust_asr/state_packets/report_shape_fixtures  ->  OK_REPORT_SHAPE"
+      - "python3 -c \"import yaml; yaml.safe_load(open('docs/progress/robust_asr_progress.yaml')); print('OK_PROGRESS_YAML_PARSE')\"  ->  OK_PROGRESS_YAML_PARSE"
+    key_outputs:
+      - "artifacts/robust_asr/demo/demo_examples_manifest.json (sha256 94b049f8463c6c172b41b2a03303992f3b02c007ba456bef8c32350756549c03; n_examples=8)"
+      - "scripts/robust_asr/build_demo_examples.py (sha256 9b9b180548a044021f1f41c90397d2a37ae0f529520b69d8718c4bb5943f3747)"
+      - "tests/robust_asr/test_leakage.py (sha256 a1b264593b5f6488e4fefdeff50336156f076fab638c0449b3b25e8995971d2c)"
+      - "5 ID-family entries: clean(ex001), cafe_noise(ex003 cafe_background), phone_band(ex004 phone_call), far_field_room(ex007), muffled_lowpass(ex010 muffled)"
+      - "3 OOD-param illustrative entries: broadband_hiss(ex001, ex003, ex004) — outside Section 3 families; not used for any claim"
+      - "Disjointness vs locked manifests: audio_id intersection = 0; speaker_id intersection = 0; audio_sha256 intersection = 0 across {lora_train, router_train, validation, locked_test, degradation_v1_id_eval, degradation_v1_ood_param_eval}"
+      - "Per-row on-disk sha256 verified against manifest entries inside test_demo_examples_disjoint_from_eval_sets__audio_sha256"
+    decided_at_task: P8.2
+    decision: 8 demo entries selected; PASS gate pending APPROVE_EXECUTION(P8.2)
+    blocker: null
+    notes: "P8.2 implemented under BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false (LibriSpeech-derived public path per agent plan §4.7; common_voice_demo_reserved unused). Source pool: operator-staged demo_reference_artifacts/examples/ (read-only authorized for P8.2 in reuse_policy_v1.yaml). Selection deterministic by sorted speaker_id then family — 5 ID-family entries (clean/cafe_noise/phone_band/far_field_room/muffled_lowpass) + 3 OOD-param illustrative (broadband_hiss). 8 small WAV files (16 kHz mono PCM16) copied to artifacts/robust_asr/demo/audio/ — bit-identical to reference (audio_sha256 preserved). Disjointness from every locked manifest verified by audio_id, speaker_id, and audio_sha256 inside both build_demo_examples.py (refuse to write on overlap) and tests/robust_asr/test_leakage.py (3 explicit sub-tests + per-row sha256 recompute). Full robust_asr pytest 137/137. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false held; markers [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR] held; none cleared. tasks.P8.2.status held at IMPLEMENTED_PENDING_APPROVAL — orchestrator advances to PASS via APPROVE_EXECUTION(P8.2). current_task=P8.2 held; last_completed_task=P8.1 held. state_transport.last_accepted_report_commit STAYS 1b9f33e681276f977c1e87db4978963ee2a3a9bd per orchestrator instruction (NOT advanced to this P8.2 implementation commit, matching the P5.1/P6.1/P7.3/P8.1 acceptance pattern). state_transport.expected_next_task=P8_GATE (from APPROVE_PLAN(P8.2)). No real-provider call, no GPU, no Slurm submission. P8_GATE not started. P9.0 not started."

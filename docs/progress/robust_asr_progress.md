@@ -37,7 +37,9 @@ Status: IN_PROGRESS
 - tasks.P6.2.status: SKIPPED_BY_OUTCOME_E (next_task P7.3)
 - tasks.P7.3.status: PASS (branch B_deterministic_selector; commit `d009c31`; approved_by APPROVE_EXECUTION_P7.3; next_task P7_GATE)
 - decisions.P7_routing.branch: B_deterministic_selector (decided at P7_GATE; outcome_e_carried_forward=true; routes to P8.1)
-- latest_approval_packet: CHANGE_SCOPE(P8.2) on `7f72213` (next P8.2) — authorizes scripts/robust_asr/build_demo_examples.py, artifacts/robust_asr/demo/audio/** (8 small public WAV carveout), artifacts/robust_asr/demo/demo_examples_manifest.json, reports/robust_asr/task_reports/P8.2_demo_manifest.md, and tests/robust_asr/test_leakage.py edits in the P8.2 touch-policy row; reuse_policy_v1.yaml amended (tests/robust_asr/** += P8.2; new artifacts/robust_asr/demo/audio/** carveout row); state_transport.last_accepted_report_commit STAYS 1b9f33e (not advanced to the scope-change commit)
+- latest_approval_packet: APPROVE_PLAN(P8.2) on `c01a260` (next P8_GATE) — implement build_demo_examples.py + 8 public demo WAVs + manifest + leakage-test edit; LibriSpeech-derived public path (BLOCKED_OOD_PUBLIC, claims_enabled.ood_real=false); state_transport.last_accepted_report_commit must NOT advance to the P8.2 implementation commit
+- prior_approval_packet_p8_2_scope_exec: APPROVE_EXECUTION(P8.2-scope-change) on `c01a260` (next P8.2) — reuse_policy + touch_policy P8.2 amendments now binding
+- prior_approval_packet_p8_2_change_scope: CHANGE_SCOPE(P8.2) on `7f72213` (next P8.2) — authorizes build_demo_examples.py, demo/audio/** (8-file carveout), demo manifest, P8.2 task report, and test_leakage.py edits
 - prior_approval_packet_p8_phase_reject: PHASE_REJECT(P8) on `null` (next P8.2) — gate predicate incomplete (P8.2 not started, demo_examples_manifest.json absent, test_leakage post-P8.2 deferred); tasks.P8_GATE attempt 1 status=FAIL reason=P8.2_NOT_STARTED
 - prior_approval_packet_p8_1_exec: APPROVE_EXECUTION(P8.1) on `1b9f33e` (next P8_GATE) — system eval implementation accepted; Decision_D=false; state_transport.last_accepted_report_commit advanced d009c31 → 1b9f33e
 - prior_approval_packet_p8_1_plan: APPROVE_PLAN(P8.1) on `f23a270` (next P8_GATE) — system evaluator implementation approved; Decision D evaluates to false under OUTCOME_E
@@ -78,6 +80,53 @@ Status: IN_PROGRESS
 - prior_approval_packet_p2_1_model_build_plan: APPROVE_PLAN(P2.1-model-build) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_scope_exec: APPROVE_EXECUTION(P2.1-model-scope-change) on `7253b87` (next P2.1)
 - prior_approval_packet_p2_1_model_change_scope: CHANGE_SCOPE(P2.1-model) on `268b8e9` (next P2.1)
+
+## P8.2 IMPLEMENTED — 8 public demo entries, leakage-test strengthened (PASS pending APPROVE_EXECUTION)
+
+- ORCHESTRATOR_DECISION (latest_approval_packet): scope=task task=P8.2 phase=P8
+  decision=APPROVE_PLAN
+- accepted_report_commit: c01a260256d48a13fdb374ba9363173d38713f29
+- next_expected_task: P8_GATE
+- routing: BLOCKED_OOD_PUBLIC + claims_enabled.ood_real=false ⇒ LibriSpeech-derived public path (per agent plan §4.7); common_voice_demo_reserved unused.
+
+Implementation:
+
+- `scripts/robust_asr/build_demo_examples.py` (new, sha256 `9b9b1805…`):
+  reads the operator-staged demo_reference reserve, applies a deterministic 8-entry selection (sorted speaker_id then family), writes 8 small WAVs (16 kHz mono PCM16) to `artifacts/robust_asr/demo/audio/`, computes per-row sha256, and refuses any overlap with locked manifests. Emits `OK_DEMO_EXAMPLES with 8 selected.` on success.
+- `artifacts/robust_asr/demo/demo_examples_manifest.json` (new, sha256 `94b049f8…`): exactly 8 entries; `manifest_set: demo_examples_v1`; `claims_enabled_ood_real: false`; `blocked_ood_public_active: true`.
+- `artifacts/robust_asr/demo/audio/` (8 files, total ~1.6 MiB):
+  - 5 ID-family entries: `ex001__clean.wav` (clean), `ex003__cafe_background.wav` (cafe_noise), `ex004__phone_call.wav` (phone_band), `ex007__far_field_room.wav` (far_field_room), `ex010__muffled.wav` (muffled_lowpass)
+  - 3 OOD-param illustrative entries: `ex001__broadband_hiss.wav`, `ex003__broadband_hiss.wav`, `ex004__broadband_hiss.wav`
+- `tests/robust_asr/test_leakage.py` (edit, sha256 `a1b26459…`):
+  `test_demo_examples_disjoint_from_eval_sets` strengthened to read the demo manifest and assert `audio_id` / `speaker_id` / `audio_sha256` disjointness against `librispeech_lora_train`, `librispeech_router_train`, `librispeech_validation`, `librispeech_locked_test`, `degradation_v1_id_eval`, `degradation_v1_ood_param_eval`. Per-row on-disk sha256 verified inside the test. Pre-P8.2 / OOD-real branch retained for the speaker-level fallback.
+- `reports/robust_asr/task_reports/P8.2_demo_manifest.md` (new): full report.
+
+Disjointness / leakage results:
+
+- demo `audio_id` ∩ locked = ∅ (demo IDs are `demo/<speaker_id>/<stem>`; locked IDs are `librispeech/...`)
+- demo `speaker_id` ∩ locked = ∅ (`{ex001, ex003, ex004, ex007, ex010}` vs 331 LibriSpeech speakers)
+- demo `audio_sha256` ∩ locked = ∅ (8 vs 76,446)
+- per-row sha256 verified against the on-disk WAV inside the test
+- `common_voice_demo_reserved ∩ ood_real_locked = ∅` trivially (BLOCKED_OOD_PUBLIC); existing SKIP note preserved
+
+Verification:
+
+- `python3 scripts/robust_asr/build_demo_examples.py …` → `OK_DEMO_EXAMPLES with 8 selected.` (exit 0)
+- `pytest tests/robust_asr/test_leakage.py` → `5 passed`
+- `pytest tests/robust_asr/` → `137 passed`
+- `python scripts/robust_asr/validate_report_shape.py …` → `OK_REPORT_SHAPE`
+- `python -c "import yaml; yaml.safe_load(open('docs/progress/robust_asr_progress.yaml'))"` → `OK_PROGRESS_YAML_PARSE`
+
+State held:
+
+- `current_phase=P8`, `current_task=P8.2`, `last_completed_task=P8.1` — held.
+- `markers=[BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]` — held; none cleared.
+- `blocked=false` — held.
+- `claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system}=false` — held.
+- `tasks.P8.2.status=IMPLEMENTED_PENDING_APPROVAL` (not PASS until orchestrator records `APPROVE_EXECUTION(P8.2)`).
+- `state_transport.expected_next_task=P8_GATE`.
+- `state_transport.last_accepted_report_commit=1b9f33e681276f977c1e87db4978963ee2a3a9bd` — held; NOT advanced to the P8.2 implementation commit (matching the P5.1 / P6.1 / P7.3 / P8.1 acceptance pattern).
+- No real-provider call. No GPU. No Slurm submission. No model inference. P8_GATE not started. P9.0 not started.
 
 ## P8.2 CHANGE_SCOPE recorded — demo example builder, public WAV carveout, leakage-test edit
 
