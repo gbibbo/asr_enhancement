@@ -1,0 +1,23 @@
+{
+  "assemblyai_action_emitted_when": "assemblyai_available==true",
+  "config_sha256": "ef9586c8e589436ae074d472d38bc12b417d2043d142d5f74d8d5d75f7de2f98",
+  "config_source": "configs/robust_asr/router_v1.yaml",
+  "constants": {
+    "ask_repeat_threshold": -1.0,
+    "escalate_threshold": -0.5,
+    "health_check_ttl_seconds": 300.0,
+    "no_speech_threshold": 0.6
+  },
+  "deployable_actions": [
+    "whisper_base_ct2_int8",
+    "ask_repeat"
+  ],
+  "deterministic_selector_version": "deterministic_selector_v1",
+  "features_version": null,
+  "metrics_version": "metrics_v1",
+  "normalization_version": "normalization_v1",
+  "router_version": null,
+  "section_reference": "agent_plan_v3_4_7 \u00a75.5",
+  "selector_evidence_sha256": "c450a91a37c5967ca196dda0b23d5a2963d9b1e6f5eb07bd3f35084e6f9ae1e7",
+  "selector_kind": "deterministic_selector"
+}

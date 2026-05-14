@@ -1,0 +1,210 @@
+{
+  "constants": {
+    "ask_repeat_threshold": -1.0,
+    "escalate_threshold": -0.5,
+    "health_check_ttl_seconds": 300.0,
+    "no_speech_threshold": 0.6
+  },
+  "count": 20,
+  "deterministic_selector_version": "deterministic_selector_v1",
+  "schema": "robust_asr.router.test_vectors.v1",
+  "vectors": [
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": 0.0,
+        "no_speech_prob": 0.601
+      },
+      "expected_action": "ask_repeat",
+      "expected_reason": "no_speech",
+      "id": "no_speech_high_baseline"
+    },
+    {
+      "assemblyai_available": true,
+      "decode_features": {
+        "avg_logprob": 0.0,
+        "no_speech_prob": 0.99
+      },
+      "expected_action": "ask_repeat",
+      "expected_reason": "no_speech",
+      "id": "no_speech_high_with_cloud"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": 0.0,
+        "no_speech_prob": 0.6
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "no_speech_at_threshold_below_baseline"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": 0.0,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "no_speech_zero_baseline"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": -1.001,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "ask_repeat",
+      "expected_reason": "low_logprob",
+      "id": "low_logprob_below_threshold_no_cloud"
+    },
+    {
+      "assemblyai_available": true,
+      "decode_features": {
+        "avg_logprob": -1.001,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "ask_repeat",
+      "expected_reason": "low_logprob",
+      "id": "low_logprob_below_threshold_with_cloud"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": -1.0,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "low_logprob_at_threshold_no_cloud"
+    },
+    {
+      "assemblyai_available": true,
+      "decode_features": {
+        "avg_logprob": -1.0,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "assemblyai",
+      "expected_reason": "escalate_cloud",
+      "id": "low_logprob_at_threshold_with_cloud_escalates"
+    },
+    {
+      "assemblyai_available": true,
+      "decode_features": {
+        "avg_logprob": -0.501,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "assemblyai",
+      "expected_reason": "escalate_cloud",
+      "id": "escalate_with_cloud"
+    },
+    {
+      "assemblyai_available": true,
+      "decode_features": {
+        "avg_logprob": -0.51,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "assemblyai",
+      "expected_reason": "escalate_cloud",
+      "id": "escalate_just_below_threshold_with_cloud"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": -0.501,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "escalate_no_cloud_falls_back_to_baseline"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": -0.8,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "escalate_no_cloud_well_below"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": -0.5,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "baseline_at_escalate_threshold_no_cloud"
+    },
+    {
+      "assemblyai_available": true,
+      "decode_features": {
+        "avg_logprob": -0.5,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "baseline_at_escalate_threshold_with_cloud"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": -0.1,
+        "no_speech_prob": 0.01
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "baseline_high_confidence_no_cloud"
+    },
+    {
+      "assemblyai_available": true,
+      "decode_features": {
+        "avg_logprob": -0.1,
+        "no_speech_prob": 0.01
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "baseline_high_confidence_with_cloud"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {},
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "missing_keys_default_to_baseline"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": 0.0,
+        "no_speech_prob": 1.0
+      },
+      "expected_action": "ask_repeat",
+      "expected_reason": "no_speech",
+      "id": "p6_1_proxy_empty_transcript_no_speech"
+    },
+    {
+      "assemblyai_available": false,
+      "decode_features": {
+        "avg_logprob": 0.0,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "p6_1_proxy_nonempty_transcript_baseline"
+    },
+    {
+      "assemblyai_available": true,
+      "decode_features": {
+        "avg_logprob": 0.0,
+        "no_speech_prob": 0.0
+      },
+      "expected_action": "whisper_base_ct2_int8",
+      "expected_reason": "baseline",
+      "id": "p6_1_proxy_with_cloud_baseline"
+    }
+  ]
+}

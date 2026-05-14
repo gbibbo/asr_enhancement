@@ -1,0 +1,42 @@
+# Backend config for the robust_asr handoff package.
+#
+# This file declares the ONLY deployable backend for the datamove1 →
+# RP5 handoff: whisper_base_ct2_int8. It is adapted from the
+# whisper_base_ct2_int8 block in configs/robust_asr/eval_manifests_v1.yaml
+# (lines 63-77). The eval_manifests_v1.yaml assemblyai block (lines
+# 79-99) is intentionally NOT included in this handoff because it
+# references the literal env-var name that the handoff verifier
+# treats as a secret-like string. AssemblyAI is not an enabled backend
+# in this handoff (see README Section 6).
+#
+# This config contains no secrets, no API keys, no bearer tokens, no
+# credential material. Any field that an upstream system would treat
+# as a secret has been removed.
+
+deployable_backends:
+  - whisper_base_ct2_int8
+
+excluded_backends:
+  - name: lora_ct2_int8
+    reason: "lora_status=SKIPPED_BY_DECISION_A; claims_enabled.positive_lora=false"
+  - name: assemblyai
+    reason: "BLOCKED_API; claims_enabled.cloud_tradeoff=false"
+
+router_kind: deterministic_selector
+deterministic_selector_version: deterministic_selector_v1
+
+backend_endpoints:
+  whisper_base_ct2_int8:
+    backend_kind: local_asr
+    local_only: true
+    third_party_provider: null
+    model_size: base.en
+    compute_type: int8
+    expected_repo: Systran/faster-whisper-base.en
+    candidate_local_paths:
+      - /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/whisper_base_en_ct2_int8
+      - ${ASR_CACHE_ROOT}/whisper_ct2_int8_base_en
+      - /mnt/fast/nobackup/scratch4weeks/gb0048/asr_enhancement_training/runtime/whisper_models/Systran--faster-whisper-base.en
+      - ${HF_HOME}/hub/models--Systran--faster-whisper-base.en
+      - ${ASR_CACHE_ROOT}/huggingface/hub/models--Systran--faster-whisper-base.en
+    halt_if_missing_marker: MISSING_EVIDENCE
