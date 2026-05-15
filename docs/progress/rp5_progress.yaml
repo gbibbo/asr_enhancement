@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15-03
-last_completed_task: B15-02
+current_task: B15-04
+last_completed_task: B15-03
 last_completed_phase: B14.1
 markers: []
 phase_approvals:
@@ -142,10 +142,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b15_smoke_harness.md
+  latest_execution_report_path: reports/rp5/b15_human_action_packet.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15-03
+  expected_next_task: B15-04
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -2158,3 +2158,49 @@ tasks:
       hars_resolved_in_B15-02: false
     marker: null
     next_task: B15-03
+  B15-03:
+    task_id: B15-03
+    status: PASS
+    commit: 3bc3effa932b10f1ac5a09a05f7dee39471cf190
+    accepted_report_commit: 3bc3effa932b10f1ac5a09a05f7dee39471cf190
+    files_changed:
+      - reports/rp5/b15_human_action_packet.md
+    commands_run:
+      - "python scripts/rp5/validate_report_shape.py --report reports/rp5/b15_human_action_packet.md (OK_REPORT_SHAPE)"
+      - "python scripts/rp5/validate_approval_packet.py --packet reports/rp5/b15_human_action_packet.md (OK_APPROVAL_PACKET)"
+      - "banned-phrase scan on reports/rp5/b15_human_action_packet.md (zero matches)"
+      - "python scripts/rp5/validate_b15_path_locks.py --diff HEAD~1..HEAD (OK_CHANGED_FILES_PATH_LOCKED on the B15-03 deliverable commit 3bc3eff)"
+    key_outputs:
+      - OK_REPORT_SHAPE
+      - OK_APPROVAL_PACKET
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      task_kind: b15_human_action_packet_authoring
+      deliverable_report_path: reports/rp5/b15_human_action_packet.md
+      deliverable_record_type: b15_human_action_packet
+      packet_id: B15-HAP-001
+      human_action_requests_declared: 3
+      carried_from_b14_1:
+        - HAR-B14_1-STABLE-HOSTNAME-001
+        - HAR-B14_1-FUNNEL-CAPABILITY-001
+      new_in_b15:
+        - HAR-B15-MULTI-NETWORK-SMOKE-001
+      hars_resolved_in_B15-03: false
+      operator_evidence_consumed: false
+      operator_evidence_fabricated: false
+      public_url_literal_recorded: false
+      stable_hostname_literal_recorded: false
+      tunnel_secret_recorded: false
+      recruiter_or_admin_password_recorded: false
+      scope_change_predecessor_commit: 4c2a87e92b07df429e1331343954b587b70cc895
+      closure_pending_orchestrator_decision: CLOSE_TASK
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      forbidden_commit_trailers_present: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      b15_04_started: false
+    marker: null
+    next_task: B15-04
