@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15-02
-last_completed_task: B15-01
+current_task: B15-03
+last_completed_task: B15-02
 last_completed_phase: B14.1
 markers: []
 phase_approvals:
@@ -142,10 +142,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b15_coverage_matrix.md
+  latest_execution_report_path: reports/rp5/b15_smoke_harness.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15-02
+  expected_next_task: B15-03
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -2065,3 +2065,71 @@ tasks:
       hars_resolved_in_B15-01: false
     marker: null
     next_task: B15-02
+  B15-02:
+    task_id: B15-02
+    status: PASS
+    commit: 1a2b94e58208836ba52586f821421fdc05325169
+    files_changed:
+      - reports/rp5/b15_smoke_harness.md
+      - scripts/rp5/validate_b15_multi_network_smoke.py
+      - scripts/rp5/validate_b15_smoke_result_evidence.py
+      - scripts/rp5/validate_b15_recruiter_gate_preserved_under_public_smoke.py
+      - scripts/rp5/validate_b15_quota_state_accuracy.py
+      - scripts/rp5/validate_b15_upload_limit_enforced.py
+      - scripts/rp5/validate_b15_mobile_layout.py
+      - scripts/rp5/validate_b15_cached_example_integrity.py
+      - scripts/rp5/validate_b15_public_exposure_smoke_claim.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_*.py (eight paired fixture generators)
+      - tests/rp5/fixtures/generate_fixture_validate_b15_*_manifest.json (eight manifests)
+      - tests/rp5/fixtures/generate_fixture_validate_b15_*/ (eight positive + negative fixture trees)
+    commands_run:
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_multi_network_smoke.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_MULTI_NETWORK_SMOKE)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_smoke_result_evidence.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_SMOKE_RESULT_EVIDENCE)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_recruiter_gate_preserved_under_public_smoke.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_RECRUITER_GATE_PRESERVED)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_quota_state_accuracy.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_QUOTA_STATE_ACCURACY)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_upload_limit_enforced.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_UPLOAD_LIMIT_ENFORCED)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_mobile_layout.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_MOBILE_LAYOUT)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_cached_example_integrity.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_CACHED_EXAMPLE_INTEGRITY)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_public_exposure_smoke_claim.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM)"
+      - "python scripts/rp5/validate_b15_plan_compile.py --plan-dir docs/plans/b15 (OK_PLAN_COMPILES)"
+      - "python scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py --root . (OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL)"
+      - "python scripts/rp5/validate_b15_path_locks.py --diff HEAD~1..HEAD (OK_CHANGED_FILES_PATH_LOCKED on each of the four B15-02 execution commits)"
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_FIXTURE_VALIDATE_B15_MULTI_NETWORK_SMOKE
+      - OK_FIXTURE_VALIDATE_B15_SMOKE_RESULT_EVIDENCE
+      - OK_FIXTURE_VALIDATE_B15_RECRUITER_GATE_PRESERVED
+      - OK_FIXTURE_VALIDATE_B15_QUOTA_STATE_ACCURACY
+      - OK_FIXTURE_VALIDATE_B15_UPLOAD_LIMIT_ENFORCED
+      - OK_FIXTURE_VALIDATE_B15_MOBILE_LAYOUT
+      - OK_FIXTURE_VALIDATE_B15_CACHED_EXAMPLE_INTEGRITY
+      - OK_FIXTURE_VALIDATE_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM
+    supplemental_evidence:
+      task_kind: b15_smoke_harness_validator_materialization
+      deliverable_report_path: reports/rp5/b15_smoke_harness.md
+      smoke_harness_validators_materialized: 8
+      paired_fixture_generators_materialized: 8
+      fixture_manifests_materialized: 8
+      validators_are_pure_declarative_record_validators: true
+      harness_performs_public_network_call: false
+      coverage_matrix_or_no_public_url_validators_recreated: false
+      execution_commits:
+        - fb1eab8cb3162b48d2284a994b43ceb0a5206770
+        - ca19b526901992c6d4d66c9bdeb23a8e0b35252f
+        - 306980d0f902fd9332dcc8e7b779c3418838638c
+        - 1a2b94e58208836ba52586f821421fdc05325169
+      execution_commit_split_reason: "four commits keep each within the PL-B15-TESTS max-file cap of 14"
+      path_lock_per_commit: "each of fb1eab8, ca19b52, 306980d, 1a2b94e emits OK_CHANGED_FILES_PATH_LOCKED on validate_b15_path_locks --diff HEAD~1..HEAD"
+      smoke_evidence_fabricated: false
+      closure_pending_orchestrator_decision: CLOSE_TASK
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      forbidden_commit_trailers_present: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      b15_03_started: false
+      hars_resolved_in_B15-02: false
+    marker: null
+    next_task: B15-03
