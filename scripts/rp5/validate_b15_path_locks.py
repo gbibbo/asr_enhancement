@@ -34,8 +34,20 @@ def _is_b15_reports_path(p):
     return p.startswith("reports/rp5/") and name.startswith("b15_") and name.endswith(".md")
 
 
+# Exact-filename allowlist for the two reusable protocol validators
+# materialized by the B15-03 scope-change repair. These two files do not
+# carry a "validate_b15_" prefix, so they are admitted by exact name only;
+# the glob is intentionally not broadened.
+_B15_PROTOCOL_VALIDATOR_FILES = frozenset({
+    "scripts/rp5/validate_report_shape.py",
+    "scripts/rp5/validate_approval_packet.py",
+})
+
+
 def _is_b15_scripts_path(p):
     name = pathlib.Path(p).name
+    if p in _B15_PROTOCOL_VALIDATOR_FILES:
+        return True
     if p.startswith("scripts/rp5/") and name.startswith("validate_b15_") and name.endswith(".py"):
         return True
     if (p.startswith("scripts/rp5/fixtures/")

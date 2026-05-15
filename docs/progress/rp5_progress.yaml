@@ -182,6 +182,31 @@ recovery_log:
       - OK_CHANGED_FILES_PATH_LOCKED
       - "BR-08 phase gate invoked: false"
     next_task: BR-08
+  RP-VALIDATOR-MATERIALIZATION-GAP-B15-03:
+    status: PASS
+    marker: VALIDATOR_MATERIALIZATION_GAP
+    scope: scope_change
+    task_id: B15-03
+    orchestrator_decision: APPROVE_SCOPE_CHANGE_EXECUTION
+    rationale: "B15-03 verification requires OK_REPORT_SHAPE and OK_APPROVAL_PACKET, but scripts/rp5/validate_report_shape.py and scripts/rp5/validate_approval_packet.py were absent from reachable HEAD and B15-03 task scope forbids scripts/**; the B15-03 scope-change repair materialized both reusable protocol validators and widened PL-B15-SCRIPTS by exact-filename allowlist."
+    files_materialized:
+      - scripts/rp5/validate_report_shape.py
+      - scripts/rp5/validate_approval_packet.py
+    files_modified:
+      - scripts/rp5/validate_b15_path_locks.py
+      - docs/plans/b15/agent_plan.md
+    key_outputs:
+      - "BEFORE_FIX: validate_report_shape and validate_approval_packet absent from reachable HEAD"
+      - "AFTER_FIX: both materialized as pure local validators, self-tested positive and negative"
+      - OK_REPORT_SHAPE
+      - OK_APPROVAL_PACKET
+      - OK_PLAN_COMPILES
+      - OK_CHANGED_FILES_PATH_LOCKED
+    b15_03_executed: false
+    b15_03_marked_pass: false
+    public_exposure_started: false
+    note: "scope-change repair only; B15-03 implementation not started; commit hash recorded at orchestrator scope-change acceptance"
+    next_task: B15-03
 tasks:
   BR-00:
     task_id: BR-00
