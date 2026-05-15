@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15-04
-last_completed_task: B15-03
+current_task: B15-05
+last_completed_task: B15-04
 last_completed_phase: B14.1
 markers: []
 phase_approvals:
@@ -188,10 +188,10 @@ human_action_requests:
     blocks: B15-05 closure and the B15 phase-gate full-success branch
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b15_human_action_packet.md
+  latest_execution_report_path: reports/rp5/b15_public_exposure_bringup.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15-04
+  expected_next_task: B15-05
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -2276,3 +2276,54 @@ tasks:
       b15_04_started: false
     marker: null
     next_task: B15-04
+  B15-04:
+    task_id: B15-04
+    status: PASS
+    commit: e1a444dbec31a3d69db8b3fcb54e069ad6a48097
+    accepted_report_commit: e1a444dbec31a3d69db8b3fcb54e069ad6a48097
+    files_changed:
+      - reports/rp5/b15_public_exposure_bringup.md
+    commands_run:
+      - "python scripts/rp5/print_pending_human_action_requests.py --tracker-path docs/progress/rp5_progress.yaml (exit 0; two carried B14.1 HARs resolved; HAR-B15-MULTI-NETWORK-SMOKE-001 pre_declared_unresolved; no OK_* sentinel; no secret printed)"
+      - "python scripts/rp5/validate_report_shape.py --report reports/rp5/b15_public_exposure_bringup.md (OK_REPORT_SHAPE)"
+      - "python scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py --root . (OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL)"
+      - "banned-phrase scan on reports/rp5/b15_public_exposure_bringup.md (zero matches)"
+      - "python scripts/rp5/validate_b15_path_locks.py --diff HEAD~1..HEAD (OK_CHANGED_FILES_PATH_LOCKED on the B15-04 deliverable commit e1a444d)"
+    key_outputs:
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_REPORT_SHAPE
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      task_kind: b15_public_exposure_bringup_record_authoring
+      deliverable_report_path: reports/rp5/b15_public_exposure_bringup.md
+      deliverable_record_type: public_exposure_bringup_record
+      bringup_id: B15-BRINGUP-001
+      public_exposure_flag: PUBLIC_DEMO_EXPOSURE_true
+      public_exposure_flag_basis: operator_declared_by_reference_from_resolved_HARs
+      stable_hostname_supplied_by_reference: true
+      tailscale_authkey_supplied_by_reference: true
+      tunnel_run_as_service_restart_policy_string: on-failure
+      har_references:
+        - HAR-B14_1-STABLE-HOSTNAME-001
+        - HAR-B14_1-FUNNEL-CAPABILITY-001
+      evidence_reference: operator_chat_confirmation_B15_04_carried_HARs_all_flags_true_no_literals_2026-05-15
+      is_public_exposure_success_claim: false
+      success_with_stable_named_exposure_asserted: false
+      smoke_result_recorded: false
+      har_b15_multi_network_smoke_001_resolved: false
+      public_exposure_action_performed_by_agent: false
+      network_or_runtime_command_run: false
+      public_url_literal_recorded: false
+      stable_hostname_literal_recorded: false
+      tunnel_secret_recorded: false
+      closure_pending_orchestrator_decision: CLOSE_TASK
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      forbidden_commit_trailers_present: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      b15_05_started: false
+    marker: null
+    next_task: B15-05
