@@ -1,8 +1,8 @@
 tracker_file: docs/progress/rp5_progress.yaml
-current_phase: B14.1
-current_task: B14.1_PHASE_GATE_PENDING_ORCHESTRATOR_DECISION
+current_phase: B15
+current_task: B15_PENDING_ORCHESTRATOR_INSTRUCTION
 last_completed_task: B14_1-08
-last_completed_phase: B14.0
+last_completed_phase: B14.1
 markers: []
 phase_approvals:
   B-route:
@@ -22,6 +22,15 @@ phase_approvals:
     approval_packet_path: reports/rp5/b14_0_phase_approval_packet.yaml
     phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
     next_phase: B14.1
+    next_phase_status: PENDING_ORCHESTRATOR_INSTRUCTION
+  B14.1:
+    status: APPROVED
+    decision: PHASE_APPROVE
+    accepted_phase_gate_report_commit: f2a64d5619e34db99802595c0ce4ea9ae2e2d5f1
+    accepted_tracker_closure_commit: 360bc2bd8a3d7d42a1886d82cccd3f77b5de7d84
+    approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
+    phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
+    next_phase: B15
     next_phase_status: PENDING_ORCHESTRATOR_INSTRUCTION
 plan_authoring_approvals:
   B14.0:
@@ -100,8 +109,8 @@ state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
   latest_execution_report_path: reports/rp5/b14_1_phase_gate.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
-  latest_approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
-  expected_next_task: B14.1_PHASE_GATE_PENDING_ORCHESTRATOR_DECISION
+  latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
+  expected_next_task: B15_PENDING_ORCHESTRATOR_INSTRUCTION
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
