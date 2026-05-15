@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P10
-current_task: P10.3
-last_completed_task: P10.2
+current_task: P10_GATE
+last_completed_task: P10.3
 
 blocked: false
 blocker: null
@@ -59,11 +59,21 @@ state_transport:
       scope: task
       task_id: P10.3
       phase: P10
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: cd46f7291b78a84bf4af1509eb5d46704fa78137
+      next_expected_task: P10_GATE
+      required_fix: null
+      rationale: "P10.3 Plan-tracker consistency completed successfully. scripts/robust_asr/verify_plan_tracker_consistency.py was created under the approved reuse/touch policy allowance and emitted OK_PLAN_TRACKER_CONSISTENCY. Assertions A01 through A17 passed. OK_REPORT_SHAPE and OK_PROGRESS_YAML_PARSE were observed. The P10.3 execution commit kept project_status=IN_PROGRESS, did not open P10_GATE, did not set phase_summary.P10, did not set orchestrator_approvals.P10, preserved claims_enabled.* false, preserved active markers, and left the handoff tag unchanged."
+  prior_approval_packet_p10_3_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P10.3
+      phase: P10
       decision: APPROVE_PLAN
       accepted_report_commit: 11201e3308e612a61d96438857f1f8f924206935
       next_expected_task: P10.3
       required_fix: null
-      rationale: "P10.3 planning report accepted after CHANGE_SCOPE(reuse_policy_p10_3_script_allowance). P10.3 may now create scripts/robust_asr/verify_plan_tracker_consistency.py because the scripts/robust_asr/** reuse-policy row includes P10.3 and touch_policy.md P10.3 includes that script path. P10.3 must implement the validator contract from the active agent plan, run the plan-tracker consistency check, write reports/robust_asr/plan_tracker_consistency.md and reports/robust_asr/task_reports/P10.3_consistency.md, and update only the active robust_asr trackers. It must not open P10_GATE or mark the project COMPLETE."
+      rationale: "P10.3 planning report accepted after CHANGE_SCOPE(reuse_policy_p10_3_script_allowance). P10.3 may now create scripts/robust_asr/verify_plan_tracker_consistency.py because the scripts/robust_asr/** reuse-policy row includes P10.3 and touch_policy.md P10.3 includes that script path. P10.3 must implement the validator contract from the active agent plan, run the plan-tracker consistency check, write reports/robust_asr/plan_tracker_consistency.md and reports/robust_asr/task_reports/P10.3_consistency.md, and update only the active robust_asr trackers. It must not open P10_GATE or mark the project COMPLETE. Demoted from latest_approval_packet to prior_approval_packet_p10_3_plan by the APPROVE_EXECUTION(P10.3) recording commit."
   prior_approval_packet_p10_2_exec:
     ORCHESTRATOR_DECISION:
       scope: task
@@ -1024,8 +1034,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 8ce525c896845ce79fc9bad96167448b77ab75f9
-  expected_next_task: P10.3
+  last_accepted_report_commit: cd46f7291b78a84bf4af1509eb5d46704fa78137
+  expected_next_task: P10_GATE
   last_tracker_mismatch: null
   latest_scope_change_packet:
     ORCHESTRATOR_DECISION:
