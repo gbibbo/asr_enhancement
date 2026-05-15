@@ -1,0 +1,53 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_multi_network_smoke",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_missing_vantage_point",
+      "expected_marker": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "observed_sentinel": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "root": "negative/negative_missing_vantage_point",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "a97e966d2a29bf21d73a66baac4d8aae293f3053c1607455d3491126767d46cb",
+          "size_bytes": 2749
+        }
+      ]
+    },
+    {
+      "case_name": "negative_incomplete_coverage_item_outcomes",
+      "expected_marker": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "observed_sentinel": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "root": "negative/negative_incomplete_coverage_item_outcomes",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "d9f67e07245a50f327ab3048c36f7041b2eea270d83a657e840222c64c2da469",
+          "size_bytes": 3618
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_MULTI_NETWORK_COVERAGE_GAP"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_MULTI_NETWORK_SMOKE_OR_BLOCKED",
+      "observed_sentinel": "OK_B15_MULTI_NETWORK_SMOKE_OR_BLOCKED",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "5d3e79860419a31146d839bfd2c837bab52a5f67c47b4cb41d8cb77ac8e54af8",
+          "size_bytes": 3679
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_MULTI_NETWORK_SMOKE",
+  "validator": "validate_b15_multi_network_smoke",
+  "validator_sentinel_pass": "OK_B15_MULTI_NETWORK_SMOKE_OR_BLOCKED"
+}
