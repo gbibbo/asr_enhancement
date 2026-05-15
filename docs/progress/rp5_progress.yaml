@@ -253,6 +253,30 @@ recovery_log:
     public_exposure_started: false
     note: "scope-change repair only; B15-03 implementation not started; commit hash recorded at orchestrator scope-change acceptance"
     next_task: B15-03
+  RP-VALIDATOR-MATERIALIZATION-GAP-B15-04:
+    status: PASS
+    marker: VALIDATOR_MATERIALIZATION_GAP
+    scope: scope_change
+    task_id: B15-04
+    orchestrator_decision: APPROVE_SCOPE_CHANGE_EXECUTION
+    rationale: "B15-04 verification references print_pending_human_action_requests as a reusable protocol helper, but scripts/rp5/print_pending_human_action_requests.py was absent from reachable HEAD and B15-04 task scope forbids scripts/**; the B15-04 scope-change repair materialized the read-only diagnostic helper and widened PL-B15-SCRIPTS by exact-filename allowlist."
+    files_materialized:
+      - scripts/rp5/print_pending_human_action_requests.py
+    files_modified:
+      - scripts/rp5/validate_b15_path_locks.py
+      - docs/plans/b15/agent_plan.md
+    key_outputs:
+      - "BEFORE_FIX: print_pending_human_action_requests.py absent from reachable HEAD"
+      - "AFTER_FIX: read-only diagnostic helper materialized; self-tested exit 0; lists two carried HARs resolved and HAR-B15-MULTI-NETWORK-SMOKE-001 pending; emits no OK_* sentinel; prints no secret literal"
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_PLAN_COMPILES
+      - OK_CHANGED_FILES_PATH_LOCKED
+    helper_emits_pass_sentinel: false
+    b15_04_executed: false
+    b15_04_marked_pass: false
+    public_exposure_started: false
+    note: "scope-change repair only; B15-04 implementation not started; commit hash recorded at orchestrator scope-change acceptance"
+    next_task: B15-04
 tasks:
   BR-00:
     task_id: BR-00
