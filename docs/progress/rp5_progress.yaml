@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.1
-current_task: B14_1-08
-last_completed_task: B14_1-07
+current_task: B14.1_PHASE_GATE_PENDING_ORCHESTRATOR_DECISION
+last_completed_task: B14_1-08
 last_completed_phase: B14.0
 markers: []
 phase_approvals:
@@ -98,10 +98,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_1_broute_compatibility_under_public_exposure.md
-  latest_phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
+  latest_execution_report_path: reports/rp5/b14_1_phase_gate.md
+  latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
-  expected_next_task: B14_1-08
+  expected_next_task: B14.1_PHASE_GATE_PENDING_ORCHESTRATOR_DECISION
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -1816,3 +1816,109 @@ tasks:
       hars_resolved_in_B14_1-07: false
     marker: null
     next_task: B14_1-08
+  B14_1-08:
+    task_id: B14_1-08
+    status: PASS
+    commit: f2a64d5619e34db99802595c0ce4ea9ae2e2d5f1
+    accepted_report_commit: f2a64d5619e34db99802595c0ce4ea9ae2e2d5f1
+    files_changed:
+      - reports/rp5/b14_1_future_constraints.md
+      - reports/rp5/b14_1_phase_gate.md
+    commands_run:
+      - "FV-FUTURE PLAN_CONFLICT resolved first by scope-change commit d662acd0b2177f92a021ea619e47f3d0736868f2 (validate_future_constraints.py made profile-aware; agent_plan.md section 9 reclassified)"
+      - "authored reports/rp5/b14_1_future_constraints.md (five future_constraint_preservation_record rows; source_section field; no extra rows)"
+      - "python3 scripts/rp5/validate_future_constraints.py --constraints reports/rp5/b14_1_future_constraints.md --out /tmp/b14_1_08_future_constraints_validation.md (b14_1 profile inferred)"
+      - "python3 scripts/rp5/validate_b14_1_plan_compile.py --plan-dir docs/plans/b14_1 --out /tmp/b14_1_08_plan_compile.md"
+      - "python3 scripts/rp5/validate_b14_1_exposure_state_record.py --record reports/rp5/b14_1_exposure_state_record.md --out /tmp/b14_1_08_exposure_state.md"
+      - "python3 scripts/rp5/validate_b14_1_no_public_url_or_hostname_literal.py --root . --component all --out /tmp/b14_1_08_no_public_url.md"
+      - "python3 scripts/rp5/validate_b14_1_local_bypass_justification.py --root . --out /tmp/b14_1_08_local_bypass.md"
+      - "python3 - (port preflight via socket.connect_ex 127.0.0.1:8001 returned rc=111 = free)"
+      - "mktemp -d -t b14_1_08_runtime.XXXXXX (DEMO_RUNTIME_ROOT created; db/ cache/ uploads/ artifacts/ logs/ tmp/ created)"
+      - "python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 8001 (loopback only; synthetic env-only RECRUITER_USERNAME/RECRUITER_PASSWORD; PUBLIC_DEMO_EXPOSURE=true)"
+      - "python3 /tmp/b14_1_08_readiness.py (env-internal Basic header; never printed credential values; rc=0)"
+      - "python3 scripts/rp5/validate_b14_1_application_layer_gate_invariants.py --base-url http://127.0.0.1:8001 --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --out /tmp/b14_1_08_application_layer_gate.md"
+      - "python3 scripts/rp5/validate_b14_1_no_network_trust_authority.py --base-url http://127.0.0.1:8001 --out /tmp/b14_1_08_no_network_trust.md"
+      - "python3 scripts/rp5/validate_b14_1_recruiter_gate_preserved_under_public_exposure.py --base-url http://127.0.0.1:8001 --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --out /tmp/b14_1_08_recruiter_gate.md"
+      - "python3 scripts/rp5/validate_b14_1_health_payload_preserved_under_public_exposure.py --base-url http://127.0.0.1:8001 --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --out /tmp/b14_1_08_health_payload.md"
+      - "python3 scripts/rp5/validate_b14_1_openapi_docs_visibility.py --base-url http://127.0.0.1:8001 --out /tmp/b14_1_08_openapi_docs.md"
+      - "python3 scripts/rp5/validate_b14_1_no_tunnel_secret_leak.py --scope runtime --base-url http://127.0.0.1:8001 --root . --out /tmp/b14_1_08_no_tunnel_secret.md"
+      - "python3 scripts/rp5/validate_b14_1_broute_compatibility_under_public_exposure.py --base-url http://127.0.0.1:8001 --recruiter-username-env RECRUITER_USERNAME --recruiter-password-env RECRUITER_PASSWORD --fixtures-root tests/rp5/fixtures/validate_b14_1_broute_compatibility_under_public_exposure --out /tmp/b14_1_08_broute_compatibility.md"
+      - "mandatory cleanup: kill+wait uvicorn pid; rm -rf $DEMO_RUNTIME_ROOT; rm -f /tmp/b14_1_08_readiness.py /tmp/b14_1_08_runtime_root.path; unset PUBLIC_DEMO_EXPOSURE RECRUITER_USERNAME RECRUITER_PASSWORD DEMO_RUNTIME_ROOT"
+      - "python3 - (post-cleanup port confirm via socket.connect_ex 127.0.0.1:8001 returned rc=111 = free)"
+      - "authored reports/rp5/b14_1_phase_gate.md (phase_gate_report; claim_status BLOCKED_PENDING_HUMAN_ACTION)"
+      - "git add (deterministic authorized 2-file set: reports/rp5/b14_1_future_constraints.md, reports/rp5/b14_1_phase_gate.md)"
+      - "git diff --cached --name-only / git status --porcelain (staged-set exactness check; STAGED_EQUALS_EXPECTED=True)"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD --out /tmp/b14_1_08_path_lock_pre_commit.md"
+      - "git commit (identity Gabriel Bibbó <gabobibbo@gmail.com>; no AI authorship trailers)"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD~1..HEAD --out /tmp/b14_1_08_path_lock_post_commit.md"
+      - "git push origin feature/demo-runtime-rp5-v1"
+      - "final cleanup: remove all /tmp/b14_1_08_* transcripts; no /tmp/b14_1_08_* residue, no DEMO_RUNTIME_ROOT residue"
+    key_outputs:
+      - OK_FUTURE_CONSTRAINTS
+      - OK_PLAN_COMPILES
+      - OK_B14_1_EXPOSURE_STATE_STABLE_OR_BLOCKED
+      - OK_B14_1_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_B14_1_LOCAL_BYPASS_JUSTIFIED
+      - OK_B14_1_APPLICATION_LAYER_GATE
+      - OK_B14_1_NO_NETWORK_TRUST_AUTHORITY
+      - OK_B14_1_RECRUITER_GATE_PRESERVED
+      - OK_B14_1_HEALTH_UNDER_PUBLIC_EXPOSURE
+      - OK_B14_1_OPENAPI_DOCS_OFF
+      - OK_B14_1_NO_TUNNEL_SECRET_LEAK
+      - OK_B14_1_BROUTE_COMPATIBILITY_UNDER_PUBLIC_EXPOSURE
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      task_kind: phase_gate_final_verification
+      legal_route: BLOCKED_PENDING_HUMAN_ACTION_explicit_blocker_phase_gate_task
+      fv_future_plan_conflict_resolved_by_scope_change_commit: d662acd0b2177f92a021ea619e47f3d0736868f2
+      all_twelve_fv_sentinels_observed: true
+      path_lock_observed_pre_commit: true
+      path_lock_observed_post_commit: true
+      path_lock_pre_commit_diff_spec: "--diff HEAD"
+      path_lock_post_commit_diff_spec: "--diff HEAD~1..HEAD"
+      claim_status: BLOCKED_PENDING_HUMAN_ACTION
+      primary_explicit_blocker: HAR-B14_1-STABLE-HOSTNAME-001
+      residual_blocker: HAR-B14_1-FUNNEL-CAPABILITY-001
+      residual_blocker_unsupplied_input: tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY=false
+      phase_gate_passes_explicit_blocker_branch: true
+      phase_gate_is_public_exposure_success_claim: false
+      success_with_stable_named_exposure_claimed: false
+      application_gated_stable_hostname_claimed: false
+      host_readiness_to_run_tunnel_claimed: false
+      public_url_or_stable_hostname_literal_or_funnel_state_claimed: false
+      next_expected_phase_in_phase_gate_report: B15_PENDING_ORCHESTRATOR_INSTRUCTION
+      runtime_scope_base_url: "http://127.0.0.1:8001"
+      runtime_binding: "127.0.0.1:8001"
+      non_loopback_bind_attempted: false
+      synthetic_credentials_env_only: true
+      credential_values_passed_on_argv: false
+      readiness_probe_printed_credential_values: false
+      port_preflight_8001_rc: 111
+      post_cleanup_port_check_8001_rc: 111
+      runtime_process_stopped_before_commit: true
+      demo_runtime_root_created_via_mktemp: true
+      demo_runtime_root_removed_before_commit: true
+      tmp_b14_1_08_residue_present: false
+      staged_set_exactness_check_passed: true
+      unauthorized_paths_in_commit: 0
+      authorized_files_set_size: 2
+      docs_progress_rp5_progress_yaml_unchanged_during_execution: true
+      tracker_mutated_during_execution: false
+      phase_approvals_b14_1_recorded_during_execution: false
+      phase_approve_recorded_during_execution: false
+      b15_started: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      datamove1_handoff_invoked: false
+      multi_network_smoke_run: false
+      hars_resolved_in_B14_1-08: false
+      har_b14_1_funnel_capability_001_status_after: partially_resolved_at_B14_1-04_threshold
+      har_b14_1_stable_hostname_001_status_after: pre_declared_unresolved
+      auth_key_or_token_or_credential_or_authorization_value_created_read_echoed_logged_committed_or_reported: false
+      forbidden_commit_trailers_present: false
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+    marker: null
+    next_task: B14.1_PHASE_GATE_PENDING_ORCHESTRATOR_DECISION
