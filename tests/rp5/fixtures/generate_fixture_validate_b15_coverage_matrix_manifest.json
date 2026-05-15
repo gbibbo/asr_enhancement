@@ -1,0 +1,79 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_coverage_matrix",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_missing_vantage_point",
+      "expected_marker": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "observed_sentinel": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "root": "negative/negative_missing_vantage_point",
+      "tree_files": [
+        {
+          "path": "coverage_matrix.md",
+          "sha256": "f15b96512757c76031d6bd6ad5e5e0075b00b359fe5021eab4818d7bb00b59e9",
+          "size_bytes": 1118
+        }
+      ]
+    },
+    {
+      "case_name": "negative_missing_coverage_item",
+      "expected_marker": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "observed_sentinel": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "root": "negative/negative_missing_coverage_item",
+      "tree_files": [
+        {
+          "path": "coverage_matrix.md",
+          "sha256": "0ecec469e673a07c22c49d08cb7a49fca7883b6866ea256a43bab68bc2f86535",
+          "size_bytes": 1082
+        }
+      ]
+    },
+    {
+      "case_name": "negative_illegal_planned_status",
+      "expected_marker": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "observed_sentinel": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "root": "negative/negative_illegal_planned_status",
+      "tree_files": [
+        {
+          "path": "coverage_matrix.md",
+          "sha256": "628f43d2b2d298d7eceb5fa30fe09c648af9c856ae804414367fa5ce1453f888",
+          "size_bytes": 1135
+        }
+      ]
+    },
+    {
+      "case_name": "negative_explicit_na_on_non_assemblyai_item",
+      "expected_marker": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "observed_sentinel": "B15_MULTI_NETWORK_COVERAGE_GAP",
+      "root": "negative/negative_explicit_na_on_non_assemblyai_item",
+      "tree_files": [
+        {
+          "path": "coverage_matrix.md",
+          "sha256": "6f0edcbcf8da4934cd2fac5b5ae03075a78414b46c6a71bae247dc0b2d76ad3f",
+          "size_bytes": 1151
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_MULTI_NETWORK_COVERAGE_GAP"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED",
+      "observed_sentinel": "OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "coverage_matrix.md",
+          "sha256": "e45da80ea1bdf779720cb053dd31ec935594b0821b19a00e060e7f18a2e34235",
+          "size_bytes": 1147
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_COVERAGE_MATRIX",
+  "validator": "validate_b15_coverage_matrix",
+  "validator_sentinel_pass": "OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED"
+}
