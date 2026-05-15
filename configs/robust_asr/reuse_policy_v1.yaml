@@ -140,12 +140,12 @@
   permitted_use: read_write
   allowed_tasks: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1,
                   P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2,
-                  P10.2]
+                  P10.2, P10.3]
   validator: none
   checksum_required: false
   large_artifact: false
   commit_allowed: true
-  notes: Robust ASR scripts. P10.2 added under CHANGE_SCOPE(reuse_policy_p10_2_script_allowance) on accepted_report_commit 9452afcf3c3f6b1874d86650724606d8e902b286 to authorize creation of scripts/robust_asr/final_asset_audit.py per agent plan §4275 (P10.2 Action 1) and §1105–§1119 (final_asset_audit.py contract). Minimum-necessary amendment; no other tasks added; no class/permitted_use/no-touch change.
+  notes: Robust ASR scripts. P10.2 added under CHANGE_SCOPE(reuse_policy_p10_2_script_allowance) on accepted_report_commit 9452afcf3c3f6b1874d86650724606d8e902b286 to authorize creation of scripts/robust_asr/final_asset_audit.py per agent plan §4275 (P10.2 Action 1) and §1105–§1119 (final_asset_audit.py contract). P10.3 added under CHANGE_SCOPE(reuse_policy_p10_3_script_allowance) on accepted_report_commit 9f8e4c3687a8f449945e7e1f2d76fd19c082ce29 to authorize creation of scripts/robust_asr/verify_plan_tracker_consistency.py per agent plan §4305 (P10.3 Action 1) and §1057–§1103 (verify_plan_tracker_consistency.py contract). Minimum-necessary amendments; no other tasks added; no class/permitted_use/no-touch change.
 
 - path: tests/robust_asr/**
   class: active_state

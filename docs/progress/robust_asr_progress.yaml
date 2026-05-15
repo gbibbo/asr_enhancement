@@ -1018,14 +1018,60 @@ state_transport:
   latest_scope_change_packet:
     ORCHESTRATOR_DECISION:
       scope: scope_change
+      task_id: reuse_policy_p10_3_script_allowance
+      phase: P10
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 9f8e4c3687a8f449945e7e1f2d76fd19c082ce29
+      next_expected_task: P10.3
+      required_fix: "Allow P10.3 to create scripts/robust_asr/verify_plan_tracker_consistency.py, because the active agent plan requires P10.3 to run verify_plan_tracker_consistency.py but configs/robust_asr/reuse_policy_v1.yaml currently omits P10.3 from the scripts/robust_asr/** allowed_tasks row, and reports/robust_asr/touch_policy.md P10.3 row does not list the script path."
+      rationale: "P10.3 planning established that scripts/robust_asr/verify_plan_tracker_consistency.py is absent, while the active plan defines its normative contract in Section 4.1 and P10.3 requires running it. This administrative policy fix prevents the P10.3 implementation from violating reuse/touch policy. Direct analogue of CHANGE_SCOPE(reuse_policy_p10_2_script_allowance) for P10.3."
+      enacted_at_commit: pending_this_scope_change_commit
+      report: reports/robust_asr/task_reports/reuse_policy_p10_3_script_allowance.md
+      reuse_policy_row_changed: scripts/robust_asr/**
+      allowed_tasks_before: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2, P10.2]
+      allowed_tasks_after: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2, P10.2, P10.3]
+      reuse_policy_sha256_before: c9e187ecbdc24ba0503753934f32bf4bb08df0a4f5ca049b9200299fca851876
+      reuse_policy_sha256_after: 18905cd932a8a90199859e6f5cebc5f596177de5f5f2a2a5052e9972bc8e9037
+      touch_policy_row_changed: P10.3
+      touch_policy_paths_before: [reports/robust_asr/plan_tracker_consistency.md, reports/robust_asr/task_reports/P10.3_consistency.md, docs/progress/robust_asr_progress.yaml, docs/progress/robust_asr_progress.md, docs/progress/robust_asr_state_capsule.md]
+      touch_policy_paths_after: [scripts/robust_asr/verify_plan_tracker_consistency.py, reports/robust_asr/plan_tracker_consistency.md, reports/robust_asr/task_reports/P10.3_consistency.md, docs/progress/robust_asr_progress.yaml, docs/progress/robust_asr_progress.md, docs/progress/robust_asr_state_capsule.md]
+      touch_policy_sha256_before: 33243a494e3865dc7519008e75687bfcb232c27a5ec3dfd7cc6a8a00de0e80d7
+      touch_policy_sha256_after: c19c3e9c4256dc3645223a6affa5516da565ffdf1d7ccd62a961b22a2105702a
+      claims_consistency_verified: true
+      claims_consistency_notes: "Administrative policy fix only. claims_enabled.{ood_real, cloud_tradeoff, positive_lora, positive_system} all held false. No metric, eval table, selector evidence, oracle, system_eval, or handoff artifact touched. No claim depends on a disabled flag."
+      c4_status_preserved: COMPLETED_IN_P9_1
+      c5_status_preserved: COMPLETED_AND_PASS
+      latest_approval_packet_held: "APPROVE_EXECUTION(P10.2) on 8ce525c896845ce79fc9bad96167448b77ab75f9 (held; not displaced by this scope-change packet, matching the FIX_BEFORE_CLOSE / scope-change precedent at CHANGE_SCOPE(reuse_policy_p10_2_script_allowance), CHANGE_SCOPE(model_router_card_completion), P9.2 strict-tag-validator-fix, and P8.2-deviation enactment)"
+      held_after_scope_change:
+        current_task: P10.3
+        last_completed_task: P10.2
+        current_phase: P10
+        state_transport_expected_next_task: P10.3
+        state_transport_last_accepted_report_commit: 8ce525c896845ce79fc9bad96167448b77ab75f9
+        phase_summary_p10: null
+        orchestrator_approvals_p10: null
+        tasks_p10_1_status: PASS
+        tasks_p10_2_status: PASS
+        tasks_p10_3_present: false
+        claims_enabled: {ood_real: false, cloud_tradeoff: false, positive_lora: false, positive_system: false}
+        markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]
+        outcome_e_narrowed_scope_held_on: [tasks.P8.1, decisions.Decision_D_positive_system]
+        proposed_deviations_P8_2_status: ENACTED
+        scripts_robust_asr_verify_plan_tracker_consistency_py_exists: false
+        reports_robust_asr_plan_tracker_consistency_md_exists: false
+        handoff_tag: handoff/20260514-64eba43
+        handoff_tag_commit: 64eba4345f3207af38f0fba8ac2c43c6084e8852
+  prior_scope_change_packet_model_router_card_completion:
+    ORCHESTRATOR_DECISION:
+      scope: scope_change
       task_id: model_router_card_completion
       phase: P10
       decision: CHANGE_SCOPE
       accepted_report_commit: d714bac8f4d49e7a5b0ca7616a6ee5758a330d5d
       next_expected_task: P10.2
       required_fix: "Complete docs/reports/robust_asr/model_card_lora.md and docs/reports/robust_asr/router_card.md before P10.2 final_asset_audit.py runs, because the active plan Section 10 items 11-12 require no residual TODO_FILLED_IN_<task_id> tokens for closed tasks, and those cards are active final assets referenced by the final runtime contract and handoff package."
-      rationale: "The P10.2 audit-scope ruling established that the model and router cards are active final assets, not template-only references. Running P10.2 without completing or rewriting their TODO_FILLED_IN placeholders would either create a fake pass if docs/reports is excluded, or an expected FAIL if docs/reports is included."
-      enacted_at_commit: pending_this_scope_change_commit
+      rationale: "The P10.2 audit-scope ruling established that the model and router cards are active final assets, not template-only references. Running P10.2 without completing or rewriting their TODO_FILLED_IN placeholders would either create a fake pass if docs/reports is excluded, or an expected FAIL if docs/reports is included. Demoted from latest_scope_change_packet to prior_scope_change_packet_model_router_card_completion by the reuse_policy_p10_3_script_allowance CHANGE_SCOPE recording commit."
+      enacted_at_commit: d714bac8f4d49e7a5b0ca7616a6ee5758a330d5d
       report: reports/robust_asr/task_reports/model_router_card_completion.md
       reuse_policy_row_changed: docs/reports/robust_asr/**
       allowed_tasks_before: [P0.5, P9.1, P10.1]
@@ -1162,16 +1208,24 @@ artifacts:
     produced_by_task: P0.2
   touch_policy:
     path: reports/robust_asr/touch_policy.md
-    sha256: 33243a494e3865dc7519008e75687bfcb232c27a5ec3dfd7cc6a8a00de0e80d7
+    sha256: c19c3e9c4256dc3645223a6affa5516da565ffdf1d7ccd62a961b22a2105702a
     produced_by_task: P0.2
-    last_amended_by: P8.2_provenance_scope_change
-    prior_sha256: e3a824bd4a9734a2a165af393e7384e12331b9af8e9c7207bb75fa7fee270c12
+    last_amended_by: reuse_policy_p10_3_script_allowance
+    prior_sha256: 33243a494e3865dc7519008e75687bfcb232c27a5ec3dfd7cc6a8a00de0e80d7
+    sha256_history:
+      - sha256: e3a824bd4a9734a2a165af393e7384e12331b9af8e9c7207bb75fa7fee270c12
+        amended_by: P0.2 (initial)
+      - sha256: 33243a494e3865dc7519008e75687bfcb232c27a5ec3dfd7cc6a8a00de0e80d7
+        amended_by: P8.2_provenance_scope_change
+      - sha256: c19c3e9c4256dc3645223a6affa5516da565ffdf1d7ccd62a961b22a2105702a
+        amended_by: reuse_policy_p10_3_script_allowance
+        change: "P10.3 row allowed_write_paths extended with scripts/robust_asr/verify_plan_tracker_consistency.py; existing P10.3 report/tracker paths preserved; no other row changed; no rename of reports/robust_asr/task_reports/P10.3_consistency.md."
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: c9e187ecbdc24ba0503753934f32bf4bb08df0a4f5ca049b9200299fca851876
+    sha256: 18905cd932a8a90199859e6f5cebc5f596177de5f5f2a2a5052e9972bc8e9037
     produced_by_task: P0.2
-    last_amended_by: model_router_card_completion
-    prior_sha256: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
+    last_amended_by: reuse_policy_p10_3_script_allowance
+    prior_sha256: c9e187ecbdc24ba0503753934f32bf4bb08df0a4f5ca049b9200299fca851876
     sha256_history:
       - sha256: 3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf
         amended_by: P0.2 (initial)
@@ -1183,6 +1237,9 @@ artifacts:
       - sha256: c9e187ecbdc24ba0503753934f32bf4bb08df0a4f5ca049b9200299fca851876
         amended_by: model_router_card_completion
         change: "docs/reports/robust_asr/** allowed_tasks extended by [model_router_card_completion]; row class/permitted_use/no-touch unchanged; notes annotated. Authorizes the same task to fill or N/A-rewrite every TODO_FILLED_IN_<task_id> placeholder in docs/reports/robust_asr/{model_card_lora.md,router_card.md} per agent plan Section 10 items 11-12, before P10.2 final_asset_audit.py runs. P10.2 was NOT added to this row (P10.2 remains audit-only with respect to the cards)."
+      - sha256: 18905cd932a8a90199859e6f5cebc5f596177de5f5f2a2a5052e9972bc8e9037
+        amended_by: reuse_policy_p10_3_script_allowance
+        change: "scripts/robust_asr/** allowed_tasks extended by [P10.3]; row class/permitted_use/no-touch unchanged; notes annotated. Authorizes P10.3 to create scripts/robust_asr/verify_plan_tracker_consistency.py per agent plan §4305 + §1057–§1103."
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
