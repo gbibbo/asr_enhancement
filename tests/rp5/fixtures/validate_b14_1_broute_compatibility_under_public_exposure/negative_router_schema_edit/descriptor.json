@@ -1,0 +1,14 @@
+{
+  "expected_sentinel": "B14_1_BROUTE_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+  "fixture_id": "negative_router_schema_edit",
+  "health_probe": {
+    "auth_body_b64": "eyJzdGF0dXMiOiJvayJ9",
+    "auth_status": 200,
+    "unauth_status": 401,
+    "unauth_www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+  },
+  "kind": "negative",
+  "router_runtime_sha256": "5d489c2785647bdf7c18ff1d1107bb433be683918405e0e9a417fd8f9bf3784e",
+  "types_router_shape_sha256": "b893f8f84f6d5b81fa406da5c3272cab116d8098445f4f14673bb9474195225c",
+  "violated_rule": "libs/asr/router_runtime.py SHA-256 drifted from the frozen anchor (FC-BROUTE-FROZEN)"
+}

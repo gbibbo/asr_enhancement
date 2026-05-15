@@ -1,0 +1,14 @@
+{
+  "expected_sentinel": "B14_1_BROUTE_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+  "fixture_id": "negative_routerfields_shape_edit",
+  "health_probe": {
+    "auth_body_b64": "eyJzdGF0dXMiOiJvayJ9",
+    "auth_status": 200,
+    "unauth_status": 401,
+    "unauth_www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+  },
+  "kind": "negative",
+  "router_runtime_sha256": "dced4f982168e8b729726edd12bea4981e31000b7049f67de6d785a3faa3ddfc",
+  "types_router_shape_sha256": "0f8cd50e7dacbff596c0b20f7f75cc9e75c04ae98109eca15589f10a81009986",
+  "violated_rule": "services/frontend/app/demo/types.ts RouterFields shape drifted from the frozen anchor (FC-BROUTE-FROZEN)"
+}
