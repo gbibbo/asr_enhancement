@@ -1,0 +1,53 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_mobile_layout",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_horizontal_scroll_observed",
+      "expected_marker": "B15_MOBILE_LAYOUT_REGRESSION",
+      "observed_sentinel": "B15_MOBILE_LAYOUT_REGRESSION",
+      "root": "negative/negative_horizontal_scroll_observed",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "a0538b291fab3466d84f1eb7da105842556c3678161175394518f3586cda0b0c",
+          "size_bytes": 3639
+        }
+      ]
+    },
+    {
+      "case_name": "negative_illegal_mobile_value",
+      "expected_marker": "B15_MOBILE_LAYOUT_REGRESSION",
+      "observed_sentinel": "B15_MOBILE_LAYOUT_REGRESSION",
+      "root": "negative/negative_illegal_mobile_value",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "26ce1d59385e7d191894c9207c41fdbcfc71f2700ba888f554f51f230f6b8d52",
+          "size_bytes": 3627
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_MOBILE_LAYOUT_REGRESSION"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_MOBILE_LAYOUT_OK",
+      "observed_sentinel": "OK_B15_MOBILE_LAYOUT_OK",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "cc4551df21c234869ba934df4abe7f2f22122406d2c534e93a5d0749efeee999",
+          "size_bytes": 3633
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_MOBILE_LAYOUT",
+  "validator": "validate_b15_mobile_layout",
+  "validator_sentinel_pass": "OK_B15_MOBILE_LAYOUT_OK"
+}
