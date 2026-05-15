@@ -168,12 +168,12 @@
 - path: docs/reports/robust_asr/**
   class: active_state
   permitted_use: read_write
-  allowed_tasks: [P0.5, P9.1, P10.1]
+  allowed_tasks: [P0.5, P9.1, P10.1, model_router_card_completion]
   validator: none
   checksum_required: false
   large_artifact: false
   commit_allowed: true
-  notes: Model card and router card templates
+  notes: Model card and router card templates (P0.5 seeded; finalized progressively). model_router_card_completion added under CHANGE_SCOPE on accepted_report_commit d714bac8f4d49e7a5b0ca7616a6ee5758a330d5d to fill or N/A-rewrite every TODO_FILLED_IN_<task_id> placeholder in docs/reports/robust_asr/{model_card_lora.md,router_card.md} per agent plan Section 10 items 11-12, before P10.2 final_asset_audit.py runs. Minimum-necessary amendment; no other tasks added; no class/permitted_use/no-touch change.
 
 - path: docs/profiles/CLAUDE.robust_asr.md
   class: active_state

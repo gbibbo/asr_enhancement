@@ -996,21 +996,38 @@ state_transport:
   latest_scope_change_packet:
     ORCHESTRATOR_DECISION:
       scope: scope_change
-      task_id: reuse_policy_p10_2_script_allowance
+      task_id: model_router_card_completion
       phase: P10
       decision: CHANGE_SCOPE
-      accepted_report_commit: 9452afcf3c3f6b1874d86650724606d8e902b286
+      accepted_report_commit: d714bac8f4d49e7a5b0ca7616a6ee5758a330d5d
       next_expected_task: P10.2
-      required_fix: "Allow P10.2 to create scripts/robust_asr/final_asset_audit.py, because the active agent plan requires P10.2 to run final_asset_audit.py but configs/robust_asr/reuse_policy_v1.yaml currently omits P10.2 from the scripts/robust_asr/** allowed_tasks row."
-      rationale: "P10.2 planning established that scripts/robust_asr/final_asset_audit.py is absent, while the active plan defines its normative contract in Section 4.1 and P10.2 requires running it. This administrative policy fix prevents the P10.2 implementation from violating the reuse policy."
+      required_fix: "Complete docs/reports/robust_asr/model_card_lora.md and docs/reports/robust_asr/router_card.md before P10.2 final_asset_audit.py runs, because the active plan Section 10 items 11-12 require no residual TODO_FILLED_IN_<task_id> tokens for closed tasks, and those cards are active final assets referenced by the final runtime contract and handoff package."
+      rationale: "The P10.2 audit-scope ruling established that the model and router cards are active final assets, not template-only references. Running P10.2 without completing or rewriting their TODO_FILLED_IN placeholders would either create a fake pass if docs/reports is excluded, or an expected FAIL if docs/reports is included."
       enacted_at_commit: pending_this_scope_change_commit
-      report: reports/robust_asr/task_reports/reuse_policy_p10_2_script_allowance.md
-      reuse_policy_row_changed: scripts/robust_asr/**
-      allowed_tasks_before: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2]
-      allowed_tasks_after: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2, P10.2]
-      reuse_policy_sha256_before: 33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae
-      reuse_policy_sha256_after: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
-      latest_approval_packet_held: "APPROVE_EXECUTION(P10.1) on 37a588b6aa4ee3116c32778092990b8dc9d023b0 (held; not displaced by this scope-change packet, matching the FIX_BEFORE_CLOSE / scope-change precedent at P9.2 strict-tag-validator-fix and P8.2-deviation enactment)"
+      report: reports/robust_asr/task_reports/model_router_card_completion.md
+      reuse_policy_row_changed: docs/reports/robust_asr/**
+      allowed_tasks_before: [P0.5, P9.1, P10.1]
+      allowed_tasks_after: [P0.5, P9.1, P10.1, model_router_card_completion]
+      reuse_policy_sha256_before: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
+      reuse_policy_sha256_after: c9e187ecbdc24ba0503753934f32bf4bb08df0a4f5ca049b9200299fca851876
+      cards_changed:
+        model_card_lora:
+          path: docs/reports/robust_asr/model_card_lora.md
+          sha256_before: 6f1a6ba8194149271d9091f96b17fe79e81c201613003f7e78842e0343585104
+          sha256_after: 01fec571aea1d3f915ae635c1522d75b5254ffe4537c2d86ce9fae8cb66bc463
+          todo_count_before: 30
+          todo_count_after: 0
+        router_card:
+          path: docs/reports/robust_asr/router_card.md
+          sha256_before: bc5dd87db91ac9371e05e838b56f32cb6dfa2a421ed0f3fbe91f99a7ff640bb4
+          sha256_after: 2587f5364a761bf8cef7bf4de111b9fe6af1bb3f51e0dc0aa8f0f07bd7882624
+          todo_count_before: 24
+          todo_count_after: 0
+      claims_consistency_verified: true
+      claims_consistency_notes: "grep -nE 'AssemblyAI.*enabled|LoRA.*deployed|positive system.*enabled|OOD.*enabled' returns matches but ALL are legitimate negations ('LoRA is NOT a deployed backend', 'AssemblyAI is NOT an enabled backend', 'no positive system claim is enabled', 'claims_enabled.ood_real = false'). No positive claim depends on a disabled flag. Cross-walked against handoff README §6.1-§6.6."
+      c4_status_preserved: COMPLETED_IN_P9_1
+      c5_status_preserved: COMPLETED_AND_PASS
+      latest_approval_packet_held: "APPROVE_EXECUTION(P10.1) on 37a588b6aa4ee3116c32778092990b8dc9d023b0 (held; not displaced by this scope-change packet, matching the FIX_BEFORE_CLOSE / scope-change precedent at P9.2 strict-tag-validator-fix, P8.2-deviation enactment, and prior CHANGE_SCOPE(reuse_policy_p10_2_script_allowance))"
       held_after_scope_change:
         current_task: P10.2
         last_completed_task: P10.1
@@ -1020,10 +1037,32 @@ state_transport:
         phase_summary_p10: null
         orchestrator_approvals_p10: null
         tasks_p10_1_status: PASS
+        tasks_p10_2_present: false
+        tasks_p10_3_present: false
         claims_enabled: {ood_real: false, cloud_tradeoff: false, positive_lora: false, positive_system: false}
         markers: [BLOCKED_OOD_PUBLIC, BLOCKED_API, OUTCOME_E_DETERMINISTIC_SELECTOR]
+        outcome_e_narrowed_scope_held_on: [tasks.P8.1, decisions.Decision_D_positive_system]
         proposed_deviations_P8_2_status: ENACTED
         scripts_robust_asr_final_asset_audit_py_exists: false
+        handoff_tag: handoff/20260514-64eba43
+        handoff_tag_commit: 64eba4345f3207af38f0fba8ac2c43c6084e8852
+  prior_scope_change_packet_reuse_policy_p10_2_script_allowance:
+    ORCHESTRATOR_DECISION:
+      scope: scope_change
+      task_id: reuse_policy_p10_2_script_allowance
+      phase: P10
+      decision: CHANGE_SCOPE
+      accepted_report_commit: 9452afcf3c3f6b1874d86650724606d8e902b286
+      next_expected_task: P10.2
+      required_fix: "Allow P10.2 to create scripts/robust_asr/final_asset_audit.py, because the active agent plan requires P10.2 to run final_asset_audit.py but configs/robust_asr/reuse_policy_v1.yaml currently omits P10.2 from the scripts/robust_asr/** allowed_tasks row."
+      rationale: "P10.2 planning established that scripts/robust_asr/final_asset_audit.py is absent, while the active plan defines its normative contract in Section 4.1 and P10.2 requires running it. This administrative policy fix prevents the P10.2 implementation from violating the reuse policy. Demoted from latest_scope_change_packet to prior_scope_change_packet_reuse_policy_p10_2_script_allowance by the model_router_card_completion CHANGE_SCOPE recording commit."
+      enacted_at_commit: d714bac8f4d49e7a5b0ca7616a6ee5758a330d5d
+      report: reports/robust_asr/task_reports/reuse_policy_p10_2_script_allowance.md
+      reuse_policy_row_changed: scripts/robust_asr/**
+      allowed_tasks_before: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2]
+      allowed_tasks_after: [P0.2, P0.3, P0.4, P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P4.1, P4.2, P4.3, P5.1, P6.1, P6.2, P7.2, P7.3, P8.1, P8.2, P10.2]
+      reuse_policy_sha256_before: 33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae
+      reuse_policy_sha256_after: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
 
 phase_summary:
   P0: PASS
@@ -1107,10 +1146,10 @@ artifacts:
     prior_sha256: e3a824bd4a9734a2a165af393e7384e12331b9af8e9c7207bb75fa7fee270c12
   reuse_policy_config:
     path: configs/robust_asr/reuse_policy_v1.yaml
-    sha256: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
+    sha256: c9e187ecbdc24ba0503753934f32bf4bb08df0a4f5ca049b9200299fca851876
     produced_by_task: P0.2
-    last_amended_by: reuse_policy_p10_2_script_allowance
-    prior_sha256: 33bcc25cc8b4a925ec9762d3812df9eb0297112edb6591c7d01345edee81f1ae
+    last_amended_by: model_router_card_completion
+    prior_sha256: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
     sha256_history:
       - sha256: 3e84490f50d5a4c46e962a482decfef74d36064afa00871923728ae08c916dcf
         amended_by: P0.2 (initial)
@@ -1119,6 +1158,9 @@ artifacts:
       - sha256: e72eb5d2dfab5843212d3bef71f9eed956475d2f23b8f141662061f2d39ad958
         amended_by: reuse_policy_p10_2_script_allowance
         change: "scripts/robust_asr/** allowed_tasks extended by [P10.2]; row class/permitted_use/no-touch unchanged; notes annotated. Authorizes P10.2 to create scripts/robust_asr/final_asset_audit.py per agent plan §4275 + §1105–§1119."
+      - sha256: c9e187ecbdc24ba0503753934f32bf4bb08df0a4f5ca049b9200299fca851876
+        amended_by: model_router_card_completion
+        change: "docs/reports/robust_asr/** allowed_tasks extended by [model_router_card_completion]; row class/permitted_use/no-touch unchanged; notes annotated. Authorizes the same task to fill or N/A-rewrite every TODO_FILLED_IN_<task_id> placeholder in docs/reports/robust_asr/{model_card_lora.md,router_card.md} per agent plan Section 10 items 11-12, before P10.2 final_asset_audit.py runs. P10.2 was NOT added to this row (P10.2 remains audit-only with respect to the cards)."
   validate_report_shape_script:
     path: scripts/robust_asr/validate_report_shape.py
     sha256: 0db5e18dfe077a0ccfa3d7148e17ddabef8c8f742e88a67a8a9b2b97efabd977
@@ -1185,16 +1227,26 @@ artifacts:
     pytest_tests_total: 20
   model_card_template:
     path: docs/reports/robust_asr/model_card_lora.md
-    sha256: 6f1a6ba8194149271d9091f96b17fe79e81c201613003f7e78842e0343585104
+    sha256: 01fec571aea1d3f915ae635c1522d75b5254ffe4537c2d86ce9fae8cb66bc463
     produced_by_task: P0.5
-    placeholders_total: 30
-    placeholders_min_required: 10
+    last_amended_by: model_router_card_completion
+    prior_sha256: 6f1a6ba8194149271d9091f96b17fe79e81c201613003f7e78842e0343585104
+    placeholders_total_initial: 30
+    placeholders_min_required_initial: 10
+    placeholders_total_after_completion: 0
+    completion_status: COMPLETED_BY_model_router_card_completion
+    completion_evidence: "All TODO_FILLED_IN_<task_id> tokens (P1.1, P1.2, P1.3, P1.4, P2.1, P3.1, P3.2, P4.1, P4.2, P4.3, P5.1, P8.1, P8.2, P9.1) replaced with concise PASS / PARTIAL / N/A statements per the orchestrator-issued source mappings. PASS tasks cite their primary artifact/report (e.g., baseline_whisper_base.md, librispeech_lora_train.parquet sha256 7896175e..., decision_a_smoke.md). PARTIAL tasks (P1.1, P1.3) cite manifest_summary.md + data_inventory.md and explicitly disclose BLOCKED_OOD_PUBLIC. N/A tasks (P4.{1,2,3} SKIPPED_BY_DECISION_A; P5.1 HALTED under BLOCKED_API) cite the deciding marker and acknowledge LoRA-not-deployed and AssemblyAI-not-enabled disclaimers. No claim depends on a disabled claims_enabled flag. C4 disclosure status (P9.1, handoff README §6.4) and C5 exclusion verification status (P10.1, final_verification.md C5 EXCLUSION VERIFICATION section, sentinel C5_EXCLUSION_PASS) explicitly cited."
   router_card_template:
     path: docs/reports/robust_asr/router_card.md
-    sha256: bc5dd87db91ac9371e05e838b56f32cb6dfa2a421ed0f3fbe91f99a7ff640bb4
+    sha256: 2587f5364a761bf8cef7bf4de111b9fe6af1bb3f51e0dc0aa8f0f07bd7882624
     produced_by_task: P0.5
-    placeholders_total: 24
-    placeholders_min_required: 8
+    last_amended_by: model_router_card_completion
+    prior_sha256: bc5dd87db91ac9371e05e838b56f32cb6dfa2a421ed0f3fbe91f99a7ff640bb4
+    placeholders_total_initial: 24
+    placeholders_min_required_initial: 8
+    placeholders_total_after_completion: 0
+    completion_status: COMPLETED_BY_model_router_card_completion
+    completion_evidence: "All TODO_FILLED_IN_<task_id> tokens (P1.3, P5.1, P6.1, P6.2, P7.1, P7.2, P7.3, P8.1, P8.2, P9.1) replaced with concise PASS / PARTIAL / N/A statements per the orchestrator-issued source mappings. PASS tasks cite their primary artifact/report (e.g., selector_evidence.parquet sha256 c450a91a..., selector_final_eval.md, system_eval.md, deterministic_selector.json + metadata.json + rp5_inference.py + test_vectors.json). PARTIAL task (P1.3) cites manifest_summary.md and discloses BLOCKED_OOD_PUBLIC. N/A tasks (P6.2, P7.1, P7.2 SKIPPED_BY_OUTCOME_E; P5.1 HALTED) cite OUTCOME_E_DETERMINISTIC_SELECTOR / BLOCKED_API and reference handoff README §6.2/§6.3 disclaimers. Decision_D_positive_system.outcome=false explicitly cited; no positive system claim asserted. C4 disclosure (P9.1) and C5 exclusion verification (P10.1) explicitly cited; selector_evidence.parquet built-in demo-overlap assertion re-confirmed."
   eval_schema_yaml:
     path: libs/common/eval_schema.yaml
     sha256: f453cbff7c5ed0ed5c9b30599b775b540b776d56ad02ee0eaebf358e6a0124d9
