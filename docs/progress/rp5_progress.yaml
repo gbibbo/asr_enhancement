@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.1
-current_task: B14_1-04
-last_completed_task: B14_1-03
+current_task: B14_1-05
+last_completed_task: B14_1-04
 last_completed_phase: B14.0
 markers: []
 phase_approvals:
@@ -66,9 +66,22 @@ plan_authoring_approvals:
       phase_approval_commit: 0bdaea89c665dd5cabd7904556dbf536ef409f9f
     har_carried_forward:
       - id: HAR-B14_1-FUNNEL-CAPABILITY-001
-        status: pre_declared_unresolved
-        blocks: B14_1-04 closure and B14_1-08 closure
-        does_not_block: B14_1-00, B14_1-01, B14_1-02, B14_1-03
+        status: partially_resolved_at_B14_1-04_threshold
+        recorded_at_task: B14_1-04
+        accepted_by_orchestrator_decision: true
+        supplied_values:
+          tailscale_account_funnel_capability_enabled: true
+          tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY: false
+          cloudflare_tunnel_alternative_token_supplied_as_host_env: explicit_NA
+          tunnel_run_as_service_restart_policy_string: on-failure
+        residual_unsupplied_inputs:
+          - tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY
+        blocks: B14_1-08 success-claim and any future host-execution surface
+        does_not_block: B14_1-04 CLOSE_TASK, B14_1-05, B14_1-06, B14_1-07
+        result_recording_policy_compliance:
+          tracker_records_only_boolean_flags_and_restart_policy_string: true
+          literal_auth_key_or_token_values_never_written: true
+          host_readiness_to_run_the_tunnel_claimed: false
       - id: HAR-B14_1-STABLE-HOSTNAME-001
         status: pre_declared_unresolved
         blocks: B14_1-08 success-claim (recorded as explicit blocker if unresolved at B14_1-08)
@@ -85,10 +98,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_1_recruiter_gate_preserved_under_public_exposure.md
+  latest_execution_report_path: reports/rp5/b14_1_no_tunnel_secret_leak.md
   latest_phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
-  expected_next_task: B14_1-04
+  expected_next_task: B14_1-05
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -1353,3 +1366,110 @@ tasks:
       hars_resolved_in_B14_1-03: false
     marker: null
     next_task: B14_1-04
+  B14_1-04:
+    task_id: B14_1-04
+    status: PASS
+    commit: 1b15c41fdb5f20cedf18bfe48bf85b6ff658d01f
+    accepted_report_commit: 1b15c41fdb5f20cedf18bfe48bf85b6ff658d01f
+    files_changed:
+      - infra/tunnel/funnel_config.template.yaml
+      - reports/rp5/b14_1_no_public_url_or_hostname_literal.md
+      - reports/rp5/b14_1_no_tunnel_secret_leak.md
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_1_no_tunnel_secret_leak.py
+      - scripts/rp5/validate_b14_1_no_tunnel_secret_leak.py
+      - tests/rp5/fixtures/b14_1_no_tunnel_secret_leak/negative/negative_authorization_basic_header/sample.txt
+      - tests/rp5/fixtures/b14_1_no_tunnel_secret_leak/negative/negative_authorization_bearer_header/sample.txt
+      - tests/rp5/fixtures/b14_1_no_tunnel_secret_leak/negative/negative_cloudflare_tunnel_token/sample.txt
+      - tests/rp5/fixtures/b14_1_no_tunnel_secret_leak/negative/negative_tailscale_authkey/sample.txt
+      - tests/rp5/fixtures/b14_1_no_tunnel_secret_leak/positive/sample.txt
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_no_tunnel_secret_leak_manifest.json
+    commands_run:
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_1_no_tunnel_secret_leak.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_1_no_tunnel_secret_leak_manifest.json"
+      - "python3 scripts/rp5/validate_b14_1_no_tunnel_secret_leak.py --scope template --root . --out reports/rp5/b14_1_no_tunnel_secret_leak.md"
+      - "python3 scripts/rp5/validate_b14_1_no_public_url_or_hostname_literal.py --root . --component all --out reports/rp5/b14_1_no_public_url_or_hostname_literal.md"
+      - "git add (deterministic authorized 11-file set: infra/tunnel/funnel_config.template.yaml + 2 scripts + 1 manifest + 5 fixture sample.txt + 2 reports)"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD --out /tmp/b14_1_04_path_lock_pre_commit.md"
+      - "git commit (identity Gabriel Bibbó <gabobibbo@gmail.com>; no AI authorship trailers)"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD~1..HEAD --out /tmp/b14_1_04_path_lock_post_commit.md"
+      - "git push origin feature/demo-runtime-rp5-v1"
+      - "final cleanup: remove /tmp/b14_1_04_path_lock_pre_commit.md /tmp/b14_1_04_path_lock_post_commit.md /tmp/b14_1_04_staged_files.txt /tmp/b14_1_04_status.txt"
+    key_outputs:
+      - OK_FIXTURE_VALIDATE_B14_1_NO_TUNNEL_SECRET_LEAK
+      - OK_B14_1_NO_TUNNEL_SECRET_LEAK
+      - OK_B14_1_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      path_lock_pre_commit_observed: true
+      path_lock_post_commit_observed: true
+      path_lock_pre_commit_diff_spec: "--diff HEAD"
+      path_lock_post_commit_diff_spec: "--diff HEAD~1..HEAD"
+      path_lock_lock_counts:
+        PL-B14_1-TUNNEL-TEMPLATE: "1 / max 1"
+        PL-B14_1-SCRIPTS: "2 / max 18"
+        PL-B14_1-TESTS: "6 / max 12"
+        PL-B14_1-REPORTS: "2 / max 20"
+      fixture_manifest_sha256:
+        no_tunnel_secret_leak: "45d1dfc5d0016b7324e6b80f3c6ef44ad7e6a2c94ecff8d2c98873a6a7d14e9f"
+      authorized_files_set_size: 11
+      exactly_one_tunnel_template_committed: true
+      tunnel_template_path: infra/tunnel/funnel_config.template.yaml
+      tunnel_template_json_alternative_committed: false
+      unauthorized_paths_in_commit: 0
+      local_only_transcripts_removed_before_final_status: true
+      runtime_process_started: false
+      port_bound: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      template_readiness_claim: NOT_READY_TO_RUN
+      template_uses_env_var_names_only: true
+      env_var_names_referenced:
+        - TAILSCALE_AUTHKEY
+        - PUBLIC_DEMO_STABLE_HOSTNAME
+        - PUBLIC_DEMO_EXPOSURE
+      tracker_mutated_during_execution: false
+      services_api_app_modified: false
+      services_frontend_modified: false
+      libs_modified: false
+      libs_asr_router_runtime_modified: false
+      infra_modified: true
+      infra_tunnel_template_only: true
+      compose_modified: false
+      env_real_value_files_modified: false
+      env_example_modified: false
+      runtime_modified: false
+      docs_plans_b14_1_modified: false
+      docs_plans_b14_0_modified: false
+      docs_plans_broute_modified: false
+      missing_protocol_validators_authored: false
+      missing_protocol_validators_invoked: false
+      reports_rp5_path_lock_validation_md_written: false
+      public_url_literal_committed: false
+      stable_hostname_literal_committed: false
+      tunnel_secret_committed: false
+      tailscale_auth_key_value_committed: false
+      cloudflare_token_value_committed: false
+      recruiter_password_committed: false
+      admin_password_committed: false
+      authorization_header_value_committed: false
+      forbidden_commit_trailers_present: false
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      authorization_regex_tightened_during_execution: true
+      authorization_regex_tightening_rationale: "Initial pattern flagged B14.0 documentation strings such as the comment 'Authorization: Basic header' in scripts/rp5/validate_b14_0_frontend_auth_contract.py; refined the regex to require credential-shaped payloads (at least one digit, =, +, or /) before commit. B14.0 files were inspected only, never modified."
+      b14_0_files_modified: false
+      har_b14_1_funnel_capability_001_status_after: partially_resolved_at_B14_1-04_threshold
+      har_b14_1_funnel_capability_001_supplied_values:
+        tailscale_account_funnel_capability_enabled: true
+        tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY: false
+        cloudflare_tunnel_alternative_token_supplied_as_host_env: explicit_NA
+        tunnel_run_as_service_restart_policy_string: on-failure
+      har_b14_1_funnel_capability_001_residual_blocker_carried_forward: tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY=false
+      har_b14_1_funnel_capability_001_residual_blocker_blocks: B14_1-08 success-claim and any future host-execution surface
+      har_b14_1_funnel_capability_001_residual_blocker_does_not_block: B14_1-04 CLOSE_TASK, B14_1-05, B14_1-06, B14_1-07
+      har_b14_1_stable_hostname_001_status: pre_declared_unresolved
+      hars_blocking_B14_1-04: none (capability flag and restart-policy string supplied; threshold per agent_plan §15 result_expected_at clause satisfied)
+      hars_resolved_in_B14_1-04: partial (HAR-B14_1-FUNNEL-CAPABILITY-001 satisfied to the B14_1-04 threshold only)
+    marker: null
+    next_task: B14_1-05
