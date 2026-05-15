@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.1
-current_task: B14_1-05
-last_completed_task: B14_1-04
+current_task: B14_1-06
+last_completed_task: B14_1-05
 last_completed_phase: B14.0
 markers: []
 phase_approvals:
@@ -98,10 +98,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_1_no_tunnel_secret_leak.md
+  latest_execution_report_path: reports/rp5/b14_1_local_bypass_justification.md
   latest_phase_gate_report_path: reports/rp5/b14_0_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_plan_approval_packet.yaml
-  expected_next_task: B14_1-05
+  expected_next_task: B14_1-06
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -1473,3 +1473,101 @@ tasks:
       hars_resolved_in_B14_1-04: partial (HAR-B14_1-FUNNEL-CAPABILITY-001 satisfied to the B14_1-04 threshold only)
     marker: null
     next_task: B14_1-05
+  B14_1-05:
+    task_id: B14_1-05
+    status: PASS
+    commit: 4c5c52d7fdab877db99dca6116b82ad79703f316
+    accepted_report_commit: 4c5c52d7fdab877db99dca6116b82ad79703f316
+    files_changed:
+      - scripts/rp5/validate_b14_1_local_bypass_justification.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_1_local_bypass_justification.py
+      - tests/rp5/fixtures/generate_fixture_validate_b14_1_local_bypass_justification_manifest.json
+      - tests/rp5/fixtures/validate_b14_1_local_bypass_justification/positive/services/api/app/visibility_only.py
+      - tests/rp5/fixtures/validate_b14_1_local_bypass_justification/positive/reports/rp5/b14_1_local_bypass_justification.md
+      - tests/rp5/fixtures/validate_b14_1_local_bypass_justification/negative/negative_bypass_candidate_with_clean_report/services/api/app/bypass_shaped.py
+      - tests/rp5/fixtures/validate_b14_1_local_bypass_justification/negative/negative_bypass_candidate_with_clean_report/reports/rp5/b14_1_local_bypass_justification.md
+      - tests/rp5/fixtures/validate_b14_1_local_bypass_justification/negative/negative_report_wrong_marker/reports/rp5/b14_1_local_bypass_justification.md
+      - tests/rp5/fixtures/validate_b14_1_local_bypass_justification/negative/negative_report_enumerates_bypass_under_NA/reports/rp5/b14_1_local_bypass_justification.md
+      - reports/rp5/b14_1_local_bypass_justification.md
+    commands_run:
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_1_local_bypass_justification.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_1_local_bypass_justification_manifest.json"
+      - "python3 scripts/rp5/validate_b14_1_local_bypass_justification.py --root . --out /tmp/b14_1_05_local_bypass_validation.md"
+      - "git add (deterministic authorized 10-file set: 2 scripts + 1 manifest + 6 fixture payload files + 1 report)"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD --out /tmp/b14_1_05_path_lock_pre_commit.md"
+      - "git commit (identity Gabriel Bibbó <gabobibbo@gmail.com>; no AI authorship trailers)"
+      - "python3 scripts/rp5/validate_b14_1_path_locks.py --diff HEAD~1..HEAD --out /tmp/b14_1_05_path_lock_post_commit.md"
+      - "git push origin feature/demo-runtime-rp5-v1"
+      - "final cleanup: remove /tmp/b14_1_05_local_bypass_validation.md /tmp/b14_1_05_path_lock_pre_commit.md /tmp/b14_1_05_path_lock_post_commit.md /tmp/b14_1_05_staged_files.txt /tmp/b14_1_05_status.txt"
+    key_outputs:
+      - OK_FIXTURE_VALIDATE_B14_1_LOCAL_BYPASS_JUSTIFIED
+      - OK_B14_1_LOCAL_BYPASS_JUSTIFIED
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      path_lock_pre_commit_observed: true
+      path_lock_post_commit_observed: true
+      path_lock_pre_commit_diff_spec: "--diff HEAD"
+      path_lock_post_commit_diff_spec: "--diff HEAD~1..HEAD"
+      path_lock_lock_counts:
+        PL-B14_1-SCRIPTS: "2 / max 18"
+        PL-B14_1-TESTS: "7 / max 12"
+        PL-B14_1-REPORTS: "1 / max 20"
+      fixture_manifest_sha256:
+        local_bypass_justification: "abb7cdc940685c72a4b204539075040112d0800fa7dfc6174a51d531ae8f3c6d"
+      validator_scan_stats:
+        files_scanned: 93
+        flag_identifier_hits_total: 6
+        hits_class_accessor_module: 4
+        hits_class_openapi_docs_visibility_toggle: 1
+        hits_class_import_or_text: 1
+        hits_class_bypass_candidate: 0
+      local_bypass_classification: explicit_NA_zero_bypasses
+      bypass_count: 0
+      conditional_bypass_test_file_authored: false
+      conditional_bypass_test_file_path_not_committed: tests/demo/test_b14_1_local_bypass_disabled_under_public_exposure.py
+      authorized_files_set_size: 10
+      unauthorized_paths_in_commit: 0
+      local_only_transcripts_removed_before_final_status: true
+      tracker_mutated_during_execution: false
+      runtime_process_started: false
+      ports_bound: 0
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      multi_network_smoke_run: false
+      services_api_app_modified: false
+      services_frontend_modified: false
+      libs_modified: false
+      libs_asr_router_runtime_modified: false
+      infra_modified: false
+      compose_modified: false
+      env_real_value_files_modified: false
+      env_example_modified: false
+      runtime_modified: false
+      docs_plans_b14_1_modified: false
+      docs_plans_b14_0_modified: false
+      docs_plans_broute_modified: false
+      missing_protocol_validators_authored: false
+      missing_protocol_validators_invoked: false
+      reports_rp5_path_lock_validation_md_written: false
+      reports_rp5_b14_1_local_bypass_justification_validation_md_written: false
+      public_url_literal_committed: false
+      stable_hostname_literal_committed: false
+      tunnel_secret_committed: false
+      tailscale_auth_key_value_committed: false
+      cloudflare_token_value_committed: false
+      recruiter_password_committed: false
+      admin_password_committed: false
+      authorization_header_value_committed: false
+      forbidden_commit_trailers_present: false
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      har_b14_1_funnel_capability_001_status_after: partially_resolved_at_B14_1-04_threshold
+      har_b14_1_funnel_capability_001_residual_blocker_carried_forward: tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY=false
+      har_b14_1_funnel_capability_001_residual_blocker_blocks: B14_1-08 success-claim and any future host-execution surface
+      har_b14_1_funnel_capability_001_residual_blocker_does_not_block: B14_1-05 CLOSE_TASK, B14_1-06, B14_1-07
+      har_b14_1_stable_hostname_001_status: pre_declared_unresolved
+      hars_blocking_B14_1-05: none
+      hars_resolved_in_B14_1-05: false
+    marker: null
+    next_task: B14_1-06
