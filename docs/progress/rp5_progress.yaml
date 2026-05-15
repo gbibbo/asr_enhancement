@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15-00
-last_completed_task: B14_1-08
+current_task: B15-01
+last_completed_task: B15-00
 last_completed_phase: B14.1
 markers: []
 phase_approvals:
@@ -142,10 +142,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b14_1_phase_gate.md
+  latest_execution_report_path: reports/rp5/b15_plan_compile.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15-00
+  expected_next_task: B15-01
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -1966,3 +1966,49 @@ tasks:
       git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
     marker: null
     next_task: B14.1_PHASE_GATE_PENDING_ORCHESTRATOR_DECISION
+  B15-00:
+    task_id: B15-00
+    status: PASS
+    commit: 767daa5b1b90dabefc21132b6297a843882b9a6f
+    accepted_report_commit: 767daa5b1b90dabefc21132b6297a843882b9a6f
+    files_changed:
+      - reports/rp5/b15_plan_compile.md
+      - scripts/rp5/validate_b15_plan_compile.py
+      - scripts/rp5/validate_b15_path_locks.py
+    commands_run:
+      - "B15-00 execution completed and pushed by the execution window at commit 767daa5b1b90dabefc21132b6297a843882b9a6f"
+      - "created scripts/rp5/validate_b15_plan_compile.py (B15 plan-compile wrapper validator)"
+      - "created scripts/rp5/validate_b15_path_locks.py (B15 path-lock wrapper validator)"
+      - "emitted reports/rp5/b15_plan_compile.md (B15 plan compile report; must_check_items 15; failures 0)"
+      - "closure: orchestrator ORCHESTRATOR_DECISION CLOSE_TASK recorded against accepted_report_commit 767daa5b1b90dabefc21132b6297a843882b9a6f"
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_CHANGED_FILES_PATH_LOCKED
+    supplemental_evidence:
+      task_kind: b15_wrapper_validator_materialization_and_plan_compile
+      deliverable_report_path: reports/rp5/b15_plan_compile.md
+      ok_plan_compiles_recorded_in_report: true
+      b15_plan_compile_must_check_items: 15
+      b15_plan_compile_failures: 0
+      ok_changed_files_path_locked_basis: "767daa5 diff changes exactly 3 files, all within PL-B15-REPORTS (reports/rp5/*) and PL-B15-SCRIPTS (scripts/rp5/*) directory policies"
+      changed_files_count: 3
+      unauthorized_paths_in_commit: 0
+      closed_by: orchestrator_decision_CLOSE_TASK
+      closure_window_re_executed_b15_00: false
+      closure_window_ran_validators: false
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      forbidden_commit_trailers_present: false
+      b15_01_started: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      datamove1_handoff_invoked: false
+      datamove1_handoff_acknowledgment_performed: false
+      hars_resolved_in_B15-00: false
+      har_b14_1_stable_hostname_001_status_after: pre_declared_unresolved
+      har_b14_1_funnel_capability_001_status_after: partially_resolved_at_B14_1-04_threshold
+      har_b15_multi_network_smoke_001_status_after: pre_declared_unresolved
+    marker: null
+    next_task: B15-01
