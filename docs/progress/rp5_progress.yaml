@@ -116,15 +116,21 @@ plan_authoring_approvals:
       approval_is_public_exposure_success_claim: false
     har_carried_forward:
       - id: HAR-B14_1-STABLE-HOSTNAME-001
-        status: pre_declared_unresolved
+        status: resolved
         role: primary_explicit_blocker_for_public_exposure_success_claim
         blocks: B15-04 closure and any B15 public-exposure success claim
         resolved_by_this_plan_approval: false
+        resolved_by_human_action_result: true
+        resolved_via_decision: ACCEPT_HUMAN_ACTION_RESULT
+        resolution_recorded_in: human_action_requests.HAR-B14_1-STABLE-HOSTNAME-001
       - id: HAR-B14_1-FUNNEL-CAPABILITY-001
-        status: partially_resolved_at_B14_1-04_threshold
-        residual_blocker: tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY=false
+        status: resolved
+        residual_blocker_cleared: tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY=true
         blocks: B15-04 closure
         resolved_by_this_plan_approval: false
+        resolved_by_human_action_result: true
+        resolved_via_decision: ACCEPT_HUMAN_ACTION_RESULT
+        resolution_recorded_in: human_action_requests.HAR-B14_1-FUNNEL-CAPABILITY-001
       - id: HAR-B15-MULTI-NETWORK-SMOKE-001
         status: pre_declared_unresolved
         new_in_b15: true
@@ -140,6 +146,46 @@ human_action_requests:
       baseline_reproduction_tolerance_numeric: not_applicable_current_scope
       latency_runtime_target_numeric: not_applicable_current_scope
       memory_peak_target_numeric: not_applicable_current_scope
+  HAR-B14_1-STABLE-HOSTNAME-001:
+    status: resolved
+    request_id: HAR-B14_1-STABLE-HOSTNAME-001
+    result_kind: operator_supplied_human_action_result
+    accepted_by_orchestrator_decision: true
+    accepted_via_decision: ACCEPT_HUMAN_ACTION_RESULT
+    accepted_for_task: B15-04
+    supplied_values:
+      stable_hostname_supplied_as_host_env_PUBLIC_DEMO_STABLE_HOSTNAME: true
+      stable_hostname_owned_by_operator_account: true
+      dns_or_tailnet_funnel_record_active: true
+    waiver_if_any: null
+    evidence_reference: operator_chat_confirmation_B15_04_carried_HARs_all_flags_true_no_literals_2026-05-15
+    next_state: B15-04 may be planned and executed once an APPROVE_PLAN decision for B15-04 is recorded
+    blocks_cleared: B15-04 closure and the B15 public-exposure success-claim hostname predicate
+    result_recording_policy_compliance:
+      tracker_records_only_boolean_flags_and_non_secret_evidence_reference: true
+      literal_hostname_or_public_url_values_never_written: true
+  HAR-B14_1-FUNNEL-CAPABILITY-001:
+    status: resolved
+    request_id: HAR-B14_1-FUNNEL-CAPABILITY-001
+    result_kind: operator_supplied_human_action_result_residual_authkey
+    accepted_by_orchestrator_decision: true
+    accepted_via_decision: ACCEPT_HUMAN_ACTION_RESULT
+    accepted_for_task: B15-04
+    supplied_values:
+      tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY: true
+    residual_unsupplied_inputs: []
+    waiver_if_any: null
+    evidence_reference: operator_chat_confirmation_B15_04_carried_HARs_all_flags_true_no_literals_2026-05-15
+    next_state: B15-04 may be planned and executed once an APPROVE_PLAN decision for B15-04 is recorded
+    blocks_cleared: B15-04 closure
+    result_recording_policy_compliance:
+      tracker_records_only_boolean_flags_and_non_secret_evidence_reference: true
+      literal_auth_key_or_token_values_never_written: true
+  HAR-B15-MULTI-NETWORK-SMOKE-001:
+    status: pre_declared_unresolved
+    request_id: HAR-B15-MULTI-NETWORK-SMOKE-001
+    not_resolved_here: true
+    blocks: B15-05 closure and the B15 phase-gate full-success branch
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
   latest_execution_report_path: reports/rp5/b15_human_action_packet.md
@@ -2193,7 +2239,9 @@ tasks:
       tunnel_secret_recorded: false
       recruiter_or_admin_password_recorded: false
       scope_change_predecessor_commit: 4c2a87e92b07df429e1331343954b587b70cc895
-      closure_pending_orchestrator_decision: CLOSE_TASK
+      closed_by: orchestrator_decision_CLOSE_TASK
+      accepted_report_commit_at_close: 3bc3effa932b10f1ac5a09a05f7dee39471cf190
+      accepted_tracker_closure_commit: f7cb001b0f4148d40f322fe9384340cc88d20d47
       git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
       forbidden_commit_trailers_present: false
       public_exposure_started: false
