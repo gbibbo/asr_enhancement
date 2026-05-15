@@ -1,0 +1,53 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_cached_example_integrity",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_curated_example_failed",
+      "expected_marker": "B15_CACHED_EXAMPLE_REGRESSION",
+      "observed_sentinel": "B15_CACHED_EXAMPLE_REGRESSION",
+      "root": "negative/negative_curated_example_failed",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "e134c8d61bbb229002509302d1f3ab36f3cac53b3b2ed467999c2709968dd4d6",
+          "size_bytes": 3674
+        }
+      ]
+    },
+    {
+      "case_name": "negative_illegal_cache_value",
+      "expected_marker": "B15_CACHED_EXAMPLE_REGRESSION",
+      "observed_sentinel": "B15_CACHED_EXAMPLE_REGRESSION",
+      "root": "negative/negative_illegal_cache_value",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "712de09000ba24d37e56f6e61cf551c2ef07d020dc136e8b5bb0441c06331367",
+          "size_bytes": 3671
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_CACHED_EXAMPLE_REGRESSION"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_CACHED_EXAMPLE_OK",
+      "observed_sentinel": "OK_B15_CACHED_EXAMPLE_OK",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "fd364daa4165bcf98547c97ff8cbb497e40f97b602456655db7dc482bcc7d772",
+          "size_bytes": 3681
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_CACHED_EXAMPLE_INTEGRITY",
+  "validator": "validate_b15_cached_example_integrity",
+  "validator_sentinel_pass": "OK_B15_CACHED_EXAMPLE_OK"
+}

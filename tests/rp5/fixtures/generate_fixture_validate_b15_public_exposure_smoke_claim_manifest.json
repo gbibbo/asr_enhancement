@@ -1,0 +1,53 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_public_exposure_smoke_claim",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_ephemeral_url_success_claim",
+      "expected_marker": "B15_EPHEMERAL_URL_SUCCESS_CLAIM",
+      "observed_sentinel": "B15_EPHEMERAL_URL_SUCCESS_CLAIM",
+      "root": "negative/negative_ephemeral_url_success_claim",
+      "tree_files": [
+        {
+          "path": "smoke_adjudication.md",
+          "sha256": "4ccd09499f1093fd582d49c9461bbb28516501c14b7fb602836b8c0e719e659d",
+          "size_bytes": 409
+        }
+      ]
+    },
+    {
+      "case_name": "negative_blocked_without_explicit_blocker_id",
+      "expected_marker": "B15_EPHEMERAL_URL_SUCCESS_CLAIM",
+      "observed_sentinel": "B15_EPHEMERAL_URL_SUCCESS_CLAIM",
+      "root": "negative/negative_blocked_without_explicit_blocker_id",
+      "tree_files": [
+        {
+          "path": "smoke_adjudication.md",
+          "sha256": "6a65a5a119da83df99b7e922707a9646d821a428dd8d2c09087c6984bcd6a294",
+          "size_bytes": 404
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_EPHEMERAL_URL_SUCCESS_CLAIM"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM_STABLE_OR_BLOCKED",
+      "observed_sentinel": "OK_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM_STABLE_OR_BLOCKED",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "smoke_adjudication.md",
+          "sha256": "901dc3fafb7341982b49f180a759a1f1b60256003ce9a16a10a08c4a56e4f07f",
+          "size_bytes": 408
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM",
+  "validator": "validate_b15_public_exposure_smoke_claim",
+  "validator_sentinel_pass": "OK_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM_STABLE_OR_BLOCKED"
+}
