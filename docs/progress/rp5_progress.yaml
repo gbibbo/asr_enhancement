@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15-01
-last_completed_task: B15-00
+current_task: B15-02
+last_completed_task: B15-01
 last_completed_phase: B14.1
 markers: []
 phase_approvals:
@@ -142,10 +142,10 @@ human_action_requests:
       memory_peak_target_numeric: not_applicable_current_scope
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b15_plan_compile.md
+  latest_execution_report_path: reports/rp5/b15_coverage_matrix.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15-01
+  expected_next_task: B15-02
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -2012,3 +2012,56 @@ tasks:
       har_b15_multi_network_smoke_001_status_after: pre_declared_unresolved
     marker: null
     next_task: B15-01
+  B15-01:
+    task_id: B15-01
+    status: PASS
+    commit: 3e1c1507e47bed62b03a4c74dd05b293df5a96ad
+    files_changed:
+      - reports/rp5/b15_coverage_matrix.md
+      - scripts/rp5/validate_b15_coverage_matrix.py
+      - scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_coverage_matrix.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_no_public_url_or_hostname_literal.py
+      - tests/rp5/fixtures/generate_fixture_validate_b15_coverage_matrix_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b15_coverage_matrix/ (positive + 4 negative fixture files)
+      - tests/rp5/fixtures/generate_fixture_validate_b15_no_public_url_or_hostname_literal_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b15_no_public_url_or_hostname_literal/ (positive + 7 negative fixture files)
+    commands_run:
+      - "python scripts/rp5/validate_b15_coverage_matrix.py --record reports/rp5/b15_coverage_matrix.md (OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED)"
+      - "python scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py --root . (OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_coverage_matrix.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_COVERAGE_MATRIX)"
+      - "python scripts/rp5/fixtures/generate_fixture_validate_b15_no_public_url_or_hostname_literal.py --kind positive_and_negative (OK_FIXTURE_VALIDATE_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL)"
+      - "python scripts/rp5/validate_b15_plan_compile.py --plan-dir docs/plans/b15 (OK_PLAN_COMPILES)"
+      - "python scripts/rp5/validate_b15_path_locks.py --diff HEAD~1..HEAD (OK_CHANGED_FILES_PATH_LOCKED on each B15-01 execution commit)"
+    key_outputs:
+      - OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_FIXTURE_VALIDATE_B15_COVERAGE_MATRIX
+      - OK_FIXTURE_VALIDATE_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+    supplemental_evidence:
+      task_kind: b15_coverage_matrix_authoring_and_validator_materialization
+      deliverable_report_path: reports/rp5/b15_coverage_matrix.md
+      deliverable_record_type: multi_network_smoke_coverage_record
+      vantage_points_enumerated: 4
+      coverage_items_enumerated: 9
+      planned_status_per_item_uniform: PENDING_OPERATOR_EVIDENCE
+      smoke_evidence_fabricated: false
+      scope_change_repair_commit: d70d0d9e14c79f44d8f6d5284001384e671c5f85
+      scope_change_rationale: "B15-01 owns validate_b15_coverage_matrix and validate_b15_no_public_url_or_hostname_literal per repaired agent_plan.md"
+      execution_commits:
+        - 7e4f9bdf31e6a2be40f1c89452eefa39febecaf1
+        - 3e1c1507e47bed62b03a4c74dd05b293df5a96ad
+      execution_commit_split_reason: "two commits keep each within the PL-B15-TESTS max-file cap of 14"
+      path_lock_per_commit: "7e4f9bd 9 files OK_CHANGED_FILES_PATH_LOCKED; 3e1c150 11 files OK_CHANGED_FILES_PATH_LOCKED"
+      closure_pending_orchestrator_decision: CLOSE_TASK
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      forbidden_commit_trailers_present: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      b15_02_started: false
+      hars_resolved_in_B15-01: false
+    marker: null
+    next_task: B15-02
