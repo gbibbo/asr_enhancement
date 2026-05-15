@@ -1,6 +1,6 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15_PLAN_AUTHORING
+current_task: B15-00
 last_completed_task: B14_1-08
 last_completed_phase: B14.1
 markers: []
@@ -95,6 +95,41 @@ plan_authoring_approvals:
         status: pre_declared_unresolved
         blocks: B14_1-08 success-claim (recorded as explicit blocker if unresolved at B14_1-08)
         does_not_block: B14_1-00, B14_1-01, B14_1-02, B14_1-03, B14_1-04, B14_1-05, B14_1-06, B14_1-07
+  B15:
+    status: APPROVED_FOR_EXECUTION
+    decision: APPROVE_FOR_EXECUTION
+    accepted_plan_revision_commit: 48e9605006bf748858e7f133c9e8de0f7602f4e4
+    approval_packet_path: reports/rp5/b15_plan_approval_packet.yaml
+    plan_files:
+      - docs/plans/b15/orchestrator_plan.md
+      - docs/plans/b15/agent_plan.md
+      - docs/plans/b15/state_packet_schemas.yaml
+    implementation_task_started: false
+    b15_implementation_remains_forbidden_until: a separate APPROVE_PLAN decision for B15-00
+    public_exposure_execution_tasks_remain_har_gated: true
+    no_har_resolved_by_this_plan_approval: true
+    predecessor_phase_approval:
+      phase: B14.1
+      accepted_phase_gate_report_commit: f2a64d5619e34db99802595c0ce4ea9ae2e2d5f1
+      accepted_tracker_closure_commit: 360bc2bd8a3d7d42a1886d82cccd3f77b5de7d84
+      approval_branch: explicit_blocker_branch_only
+      approval_is_public_exposure_success_claim: false
+    har_carried_forward:
+      - id: HAR-B14_1-STABLE-HOSTNAME-001
+        status: pre_declared_unresolved
+        role: primary_explicit_blocker_for_public_exposure_success_claim
+        blocks: B15-04 closure and any B15 public-exposure success claim
+        resolved_by_this_plan_approval: false
+      - id: HAR-B14_1-FUNNEL-CAPABILITY-001
+        status: partially_resolved_at_B14_1-04_threshold
+        residual_blocker: tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY=false
+        blocks: B15-04 closure
+        resolved_by_this_plan_approval: false
+      - id: HAR-B15-MULTI-NETWORK-SMOKE-001
+        status: pre_declared_unresolved
+        new_in_b15: true
+        blocks: B15-05 closure and the B15 phase-gate full-success branch
+        resolved_by_this_plan_approval: false
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
     status: resolved
@@ -110,7 +145,7 @@ state_transport:
   latest_execution_report_path: reports/rp5/b14_1_phase_gate.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15_PLAN_AUTHORING
+  expected_next_task: B15-00
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
