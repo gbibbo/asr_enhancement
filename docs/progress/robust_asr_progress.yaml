@@ -56,6 +56,16 @@ state_transport:
   latest_supplemental_evidence_report: null
   latest_approval_packet:
     ORCHESTRATOR_DECISION:
+      scope: phase
+      task_id: P10_GATE
+      phase: P10
+      decision: PHASE_APPROVE
+      accepted_report_commit: 739c920a0aba695c75107eb94ccc48d74e736c7c
+      next_expected_task: null
+      required_fix: null
+      rationale: "P10_GATE attempt 1 returned predicate_result=PASS. All 10 gate conjuncts passed: tasks.P10.1/P10.2/P10.3 were PASS; final_verification.md, final_asset_audit.md, and plan_tracker_consistency.md existed and recorded PASS; pytest tests/robust_asr/ returned 137 passed; classified secret scan returned OK_FINAL_ASSET_AUDIT with A4 PASS and zero credential-bearing matches; git was clean; HEAD equaled origin after push. The gate commit set project_status=COMPLETE, phase_summary.P10=PASS, tasks.P10_GATE.status=PASS, and preserved claims_enabled=false, active markers, C4, C5, and the handoff tag. Portfolio shipping remains gated by PENDING_RP5_INTEGRATION, which is outside this branch. P10 is the final datamove1 phase; no post-P10 implementation task is opened. Demoted APPROVE_PLAN(P10_GATE) to prior_approval_packet_p10_gate_plan by this PHASE_APPROVE(P10) recording commit."
+  prior_approval_packet_p10_gate_plan:
+    ORCHESTRATOR_DECISION:
       scope: task
       task_id: P10_GATE
       phase: P10
@@ -1047,7 +1057,7 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: cd46f7291b78a84bf4af1509eb5d46704fa78137
+  last_accepted_report_commit: 739c920a0aba695c75107eb94ccc48d74e736c7c
   expected_next_task: P10_GATE
   last_tracker_mismatch: null
   latest_scope_change_packet:
@@ -1191,7 +1201,7 @@ orchestrator_approvals:
   P7: PHASE_APPROVE
   P8: PHASE_APPROVE
   P9: PHASE_APPROVE
-  P10: null
+  P10: PHASE_APPROVE
 
 profile:
   active_profile_path: docs/profiles/CLAUDE.robust_asr.md
