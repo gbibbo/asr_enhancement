@@ -3,8 +3,8 @@ branch: feature/robust-asr-lora-router-datamove1-v1
 source_branch: feature/training-datamove1-v1
 project_status: IN_PROGRESS
 current_phase: P10
-current_task: P10.2
-last_completed_task: P10.1
+current_task: P10.3
+last_completed_task: P10.2
 
 blocked: false
 blocker: null
@@ -57,11 +57,21 @@ state_transport:
       scope: task
       task_id: P10.2
       phase: P10
+      decision: APPROVE_EXECUTION
+      accepted_report_commit: 8ce525c896845ce79fc9bad96167448b77ab75f9
+      next_expected_task: P10.3
+      required_fix: null
+      rationale: "P10.2 Final asset audit completed successfully. scripts/robust_asr/final_asset_audit.py was created under the previously approved reuse-policy allowance and run against reports/robust_asr plus docs/reports/robust_asr. The audit emitted OK_FINAL_ASSET_AUDIT. A1 through A4 passed. Model and router cards have zero TODO_FILLED_IN tokens. claims_enabled.* remained false. C4 and C5 statuses were preserved. The in-task Decision Rule 2 tracker correction for artifacts.test_leakage.sha256 is accepted because the file content was byte-unchanged and only the stale tracker hash was updated. Forbidden paths remained unchanged, and the commit was pushed."
+  prior_approval_packet_p10_2_plan:
+    ORCHESTRATOR_DECISION:
+      scope: task
+      task_id: P10.2
+      phase: P10
       decision: APPROVE_PLAN
       accepted_report_commit: 693b7498159fe3f47b69e551f2a8baa33d9968e1
       next_expected_task: P10.2
       required_fix: null
-      rationale: "P10.2 is now unblocked. CHANGE_SCOPE(reuse_policy_p10_2_script_allowance) authorized P10.2 to create scripts/robust_asr/final_asset_audit.py. CHANGE_SCOPE(model_router_card_completion) completed docs/reports/robust_asr/model_card_lora.md and docs/reports/robust_asr/router_card.md, leaving zero TODO_FILLED_IN tokens and preserving claims_enabled=false. Therefore P10.2 can implement and run final_asset_audit.py with the audit scope including both reports/robust_asr and docs/reports/robust_asr."
+      rationale: "P10.2 is now unblocked. CHANGE_SCOPE(reuse_policy_p10_2_script_allowance) authorized P10.2 to create scripts/robust_asr/final_asset_audit.py. CHANGE_SCOPE(model_router_card_completion) completed docs/reports/robust_asr/model_card_lora.md and docs/reports/robust_asr/router_card.md, leaving zero TODO_FILLED_IN tokens and preserving claims_enabled=false. Therefore P10.2 can implement and run final_asset_audit.py with the audit scope including both reports/robust_asr and docs/reports/robust_asr. Demoted from latest_approval_packet to prior_approval_packet_p10_2_plan by the APPROVE_EXECUTION(P10.2) recording commit."
   prior_approval_packet_p10_1_exec:
     ORCHESTRATOR_DECISION:
       scope: task
@@ -1002,8 +1012,8 @@ state_transport:
       next_expected_task: P0.4
       required_fix: null
       rationale: "Env-isolation scope change accepted at commit efed06e; the rerun-2 plan is approved. Submit env-isolated slurm/jobs/p0_3_runtime_smoke.sh against runtime_image_v1 (sha256 8db5364c...). Clear BLOCKED_RUNTIME only on OK_RUNTIME_SMOKE + exit_code==0. Do not set last_accepted_report_commit to the rerun-2 commit."
-  last_accepted_report_commit: 37a588b6aa4ee3116c32778092990b8dc9d023b0
-  expected_next_task: P10.2
+  last_accepted_report_commit: 8ce525c896845ce79fc9bad96167448b77ab75f9
+  expected_next_task: P10.3
   last_tracker_mismatch: null
   latest_scope_change_packet:
     ORCHESTRATOR_DECISION:
