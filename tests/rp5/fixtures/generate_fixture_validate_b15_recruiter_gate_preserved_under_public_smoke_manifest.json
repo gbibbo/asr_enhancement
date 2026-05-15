@@ -1,0 +1,53 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_recruiter_gate_preserved_under_public_smoke",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_unauthenticated_access_observed",
+      "expected_marker": "B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE",
+      "observed_sentinel": "B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE",
+      "root": "negative/negative_unauthenticated_access_observed",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "34ae801fce306e8c8317b30c5eb949b4030810424977918edfed6c026f4fbca9",
+          "size_bytes": 3839
+        }
+      ]
+    },
+    {
+      "case_name": "negative_illegal_value",
+      "expected_marker": "B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE",
+      "observed_sentinel": "B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE",
+      "root": "negative/negative_illegal_value",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "3cb9fada66a725acf16cddfa09cb13f0e3dae726b0bb4775eaa32a5dd2cded0d",
+          "size_bytes": 3830
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_RECRUITER_GATE_PRESERVED",
+      "observed_sentinel": "OK_B15_RECRUITER_GATE_PRESERVED",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "e42c1bee4cbe8fa1aabfd1cfe739ba5c4f717cbc7de17eb39b6e756293e0a72e",
+          "size_bytes": 3833
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_RECRUITER_GATE_PRESERVED",
+  "validator": "validate_b15_recruiter_gate_preserved_under_public_smoke",
+  "validator_sentinel_pass": "OK_B15_RECRUITER_GATE_PRESERVED"
+}

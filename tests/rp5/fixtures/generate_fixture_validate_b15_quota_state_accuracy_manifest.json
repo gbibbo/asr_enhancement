@@ -1,0 +1,53 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_quota_state_accuracy",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_misrepresented_quota_state",
+      "expected_marker": "B15_QUOTA_STATE_MISREPRESENTED",
+      "observed_sentinel": "B15_QUOTA_STATE_MISREPRESENTED",
+      "root": "negative/negative_misrepresented_quota_state",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "cc0445f7e3aa19be06663b402e8199aae84d9bc81269449eaf23863a79e5c2ea",
+          "size_bytes": 3673
+        }
+      ]
+    },
+    {
+      "case_name": "negative_illegal_quota_value",
+      "expected_marker": "B15_QUOTA_STATE_MISREPRESENTED",
+      "observed_sentinel": "B15_QUOTA_STATE_MISREPRESENTED",
+      "root": "negative/negative_illegal_quota_value",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "b9745d5eb18b301f789f4d63517bc5cf191fd78cbd971b02db7e195e0e8dd693",
+          "size_bytes": 3672
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_QUOTA_STATE_MISREPRESENTED"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_QUOTA_STATE_ACCURATE",
+      "observed_sentinel": "OK_B15_QUOTA_STATE_ACCURATE",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "7754c46acec67f76110fce101b2df6018c5f103e01cff1adb3413659b41f307d",
+          "size_bytes": 3669
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_QUOTA_STATE_ACCURACY",
+  "validator": "validate_b15_quota_state_accuracy",
+  "validator_sentinel_pass": "OK_B15_QUOTA_STATE_ACCURATE"
+}
