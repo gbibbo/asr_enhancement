@@ -1,0 +1,7 @@
+Tunnel template using env-var-name references only:
+  auth_key_env_var_name: TAILSCALE_AUTHKEY
+  stable_hostname_env_var_name: PUBLIC_DEMO_STABLE_HOSTNAME
+  public_exposure_flag_env_var_name: PUBLIC_DEMO_EXPOSURE
+  auth_key_supplied_as_host_env: false
+  ready_to_run: false
+No auth-key literal, no token literal, no Authorization header.

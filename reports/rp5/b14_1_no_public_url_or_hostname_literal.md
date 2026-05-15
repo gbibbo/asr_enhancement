@@ -1,9 +1,9 @@
 # B14.1 No Public URL or Hostname Literal — Scan Report
 
-generated_at_utc: 2026-05-14T16:45:12.246548
+generated_at_utc: 2026-05-15T00:41:11.148785
 root: /home/gbibbo/code/asr_enhancement
 component: all
-files_scanned: 337
+files_scanned: 356
 files_skipped: 0
 url_hits: 0
 hostname_hits: 0
