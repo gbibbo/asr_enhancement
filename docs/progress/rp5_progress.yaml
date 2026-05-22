@@ -132,10 +132,13 @@ plan_authoring_approvals:
         resolved_via_decision: ACCEPT_HUMAN_ACTION_RESULT
         resolution_recorded_in: human_action_requests.HAR-B14_1-FUNNEL-CAPABILITY-001
       - id: HAR-B15-MULTI-NETWORK-SMOKE-001
-        status: pre_declared_unresolved
+        status: resolved
         new_in_b15: true
-        blocks: B15-05 closure and the B15 phase-gate full-success branch
+        blocks: B15-05 closure (cleared by operator-supplied human_action_result; B15 phase-gate branch is determined at B15-06 adjudication)
         resolved_by_this_plan_approval: false
+        resolved_by_human_action_result: true
+        resolved_via_decision: ACCEPT_HUMAN_ACTION_RESULT
+        resolution_recorded_in: human_action_requests.HAR-B15-MULTI-NETWORK-SMOKE-001
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
     status: resolved
@@ -182,10 +185,89 @@ human_action_requests:
       tracker_records_only_boolean_flags_and_non_secret_evidence_reference: true
       literal_auth_key_or_token_values_never_written: true
   HAR-B15-MULTI-NETWORK-SMOKE-001:
-    status: pre_declared_unresolved
+    status: resolved
     request_id: HAR-B15-MULTI-NETWORK-SMOKE-001
-    not_resolved_here: true
-    blocks: B15-05 closure and the B15 phase-gate full-success branch
+    result_kind: operator_supplied_human_action_result
+    accepted_by_orchestrator_decision: true
+    accepted_via_decision: ACCEPT_HUMAN_ACTION_RESULT
+    accepted_for_task: B15-05
+    accepted_at_recording_date: 2026-05-22
+    evidence_reference: operator_multi_network_smoke_2026-05-22_no_literals
+    next_state: B15-05 may be planned and executed once an APPROVE_PLAN decision for B15-05 is recorded
+    blocks_cleared: B15-05 closure (smoke-result evidence supplied for all four vantage points; the B15 phase-gate routing branch is determined at B15-06 adjudication based on the recorded observations)
+    waiver_if_any: null
+    supplied_values:
+      smoke_result_windows_local:
+        evidence_reference: operator_smoke_windows_local_via_mobile_hotspot_2026-05-22_no_literals
+        five_curated_examples: PASS
+        five_degradations: PASS
+        whisper_provider: PASS
+        assemblyai_provider: EXPLICIT_NA_PROVIDER_DISABLED
+        upload_without_manual_ground_truth: PASS
+        upload_with_manual_ground_truth: FAIL
+        upload_limit_enforced: PASS
+        provider_quota_state: AssemblyAI disabled
+        mobile_layout: NOT_APPLICABLE
+        recruiter_gate_observed_status: unauthenticated_access_observed
+        upload_limit_observed: enforced
+        mobile_layout_observed: not_applicable
+        cached_example_observed: all_curated_examples_resolved
+      smoke_result_mobile_cellular:
+        evidence_reference: operator_smoke_mobile_cellular_2026-05-22_no_literals
+        five_curated_examples: PASS
+        five_degradations: PASS
+        whisper_provider: PASS
+        assemblyai_provider: EXPLICIT_NA_PROVIDER_DISABLED
+        upload_without_manual_ground_truth: PASS
+        upload_with_manual_ground_truth: FAIL
+        upload_limit_enforced: PASS
+        provider_quota_state: AssemblyAI disabled
+        mobile_layout: PASS
+        recruiter_gate_observed_status: unauthenticated_access_observed
+        upload_limit_observed: enforced
+        mobile_layout_observed: no_horizontal_scroll
+        cached_example_observed: all_curated_examples_resolved
+      smoke_result_other_wifi:
+        evidence_reference: operator_smoke_other_wifi_via_second_mobile_hotspot_2026-05-22_no_literals
+        five_curated_examples: PASS
+        five_degradations: PASS
+        whisper_provider: PASS
+        assemblyai_provider: EXPLICIT_NA_PROVIDER_DISABLED
+        upload_without_manual_ground_truth: PASS
+        upload_with_manual_ground_truth: FAIL
+        upload_limit_enforced: PASS
+        provider_quota_state: AssemblyAI disabled
+        mobile_layout: NOT_APPLICABLE
+        recruiter_gate_observed_status: unauthenticated_access_observed
+        upload_limit_observed: enforced
+        mobile_layout_observed: not_applicable
+        cached_example_observed: all_curated_examples_resolved
+      smoke_result_vpn_or_external_tester:
+        evidence_reference: operator_smoke_vpn_or_external_tester_2026-05-22_no_literals
+        five_curated_examples: PASS
+        five_degradations: PASS
+        whisper_provider: PASS
+        assemblyai_provider: EXPLICIT_NA_PROVIDER_DISABLED
+        upload_without_manual_ground_truth: PASS
+        upload_with_manual_ground_truth: FAIL
+        upload_limit_enforced: PASS
+        provider_quota_state: AssemblyAI disabled
+        mobile_layout: NOT_APPLICABLE
+        recruiter_gate_observed_status: unauthenticated_access_observed
+        upload_limit_observed: enforced
+        mobile_layout_observed: not_applicable
+        cached_example_observed: all_curated_examples_resolved
+    observed_regressions_recorded_verbatim:
+      - "recruiter_gate_observed_status=unauthenticated_access_observed on all four vantage points; will fire B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE at B15-05 validator time"
+      - "upload_with_manual_ground_truth=FAIL on all four vantage points"
+      - "mobile_layout_observed=not_applicable on three of four vantage points (windows_local, other_wifi, vpn_or_external_tester); only mobile_cellular reported no_horizontal_scroll"
+    no_fail_converted_to_pass: true
+    no_public_smoke_success_claim_made_here: true
+    result_recording_policy_compliance:
+      tracker_records_only_evidence_references_and_enum_or_boolean_fields: true
+      literal_public_url_or_hostname_values_never_written: true
+      literal_auth_key_or_token_or_password_or_ip_address_values_never_written: true
+      no_unrelated_har_altered: true
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
   latest_execution_report_path: reports/rp5/b15_public_exposure_bringup.md
