@@ -3,15 +3,41 @@
   "kind": "positive_and_negative",
   "negative": [
     {
-      "case_name": "negative_horizontal_scroll_observed",
+      "case_name": "negative_horizontal_scroll_observed_on_mobile",
       "expected_marker": "B15_MOBILE_LAYOUT_REGRESSION",
       "observed_sentinel": "B15_MOBILE_LAYOUT_REGRESSION",
-      "root": "negative/negative_horizontal_scroll_observed",
+      "root": "negative/negative_horizontal_scroll_observed_on_mobile",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "b5307b46b3c3a3031131aec9d2627c05dc774ffbc9cb113be15094ff325df483",
+          "size_bytes": 3643
+        }
+      ]
+    },
+    {
+      "case_name": "negative_horizontal_scroll_observed_on_non_mobile",
+      "expected_marker": "B15_MOBILE_LAYOUT_REGRESSION",
+      "observed_sentinel": "B15_MOBILE_LAYOUT_REGRESSION",
+      "root": "negative/negative_horizontal_scroll_observed_on_non_mobile",
       "tree_files": [
         {
           "path": "smoke_results.md",
           "sha256": "86113e14d9c8c16c091161bc9add2f94d3ce985f8027aeb4164edd270caaf377",
           "size_bytes": 3643
+        }
+      ]
+    },
+    {
+      "case_name": "negative_not_applicable_on_mobile_cellular",
+      "expected_marker": "B15_MOBILE_LAYOUT_REGRESSION",
+      "observed_sentinel": "B15_MOBILE_LAYOUT_REGRESSION",
+      "root": "negative/negative_not_applicable_on_mobile_cellular",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "11f7a25e27ba123cc3e93eda4192dbf14bd11b0782a0d6c79b6aae4ead49f3bb",
+          "size_bytes": 3631
         }
       ]
     },
@@ -34,10 +60,23 @@
   ],
   "positive": [
     {
-      "case_name": "positive",
+      "case_name": "positive_vantage_point_conditional",
       "expected_sentinel": "OK_B15_MOBILE_LAYOUT_OK",
       "observed_sentinel": "OK_B15_MOBILE_LAYOUT_OK",
-      "root": "positive",
+      "root": "positive/positive_vantage_point_conditional",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "e16e9837a581e9e51710c2414753f5caf64ea022f8088c48c89dd318c2c7e42b",
+          "size_bytes": 3619
+        }
+      ]
+    },
+    {
+      "case_name": "positive_all_no_horizontal_scroll",
+      "expected_sentinel": "OK_B15_MOBILE_LAYOUT_OK",
+      "observed_sentinel": "OK_B15_MOBILE_LAYOUT_OK",
+      "root": "positive/positive_all_no_horizontal_scroll",
       "tree_files": [
         {
           "path": "smoke_results.md",
