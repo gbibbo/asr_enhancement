@@ -44,7 +44,7 @@ ALL_VANTAGE_POINTS = [
     "vpn_or_external_tester",
 ]
 ALL_COVERAGE_ITEMS = [
-    "ten_curated_examples",
+    "five_curated_examples",
     "five_degradations",
     "whisper_provider",
     "assemblyai_provider",

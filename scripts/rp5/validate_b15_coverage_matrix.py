@@ -55,7 +55,7 @@ REQUIRED_VANTAGE_POINTS = {
 }
 
 REQUIRED_COVERAGE_ITEMS = {
-    "ten_curated_examples",
+    "five_curated_examples",
     "five_degradations",
     "whisper_provider",
     "assemblyai_provider",

@@ -1,6 +1,6 @@
 # B15 Plan Compile Report
 
-generated_at_utc: 2026-05-15T08:06:35.348522
+generated_at_utc: 2026-05-22T19:54:49.584810
 plan_dir: docs/plans/b15
 plan_basename: b15
 must_check_items: 15

@@ -26,7 +26,7 @@ that vantage point and awaits operator-supplied smoke evidence.
 
 | Coverage item | windows_local | mobile_cellular | other_wifi | vpn_or_external_tester |
 |---|---|---|---|---|
-| ten_curated_examples | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE |
+| five_curated_examples | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE |
 | five_degradations | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE |
 | whisper_provider | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE |
 | assemblyai_provider | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE | PENDING_OPERATOR_EVIDENCE |
@@ -47,7 +47,7 @@ multi_network_smoke_coverage_record:
     - other_wifi
     - vpn_or_external_tester
   coverage_items:
-    - ten_curated_examples
+    - five_curated_examples
     - five_degradations
     - whisper_provider
     - assemblyai_provider
@@ -57,7 +57,7 @@ multi_network_smoke_coverage_record:
     - provider_quota_state
     - mobile_layout
   planned_status_per_item:
-    ten_curated_examples: PENDING_OPERATOR_EVIDENCE
+    five_curated_examples: PENDING_OPERATOR_EVIDENCE
     five_degradations: PENDING_OPERATOR_EVIDENCE
     whisper_provider: PENDING_OPERATOR_EVIDENCE
     assemblyai_provider: PENDING_OPERATOR_EVIDENCE
@@ -73,6 +73,7 @@ multi_network_smoke_coverage_record:
 
 ## Notes
 
+- The curated-example coverage item identifier is `five_curated_examples`, aligned with the live public demo which intentionally exposes 5 curated examples. The prior identifier `ten_curated_examples` was retired via recovery packet `RP-B15-CURATED-EXAMPLE-COUNT-SCOPE-CHANGE-B15-05`.
 - No smoke evidence is fabricated. Every coverage item is `PENDING_OPERATOR_EVIDENCE`.
 - `EXPLICIT_NA_PROVIDER_DISABLED` is not used here; it is schema-legal only for
   the `assemblyai_provider` coverage item, and would be recorded only if the

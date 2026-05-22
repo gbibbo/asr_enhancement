@@ -161,7 +161,7 @@ network_vantage_points_required:
   - other_wifi
   - vpn_or_external_tester
 coverage_items_required:
-  - ten_curated_examples
+  - five_curated_examples
   - five_degradations
   - whisper_provider
   - assemblyai_provider
@@ -199,7 +199,7 @@ forbidden_in_B15:
 |---|---|---|
 | public_smoke_request_latency_sla_ms | not_applicable_current_scope | B15 verifies correctness of the smoke surface, not latency budgets |
 | multi_network_vantage_point_count | fixed_at_4 | the four vantage points are enumerated in section 2 network_vantage_points_required and are not a tunable threshold |
-| curated_example_count | fixed_at_10 | legacy demo_platform_plan section 37 fixes 10 curated examples |
+| curated_example_count | fixed_at_5 | the public demo is intentionally scoped to 5 curated examples; supersedes the legacy demo_platform_plan section 37 ten-example expectation; recorded via recovery packet RP-B15-CURATED-EXAMPLE-COUNT-SCOPE-CHANGE-B15-05 |
 | degradation_count | fixed_at_5 | legacy demo_platform_plan section 37 fixes 5 degradations |
 | tailscale_authkey_supplied_as_host_env_TAILSCALE_AUTHKEY | HUMAN_ACTION_REQUIRED (HAR-B14_1-FUNNEL-CAPABILITY-001 residual) | carried unresolved from B14.1; the auth-key is operator-owned host env |
 | stable_hostname_string_value | HUMAN_ACTION_REQUIRED (HAR-B14_1-STABLE-HOSTNAME-001) | carried unresolved from B14.1; the literal hostname is operator-owned |

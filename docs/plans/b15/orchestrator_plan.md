@@ -72,7 +72,7 @@ accepted_report_commit semantics: the field is the 40-character commit at which 
 
 ```yaml
 phase: B15
-purpose: verify the recruiter-gated public-demo surface is safe to share by running a multi-network public smoke test across Windows local, mobile cellular, other WiFi, and a VPN/external tester, covering 10 curated examples, 5 degradations, the Whisper provider, the AssemblyAI provider, uploads with and without manual ground truth, the upload limit, provider quota states, and the mobile layout, without modifying application, library, infrastructure, or runtime code
+purpose: verify the recruiter-gated public-demo surface is safe to share by running a multi-network public smoke test across Windows local, mobile cellular, other WiFi, and a VPN/external tester, covering 5 curated examples, 5 degradations, the Whisper provider, the AssemblyAI provider, uploads with and without manual ground truth, the upload limit, provider quota states, and the mobile layout, without modifying application, library, infrastructure, or runtime code
 preconditions:
   - last_completed_phase == B14.1
   - phase_approvals.B14.1.status == APPROVED

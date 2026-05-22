@@ -137,7 +137,7 @@ multi_network_smoke_coverage_record:
   required_fields: [coverage_id, vantage_points, coverage_items, planned_status_per_item, blocker_if_unsupplied, validator, marker]
   enum_values:
     vantage_points: [windows_local, mobile_cellular, other_wifi, vpn_or_external_tester]
-    coverage_items: [ten_curated_examples, five_degradations, whisper_provider, assemblyai_provider, upload_without_manual_ground_truth, upload_with_manual_ground_truth, upload_limit_enforced, provider_quota_state, mobile_layout]
+    coverage_items: [five_curated_examples, five_degradations, whisper_provider, assemblyai_provider, upload_without_manual_ground_truth, upload_with_manual_ground_truth, upload_limit_enforced, provider_quota_state, mobile_layout]
     planned_status_per_item: [PENDING_OPERATOR_EVIDENCE, COVERED, BLOCKED_PENDING_HUMAN_ACTION, EXPLICIT_NA_PROVIDER_DISABLED]
   rules:
     - all four vantage_points enumerated values must be present
