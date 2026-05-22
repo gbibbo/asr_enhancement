@@ -362,6 +362,42 @@ recovery_log:
     public_exposure_started: false
     note: "scope-change repair only; B15-03 implementation not started; commit hash recorded at orchestrator scope-change acceptance"
     next_task: B15-03
+  RP-VALIDATOR-PROFILE-GAP-B15-07:
+    status: PASS
+    marker: PLAN_CONFLICT
+    scope: scope_change
+    task_id: B15-07
+    orchestrator_decision: APPROVE_SCOPE_CHANGE_EXECUTION
+    rationale: "B15-07 verification requires OK_FUTURE_CONSTRAINTS on the B15 future-constraint contract (five FC ids including FC-B14-1-PUBLIC-GATE), but scripts/rp5/validate_future_constraints.py shipped only broute and b14_1 profiles and could not validate the B15 FC list (neither legacy profile carries FC-B14-1-PUBLIC-GATE, and b14_1 rejects it as an extra id under reject_extra_ids=True); B15-07 task scope forbids scripts/**; the B15-07 scope-change repair materialized B15_PROFILE in validate_future_constraints.py, extended infer_profile and argparse choices, and widened PL-B15-SCRIPTS by exact-filename allowlist. Legacy broute and b14_1 behavior unchanged."
+    files_materialized: []
+    files_modified:
+      - scripts/rp5/validate_future_constraints.py
+      - scripts/rp5/validate_b15_path_locks.py
+      - docs/plans/b15/agent_plan.md
+    key_outputs:
+      - "BEFORE_FIX: validate_future_constraints supports {broute, b14_1} only; argparse rejects --constraint-profile b15; b14_1 profile reject_extra_ids=True rejects FC-B14-1-PUBLIC-GATE as extra; FV-FUTURE unreachable for B15-07"
+      - "AFTER_FIX: validate_future_constraints supports {broute, b14_1, b15}; b15 profile selected by b15_* filename or --constraint-profile b15; b15 required ids match docs/plans/b15/orchestrator_plan.md section 3 set; reject_extra_ids=True"
+      - "positive selftest --constraint-profile b15: OK_FUTURE_CONSTRAINTS"
+      - "positive selftest filename-inference (b15_*): OK_FUTURE_CONSTRAINTS"
+      - "negative selftest (missing one required B15 FC): FUTURE_CONSTRAINT_REGRESSION"
+      - "negative selftest (one extra non-B15 FC id): FUTURE_CONSTRAINT_REGRESSION"
+      - "regression-check reports/rp5/b14_1_future_constraints.md: OK_FUTURE_CONSTRAINTS (legacy unchanged)"
+      - "regression-check reports/rp5/broute_future_constraints.md: OK_FUTURE_CONSTRAINTS (legacy unchanged)"
+      - "regression-check reports/rp5/b14_0_future_constraints.md: OK_FUTURE_CONSTRAINTS (legacy unchanged)"
+      - OK_PLAN_COMPILES
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - "banned-phrase scan on docs/plans/b15/agent_plan.md (zero substantive matches; the only grep hit is the §14 registry definition excluded per the plan's documented filter)"
+      - OK_CHANGED_FILES_PATH_LOCKED
+    b15_07_executed: false
+    b15_07_marked_pass: false
+    public_exposure_started: false
+    smoke_results_modified: false
+    har_supplied_values_modified: false
+    adjudication_modified: false
+    routing_modified: false
+    carried_marker_cleared: false   # B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE preserved
+    note: "scope-change repair only; B15-07 implementation not started; no B15-07 deliverable authored; carried recruiter-gate marker preserved; commit hash recorded at orchestrator scope-change acceptance"
+    next_task: B15-07
   RP-VALIDATOR-MATERIALIZATION-GAP-B15-04:
     status: PASS
     marker: VALIDATOR_MATERIALIZATION_GAP

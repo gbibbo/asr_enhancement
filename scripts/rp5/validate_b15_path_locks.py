@@ -42,10 +42,14 @@ def _is_b15_reports_path(p):
 #       -- materialized by the B15-03 scope-change repair.
 #   print_pending_human_action_requests.py
 #       -- materialized by the B15-04 scope-change repair.
+#   validate_future_constraints.py
+#       -- b15 profile materialized by the B15-07 scope-change repair
+#          (recovery_log.RP-VALIDATOR-PROFILE-GAP-B15-07).
 _B15_PROTOCOL_SCRIPT_FILES = frozenset({
     "scripts/rp5/validate_report_shape.py",
     "scripts/rp5/validate_approval_packet.py",
     "scripts/rp5/print_pending_human_action_requests.py",
+    "scripts/rp5/validate_future_constraints.py",
 })
 
 

@@ -14,8 +14,13 @@ original B-route/B14.0 contract (required ids include FC-B14-0-PUBLIC-GATE,
 record field `source_preplan_section`, regression scan over docs/plans/broute).
 The `b14_1` profile validates the B14.1 future-constraint contract (the five
 B14.1 constraint ids, record field `source_section`, regression scan over
-docs/plans/b14_1). The profile is taken from --constraint-profile when given,
-otherwise inferred deterministically from the --constraints basename.
+docs/plans/b14_1). The `b15` profile validates the B15 future-constraint
+contract (the five B15 constraint ids per docs/plans/b15/orchestrator_plan.md
+section 3, record field `source_section`, regression scan over docs/plans/b15);
+the b15 profile was materialized by the B15-07 scope-change repair
+(RP-VALIDATOR-PROFILE-GAP-B15-07) after it was found absent from reachable HEAD.
+The profile is taken from --constraint-profile when given, otherwise inferred
+deterministically from the --constraints basename.
 
 Emits OK_FUTURE_CONSTRAINTS on success or FUTURE_CONSTRAINT_REGRESSION on
 failure.
@@ -125,9 +130,62 @@ B14_1_PROFILE = {
 }
 
 
+# B15 future-constraint contract. Required ids and the record field name
+# match docs/plans/b15/orchestrator_plan.md section 3 and
+# docs/plans/b15/state_packet_schemas.yaml future_constraint_preservation_record.
+# Materialized by the B15-07 scope-change repair
+# (recovery_log.RP-VALIDATOR-PROFILE-GAP-B15-07).
+B15_PROFILE = {
+    "required_constraint_ids": [
+        "FC-B15-MULTI-NETWORK",
+        "FC-B14-1-PUBLIC-GATE",
+        "FC-HANDOFF-DATAMOVE1",
+        "FC-BROUTE-FROZEN",
+        "FC-B14-0-GATE-PRESERVED",
+    ],
+    "required_fields": [
+        "constraint_id",
+        "source_section",
+        "current_scope_impact",
+        "must_preserve_in_current_plan",
+        "forbidden_current_plan_regression",
+        "validator_or_review_check",
+        "future_phase_owner",
+        "out_of_scope_but_preserved",
+    ],
+    "reject_extra_ids": True,
+    "scan_plan_files": [
+        "docs/plans/b15/agent_plan.md",
+        "docs/plans/b15/orchestrator_plan.md",
+        "docs/plans/b15/state_packet_schemas.yaml",
+    ],
+    "forbidden_markers": {
+        "FC-B15-MULTI-NETWORK": [
+            "b15 claims multi-network public smoke coverage from fewer than four operator vantage points",
+        ],
+        "FC-B14-1-PUBLIC-GATE": [
+            "b15 disables the recruiter http basic gate",
+            "b15 accepts an ephemeral tunnel url as public exposure success evidence",
+        ],
+        "FC-HANDOFF-DATAMOVE1": [
+            "b15 modifies libs/asr/router_runtime.py",
+        ],
+        "FC-BROUTE-FROZEN": [
+            "b15 modifies broute deliverables",
+            "b15 modifies b14_0 deliverables",
+            "b15 modifies b14_1 deliverables",
+        ],
+        "FC-B14-0-GATE-PRESERVED": [
+            "b15 returns a non-canonical demo health payload to authenticated requests",
+        ],
+    },
+}
+
+
 PROFILES = {
     "broute": BROUTE_PROFILE,
     "b14_1": B14_1_PROFILE,
+    "b15": B15_PROFILE,
 }
 
 
@@ -139,6 +197,8 @@ PUBLIC_URL_LITERAL_RE = re.compile(
 def infer_profile(constraints_path):
     """Deterministically pick a profile from the --constraints basename."""
     name = pathlib.Path(constraints_path).name
+    if name.startswith("b15_"):
+        return "b15"
     if name.startswith("b14_1_"):
         return "b14_1"
     if name.startswith("b14_0_"):
@@ -204,7 +264,7 @@ def main():
     parser.add_argument("--out", required=True)
     parser.add_argument(
         "--constraint-profile",
-        choices=("broute", "b14_1"),
+        choices=("broute", "b14_1", "b15"),
         default=None,
         help="future-constraint contract profile; inferred from --constraints "
         "basename when omitted",
