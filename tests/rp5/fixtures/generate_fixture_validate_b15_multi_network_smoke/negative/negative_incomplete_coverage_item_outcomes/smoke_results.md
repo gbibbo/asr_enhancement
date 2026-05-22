@@ -5,7 +5,7 @@ multi_network_smoke_result_record:
   result_id: B15-SMOKE-RESULT-windows_local
   vantage_point: windows_local
   coverage_item_outcomes:
-    ten_curated_examples: COVERED
+    five_curated_examples: COVERED
     five_degradations: COVERED
     whisper_provider: COVERED
     assemblyai_provider: COVERED
@@ -28,7 +28,7 @@ multi_network_smoke_result_record:
   result_id: B15-SMOKE-RESULT-mobile_cellular
   vantage_point: mobile_cellular
   coverage_item_outcomes:
-    ten_curated_examples: COVERED
+    five_curated_examples: COVERED
     five_degradations: COVERED
     whisper_provider: COVERED
     assemblyai_provider: COVERED
@@ -53,7 +53,7 @@ multi_network_smoke_result_record:
   result_id: B15-SMOKE-RESULT-other_wifi
   vantage_point: other_wifi
   coverage_item_outcomes:
-    ten_curated_examples: COVERED
+    five_curated_examples: COVERED
     five_degradations: COVERED
     whisper_provider: COVERED
     assemblyai_provider: COVERED
@@ -78,7 +78,7 @@ multi_network_smoke_result_record:
   result_id: B15-SMOKE-RESULT-vpn_or_external_tester
   vantage_point: vpn_or_external_tester
   coverage_item_outcomes:
-    ten_curated_examples: COVERED
+    five_curated_examples: COVERED
     five_degradations: COVERED
     whisper_provider: COVERED
     assemblyai_provider: COVERED
