@@ -277,6 +277,82 @@ recovery_log:
     public_exposure_started: false
     note: "scope-change repair only; B15-04 implementation not started; commit hash recorded at orchestrator scope-change acceptance"
     next_task: B15-04
+  RP-B15-CURATED-EXAMPLE-COUNT-SCOPE-CHANGE-B15-05:
+    status: PASS
+    marker: SCOPE_CHANGE_REVISE_PLAN
+    scope: scope_change
+    task_id: B15-05
+    orchestrator_decision: APPROVE_SCOPE_CHANGE_EXECUTION
+    rationale: >-
+      The live public demo intentionally exposes 5 curated examples per
+      /demo/examples. The active B15 plan, schema, coverage matrix report,
+      validate_b15_coverage_matrix, validate_b15_multi_network_smoke, eight
+      fixture generators, eight manifests, and 26 fixture-tree records all
+      previously encoded the stale identifier ten_curated_examples. This
+      scope-change repair renames the coverage item to five_curated_examples
+      across canonical files and regenerates fixtures and manifests; the
+      curated_example_count threshold audit is updated from fixed_at_10 to
+      fixed_at_5 with text stating the public demo is intentionally scoped to
+      5 curated examples and supersedes the legacy ten-example expectation.
+      No smoke evidence is recorded by this repair.
+    files_modified:
+      - docs/plans/b15/agent_plan.md
+      - docs/plans/b15/state_packet_schemas.yaml
+      - docs/plans/b15/orchestrator_plan.md
+      - reports/rp5/b15_coverage_matrix.md
+      - reports/rp5/b15_plan_compile.md
+      - scripts/rp5/validate_b15_coverage_matrix.py
+      - scripts/rp5/validate_b15_multi_network_smoke.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_coverage_matrix.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_multi_network_smoke.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_smoke_result_evidence.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_recruiter_gate_preserved_under_public_smoke.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_quota_state_accuracy.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_upload_limit_enforced.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_mobile_layout.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_cached_example_integrity.py
+    fixture_trees_regenerated:
+      - tests/rp5/fixtures/generate_fixture_validate_b15_coverage_matrix/
+      - tests/rp5/fixtures/generate_fixture_validate_b15_multi_network_smoke/
+      - tests/rp5/fixtures/generate_fixture_validate_b15_smoke_result_evidence/
+      - tests/rp5/fixtures/generate_fixture_validate_b15_recruiter_gate_preserved_under_public_smoke/
+      - tests/rp5/fixtures/generate_fixture_validate_b15_quota_state_accuracy/
+      - tests/rp5/fixtures/generate_fixture_validate_b15_upload_limit_enforced/
+      - tests/rp5/fixtures/generate_fixture_validate_b15_mobile_layout/
+      - tests/rp5/fixtures/generate_fixture_validate_b15_cached_example_integrity/
+    manifests_regenerated:
+      generate_fixture_validate_b15_coverage_matrix_manifest.json: 92ea59d4aa052e90429b3256dbdf7fdf90ed6d67863296b26157c4e9f5183f1a
+      generate_fixture_validate_b15_multi_network_smoke_manifest.json: b0a87b857c3c4e4397c15a203aebf1e6595a21ed8fb60e3ab2ec59c9c82c3a99
+      generate_fixture_validate_b15_smoke_result_evidence_manifest.json: 20a3187f29e645079ef95cbdf1172c70fd2c6bf90dad59ca159fb6ce04d10662
+      generate_fixture_validate_b15_recruiter_gate_preserved_under_public_smoke_manifest.json: 2eef34e8fbc6a8c318a9c514fe02c7bbce906558c6a9b654ab873f8bc7737c43
+      generate_fixture_validate_b15_quota_state_accuracy_manifest.json: c58ee385f52ceacb9bb09e580f49c3d11ab9d6cadedcd97dc79113d891cefb7b
+      generate_fixture_validate_b15_upload_limit_enforced_manifest.json: 06a757d526d64775476b02f65bff72ea7a0fd1874f75e3274c35ddfa4bc1b0c9
+      generate_fixture_validate_b15_mobile_layout_manifest.json: 6407a787d0d3b92f8a30e4245f199eb96dcbcac3923f3fe91df2dfa35f19c3e2
+      generate_fixture_validate_b15_cached_example_integrity_manifest.json: dc7ae5bac36a964cf3758452ffe99cb2e6a79d0ba0b546ac07c3f08a0a8c4af2
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - OK_FIXTURE_VALIDATE_B15_COVERAGE_MATRIX
+      - OK_FIXTURE_VALIDATE_B15_MULTI_NETWORK_SMOKE
+      - OK_FIXTURE_VALIDATE_B15_SMOKE_RESULT_EVIDENCE
+      - OK_FIXTURE_VALIDATE_B15_RECRUITER_GATE_PRESERVED
+      - OK_FIXTURE_VALIDATE_B15_QUOTA_STATE_ACCURACY
+      - OK_FIXTURE_VALIDATE_B15_UPLOAD_LIMIT_ENFORCED
+      - OK_FIXTURE_VALIDATE_B15_MOBILE_LAYOUT
+      - OK_FIXTURE_VALIDATE_B15_CACHED_EXAMPLE_INTEGRITY
+      - "deterministic_regeneration_verified: true"
+      - "smoke_evidence_unchanged: true"
+      - "unauthenticated_access_observation_preserved: true"
+      - "no_smoke_outcome_marked_pass_during_scope_change: true"
+      - "no_human_action_result_recorded: true"
+    b15_05_executed: false
+    b15_05_marked_pass: false
+    public_exposure_started: false
+    har_b15_multi_network_smoke_001_status: pre_declared_unresolved
+    note: "scope-change repair only; B15-05 implementation not started; no smoke result record authored; HAR-B15-MULTI-NETWORK-SMOKE-001 remains pre_declared_unresolved; commit hashes recorded at orchestrator scope-change acceptance"
+    next_task: B15-05
 tasks:
   BR-00:
     task_id: BR-00
