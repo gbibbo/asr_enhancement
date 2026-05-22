@@ -1,6 +1,6 @@
 # B15 Plan Compile Report
 
-generated_at_utc: 2026-05-22T19:54:49.584810
+generated_at_utc: 2026-05-22T20:49:52.077836
 plan_dir: docs/plans/b15
 plan_basename: b15
 must_check_items: 15
@@ -11,7 +11,7 @@ failures: 0
 - [PASS] every_marker_in_registry_has_transition_row: all 27 markers have rows in orchestrator §6 marker registry
 - [PASS] every_b15_marker_has_recovery_packet: all 27 markers have recovery packets in agent §11
 - [PASS] every_validator_owned_failure_marker_exists: all validator owned failure markers in agent §9 resolve to the marker registry
-- [PASS] every_task_next_state_exists: transition table has 21 data rows
+- [PASS] every_task_next_state_exists: transition table has 23 data rows
 - [PASS] every_B15_task_next_state_exists: all transition next-state tokens resolve to a B15 task id, a *-fix or *-BLOCKED_BY_HUMAN_ACTION variant, or a terminal state
 - [PASS] every_report_referenced_by_agent_has_schema: all referenced report shapes in state_packet_schemas.yaml
 - [PASS] every_approval_rule_has_schema_record: all 8 approval packet fields in schema and orchestrator

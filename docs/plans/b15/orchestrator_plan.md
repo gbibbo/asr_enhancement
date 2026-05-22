@@ -44,7 +44,7 @@ Implementation PASS is not orchestration closure. Every transition after a task 
 Allowed decisions:
 
 ```yaml
-task_level: [APPROVE_PLAN, REVISE_PLAN, STOP_SCOPE_CONFLICT, CLOSE_TASK, FIX_BEFORE_CLOSE]
+task_level: [APPROVE_PLAN, REVISE_PLAN, STOP_SCOPE_CONFLICT, CLOSE_TASK, CLOSE_TASK_WITH_OBSERVED_REGRESSIONS, FIX_BEFORE_CLOSE]
 phase_level: [PHASE_APPROVE, PHASE_REJECT, CHANGE_SCOPE]
 plan_authoring_level: [REQUEST_PLAN_AUTHORING, APPROVE_FOR_EXECUTION, REVISE_PLAN, CHANGE_SCOPE]
 human_action_marker_policy: HUMAN_ACTION_REQUIRED maps to CHANGE_SCOPE_with_human_action_request_id
@@ -59,14 +59,15 @@ ORCHESTRATOR_DECISION:
   scope: task | phase | scope_change | plan_authoring
   task_id: string_or_null
   phase: string_or_null
-  decision: APPROVE_PLAN | REVISE_PLAN | STOP_SCOPE_CONFLICT | CLOSE_TASK | FIX_BEFORE_CLOSE | PHASE_APPROVE | PHASE_REJECT | CHANGE_SCOPE | REQUEST_PLAN_AUTHORING | APPROVE_FOR_EXECUTION
+  decision: APPROVE_PLAN | REVISE_PLAN | STOP_SCOPE_CONFLICT | CLOSE_TASK | CLOSE_TASK_WITH_OBSERVED_REGRESSIONS | FIX_BEFORE_CLOSE | PHASE_APPROVE | PHASE_REJECT | CHANGE_SCOPE | REQUEST_PLAN_AUTHORING | APPROVE_FOR_EXECUTION
+  observed_regression_markers: list_of_marker_ids_or_null   # required non-null and non-empty iff decision == CLOSE_TASK_WITH_OBSERVED_REGRESSIONS; absent or null for all other decisions
   accepted_report_commit: string_or_null
   next_expected_task: string_or_null
   required_fix: string_or_null
   rationale: one_sentence
 ```
 
-accepted_report_commit semantics: the field is the 40-character commit at which the report that the orchestrator accepted was recorded. A CLOSE_TASK decision sets accepted_report_commit to the commit of the accepted execution_report; the tracker closure that follows is recorded at a distinct accepted_tracker_closure_commit. A PHASE_APPROVE decision sets accepted_report_commit to the commit of the accepted phase_gate_report. A REQUEST_PLAN_AUTHORING or APPROVE_FOR_EXECUTION decision sets accepted_report_commit to the commit of the accepted plan-authoring or plan-audit report.
+accepted_report_commit semantics: the field is the 40-character commit at which the report that the orchestrator accepted was recorded. A CLOSE_TASK decision sets accepted_report_commit to the commit of the accepted execution_report; the tracker closure that follows is recorded at a distinct accepted_tracker_closure_commit. A CLOSE_TASK_WITH_OBSERVED_REGRESSIONS decision behaves like CLOSE_TASK for commit-tracking and additionally requires observed_regression_markers to be a non-empty list of regression-class marker ids honestly raised at the closing task; the closure does NOT clear those markers from tracker.markers and the next task receives them as carry-forward inputs. A PHASE_APPROVE decision sets accepted_report_commit to the commit of the accepted phase_gate_report. A REQUEST_PLAN_AUTHORING or APPROVE_FOR_EXECUTION decision sets accepted_report_commit to the commit of the accepted plan-authoring or plan-audit report.
 
 ## 3. Phase gate authority
 
@@ -115,6 +116,8 @@ phase_gate_on_fail:
 ```
 
 Explicit non-claim rule: a PHASE_APPROVE recorded through the explicit-blocker branch is not a public-exposure success claim. It does not assert stable public exposure, host readiness, tunnel readiness, Funnel readiness, public URL availability, application_gated_stable_hostname, or SUCCESS_WITH_STABLE_NAMED_EXPOSURE.
+
+Observed-regression posture (no new phase branch introduced): if B15-05 closes with status PASS_WITH_OBSERVED_REGRESSION (one or more of {B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE, B15_QUOTA_STATE_MISREPRESENTED, B15_UPLOAD_LIMIT_REGRESSION, B15_MOBILE_LAYOUT_REGRESSION, B15_CACHED_EXAMPLE_REGRESSION} honestly raised against non-fabricated, fully covered evidence), the full-success branch at B15-07 is foreclosed by the carried markers and the failing closure predicates (e.g. recruiter_HTTPBasic_gate_preserved_under_public_smoke). B15-06 must record claim_status FAILED_PENDING_PHASE_RETURN or BLOCKED_PENDING_HUMAN_ACTION with the corresponding b15_decision_rule_routing_record (RETURN_TO_B14 / RETURN_TO_B11 / RETURN_TO_B10 / RETURN_TO_B8). The explicit-blocker branch admits the carried markers as explicit blockers; SUCCESS_WITH_STABLE_NAMED_EXPOSURE is never asserted under PASS_WITH_OBSERVED_REGRESSION.
 
 Future constraint preservation:
 
@@ -181,11 +184,11 @@ final_closure_allowed_only_if:
 | B15_PUBLIC_URL_LITERAL_COMMITTED | FIX_BEFORE_CLOSE | RP-B15-PUBLIC-URL-LITERAL-COMMITTED | blocks closure |
 | B15_STABLE_HOSTNAME_LITERAL_COMMITTED | FIX_BEFORE_CLOSE | RP-B15-STABLE-HOSTNAME-LITERAL-COMMITTED | blocks closure |
 | B15_TUNNEL_SECRET_COMMITTED | FIX_BEFORE_CLOSE | RP-B15-TUNNEL-SECRET-COMMITTED | blocks closure |
-| B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE | FIX_BEFORE_CLOSE | RP-B15-RECRUITER-GATE-REGRESSION-UNDER-PUBLIC-SMOKE | blocks closure |
-| B15_QUOTA_STATE_MISREPRESENTED | FIX_BEFORE_CLOSE | RP-B15-QUOTA-STATE-MISREPRESENTED | blocks closure |
-| B15_UPLOAD_LIMIT_REGRESSION | FIX_BEFORE_CLOSE | RP-B15-UPLOAD-LIMIT-REGRESSION | blocks closure |
-| B15_MOBILE_LAYOUT_REGRESSION | FIX_BEFORE_CLOSE | RP-B15-MOBILE-LAYOUT-REGRESSION | blocks closure |
-| B15_CACHED_EXAMPLE_REGRESSION | FIX_BEFORE_CLOSE | RP-B15-CACHED-EXAMPLE-REGRESSION | blocks closure |
+| B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE | dual: at B15-05 CLOSE_TASK_WITH_OBSERVED_REGRESSIONS (admit and carry forward); at B15-06 and later FIX_BEFORE_CLOSE per the active decision rule | RP-B15-RECRUITER-GATE-REGRESSION-UNDER-PUBLIC-SMOKE | blocks full-success closure; carried forward to B15-06 adjudication (RETURN_TO_B14) |
+| B15_QUOTA_STATE_MISREPRESENTED | dual: at B15-05 CLOSE_TASK_WITH_OBSERVED_REGRESSIONS; at B15-06 and later FIX_BEFORE_CLOSE | RP-B15-QUOTA-STATE-MISREPRESENTED | blocks full-success closure; carried forward to B15-06 adjudication (RETURN_TO_B10) |
+| B15_UPLOAD_LIMIT_REGRESSION | dual: at B15-05 CLOSE_TASK_WITH_OBSERVED_REGRESSIONS; at B15-06 and later FIX_BEFORE_CLOSE | RP-B15-UPLOAD-LIMIT-REGRESSION | blocks full-success closure; carried forward to B15-06 adjudication |
+| B15_MOBILE_LAYOUT_REGRESSION | dual: at B15-05 CLOSE_TASK_WITH_OBSERVED_REGRESSIONS; at B15-06 and later FIX_BEFORE_CLOSE | RP-B15-MOBILE-LAYOUT-REGRESSION | blocks full-success closure; carried forward to B15-06 adjudication (RETURN_TO_B11) |
+| B15_CACHED_EXAMPLE_REGRESSION | dual: at B15-05 CLOSE_TASK_WITH_OBSERVED_REGRESSIONS; at B15-06 and later FIX_BEFORE_CLOSE | RP-B15-CACHED-EXAMPLE-REGRESSION | blocks full-success closure; carried forward to B15-06 adjudication (RETURN_TO_B8) |
 | B15_BROUTE_REGRESSION_UNDER_PUBLIC_SMOKE | FIX_BEFORE_CLOSE | RP-B15-BROUTE-REGRESSION-UNDER-PUBLIC-SMOKE | blocks closure |
 
 ## 7. Hard stop rules and forbidden public regressions

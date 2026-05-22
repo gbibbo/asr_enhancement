@@ -74,7 +74,7 @@ approval_packet:
     scope: {type: enum, required: true, enum_values: [task, phase, scope_change, plan_authoring]}
     task_id: {type: string_or_null, required: true}
     phase: {type: string_or_null, required: true}
-    decision: {type: enum, required: true, enum_values: [APPROVE_PLAN, REVISE_PLAN, STOP_SCOPE_CONFLICT, CLOSE_TASK, FIX_BEFORE_CLOSE, PHASE_APPROVE, PHASE_REJECT, CHANGE_SCOPE, REQUEST_PLAN_AUTHORING, APPROVE_FOR_EXECUTION]}
+    decision: {type: enum, required: true, enum_values: [APPROVE_PLAN, REVISE_PLAN, STOP_SCOPE_CONFLICT, CLOSE_TASK, CLOSE_TASK_WITH_OBSERVED_REGRESSIONS, FIX_BEFORE_CLOSE, PHASE_APPROVE, PHASE_REJECT, CHANGE_SCOPE, REQUEST_PLAN_AUTHORING, APPROVE_FOR_EXECUTION]}
     accepted_report_commit: {type: string_or_null, required: true}
     next_expected_task: {type: string_or_null, required: true}
     required_fix: {type: string_or_null, required: true}
@@ -102,10 +102,19 @@ blocking_marker_recovery_record:
   required_fields: [packet_id, marker, diagnosis_command, allowed_files_to_inspect, allowed_files_to_modify, retry_limit, next_state_on_recovered, next_state_on_retry_exhausted]
 
 tracker_task_record:
-  fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task]
+  fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task, observed_regression_markers]
   required_fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task]
   enum_values:
-    status: [PENDING, PLANNED, IN_PROGRESS, PASS, FAIL, HALTED, SKIPPED_BY_FUTURE_SCOPE, BLOCKED_BY_HUMAN_ACTION]
+    status: [PENDING, PLANNED, IN_PROGRESS, PASS, PASS_WITH_OBSERVED_REGRESSION, FAIL, HALTED, SKIPPED_BY_FUTURE_SCOPE, BLOCKED_BY_HUMAN_ACTION]
+  optional_fields_notes:
+    observed_regression_markers: >-
+      list[string]; non-empty list of regression-class marker ids when status is
+      PASS_WITH_OBSERVED_REGRESSION, absent or empty otherwise. Regression-class
+      markers in scope at B15-05: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE,
+      B15_QUOTA_STATE_MISREPRESENTED, B15_UPLOAD_LIMIT_REGRESSION,
+      B15_MOBILE_LAYOUT_REGRESSION, B15_CACHED_EXAMPLE_REGRESSION. Fabrication-class
+      markers (B15_SMOKE_RESULT_FABRICATED, B15_MULTI_NETWORK_COVERAGE_GAP) are NOT
+      admissible here; they remain pure FIX_BEFORE_CLOSE.
 
 artifact_record:
   fields: [artifact_id, path, produced_by_task, exists, size_bytes, sha256, validator]
@@ -153,7 +162,7 @@ multi_network_smoke_result_record:
     recruiter_gate_observed_status: [authenticated_access_only, unauthenticated_access_observed]
     quota_state_observed: [AssemblyAI available, AssemblyAI daily quota reached, AssemblyAI quota exhausted, AssemblyAI disabled]
     upload_limit_observed: [enforced, not_enforced]
-    mobile_layout_observed: [no_horizontal_scroll, horizontal_scroll_observed]
+    mobile_layout_observed: [no_horizontal_scroll, horizontal_scroll_observed, not_applicable]
     cached_example_observed: [all_curated_examples_resolved, curated_example_failed]
   rules:
     - evidence_reference must be a non-null operator-supplied reference recorded via a human_action_result
@@ -161,6 +170,7 @@ multi_network_smoke_result_record:
     - recruiter_gate_observed_status unauthenticated_access_observed sets marker B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
     - upload_limit_observed not_enforced sets marker B15_UPLOAD_LIMIT_REGRESSION
     - mobile_layout_observed horizontal_scroll_observed sets marker B15_MOBILE_LAYOUT_REGRESSION
+    - mobile_layout_observed not_applicable is legal only when vantage_point is one of {windows_local, other_wifi, vpn_or_external_tester}; on vantage_point mobile_cellular it sets marker B15_MOBILE_LAYOUT_REGRESSION
     - cached_example_observed curated_example_failed sets marker B15_CACHED_EXAMPLE_REGRESSION
     - a result record authored without a non-null evidence_reference sets marker B15_SMOKE_RESULT_FABRICATED
   forbidden_values:

@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
 """
-B15 mobile-layout validator.
+B15 mobile-layout validator (vantage-point-conditional).
 
-Reads the declarative B15-05 smoke-results deliverable and asserts that
-every multi_network_smoke_result_record observed the mobile layout with
-no horizontal scroll. A record reporting
-mobile_layout_observed=horizontal_scroll_observed is a mobile-layout
-regression under public smoke.
+Reads the declarative B15-05 smoke-results deliverable and asserts the
+mobile_layout_observed value on each multi_network_smoke_result_record
+under the per-vantage-point rule pinned by
+docs/plans/b15/state_packet_schemas.yaml > multi_network_smoke_result_record:
+
+  * for vantage_point == mobile_cellular: mobile_layout_observed must be
+    no_horizontal_scroll (PASS) or horizontal_scroll_observed (FAIL ->
+    B15_MOBILE_LAYOUT_REGRESSION); not_applicable is illegal on the mobile
+    vantage point and is treated as B15_MOBILE_LAYOUT_REGRESSION.
+  * for vantage_point in {windows_local, other_wifi, vpn_or_external_tester}:
+    mobile_layout_observed must be no_horizontal_scroll (PASS) or
+    not_applicable (PASS); horizontal_scroll_observed remains a regression.
+  * any value outside the schema enum is a regression marker.
 
 The validator is pure: it reads one declarative record file and writes
 only the requested --out report. It performs no public network call.
@@ -29,8 +37,18 @@ SENTINEL_FAIL = "B15_MOBILE_LAYOUT_REGRESSION"
 
 RECORD_KEY = "multi_network_smoke_result_record"
 FIELD = "mobile_layout_observed"
-EXPECTED = "no_horizontal_scroll"
-LEGAL_VALUES = {"no_horizontal_scroll", "horizontal_scroll_observed"}
+VANTAGE_FIELD = "vantage_point"
+
+LEGAL_VALUES = {"no_horizontal_scroll", "horizontal_scroll_observed", "not_applicable"}
+MOBILE_VANTAGE_POINTS = {"mobile_cellular"}
+NON_MOBILE_VANTAGE_POINTS = {"windows_local", "other_wifi", "vpn_or_external_tester"}
+
+PASS_VALUES_BY_VANTAGE = {
+    "mobile_cellular": {"no_horizontal_scroll"},
+    "windows_local": {"no_horizontal_scroll", "not_applicable"},
+    "other_wifi": {"no_horizontal_scroll", "not_applicable"},
+    "vpn_or_external_tester": {"no_horizontal_scroll", "not_applicable"},
+}
 
 YAML_BLOCK_RE = re.compile(r"```yaml\s*\n(.*?)\n```", re.DOTALL)
 
@@ -83,14 +101,35 @@ def main() -> int:
     for idx, r in enumerate(records, start=1):
         rid = r.get("result_id", f"record#{idx}")
         value = r.get(FIELD)
+        vp = r.get(VANTAGE_FIELD)
         if value not in LEGAL_VALUES:
             failures.append(
                 f"{rid}: {FIELD} '{value}' is not a legal value {sorted(LEGAL_VALUES)}"
             )
-        elif value != EXPECTED:
+            continue
+        if vp in MOBILE_VANTAGE_POINTS:
+            if value == "not_applicable":
+                failures.append(
+                    f"{rid}: {FIELD} 'not_applicable' is not legal on vantage_point "
+                    f"'{vp}'; mobile_cellular must observe no_horizontal_scroll or "
+                    f"horizontal_scroll_observed"
+                )
+            elif value != "no_horizontal_scroll":
+                failures.append(
+                    f"{rid}: {FIELD} is '{value}' on vantage_point '{vp}'; the "
+                    f"mobile layout must be observed as 'no_horizontal_scroll'"
+                )
+        elif vp in NON_MOBILE_VANTAGE_POINTS:
+            allowed = PASS_VALUES_BY_VANTAGE[vp]
+            if value not in allowed:
+                failures.append(
+                    f"{rid}: {FIELD} is '{value}' on vantage_point '{vp}'; "
+                    f"expected one of {sorted(allowed)}"
+                )
+        else:
             failures.append(
-                f"{rid}: {FIELD} is '{value}'; the mobile layout must be "
-                f"observed as '{EXPECTED}'"
+                f"{rid}: vantage_point '{vp}' is not recognized; expected one of "
+                f"{sorted(MOBILE_VANTAGE_POINTS | NON_MOBILE_VANTAGE_POINTS)}"
             )
 
     lines.append("## Summary")
@@ -108,12 +147,15 @@ def main() -> int:
         return 1
 
     lines += [
-        f"- [PASS] every result record observed {FIELD}={EXPECTED}",
+        f"- [PASS] every result record observed a legal {FIELD} value under "
+        f"its vantage_point (mobile_cellular: no_horizontal_scroll; non-mobile: "
+        f"no_horizontal_scroll or not_applicable)",
         "",
         "## Result",
         "",
-        "The mobile layout showed no horizontal scroll across every "
-        "result record.",
+        "The mobile layout showed no horizontal scroll on the mobile vantage "
+        "point, and non-mobile vantage points observed a legal value (either "
+        "no_horizontal_scroll or not_applicable).",
         "",
         SENTINEL_PASS,
     ]

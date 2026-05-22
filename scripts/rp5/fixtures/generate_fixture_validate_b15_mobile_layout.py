@@ -2,13 +2,25 @@
 """
 Fixture generator paired with validate_b15_mobile_layout.
 
-Materializes one positive and two negative declarative smoke-results
-samples and runs the validator in-process against each, asserting that
-the positive sample passes and every negative sample is flagged with
+Materializes positive and negative declarative smoke-results samples
+and runs the validator in-process against each, asserting that every
+positive sample passes and every negative sample is flagged with
 B15_MOBILE_LAYOUT_REGRESSION.
 
+Positive cases exercised:
+  * the vantage-point-conditional positive: mobile_cellular reports
+    no_horizontal_scroll while non-mobile vantage points report
+    not_applicable (legal under the repaired rule);
+  * the all-no_horizontal_scroll positive (every vantage point reports
+    no_horizontal_scroll), preserved as still legal.
+
 Negative cases exercised:
-  * a record reporting mobile_layout_observed=horizontal_scroll_observed;
+  * a record reporting mobile_layout_observed=horizontal_scroll_observed
+    on the mobile vantage point;
+  * a non-mobile vantage point reporting horizontal_scroll_observed
+    (still a regression on non-mobile vantage points);
+  * mobile_cellular reporting not_applicable (illegal on the mobile
+    vantage point);
   * a record reporting an illegal mobile_layout_observed value.
 
 The generator performs no public network call and starts no public
@@ -104,17 +116,44 @@ def render_results(records: list[dict]) -> str:
     return "\n".join(parts) + "\n"
 
 
-def positive_body() -> str:
-    return render_results([good_record(vp) for vp in ALL_VANTAGE_POINTS])
+def positive_bodies() -> dict[str, str]:
+    """Two positive fixture variants, both legal under the repaired rule."""
+    # variant A: vantage-point-conditional positive
+    vp_conditional = [good_record(vp) for vp in ALL_VANTAGE_POINTS]
+    for rec in vp_conditional:
+        if rec["vantage_point"] != "mobile_cellular":
+            rec[FIELD] = "not_applicable"
+    # variant B: all-no_horizontal_scroll positive (default good_record value)
+    all_no_scroll = [good_record(vp) for vp in ALL_VANTAGE_POINTS]
+    return {
+        "positive_vantage_point_conditional": render_results(vp_conditional),
+        "positive_all_no_horizontal_scroll": render_results(all_no_scroll),
+    }
 
 
 def negative_bodies() -> dict[str, str]:
-    scroll = [good_record(vp) for vp in ALL_VANTAGE_POINTS]
-    scroll[0][FIELD] = "horizontal_scroll_observed"
+    # negative 1: horizontal_scroll_observed on the mobile vantage point
+    scroll_mobile = [good_record(vp) for vp in ALL_VANTAGE_POINTS]
+    for rec in scroll_mobile:
+        if rec["vantage_point"] == "mobile_cellular":
+            rec[FIELD] = "horizontal_scroll_observed"
+    # negative 2: horizontal_scroll_observed on a non-mobile vantage point
+    scroll_non_mobile = [good_record(vp) for vp in ALL_VANTAGE_POINTS]
+    for rec in scroll_non_mobile:
+        if rec["vantage_point"] == "windows_local":
+            rec[FIELD] = "horizontal_scroll_observed"
+    # negative 3: not_applicable on the mobile vantage point (illegal)
+    na_on_mobile = [good_record(vp) for vp in ALL_VANTAGE_POINTS]
+    for rec in na_on_mobile:
+        if rec["vantage_point"] == "mobile_cellular":
+            rec[FIELD] = "not_applicable"
+    # negative 4: illegal enum value
     illegal = [good_record(vp) for vp in ALL_VANTAGE_POINTS]
     illegal[1][FIELD] = "layout_unknown"
     return {
-        "negative_horizontal_scroll_observed": render_results(scroll),
+        "negative_horizontal_scroll_observed_on_mobile": render_results(scroll_mobile),
+        "negative_horizontal_scroll_observed_on_non_mobile": render_results(scroll_non_mobile),
+        "negative_not_applicable_on_mobile_cellular": render_results(na_on_mobile),
         "negative_illegal_mobile_value": render_results(illegal),
     }
 
@@ -152,20 +191,24 @@ def main() -> int:
 
     pos_root = fixtures_root / "positive"
     pos_root.mkdir(parents=True, exist_ok=True)
-    pos_file = pos_root / "smoke_results.md"
-    pos_file.write_text(positive_body(), encoding="utf-8")
-    pos_sentinel = run_validator(pos_file)
-    if pos_sentinel != VALIDATOR_OK:
-        adversarial_failures.append(
-            f"positive: expected {VALIDATOR_OK} got {pos_sentinel!r}"
-        )
-    positive_entry = {
-        "case_name": "positive",
-        "root": "positive",
-        "expected_sentinel": VALIDATOR_OK,
-        "observed_sentinel": pos_sentinel,
-        "tree_files": hash_tree(pos_root),
-    }
+    positive_entries: list[dict] = []
+    for case_name, body in positive_bodies().items():
+        case_root = pos_root / case_name
+        case_root.mkdir(parents=True, exist_ok=True)
+        case_file = case_root / "smoke_results.md"
+        case_file.write_text(body, encoding="utf-8")
+        sentinel = run_validator(case_file)
+        if sentinel != VALIDATOR_OK:
+            adversarial_failures.append(
+                f"{case_name}: expected {VALIDATOR_OK} got {sentinel!r}"
+            )
+        positive_entries.append({
+            "case_name": case_name,
+            "root": str(case_root.relative_to(fixtures_root)),
+            "expected_sentinel": VALIDATOR_OK,
+            "observed_sentinel": sentinel,
+            "tree_files": hash_tree(case_root),
+        })
 
     neg_root = fixtures_root / "negative"
     neg_root.mkdir(parents=True, exist_ok=True)
@@ -195,7 +238,7 @@ def main() -> int:
         "sentinel_pass": SENTINEL_PASS,
         "validator_sentinel_pass": VALIDATOR_OK,
         "fixtures_root": str(fixtures_root.relative_to(REPO_ROOT)),
-        "positive": [positive_entry],
+        "positive": positive_entries,
         "negative": neg_entries,
     }
     body = json.dumps(manifest, indent=2, sort_keys=True).encode("utf-8")
