@@ -435,6 +435,75 @@ recovery_log:
     har_b15_multi_network_smoke_001_status: pre_declared_unresolved
     note: "scope-change repair only; B15-05 implementation not started; no smoke result record authored; HAR-B15-MULTI-NETWORK-SMOKE-001 remains pre_declared_unresolved; commit hashes recorded at orchestrator scope-change acceptance"
     next_task: B15-05
+  RP-B15-EXECUTION-RAIL-REPAIR-B15-05:
+    status: PASS
+    marker: SCOPE_CHANGE_REVISE_PLAN
+    scope: scope_change
+    task_id: B15-05
+    orchestrator_decision: APPROVE_SCOPE_CHANGE_EXECUTION
+    accepted_report_commit_input: 7c3762d9b03d70a47942812438b05765c74fc95c
+    rationale: >-
+      Two execution-rail gaps surfaced after the operator-supplied
+      human_action_result was recorded for HAR-B15-MULTI-NETWORK-SMOKE-001:
+      (Gap A) the schema and validator for mobile_layout_observed rejected
+      the legitimate not_applicable value on non-mobile vantage points;
+      (Gap B) the B15-05 transition rail had no deterministic close branch
+      for honest upstream regressions, leaving B15-05 unable to advance
+      without rewriting observations. This scope change extends
+      mobile_layout_observed with a vantage-point-conditional not_applicable
+      value (legal only for windows_local/other_wifi/vpn_or_external_tester;
+      illegal on mobile_cellular), introduces tracker_task_record status
+      PASS_WITH_OBSERVED_REGRESSION and orchestrator decision
+      CLOSE_TASK_WITH_OBSERVED_REGRESSIONS, annotates the five regression
+      markers with dual orchestrator effect (admit-at-B15-05 / fix-at-B15-06+),
+      and aligns the §4 transition table, §10 task contract, §18 stress-replay,
+      and §3 phase-gate posture so that honest regressions are admitted at
+      B15-05 and carried forward as observed_regression_markers to B15-06
+      adjudication. No operator observation is altered. No FAIL is softened.
+      The recruiter-gate observation unauthenticated_access_observed remains
+      verbatim and will route to RETURN_TO_B14 at B15-06. The
+      upload_with_manual_ground_truth=FAIL observations remain verbatim and
+      propagate to B15-06's all_coverage_items_passed=false predicate.
+      SUCCESS_WITH_STABLE_NAMED_EXPOSURE is not asserted by this repair.
+    files_modified:
+      - docs/plans/b15/state_packet_schemas.yaml
+      - docs/plans/b15/agent_plan.md
+      - docs/plans/b15/orchestrator_plan.md
+      - reports/rp5/b15_plan_compile.md
+      - scripts/rp5/validate_b15_mobile_layout.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b15_mobile_layout.py
+    fixture_trees_regenerated:
+      - tests/rp5/fixtures/generate_fixture_validate_b15_mobile_layout/
+    manifests_regenerated:
+      generate_fixture_validate_b15_mobile_layout_manifest.json: 54c54a70caab5caa7862cf9e100f79afd170303c89adb781ffd2d0a9ad51eb13
+    validate_approval_packet_inspection:
+      result: not_hardcoded_enum
+      detail: "validate_approval_packet.py reads required_fields from the schema; no enum hard-code; no patch applied"
+    synthetic_approval_packet_check:
+      decision_tested: CLOSE_TASK_WITH_OBSERVED_REGRESSIONS
+      sentinel: OK_APPROVAL_PACKET
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - OK_FIXTURE_VALIDATE_B15_MOBILE_LAYOUT
+      - OK_APPROVAL_PACKET
+      - "deterministic_regeneration_verified: true"
+      - "har_b15_multi_network_smoke_001_supplied_values_unchanged: true"
+      - "no_fail_softened: true"
+      - "no_unauthenticated_access_observed_converted_to_authenticated_access_only: true"
+      - "no_not_applicable_converted_to_no_horizontal_scroll_on_non_mobile_vantage_points: true"
+      - "no_public_smoke_success_claim_made_during_this_repair: true"
+      - "no_b15_05_execution_started_by_this_repair: true"
+      - "no_b15_06_started_by_this_repair: true"
+    b15_05_executed: false
+    b15_05_marked_pass: false
+    b15_05_marked_pass_with_observed_regression: false
+    public_exposure_started: false
+    har_b15_multi_network_smoke_001_status: resolved
+    note: "scope-change repair only; B15-05 implementation not started; operator-supplied human_action_result preserved verbatim; commit hashes recorded at orchestrator scope-change acceptance"
+    next_task: B15-05
 tasks:
   BR-00:
     task_id: BR-00
