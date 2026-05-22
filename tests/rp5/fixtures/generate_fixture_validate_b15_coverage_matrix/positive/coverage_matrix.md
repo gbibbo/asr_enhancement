@@ -9,7 +9,7 @@ multi_network_smoke_coverage_record:
     - other_wifi
     - vpn_or_external_tester
   coverage_items:
-    - ten_curated_examples
+    - five_curated_examples
     - five_degradations
     - whisper_provider
     - assemblyai_provider
@@ -19,7 +19,7 @@ multi_network_smoke_coverage_record:
     - provider_quota_state
     - mobile_layout
   planned_status_per_item:
-    ten_curated_examples: PENDING_OPERATOR_EVIDENCE
+    five_curated_examples: PENDING_OPERATOR_EVIDENCE
     five_degradations: PENDING_OPERATOR_EVIDENCE
     whisper_provider: PENDING_OPERATOR_EVIDENCE
     assemblyai_provider: PENDING_OPERATOR_EVIDENCE
