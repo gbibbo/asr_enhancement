@@ -1,9 +1,10 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15-05
-last_completed_task: B15-04
+current_task: B15-06
+last_completed_task: B15-05
 last_completed_phase: B14.1
-markers: []
+markers:
+  - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; cleared at B15-06 adjudication routing
 phase_approvals:
   B-route:
     status: APPROVED
@@ -270,10 +271,14 @@ human_action_requests:
       no_unrelated_har_altered: true
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b15_public_exposure_bringup.md
+  latest_execution_report_path: reports/rp5/b15_multi_network_smoke_results.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15-05
+  expected_next_task: B15-06
+  closure_pending_orchestrator_decision: CLOSE_TASK_WITH_OBSERVED_REGRESSIONS
+  closure_pending_for_task: B15-05
+  closure_pending_observed_regression_markers:
+    - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -2554,3 +2559,59 @@ tasks:
       b15_05_started: false
     marker: null
     next_task: B15-05
+  B15-05:
+    task_id: B15-05
+    status: PASS_WITH_OBSERVED_REGRESSION
+    commit: 58a7cb270e66dc635ada9f1b1671fbe9d08b1149
+    files_changed:
+      - reports/rp5/b15_multi_network_smoke_results.md
+      - reports/rp5/b15_smoke_result_evidence_validation.md
+      - reports/rp5/b15_multi_network_smoke_validation.md
+      - reports/rp5/b15_recruiter_gate_validation.md
+      - reports/rp5/b15_quota_state_validation.md
+      - reports/rp5/b15_upload_limit_validation.md
+      - reports/rp5/b15_mobile_layout_validation.md
+      - reports/rp5/b15_cached_example_validation.md
+      - reports/rp5/b15_no_url_validation.md
+    commands_run:
+      - "python3 scripts/rp5/validate_b15_smoke_result_evidence.py --results reports/rp5/b15_multi_network_smoke_results.md --out reports/rp5/b15_smoke_result_evidence_validation.md (OK_B15_SMOKE_RESULT_EVIDENCE_TRACED)"
+      - "python3 scripts/rp5/validate_b15_multi_network_smoke.py --results reports/rp5/b15_multi_network_smoke_results.md --out reports/rp5/b15_multi_network_smoke_validation.md (OK_B15_MULTI_NETWORK_SMOKE_OR_BLOCKED)"
+      - "python3 scripts/rp5/validate_b15_recruiter_gate_preserved_under_public_smoke.py --results reports/rp5/b15_multi_network_smoke_results.md --out reports/rp5/b15_recruiter_gate_validation.md (B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE — expected observed regression)"
+      - "python3 scripts/rp5/validate_b15_quota_state_accuracy.py --results reports/rp5/b15_multi_network_smoke_results.md --out reports/rp5/b15_quota_state_validation.md (OK_B15_QUOTA_STATE_ACCURATE)"
+      - "python3 scripts/rp5/validate_b15_upload_limit_enforced.py --results reports/rp5/b15_multi_network_smoke_results.md --out reports/rp5/b15_upload_limit_validation.md (OK_B15_UPLOAD_LIMIT_ENFORCED)"
+      - "python3 scripts/rp5/validate_b15_mobile_layout.py --results reports/rp5/b15_multi_network_smoke_results.md --out reports/rp5/b15_mobile_layout_validation.md (OK_B15_MOBILE_LAYOUT_OK)"
+      - "python3 scripts/rp5/validate_b15_cached_example_integrity.py --results reports/rp5/b15_multi_network_smoke_results.md --out reports/rp5/b15_cached_example_validation.md (OK_B15_CACHED_EXAMPLE_OK)"
+      - "python3 scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py --root . --out reports/rp5/b15_no_url_validation.md (OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL)"
+      - "python3 scripts/rp5/validate_report_shape.py --report reports/rp5/b15_multi_network_smoke_results.md --shape multi_network_smoke_result_record (OK_REPORT_SHAPE)"
+      - "python3 scripts/rp5/validate_b15_path_locks.py --diff HEAD~1..HEAD --out /tmp/pathlock_b15_05.md (OK_CHANGED_FILES_PATH_LOCKED)"
+    key_outputs:
+      - OK_B15_SMOKE_RESULT_EVIDENCE_TRACED
+      - OK_B15_MULTI_NETWORK_SMOKE_OR_BLOCKED
+      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+      - OK_B15_QUOTA_STATE_ACCURATE
+      - OK_B15_UPLOAD_LIMIT_ENFORCED
+      - OK_B15_MOBILE_LAYOUT_OK
+      - OK_B15_CACHED_EXAMPLE_OK
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_REPORT_SHAPE
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "smoke_result_records_authored: 4"
+      - "vantage_points_covered: [windows_local, mobile_cellular, other_wifi, vpn_or_external_tester]"
+      - "coverage_items_per_record: 9"
+      - "operator_evidence_preserved_verbatim: true"
+      - "no_fail_softened: true"
+      - "no_unauthenticated_access_observed_converted: true"
+      - "no_not_applicable_converted_on_non_mobile: true"
+      - "no_public_url_or_hostname_literal_recorded: true"
+      - "no_secret_recorded: true"
+      - "public_exposure_smoke_claim_record_authored: false"
+      - "b15_decision_rule_routing_record_authored: false"
+      - "success_with_stable_named_exposure_asserted: false"
+      - "b15_06_started: false"
+      - "upload_with_manual_ground_truth_FAIL_propagated_as_coverage_outcome: true"
+      - "har_b15_multi_network_smoke_001_status: resolved"
+    marker: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    observed_regression_markers:
+      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    closure_pending_orchestrator_decision: CLOSE_TASK_WITH_OBSERVED_REGRESSIONS
+    next_task: B15-06
