@@ -1,10 +1,10 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15-06
-last_completed_task: B15-05
+current_task: B15-07
+last_completed_task: B15-06
 last_completed_phase: B14.1
 markers:
-  - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; cleared at B15-06 adjudication routing
+  - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; preserved by B15-06 CLOSE_TASK (claim_status=FAILED_PENDING_PHASE_RETURN, routing=RETURN_TO_B14); carried into B15-07 phase-gate evaluation
 phase_approvals:
   B-route:
     status: APPROVED
@@ -271,14 +271,26 @@ human_action_requests:
       no_unrelated_har_altered: true
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b15_multi_network_smoke_results.md
+  latest_execution_report_path: reports/rp5/b15_smoke_adjudication.md
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15-06
-  closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK_WITH_OBSERVED_REGRESSIONS for B15-05
+  expected_next_task: B15-07
+  closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK for B15-06
   closure_pending_for_task: null
   closure_pending_observed_regression_markers: []
   last_recorded_closure_decision:
+    scope: task
+    task_id: B15-06
+    phase: B15
+    decision: CLOSE_TASK
+    accepted_report_commit_input: ffe02a310d05474897be70d12c400e01bb3aa2bf
+    parent_commit_hash: 5bb6a71a6c23cc2338fa674fc5421555db36a444
+    observed_regression_markers: null
+    next_expected_task: B15-07
+    required_fix: null
+    carried_markers_preserved:
+      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+  previous_recorded_closure_decision:
     scope: task
     task_id: B15-05
     phase: B15
@@ -2629,3 +2641,84 @@ tasks:
     tracker_record_commit_input: 4a28a205ce9f4f57bbd25cba5fdd56b51b3b29d3
     closure_marker_cleared: false  # B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE remains active in tracker.markers per the PASS_WITH_OBSERVED_REGRESSION rail
     next_task: B15-06
+  B15-06:
+    task_id: B15-06
+    status: PASS
+    commit: ffe02a310d05474897be70d12c400e01bb3aa2bf
+    parent_commit: 5bb6a71a6c23cc2338fa674fc5421555db36a444
+    accepted_report_commit: ffe02a310d05474897be70d12c400e01bb3aa2bf
+    files_changed:
+      - reports/rp5/b15_smoke_adjudication.md
+    commands_run:
+      - "python3 scripts/rp5/validate_report_shape.py --report reports/rp5/b15_smoke_adjudication.md --shape public_exposure_smoke_claim_record --out /tmp/b15_06_shape_claim.md (OK_REPORT_SHAPE)"
+      - "python3 scripts/rp5/validate_report_shape.py --report reports/rp5/b15_smoke_adjudication.md --shape b15_decision_rule_routing_record --out /tmp/b15_06_shape_routing.md (OK_REPORT_SHAPE)"
+      - "python3 scripts/rp5/validate_b15_public_exposure_smoke_claim.py --adjudication reports/rp5/b15_smoke_adjudication.md --out /tmp/b15_06_claim_validation.md (OK_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM_STABLE_OR_BLOCKED)"
+      - "python3 scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py --root . --out /tmp/b15_06_no_url.md (OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL)"
+      - "python3 scripts/rp5/print_pending_human_action_requests.py --tracker-path docs/progress/rp5_progress.yaml --out /tmp/b15_06_pending_har.md (exit 0; 4 HARs resolved; 0 pending)"
+      - "grep -nE '(as needed|as appropriate|as required|if already present|where appropriate|best practices|TBD|free-form|free form)' reports/rp5/b15_smoke_adjudication.md (zero matches; grep exit 1 = no match = PASS)"
+      - "python3 scripts/rp5/validate_b15_path_locks.py --diff HEAD~1..HEAD --out /tmp/b15_06_path_lock.md (OK_CHANGED_FILES_PATH_LOCKED)"
+    key_outputs:
+      - OK_REPORT_SHAPE
+      - OK_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM_STABLE_OR_BLOCKED
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "public_exposure_smoke_claim_record.claim_id: B15-CLAIM-001"
+      - "public_exposure_smoke_claim_record.claim_status: FAILED_PENDING_PHASE_RETURN"
+      - "public_exposure_smoke_claim_record.stable_named_exposure_supplied_by_reference: true"
+      - "public_exposure_smoke_claim_record.all_coverage_items_passed: false"
+      - "public_exposure_smoke_claim_record.explicit_blocker_id: null"
+      - "public_exposure_smoke_claim_record.blocker_recovery_packet: null"
+      - "public_exposure_smoke_claim_record.marker: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE"
+      - "b15_decision_rule_routing_record.routing_id: B15-ROUTING-001"
+      - "b15_decision_rule_routing_record.routing: RETURN_TO_B14"
+      - "b15_decision_rule_routing_record.return_phase_if_any: B14"
+      - "b15_decision_rule_routing_record.marker: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE"
+      - "carried_marker_preserved: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE"
+      - "carried_marker_cleared: false"
+      - "success_with_stable_named_exposure_asserted: false"
+      - "upload_with_manual_ground_truth_FAIL_observation_preserved_verbatim: true"
+      - "unauthenticated_access_observed_preserved_verbatim_on_all_four_vantage_points: true"
+      - "no_public_url_or_hostname_literal_recorded: true"
+      - "no_secret_recorded: true"
+      - "smoke_results_file_unmodified: true"
+      - "har_supplied_values_unmodified: true"
+      - "b15_07_started: false"
+    supplemental_evidence:
+      task_kind: b15_smoke_adjudication_authoring
+      deliverable_report_path: reports/rp5/b15_smoke_adjudication.md
+      deliverable_record_types:
+        - public_exposure_smoke_claim_record
+        - b15_decision_rule_routing_record
+      consumed_inputs_read_only:
+        - reports/rp5/b15_public_exposure_bringup.md
+        - reports/rp5/b15_multi_network_smoke_results.md
+        - docs/plans/b15/agent_plan.md
+        - docs/plans/b15/orchestrator_plan.md
+        - docs/plans/b15/state_packet_schemas.yaml
+      legacy_decision_rule_source: docs/plans/b15/agent_plan.md section 10.1
+      carry_forward_rule_source: docs/plans/b15/orchestrator_plan.md section 6 marker registry (B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE -> RETURN_TO_B14)
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      forbidden_commit_trailers_present: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      docker_compose_invoked: false
+      curl_invoked: false
+      browser_invoked: false
+      public_endpoint_check_invoked: false
+      network_or_runtime_command_run: false
+      smoke_results_file_modified: false
+      har_supplied_values_modified: false
+      adjudication_file_modified_after_validation: false
+      b15_07_started: false
+    marker: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    observed_regression_markers_carried_in:
+      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK
+    closed_via_orchestrator_decision: CLOSE_TASK
+    accepted_report_commit_input: ffe02a310d05474897be70d12c400e01bb3aa2bf
+    parent_commit_hash_input: 5bb6a71a6c23cc2338fa674fc5421555db36a444
+    closure_marker_cleared: false  # B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE remains active in tracker.markers per orchestrator_plan section 6 carry-forward rule; consumed by B15-07 phase-gate evaluation
+    next_task: B15-07
