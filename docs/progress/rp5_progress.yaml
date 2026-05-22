@@ -275,10 +275,20 @@ state_transport:
   latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
   expected_next_task: B15-06
-  closure_pending_orchestrator_decision: CLOSE_TASK_WITH_OBSERVED_REGRESSIONS
-  closure_pending_for_task: B15-05
-  closure_pending_observed_regression_markers:
-    - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+  closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK_WITH_OBSERVED_REGRESSIONS for B15-05
+  closure_pending_for_task: null
+  closure_pending_observed_regression_markers: []
+  last_recorded_closure_decision:
+    scope: task
+    task_id: B15-05
+    phase: B15
+    decision: CLOSE_TASK_WITH_OBSERVED_REGRESSIONS
+    accepted_report_commit_input: 58a7cb270e66dc635ada9f1b1671fbe9d08b1149
+    tracker_record_commit_input: 4a28a205ce9f4f57bbd25cba5fdd56b51b3b29d3
+    observed_regression_markers:
+      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    next_expected_task: B15-06
+    required_fix: null
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -2613,5 +2623,9 @@ tasks:
     marker: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
     observed_regression_markers:
       - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
-    closure_pending_orchestrator_decision: CLOSE_TASK_WITH_OBSERVED_REGRESSIONS
+    closure_pending_orchestrator_decision: null  # sealed
+    closed_via_orchestrator_decision: CLOSE_TASK_WITH_OBSERVED_REGRESSIONS
+    accepted_report_commit_input: 58a7cb270e66dc635ada9f1b1671fbe9d08b1149
+    tracker_record_commit_input: 4a28a205ce9f4f57bbd25cba5fdd56b51b3b29d3
+    closure_marker_cleared: false  # B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE remains active in tracker.markers per the PASS_WITH_OBSERVED_REGRESSION rail
     next_task: B15-06
