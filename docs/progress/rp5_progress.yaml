@@ -1,10 +1,10 @@
 tracker_file: docs/progress/rp5_progress.yaml
-current_phase: B15
-current_task: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+current_phase: B14.2
+current_task: B14_2-00
 last_completed_task: B15-07
 last_completed_phase: B15
 markers:
-  - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; preserved by B15-06 CLOSE_TASK (claim_status=FAILED_PENDING_PHASE_RETURN, routing=RETURN_TO_B14); preserved by B15-07 CLOSE_TASK and B15 PHASE_REJECT; remains active and carried into the return-to-B14 plan-authoring (exact return target reserved for orchestrator)
+  - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; preserved by B15-06 CLOSE_TASK (claim_status=FAILED_PENDING_PHASE_RETURN, routing=RETURN_TO_B14), B15-07 CLOSE_TASK, B15 PHASE_REJECT, and B14.2 plan-authoring APPROVE_FOR_EXECUTION; remains active through B14_2-00..B14_2-06; eligible for clearance only at B14.2 PHASE_APPROVE on the gate-restored branch per docs/plans/b14_2/agent_plan.md section 2 carried_marker_clearance_policy
 phase_approvals:
   B-route:
     status: APPROVED
@@ -42,8 +42,8 @@ phase_approvals:
     approval_packet_path: reports/rp5/b15_phase_approval_packet.yaml
     phase_approval_packet_artifact_status: pending_orchestrator_side_authority
     phase_gate_report_path: reports/rp5/b15_phase_gate.md
-    next_phase: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
-    next_phase_status: RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+    next_phase: B14.2
+    next_phase_status: APPROVED_FOR_EXECUTION
     decision_rule_routing: RETURN_TO_B14
     claim_status: FAILED_PENDING_PHASE_RETURN
     full_success_branch: FORECLOSED
@@ -52,8 +52,9 @@ phase_approvals:
     active_carried_marker_preserved: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
     success_with_stable_named_exposure_asserted: false
     no_public_url_or_hostname_literal_committed: true
-    return_target_exact_phase_or_task_id: PHASE_RETURN_TARGET_AMBIGUOUS_PENDING_ORCHESTRATOR_DECISION
-    required_fix: "Return to B14 planning is required because B15 recorded B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE and B15-06 routed RETURN_TO_B14. Exact B14 phase/task target remains pending orchestrator plan-authoring."
+    return_target_exact_phase_or_task_id: B14.2
+    return_target_resolved_at_commit_input: f27b321fca35a0a6ea29d7140e257b62f4335d90
+    required_fix: "Return-to-B14 target resolved by orchestrator decision to B14.2 repair microphase. B14.2 plan package authored at commit f27b321fca35a0a6ea29d7140e257b62f4335d90 and APPROVED_FOR_EXECUTION recorded by this tracker mutation. B14_2-00 implementation remains forbidden until a separate APPROVE_PLAN decision for B14_2-00 is recorded by the orchestrator."
 plan_authoring_approvals:
   B14.0:
     status: APPROVED_FOR_EXECUTION
@@ -161,6 +162,77 @@ plan_authoring_approvals:
         resolved_by_human_action_result: true
         resolved_via_decision: ACCEPT_HUMAN_ACTION_RESULT
         resolution_recorded_in: human_action_requests.HAR-B15-MULTI-NETWORK-SMOKE-001
+  B14.2:
+    status: APPROVED_FOR_EXECUTION
+    decision: APPROVE_FOR_EXECUTION
+    accepted_plan_revision_commit: f27b321fca35a0a6ea29d7140e257b62f4335d90
+    accepted_report_commit: f27b321fca35a0a6ea29d7140e257b62f4335d90
+    approval_packet_path: reports/rp5/b14_2_plan_approval_packet.yaml
+    plan_files:
+      - docs/plans/b14_2/orchestrator_plan.md
+      - docs/plans/b14_2/agent_plan.md
+      - docs/plans/b14_2/state_packet_schemas.yaml
+    plan_authoring_report_path: reports/rp5/b14_2_plan_authoring_report.md
+    implementation_task_started: false
+    b14_2_implementation_remains_forbidden_until: a separate APPROVE_PLAN decision for the first B14.2 task (B14_2-00) is recorded by the orchestrator
+    public_exposure_re_smoke_remains_har_gated: true
+    no_har_resolved_by_this_plan_approval: true
+    predecessor_phase_approval:
+      phase: B15
+      decision: PHASE_REJECT
+      accepted_phase_gate_report_commit: 6bcfaee57df7a1e8f7026916b472559b3cadcbbc
+      accepted_tracker_closure_commit: bf8560a6c3493692ccd8a35926a5ddc647b627f6
+      decision_rule_routing: RETURN_TO_B14
+      approval_branch: failed_pending_phase_return_branch
+      approval_is_public_exposure_success_claim: false
+    carried_marker_state_after_this_approval:
+      - id: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+        status: active_preserved
+        clearance_eligibility: only_at_b14_2_phase_approve_on_gate_restored_branch
+        clearance_writer: orchestrator_phase_approve_recording
+        cleared_by_this_approval: false
+    har_carried_forward:
+      - id: HAR-B14_1-STABLE-HOSTNAME-001
+        status: resolved
+        role: by_reference_only
+        blocks: none in B14.2 default; consumed by reference at B14_2-01 and B14_2-04
+        resolved_by_this_plan_approval: false
+        resolved_via_decision: ACCEPT_HUMAN_ACTION_RESULT
+        resolution_recorded_in: human_action_requests.HAR-B14_1-STABLE-HOSTNAME-001
+      - id: HAR-B14_1-FUNNEL-CAPABILITY-001
+        status: resolved
+        role: by_reference_only
+        blocks: none in B14.2 default; consumed by reference at B14_2-01 and B14_2-04
+        resolved_by_this_plan_approval: false
+        resolved_via_decision: ACCEPT_HUMAN_ACTION_RESULT
+        resolution_recorded_in: human_action_requests.HAR-B14_1-FUNNEL-CAPABILITY-001
+      - id: HAR-B14_2-PUBLIC-SURFACE-RECRUITER-GATE-RESMOKE-001
+        status: pre_declared_unresolved
+        new_in_b14_2: true
+        role: primary_explicit_blocker_for_public_surface_gate_recovery
+        blocks: B14_2-04 closure and any clearance of B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+        resolved_by_this_plan_approval: false
+      - id: HAR-B14_2-UPLOAD-WITH-GT-DIAGNOSTIC-001
+        status: pre_declared_conditional
+        new_in_b14_2: true
+        role: conditional_secondary_observation_classifier
+        blocks: B14_2-05 closure only when classification cannot be derived deterministically from B14_2-04 records
+        resolved_by_this_plan_approval: false
+    secondary_observation_posture:
+      observation_id: upload_with_manual_ground_truth_fail_carried_from_b15_05
+      source_har_id: HAR-B15-MULTI-NETWORK-SMOKE-001
+      preserved_verbatim: true
+      conversion_to_pass_without_matching_b14_2_04_evidence: forbidden
+      classification_owner_task: B14_2-05
+      classification_rule_owner_section: docs/plans/b14_2/agent_plan.md section 2 upload_with_gt_classification_rule
+      routing_owner_when_independent_defer: orchestrator (B14.2 does not route)
+    result_recording_policy_compliance:
+      tracker_records_only_boolean_flags_and_non_secret_references: true
+      literal_public_url_or_hostname_or_secret_or_ip_address_values_never_written: true
+      no_b14_2_record_asserts_success_with_stable_named_exposure: true
+      no_unauthenticated_access_observed_converted_to_authenticated_access_only: true
+      no_upload_with_manual_ground_truth_fail_converted_to_pass: true
+      no_unrelated_har_altered: true
 human_action_requests:
   HAR-BR-THRESHOLDS-001:
     status: resolved
@@ -290,12 +362,71 @@ human_action_requests:
       literal_public_url_or_hostname_values_never_written: true
       literal_auth_key_or_token_or_password_or_ip_address_values_never_written: true
       no_unrelated_har_altered: true
+  HAR-B14_2-PUBLIC-SURFACE-RECRUITER-GATE-RESMOKE-001:
+    status: pre_declared_unresolved
+    request_id: HAR-B14_2-PUBLIC-SURFACE-RECRUITER-GATE-RESMOKE-001
+    new_in_b14_2: true
+    marker: HUMAN_ACTION_REQUIRED
+    created_by_task: B14.2 plan authoring (commit f27b321fca35a0a6ea29d7140e257b62f4335d90)
+    accepted_for_task: B14_2-04
+    accepted_by_orchestrator_decision: false
+    missing_inputs:
+      - public_surface_recruiter_gate_resmoke_record_windows_local
+      - public_surface_recruiter_gate_resmoke_record_mobile_cellular
+      - public_surface_recruiter_gate_resmoke_record_other_wifi
+      - public_surface_recruiter_gate_resmoke_record_vpn_or_external_tester
+    why_human_only: the public-surface re-smoke requires real network access to the Funnel-terminated surface, which only the operator can perform; the agent has no public-network execution authority
+    allowed_values_or_schema:
+      recruiter_gate_observed_status_per_record:
+        - authenticated_access_only
+        - unauthenticated_access_observed
+      upload_with_manual_ground_truth_per_record:
+        - PASS
+        - FAIL
+      evidence_reference_per_record: non-null non-secret token; literal URL, hostname, auth-key, token, password, or IP address never written
+      resmoke_run_timestamp_utc_per_record: non-secret ISO-8601 UTC timestamp
+      application_layer_only_no_network_trust_bypass_introduced_per_record: boolean
+    blocks: B14_2-04 closure and any clearance of B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    next_state_until_result: B14_2-04 stays BLOCKED_BY_HUMAN_ACTION; carried marker preserved active
+    forbidden_agent_action: inventing record values; softening unauthenticated_access_observed to authenticated_access_only; converting upload_with_manual_ground_truth FAIL to PASS; running any public-network command
+    result_expected_at: before APPROVE_PLAN for B14_2-04, or recorded as the explicit blocker at B14_2-04
+    result_recording_policy_compliance:
+      tracker_records_only_boolean_flags_and_non_secret_evidence_reference_and_timestamp: true
+      literal_public_url_or_hostname_or_auth_key_or_token_or_password_or_ip_address_values_never_written: true
+  HAR-B14_2-UPLOAD-WITH-GT-DIAGNOSTIC-001:
+    status: pre_declared_conditional
+    request_id: HAR-B14_2-UPLOAD-WITH-GT-DIAGNOSTIC-001
+    new_in_b14_2: true
+    marker: HUMAN_ACTION_REQUIRED
+    created_by_task: B14.2 plan authoring (commit f27b321fca35a0a6ea29d7140e257b62f4335d90)
+    accepted_for_task: B14_2-05
+    accepted_by_orchestrator_decision: false
+    conditional_trigger: fires only when B14_2-04 leaves the upload-with-GT classification undecidable from the four public_surface_recruiter_gate_resmoke_record entries alone under docs/plans/b14_2/agent_plan.md section 2 upload_with_gt_classification_rule
+    missing_inputs:
+      - upload_with_gt_per_vantage_classification_token_windows_local
+      - upload_with_gt_per_vantage_classification_token_mobile_cellular
+      - upload_with_gt_per_vantage_classification_token_other_wifi
+      - upload_with_gt_per_vantage_classification_token_vpn_or_external_tester
+    why_human_only: classification depends on the same operator re-smoke that resolves the gate observation; the agent does not infer cause from absent evidence
+    allowed_values_or_schema:
+      per_vantage_classification_token:
+        - linked_to_gate_confirmed_by_resmoke_pass
+        - independent_observed_under_repaired_gate
+        - re_smoke_evidence_pending
+      diagnostic_note: optional non-secret string; no PII, no secret
+    blocks: B14_2-05 closure only when the section 2 classification rule cannot decide from B14_2-04 records alone
+    next_state_until_result: B14_2-05 records the classification as re_smoke_evidence_pending and the agent waits
+    forbidden_agent_action: inferring a cause not directly evidenced by the resmoke; absorbing the FAIL observation into a B14.2 fix without a linked_to_gate_confirmed_by_resmoke_pass token; converting FAIL to PASS
+    result_expected_at: before APPROVE_PLAN for B14_2-05 when the conditional trigger fires
+    result_recording_policy_compliance:
+      tracker_records_only_per_vantage_classification_tokens_and_optional_non_secret_note: true
+      no_operator_outcome_softened_or_converted: true
 state_transport:
-  latest_planning_report_path: reports/rp5/broute_manual_smoke.md
+  latest_planning_report_path: reports/rp5/b14_2_plan_authoring_report.md
   latest_execution_report_path: reports/rp5/b15_phase_gate.md
   latest_phase_gate_report_path: reports/rp5/b15_phase_gate.md
-  latest_approval_packet_path: reports/rp5/b15_phase_approval_packet.yaml
-  expected_next_task: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+  latest_approval_packet_path: reports/rp5/b14_2_plan_approval_packet.yaml
+  expected_next_task: B14_2-00
   closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK for B15-07 and PHASE_REJECT for B15
   closure_pending_for_task: null
   closure_pending_observed_regression_markers: []
