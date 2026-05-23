@@ -168,6 +168,28 @@ plan_authoring_approvals:
     accepted_plan_revision_commit: f27b321fca35a0a6ea29d7140e257b62f4335d90
     accepted_report_commit: f27b321fca35a0a6ea29d7140e257b62f4335d90
     approval_packet_path: reports/rp5/b14_2_plan_approval_packet.yaml
+    plan_approval_packet_artifact_status: pending_orchestrator_side_authority
+    plan_approval_packet_artifact_status_rationale: >-
+      The standalone reports/rp5/b14_2_plan_approval_packet.yaml artifact authored
+      at commit 572764fdee018c94725742ba16e05ec3487b377a was not classifiable by
+      the active b15-phase-hardcoded path-lock validator
+      scripts/rp5/validate_b15_path_locks.py and produced UNAUTHORIZED_FILE_TOUCHED
+      for the standalone artifact. The recovery commit removes the standalone
+      artifact from the tree while preserving the path as a reserved pointer for
+      orchestrator-side authority, mirroring the precedent at
+      phase_approvals.B15.phase_approval_packet_artifact_status. The canonical
+      ORCHESTRATOR_DECISION binding record is recorded inline immediately below
+      under recorded_orchestrator_decision and is the binding record for this
+      plan-authoring approval.
+    recorded_orchestrator_decision:
+      scope: plan_authoring
+      task_id: B14_2-PLAN-AUTHORING
+      phase: B14.2
+      decision: APPROVE_FOR_EXECUTION
+      accepted_report_commit: f27b321fca35a0a6ea29d7140e257b62f4335d90
+      next_expected_task: B14_2-00
+      required_fix: null
+      rationale: "Approve B14.2 repair-microphase plan package for execution while preserving the carried recruiter-gate regression marker and keeping B14_2-00 blocked until a separate APPROVE_PLAN decision."
     plan_files:
       - docs/plans/b14_2/orchestrator_plan.md
       - docs/plans/b14_2/agent_plan.md
