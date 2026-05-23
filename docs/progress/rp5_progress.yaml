@@ -1,10 +1,10 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B15
-current_task: B15-07
-last_completed_task: B15-06
-last_completed_phase: B14.1
+current_task: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+last_completed_task: B15-07
+last_completed_phase: B15
 markers:
-  - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; preserved by B15-06 CLOSE_TASK (claim_status=FAILED_PENDING_PHASE_RETURN, routing=RETURN_TO_B14); carried into B15-07 phase-gate evaluation
+  - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; preserved by B15-06 CLOSE_TASK (claim_status=FAILED_PENDING_PHASE_RETURN, routing=RETURN_TO_B14); preserved by B15-07 CLOSE_TASK and B15 PHASE_REJECT; remains active and carried into the return-to-B14 plan-authoring (exact return target reserved for orchestrator)
 phase_approvals:
   B-route:
     status: APPROVED
@@ -33,6 +33,27 @@ phase_approvals:
     phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
     next_phase: B15
     next_phase_status: PENDING_ORCHESTRATOR_INSTRUCTION
+  B15:
+    phase: B15
+    status: REJECTED
+    decision: PHASE_REJECT
+    accepted_phase_gate_report_commit: 6bcfaee57df7a1e8f7026916b472559b3cadcbbc
+    accepted_tracker_closure_commit: this_tracker_commit_self_reference_per_b14_1_convention
+    approval_packet_path: reports/rp5/b15_phase_approval_packet.yaml
+    phase_approval_packet_artifact_status: pending_orchestrator_side_authority
+    phase_gate_report_path: reports/rp5/b15_phase_gate.md
+    next_phase: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+    next_phase_status: RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+    decision_rule_routing: RETURN_TO_B14
+    claim_status: FAILED_PENDING_PHASE_RETURN
+    full_success_branch: FORECLOSED
+    explicit_blocker_branch: NOT_REACHED
+    failed_pending_phase_return_branch: REACHED
+    active_carried_marker_preserved: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    success_with_stable_named_exposure_asserted: false
+    no_public_url_or_hostname_literal_committed: true
+    return_target_exact_phase_or_task_id: PHASE_RETURN_TARGET_AMBIGUOUS_PENDING_ORCHESTRATOR_DECISION
+    required_fix: "Return to B14 planning is required because B15 recorded B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE and B15-06 routed RETURN_TO_B14. Exact B14 phase/task target remains pending orchestrator plan-authoring."
 plan_authoring_approvals:
   B14.0:
     status: APPROVED_FOR_EXECUTION
@@ -271,36 +292,45 @@ human_action_requests:
       no_unrelated_har_altered: true
 state_transport:
   latest_planning_report_path: reports/rp5/broute_manual_smoke.md
-  latest_execution_report_path: reports/rp5/b15_smoke_adjudication.md
-  latest_phase_gate_report_path: reports/rp5/b14_1_phase_gate.md
-  latest_approval_packet_path: reports/rp5/b14_1_phase_approval_packet.yaml
-  expected_next_task: B15-07
-  closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK for B15-06
+  latest_execution_report_path: reports/rp5/b15_phase_gate.md
+  latest_phase_gate_report_path: reports/rp5/b15_phase_gate.md
+  latest_approval_packet_path: reports/rp5/b15_phase_approval_packet.yaml
+  expected_next_task: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+  closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK for B15-07 and PHASE_REJECT for B15
   closure_pending_for_task: null
   closure_pending_observed_regression_markers: []
   last_recorded_closure_decision:
-    scope: task
-    task_id: B15-06
+    scope: phase
+    task_id: null
     phase: B15
-    decision: CLOSE_TASK
-    accepted_report_commit_input: ffe02a310d05474897be70d12c400e01bb3aa2bf
-    parent_commit_hash: 5bb6a71a6c23cc2338fa674fc5421555db36a444
-    observed_regression_markers: null
-    next_expected_task: B15-07
-    required_fix: null
+    decision: PHASE_REJECT
+    accepted_phase_gate_report_commit_input: 6bcfaee57df7a1e8f7026916b472559b3cadcbbc
+    accepted_tracker_closure_commit_input: this_tracker_commit_self_reference_per_b14_1_convention
+    phase_gate_report_path: reports/rp5/b15_phase_gate.md
+    approval_packet_path: reports/rp5/b15_phase_approval_packet.yaml
+    phase_approval_packet_artifact_status: pending_orchestrator_side_authority
+    decision_rule_routing: RETURN_TO_B14
+    claim_status: FAILED_PENDING_PHASE_RETURN
+    full_success_branch: FORECLOSED
+    explicit_blocker_branch: NOT_REACHED
+    failed_pending_phase_return_branch: REACHED
+    next_phase: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+    next_expected_task: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+    return_target_exact_phase_or_task_id: PHASE_RETURN_TARGET_AMBIGUOUS_PENDING_ORCHESTRATOR_DECISION
+    success_with_stable_named_exposure_asserted: false
+    required_fix: "Return to B14 planning is required because B15 recorded B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE and B15-06 routed RETURN_TO_B14. Exact B14 phase/task target remains pending orchestrator plan-authoring."
     carried_markers_preserved:
       - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
   previous_recorded_closure_decision:
     scope: task
-    task_id: B15-05
+    task_id: B15-07
     phase: B15
-    decision: CLOSE_TASK_WITH_OBSERVED_REGRESSIONS
-    accepted_report_commit_input: 58a7cb270e66dc635ada9f1b1671fbe9d08b1149
-    tracker_record_commit_input: 4a28a205ce9f4f57bbd25cba5fdd56b51b3b29d3
-    observed_regression_markers:
-      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
-    next_expected_task: B15-06
+    decision: CLOSE_TASK
+    accepted_report_commit_input: 6bcfaee57df7a1e8f7026916b472559b3cadcbbc
+    next_expected_task: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
     required_fix: null
+    carried_markers_preserved:
+      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
 decisions:
   broute_mode_default: manual
   human_action_policy: CHANGE_SCOPE_with_human_action_request_id
@@ -2758,3 +2788,114 @@ tasks:
     parent_commit_hash_input: 5bb6a71a6c23cc2338fa674fc5421555db36a444
     closure_marker_cleared: false  # B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE remains active in tracker.markers per orchestrator_plan section 6 carry-forward rule; consumed by B15-07 phase-gate evaluation
     next_task: B15-07
+  B15-07:
+    task_id: B15-07
+    status: PASS
+    commit: 6bcfaee57df7a1e8f7026916b472559b3cadcbbc
+    parent_commit: 218c9c0ec12b98b08549bb3578aab7ed03f6d9c0
+    accepted_report_commit: 6bcfaee57df7a1e8f7026916b472559b3cadcbbc
+    closed_via_orchestrator_decision: CLOSE_TASK
+    files_changed:
+      - reports/rp5/b15_phase_gate.md
+      - reports/rp5/b15_future_constraints.md
+    commands_run:
+      - "python3 scripts/rp5/validate_b15_plan_compile.py --plan-dir docs/plans/b15 --out /tmp/b1507_plan.md (OK_PLAN_COMPILES)"
+      - "python3 scripts/rp5/validate_b15_coverage_matrix.py --record reports/rp5/b15_coverage_matrix.md --out /tmp/b1507_cov.md (OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED)"
+      - "python3 scripts/rp5/validate_b15_smoke_result_evidence.py --results reports/rp5/b15_multi_network_smoke_results.md --out /tmp/b1507_evid.md (OK_B15_SMOKE_RESULT_EVIDENCE_TRACED)"
+      - "python3 scripts/rp5/validate_b15_multi_network_smoke.py --results reports/rp5/b15_multi_network_smoke_results.md --out /tmp/b1507_mns.md (OK_B15_MULTI_NETWORK_SMOKE_OR_BLOCKED)"
+      - "python3 scripts/rp5/validate_b15_recruiter_gate_preserved_under_public_smoke.py --results reports/rp5/b15_multi_network_smoke_results.md --out /tmp/b1507_rec.md (B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE; preserved carried marker; expected non-OK)"
+      - "python3 scripts/rp5/validate_b15_quota_state_accuracy.py --results reports/rp5/b15_multi_network_smoke_results.md --out /tmp/b1507_quota.md (OK_B15_QUOTA_STATE_ACCURATE)"
+      - "python3 scripts/rp5/validate_b15_upload_limit_enforced.py --results reports/rp5/b15_multi_network_smoke_results.md --out /tmp/b1507_upl.md (OK_B15_UPLOAD_LIMIT_ENFORCED)"
+      - "python3 scripts/rp5/validate_b15_mobile_layout.py --results reports/rp5/b15_multi_network_smoke_results.md --out /tmp/b1507_mob.md (OK_B15_MOBILE_LAYOUT_OK)"
+      - "python3 scripts/rp5/validate_b15_cached_example_integrity.py --results reports/rp5/b15_multi_network_smoke_results.md --out /tmp/b1507_cache.md (OK_B15_CACHED_EXAMPLE_OK)"
+      - "python3 scripts/rp5/validate_b15_public_exposure_smoke_claim.py --adjudication reports/rp5/b15_smoke_adjudication.md --out /tmp/b1507_claim.md (OK_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM_STABLE_OR_BLOCKED)"
+      - "python3 scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py --root . --out /tmp/b1507_url.md (OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL)"
+      - "python3 scripts/rp5/validate_future_constraints.py --constraints reports/rp5/b15_future_constraints.md --constraint-profile b15 --out /tmp/b1507_fc.md (OK_FUTURE_CONSTRAINTS)"
+      - "python3 scripts/rp5/validate_report_shape.py --report reports/rp5/b15_phase_gate.md --shape phase_gate_report --out /tmp/b1507_rs1.md (OK_REPORT_SHAPE)"
+      - "python3 scripts/rp5/validate_report_shape.py --report reports/rp5/b15_phase_gate.md --shape b15_closure_report --out /tmp/b1507_rs2.md (OK_REPORT_SHAPE)"
+      - "python3 scripts/rp5/print_pending_human_action_requests.py --tracker-path docs/progress/rp5_progress.yaml --out /tmp/b1507_har.md (exit 0; 4 HARs resolved; 0 pending)"
+      - "grep -nE '(as needed|as appropriate|as required|if already present|where appropriate|best practices|TBD|free-form|free form)' reports/rp5/b15_phase_gate.md reports/rp5/b15_future_constraints.md (zero matches)"
+      - "python3 scripts/rp5/validate_b15_path_locks.py --diff HEAD~1..HEAD --out /tmp/b1507_path_lock.md (OK_CHANGED_FILES_PATH_LOCKED)"
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_B15_COVERAGE_MATRIX_COMPLETE_OR_BLOCKED
+      - OK_B15_SMOKE_RESULT_EVIDENCE_TRACED
+      - OK_B15_MULTI_NETWORK_SMOKE_OR_BLOCKED
+      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+      - OK_B15_QUOTA_STATE_ACCURATE
+      - OK_B15_UPLOAD_LIMIT_ENFORCED
+      - OK_B15_MOBILE_LAYOUT_OK
+      - OK_B15_CACHED_EXAMPLE_OK
+      - OK_B15_PUBLIC_EXPOSURE_SMOKE_CLAIM_STABLE_OR_BLOCKED
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_FUTURE_CONSTRAINTS
+      - OK_REPORT_SHAPE
+      - OK_CHANGED_FILES_PATH_LOCKED
+      - "phase_outcome: B15_FAILED_PENDING_PHASE_RETURN"
+      - "claim_status: FAILED_PENDING_PHASE_RETURN"
+      - "decision_rule_routing: RETURN_TO_B14"
+      - "success_with_stable_named_exposure_asserted: false"
+      - "full_success_branch: FORECLOSED"
+      - "explicit_blocker_branch: NOT_REACHED"
+      - "failed_pending_phase_return_branch: REACHED"
+      - "carried_marker_preserved: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE"
+      - "carried_marker_cleared: false"
+      - "smoke_results_file_unmodified: true"
+      - "adjudication_file_unmodified: true"
+      - "phase_gate_file_unmodified_after_validation: true"
+      - "future_constraints_file_unmodified_after_validation: true"
+      - "next_phase_or_task_started: false"
+    supplemental_evidence:
+      task_kind: b15_phase_gate_and_future_constraints_authoring
+      deliverable_report_paths:
+        - reports/rp5/b15_phase_gate.md
+        - reports/rp5/b15_future_constraints.md
+      deliverable_record_types:
+        - phase_gate_report
+        - b15_closure_report
+        - future_constraint_preservation_record
+      future_constraint_records_count: 5
+      future_constraint_profile: b15
+      future_constraint_ids:
+        - FC-B15-MULTI-NETWORK
+        - FC-B14-1-PUBLIC-GATE
+        - FC-HANDOFF-DATAMOVE1
+        - FC-BROUTE-FROZEN
+        - FC-B14-0-GATE-PRESERVED
+      consumed_inputs_read_only:
+        - reports/rp5/b15_multi_network_smoke_results.md
+        - reports/rp5/b15_smoke_adjudication.md
+        - reports/rp5/b15_public_exposure_bringup.md
+        - reports/rp5/b15_human_action_packet.md
+        - reports/rp5/b15_coverage_matrix.md
+        - docs/plans/b15/agent_plan.md
+        - docs/plans/b15/orchestrator_plan.md
+        - docs/plans/b15/state_packet_schemas.yaml
+        - docs/progress/rp5_progress.yaml
+      scope_change_predecessor_commits:
+        - 218c9c0ec12b98b08549bb3578aab7ed03f6d9c0  # B15-07 validate_future_constraints b15 profile materialization
+      git_identity: "Gabriel Bibbó <gabobibbo@gmail.com>"
+      forbidden_commit_trailers_present: false
+      public_exposure_started: false
+      tailscale_invoked: false
+      funnel_invoked: false
+      cloudflare_invoked: false
+      systemd_invoked: false
+      docker_compose_invoked: false
+      curl_invoked: false
+      browser_invoked: false
+      public_endpoint_check_invoked: false
+      network_or_runtime_command_run: false
+      smoke_results_file_modified: false
+      adjudication_file_modified: false
+      phase_gate_file_modified_after_validation: false
+      future_constraints_file_modified_after_validation: false
+      next_phase_or_task_started: false
+    marker: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    observed_regression_markers_carried_in:
+      - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK
+    accepted_report_commit_input: 6bcfaee57df7a1e8f7026916b472559b3cadcbbc
+    parent_commit_hash_input: 218c9c0ec12b98b08549bb3578aab7ed03f6d9c0
+    closure_marker_cleared: false  # B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE preserved in tracker.markers; consumed by B15 phase-level PHASE_REJECT and carried into the return-to-B14 plan-authoring
+    next_task: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
