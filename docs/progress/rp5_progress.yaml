@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.2
-current_task: B14_2-00
-last_completed_task: B15-07
+current_task: B14_2-01
+last_completed_task: B14_2-00
 last_completed_phase: B15
 markers:
   - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; preserved by B15-06 CLOSE_TASK (claim_status=FAILED_PENDING_PHASE_RETURN, routing=RETURN_TO_B14), B15-07 CLOSE_TASK, B15 PHASE_REJECT, and B14.2 plan-authoring APPROVE_FOR_EXECUTION; remains active through B14_2-00..B14_2-06; eligible for clearance only at B14.2 PHASE_APPROVE on the gate-restored branch per docs/plans/b14_2/agent_plan.md section 2 carried_marker_clearance_policy
@@ -195,7 +195,9 @@ plan_authoring_approvals:
       - docs/plans/b14_2/agent_plan.md
       - docs/plans/b14_2/state_packet_schemas.yaml
     plan_authoring_report_path: reports/rp5/b14_2_plan_authoring_report.md
-    implementation_task_started: false
+    implementation_task_started: true
+    implementation_task_started_at_commit: 455de816bd35ee9d72fc7e3fd4f049e40c422763
+    implementation_task_started_at_task_id: B14_2-00
     b14_2_implementation_remains_forbidden_until: a separate APPROVE_PLAN decision for the first B14.2 task (B14_2-00) is recorded by the orchestrator
     public_exposure_re_smoke_remains_har_gated: true
     no_har_resolved_by_this_plan_approval: true
@@ -445,10 +447,10 @@ human_action_requests:
       no_operator_outcome_softened_or_converted: true
 state_transport:
   latest_planning_report_path: reports/rp5/b14_2_plan_authoring_report.md
-  latest_execution_report_path: reports/rp5/b15_phase_gate.md
+  latest_execution_report_path: reports/rp5/b14_2_plan_compile.md
   latest_phase_gate_report_path: reports/rp5/b15_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_2_plan_approval_packet.yaml
-  expected_next_task: B14_2-00
+  expected_next_task: B14_2-01
   closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK for B15-07 and PHASE_REJECT for B15
   closure_pending_for_task: null
   closure_pending_observed_regression_markers: []
@@ -3052,3 +3054,56 @@ tasks:
     parent_commit_hash_input: 218c9c0ec12b98b08549bb3578aab7ed03f6d9c0
     closure_marker_cleared: false  # B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE preserved in tracker.markers; consumed by B15 phase-level PHASE_REJECT and carried into the return-to-B14 plan-authoring
     next_task: B14_RETURN_PENDING_ORCHESTRATOR_PLAN_AUTHORING
+  B14_2-00:
+    task_id: B14_2-00
+    status: PASS
+    commit: 455de816bd35ee9d72fc7e3fd4f049e40c422763
+    accepted_report_commit: 455de816bd35ee9d72fc7e3fd4f049e40c422763
+    closed_via_orchestrator_decision: CLOSE_TASK
+    files_changed:
+      - scripts/rp5/validate_b14_2_plan_compile.py
+      - scripts/rp5/validate_b14_2_path_locks.py
+      - reports/rp5/b14_2_plan_compile.md
+    commands_run:
+      - "python3 scripts/rp5/validate_b14_2_plan_compile.py --plan-dir docs/plans/b14_2 --out reports/rp5/b14_2_plan_compile.md"
+      - "python3 scripts/rp5/validate_b14_2_path_locks.py --diff HEAD~1..HEAD --out /tmp/b14_2_00_path_lock.md"
+    key_outputs:
+      - OK_PLAN_COMPILES
+      - OK_CHANGED_FILES_PATH_LOCKED
+    marker: null
+    bootstrap_defect_fixed_in_task_scope:
+      defect: validate_b14_2_plan_compile.py initial terminal_states whitelist omitted the FAILED_PENDING_PHASE_RETURN, FIX, and "{TASK} stays BLOCKED_BY_HUMAN_ACTION" post-split tokens used in agent_plan.md section 4 next-state cells
+      first_run_sentinel: PLAN_CONFLICT
+      fix_scope: scripts/rp5/validate_b14_2_plan_compile.py only; no plan-file edit, no schema edit, no scope-change required; fix landed in the single B14_2-00 execution commit
+      post_fix_sentinel: OK_PLAN_COMPILES
+    carried_marker_state_after_close_task:
+      - id: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+        status: active_preserved
+        cleared_by_this_close_task: false
+        clearance_eligibility: only_at_b14_2_phase_approve_on_gate_restored_branch
+    har_state_after_close_task:
+      - id: HAR-B14_1-STABLE-HOSTNAME-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B14_1-FUNNEL-CAPABILITY-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B15-MULTI-NETWORK-SMOKE-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B14_2-PUBLIC-SURFACE-RECRUITER-GATE-RESMOKE-001
+        status: pre_declared_unresolved
+        consumed_by_this_task: false
+      - id: HAR-B14_2-UPLOAD-WITH-GT-DIAGNOSTIC-001
+        status: pre_declared_conditional
+        consumed_by_this_task: false
+    result_recording_policy_compliance:
+      tracker_records_only_boolean_flags_and_non_secret_references: true
+      literal_public_url_or_hostname_or_secret_or_ip_address_values_never_written: true
+      no_b14_2_record_asserts_success_with_stable_named_exposure: true
+      no_unauthenticated_access_observed_converted_to_authenticated_access_only: true
+      no_upload_with_manual_ground_truth_fail_converted_to_pass: true
+      no_unrelated_har_altered: true
+      no_predecessor_canonical_file_modified: true
+      router_runtime_sha256_unchanged: true
+    next_task: B14_2-01
