@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.2
-current_task: B14_2-03
-last_completed_task: B14_2-02
+current_task: B14_2-04
+last_completed_task: B14_2-03
 last_completed_phase: B15
 markers:
   - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; preserved by B15-06 CLOSE_TASK (claim_status=FAILED_PENDING_PHASE_RETURN, routing=RETURN_TO_B14), B15-07 CLOSE_TASK, B15 PHASE_REJECT, and B14.2 plan-authoring APPROVE_FOR_EXECUTION; remains active through B14_2-00..B14_2-06; eligible for clearance only at B14.2 PHASE_APPROVE on the gate-restored branch per docs/plans/b14_2/agent_plan.md section 2 carried_marker_clearance_policy
@@ -447,10 +447,10 @@ human_action_requests:
       no_operator_outcome_softened_or_converted: true
 state_transport:
   latest_planning_report_path: reports/rp5/b14_2_plan_authoring_report.md
-  latest_execution_report_path: reports/rp5/b14_2_application_layer_gate_invariants.md
+  latest_execution_report_path: reports/rp5/b14_2_local_verification.md
   latest_phase_gate_report_path: reports/rp5/b15_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_2_plan_approval_packet.yaml
-  expected_next_task: B14_2-03
+  expected_next_task: B14_2-04
   closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK for B15-07 and PHASE_REJECT for B15
   closure_pending_for_task: null
   closure_pending_observed_regression_markers: []
@@ -3270,3 +3270,126 @@ tasks:
       no_predecessor_canonical_file_modified: true
       router_runtime_sha256_unchanged: true
     next_task: B14_2-03
+  B14_2-03:
+    task_id: B14_2-03
+    status: PASS
+    commit: 56897dd8a0bd3109ae67be79c4d91eb28624ecec
+    accepted_report_commit: 56897dd8a0bd3109ae67be79c4d91eb28624ecec
+    execution_commits:
+      - 8933fede290a9f5f411ebf86bb6a2db8bb9a0b53
+      - fe902384d33457ce544106f7edbe57eae04e2597
+      - 013d4a8452c881b8b5301b2fdcfbbfd31589e2cd
+      - 56897dd8a0bd3109ae67be79c4d91eb28624ecec
+    closed_via_orchestrator_decision: CLOSE_TASK
+    files_changed:
+      - scripts/rp5/validate_b14_2_recruiter_gate_preserved_under_public_exposure.py
+      - scripts/rp5/validate_b14_2_health_payload_preserved_under_public_exposure.py
+      - scripts/rp5/validate_b14_2_openapi_docs_visibility.py
+      - scripts/rp5/validate_b14_2_no_public_url_or_hostname_literal.py
+      - scripts/rp5/validate_b14_2_no_tunnel_secret_leak.py
+      - scripts/rp5/validate_b14_2_broute_compatibility_under_public_exposure.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_2_recruiter_gate_preserved_under_public_exposure.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_2_health_payload_preserved_under_public_exposure.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_2_openapi_docs_visibility.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_2_no_public_url_or_hostname_literal.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_2_no_tunnel_secret_leak.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_2_broute_compatibility_under_public_exposure.py
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_recruiter_gate_preserved_under_public_exposure_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_recruiter_gate_preserved_under_public_exposure/
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_health_payload_preserved_under_public_exposure_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_health_payload_preserved_under_public_exposure/
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_openapi_docs_visibility_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_openapi_docs_visibility/
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_no_public_url_or_hostname_literal_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_no_public_url_or_hostname_literal/
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_no_tunnel_secret_leak_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_no_tunnel_secret_leak/
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_broute_compatibility_under_public_exposure_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_broute_compatibility_under_public_exposure/
+      - reports/rp5/b14_2_recruiter_gate_preserved_under_public_exposure.md
+      - reports/rp5/b14_2_health_payload_preserved_under_public_exposure.md
+      - reports/rp5/b14_2_openapi_docs_visibility.md
+      - reports/rp5/b14_2_no_public_url_or_hostname_literal.md
+      - reports/rp5/b14_2_no_tunnel_secret_leak.md
+      - reports/rp5/b14_2_broute_compatibility_under_public_exposure.md
+      - reports/rp5/b14_2_local_verification.md
+    commands_run:
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_2_recruiter_gate_preserved_under_public_exposure.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_2_recruiter_gate_preserved_under_public_exposure_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_2_health_payload_preserved_under_public_exposure.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_2_health_payload_preserved_under_public_exposure_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_2_openapi_docs_visibility.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_2_openapi_docs_visibility_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_2_no_public_url_or_hostname_literal.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_2_no_public_url_or_hostname_literal_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_2_no_tunnel_secret_leak.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_2_no_tunnel_secret_leak_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_2_broute_compatibility_under_public_exposure.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_2_broute_compatibility_under_public_exposure_manifest.json"
+      - "python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 18001 (loopback only; PUBLIC_DEMO_EXPOSURE=true; ephemeral local recruiter credentials in process env only)"
+      - "python3 scripts/rp5/validate_b14_2_recruiter_gate_preserved_under_public_exposure.py --base-url http://127.0.0.1:18001 --out reports/rp5/b14_2_recruiter_gate_preserved_under_public_exposure.md"
+      - "python3 scripts/rp5/validate_b14_2_health_payload_preserved_under_public_exposure.py --base-url http://127.0.0.1:18001 --out reports/rp5/b14_2_health_payload_preserved_under_public_exposure.md"
+      - "python3 scripts/rp5/validate_b14_2_openapi_docs_visibility.py --base-url http://127.0.0.1:18001 --out reports/rp5/b14_2_openapi_docs_visibility.md"
+      - "python3 scripts/rp5/validate_b14_2_no_public_url_or_hostname_literal.py --root . --out reports/rp5/b14_2_no_public_url_or_hostname_literal.md"
+      - "python3 scripts/rp5/validate_b14_2_no_tunnel_secret_leak.py --root . --base-url http://127.0.0.1:18001 --out reports/rp5/b14_2_no_tunnel_secret_leak.md"
+      - "python3 scripts/rp5/validate_b14_2_broute_compatibility_under_public_exposure.py --base-url http://127.0.0.1:18001 --out reports/rp5/b14_2_broute_compatibility_under_public_exposure.md"
+      - "python3 scripts/rp5/validate_b14_2_plan_compile.py --plan-dir docs/plans/b14_2 --out /tmp/b14_2_plan_compile_recheck.md"
+      - "python3 scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py --root . --out /tmp/b14_2_03_b15_no_public_url.md"
+      - "python3 scripts/rp5/validate_b14_2_path_locks.py --diff HEAD~1..HEAD --out /tmp/b14_2_03_path_lock_cN.md (per commit)"
+    key_outputs:
+      - OK_FIXTURE_VALIDATE_B14_2_RECRUITER_GATE_PRESERVED
+      - OK_FIXTURE_VALIDATE_B14_2_HEALTH_UNDER_PUBLIC_EXPOSURE
+      - OK_FIXTURE_VALIDATE_B14_2_OPENAPI_DOCS
+      - OK_FIXTURE_VALIDATE_B14_2_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_FIXTURE_VALIDATE_B14_2_NO_TUNNEL_SECRET_LEAK
+      - OK_FIXTURE_VALIDATE_B14_2_BROUTE_COMPATIBILITY_UNDER_PUBLIC_EXPOSURE
+      - OK_B14_2_RECRUITER_GATE_PRESERVED
+      - OK_B14_2_HEALTH_UNDER_PUBLIC_EXPOSURE
+      - OK_B14_2_OPENAPI_DOCS_OFF
+      - OK_B14_2_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_B14_2_NO_TUNNEL_SECRET_LEAK
+      - OK_B14_2_BROUTE_COMPATIBILITY_UNDER_PUBLIC_EXPOSURE
+      - OK_PLAN_COMPILES
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_CHANGED_FILES_PATH_LOCKED
+    marker: null
+    fixture_manifest_sha256:
+      recruiter_gate_preserved_under_public_exposure: 0eeae9495b993624cde31eebb3187050ed7288ceca8263dc36f7c30767e6685d
+      health_payload_preserved_under_public_exposure: d3f3908184e399b8a9c1389626eda890debc05424457fe957c485c13e91c920c
+      openapi_docs_visibility: f73ca5827b269514c35b2e72283efdfbda40a93c16a5daabbe36e12f79518402
+      no_public_url_or_hostname_literal: 5f8a6b58e06db077be6c8e7c490a8d352a7a1f5ec2c9ee976925d9a179810655
+      no_tunnel_secret_leak: 712955c4fbffaafc4afcbed1725fcf225a974fcbefe9faea9f47f20a9a45bafc
+      broute_compatibility_under_public_exposure: d58e2358e415f53d3e497c535ae574b71d66c7ac4a508413680a76cca4b27cd0
+    local_verification_scope:
+      loopback_only: true
+      public_surface_claim_made: false
+      b14_2_04_har_gated_resmoke_still_required: true
+      port_deviation_accepted:
+        planned_default_port: 8001
+        executed_loopback_port: 18001
+        reason: existing pre-fix Docker container held host port 8001; Docker Compose mutation was forbidden; validation remained strictly loopback
+    carried_marker_state_after_close_task:
+      - id: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+        status: active_preserved
+        cleared_by_this_close_task: false
+        clearance_eligibility: only_at_b14_2_phase_approve_on_gate_restored_branch
+    har_state_after_close_task:
+      - id: HAR-B14_1-STABLE-HOSTNAME-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B14_1-FUNNEL-CAPABILITY-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B15-MULTI-NETWORK-SMOKE-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B14_2-PUBLIC-SURFACE-RECRUITER-GATE-RESMOKE-001
+        status: pre_declared_unresolved
+        consumed_by_this_task: false
+      - id: HAR-B14_2-UPLOAD-WITH-GT-DIAGNOSTIC-001
+        status: pre_declared_conditional
+        consumed_by_this_task: false
+    result_recording_policy_compliance:
+      tracker_records_only_boolean_flags_and_non_secret_references: true
+      literal_public_url_or_hostname_or_secret_or_ip_address_values_never_written: true
+      no_b14_2_record_asserts_success_with_stable_named_exposure: true
+      no_unauthenticated_access_observed_converted_to_authenticated_access_only: true
+      no_upload_with_manual_ground_truth_fail_converted_to_pass: true
+      no_unrelated_har_altered: true
+      no_predecessor_canonical_file_modified: true
+      router_runtime_sha256_unchanged: true
+    next_task: B14_2-04
