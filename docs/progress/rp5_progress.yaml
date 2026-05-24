@@ -1,7 +1,7 @@
 tracker_file: docs/progress/rp5_progress.yaml
 current_phase: B14.2
-current_task: B14_2-02
-last_completed_task: B14_2-01
+current_task: B14_2-03
+last_completed_task: B14_2-02
 last_completed_phase: B15
 markers:
   - B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE  # carried forward from B15-05 PASS_WITH_OBSERVED_REGRESSION; preserved by B15-06 CLOSE_TASK (claim_status=FAILED_PENDING_PHASE_RETURN, routing=RETURN_TO_B14), B15-07 CLOSE_TASK, B15 PHASE_REJECT, and B14.2 plan-authoring APPROVE_FOR_EXECUTION; remains active through B14_2-00..B14_2-06; eligible for clearance only at B14.2 PHASE_APPROVE on the gate-restored branch per docs/plans/b14_2/agent_plan.md section 2 carried_marker_clearance_policy
@@ -447,10 +447,10 @@ human_action_requests:
       no_operator_outcome_softened_or_converted: true
 state_transport:
   latest_planning_report_path: reports/rp5/b14_2_plan_authoring_report.md
-  latest_execution_report_path: reports/rp5/b14_2_public_surface_diagnostic.md
+  latest_execution_report_path: reports/rp5/b14_2_application_layer_gate_invariants.md
   latest_phase_gate_report_path: reports/rp5/b15_phase_gate.md
   latest_approval_packet_path: reports/rp5/b14_2_plan_approval_packet.yaml
-  expected_next_task: B14_2-02
+  expected_next_task: B14_2-03
   closure_pending_orchestrator_decision: null  # sealed by CLOSE_TASK for B15-07 and PHASE_REJECT for B15
   closure_pending_for_task: null
   closure_pending_observed_regression_markers: []
@@ -3171,3 +3171,102 @@ tasks:
       no_predecessor_canonical_file_modified: true
       router_runtime_sha256_unchanged: true
     next_task: B14_2-02
+  B14_2-02:
+    task_id: B14_2-02
+    status: PASS
+    commit: 58401b53913ada1f3b3867905c74ab25ef03121c
+    accepted_report_commit: 58401b53913ada1f3b3867905c74ab25ef03121c
+    closed_via_orchestrator_decision: CLOSE_TASK
+    files_changed:
+      - services/api/app/demo_main.py
+      - scripts/rp5/validate_b14_2_application_layer_gate_invariants.py
+      - scripts/rp5/validate_b14_2_no_network_trust_authority.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_2_application_layer_gate_invariants.py
+      - scripts/rp5/fixtures/generate_fixture_validate_b14_2_no_network_trust_authority.py
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_application_layer_gate_invariants_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_application_layer_gate_invariants/
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_no_network_trust_authority_manifest.json
+      - tests/rp5/fixtures/generate_fixture_validate_b14_2_no_network_trust_authority/
+      - reports/rp5/b14_2_application_layer_gate_invariants.md
+      - reports/rp5/b14_2_no_network_trust_authority.md
+    commands_run:
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_2_application_layer_gate_invariants.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_2_application_layer_gate_invariants_manifest.json"
+      - "python3 scripts/rp5/fixtures/generate_fixture_validate_b14_2_no_network_trust_authority.py --kind positive_and_negative --manifest tests/rp5/fixtures/generate_fixture_validate_b14_2_no_network_trust_authority_manifest.json"
+      - "python3 -m uvicorn services.api.app.demo_main:app --host 127.0.0.1 --port 18001 (loopback only; PUBLIC_DEMO_EXPOSURE=true; ephemeral local recruiter credentials in process env only)"
+      - "python3 scripts/rp5/validate_b14_2_application_layer_gate_invariants.py --base-url http://127.0.0.1:18001 --out reports/rp5/b14_2_application_layer_gate_invariants.md"
+      - "python3 scripts/rp5/validate_b14_2_no_network_trust_authority.py --base-url http://127.0.0.1:18001 --out reports/rp5/b14_2_no_network_trust_authority.md"
+      - "python3 scripts/rp5/validate_b14_2_plan_compile.py --plan-dir docs/plans/b14_2 --out /tmp/b14_2_plan_compile_recheck.md"
+      - "python3 scripts/rp5/validate_b15_no_public_url_or_hostname_literal.py --root . --out /tmp/b14_2_02_no_public_url_scan.md"
+      - "python3 scripts/rp5/validate_b14_2_path_locks.py --diff HEAD~1..HEAD --out /tmp/b14_2_02_path_lock.md"
+    key_outputs:
+      - OK_FIXTURE_VALIDATE_B14_2_APPLICATION_LAYER_GATE
+      - OK_FIXTURE_VALIDATE_B14_2_NO_NETWORK_TRUST
+      - OK_B14_2_APPLICATION_LAYER_GATE
+      - OK_B14_2_NO_NETWORK_TRUST_AUTHORITY
+      - OK_PLAN_COMPILES
+      - OK_B15_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL
+      - OK_CHANGED_FILES_PATH_LOCKED
+    marker: null
+    application_layer_gate_fixture_manifest_sha256: 18033faaddddebaf5a72367d74f77829b2b5f4f1486d6d619577afd261a9456a
+    no_network_trust_fixture_manifest_sha256: cae2212b68caf24edd25667d0ba24da54ce5ed73a6db1749a498126b8b425099
+    fixture_counts:
+      application_layer_gate_positive: 1
+      application_layer_gate_negative: 2
+      no_network_trust_positive: 1
+      no_network_trust_negative: 2
+    fixture_negative_cases:
+      application_layer_gate:
+        - negative_unprotected_demo_upload
+        - negative_unprotected_demo_jobs_result
+      no_network_trust:
+        - negative_x_forwarded_for_accepted
+        - negative_tailscale_user_login_accepted
+    application_layer_gate_validator_check_count: 5
+    application_layer_gate_validator_failures: 0
+    no_network_trust_validator_check_count: 4
+    no_network_trust_validator_failures: 0
+    repaired_routes:
+      - "GET /demo/examples/{example_id}/audio/clean"
+      - "GET /demo/examples/{example_id}/audio/degraded/{degradation_id}"
+      - "POST /demo/upload"
+      - "GET /demo/jobs/{job_id}/result"
+    routes_total_demo_count_after_repair: 10
+    routes_recruiter_protected_after_repair: 10
+    admin_auth_semantics_unchanged: true
+    openapi_docs_visibility_logic_unchanged: true
+    network_origin_authority_introduced: false
+    port_deviation_accepted:
+      planned_default_port: 8001
+      executed_loopback_port: 18001
+      reason: existing pre-fix Docker container occupied host port 8001; Docker Compose mutation was forbidden; validation remained strictly loopback
+    carried_marker_state_after_close_task:
+      - id: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+        status: active_preserved
+        cleared_by_this_close_task: false
+        clearance_eligibility: only_at_b14_2_phase_approve_on_gate_restored_branch
+    har_state_after_close_task:
+      - id: HAR-B14_1-STABLE-HOSTNAME-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B14_1-FUNNEL-CAPABILITY-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B15-MULTI-NETWORK-SMOKE-001
+        status: resolved
+        consumed_by_this_task: false
+      - id: HAR-B14_2-PUBLIC-SURFACE-RECRUITER-GATE-RESMOKE-001
+        status: pre_declared_unresolved
+        consumed_by_this_task: false
+      - id: HAR-B14_2-UPLOAD-WITH-GT-DIAGNOSTIC-001
+        status: pre_declared_conditional
+        consumed_by_this_task: false
+    result_recording_policy_compliance:
+      tracker_records_only_boolean_flags_and_non_secret_references: true
+      literal_public_url_or_hostname_or_secret_or_ip_address_values_never_written: true
+      no_b14_2_record_asserts_success_with_stable_named_exposure: true
+      no_unauthenticated_access_observed_converted_to_authenticated_access_only: true
+      no_upload_with_manual_ground_truth_fail_converted_to_pass: true
+      no_unrelated_har_altered: true
+      no_predecessor_canonical_file_modified: true
+      router_runtime_sha256_unchanged: true
+    next_task: B14_2-03
