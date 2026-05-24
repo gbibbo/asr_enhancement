@@ -224,7 +224,7 @@ async def list_demo_examples(request: Request):
     return {"examples": [e.model_dump() for e in examples], "total": len(examples), "note": note}
 
 
-@app.get("/demo/examples/{example_id}/audio/clean")
+@app.get("/demo/examples/{example_id}/audio/clean", dependencies=[Depends(recruiter_auth_dependency)])
 async def get_clean_audio(example_id: str, request: Request):
     settings: DemoSettings = request.app.state.settings
     examples = load_examples(settings.demo_examples_config)
@@ -238,7 +238,10 @@ async def get_clean_audio(example_id: str, request: Request):
     return FileResponse(target, media_type="audio/wav")
 
 
-@app.get("/demo/examples/{example_id}/audio/degraded/{degradation_id}")
+@app.get(
+    "/demo/examples/{example_id}/audio/degraded/{degradation_id}",
+    dependencies=[Depends(recruiter_auth_dependency)],
+)
 async def get_degraded_audio(example_id: str, degradation_id: str, request: Request):
     settings: DemoSettings = request.app.state.settings
     examples = load_examples(settings.demo_examples_config)
@@ -311,7 +314,7 @@ async def run_cached(body: _RunCachedRequest, request: Request):
     return {"status": "cache_miss", "detail": "No cached result for this configuration."}
 
 
-@app.post("/demo/upload")
+@app.post("/demo/upload", dependencies=[Depends(recruiter_auth_dependency)])
 async def upload_audio(
     request: Request,
     file: UploadFile = File(...),
@@ -418,7 +421,7 @@ async def get_demo_job(job_id: str, request: Request):
     return _public_job_view(job)
 
 
-@app.get("/demo/jobs/{job_id}/result")
+@app.get("/demo/jobs/{job_id}/result", dependencies=[Depends(recruiter_auth_dependency)])
 async def get_demo_job_result(job_id: str, request: Request):
     settings: DemoSettings = request.app.state.settings
     job = get_job(settings.demo_db_path, job_id)
