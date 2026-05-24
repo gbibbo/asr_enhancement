@@ -1,0 +1,38 @@
+{
+  "aggregate_selftest_sentinel": "OK_B14_2_HEALTH_UNDER_PUBLIC_EXPOSURE",
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b14_2_health_payload_preserved_under_public_exposure",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_body_deviates_from_canonical",
+      "expected_sentinel_when_treated_as_positive_only_input": "B14_2_HEALTH_PAYLOAD_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+      "observed_sentinel": "B14_2_HEALTH_PAYLOAD_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+      "root": "negative/negative_body_deviates_from_canonical"
+    }
+  ],
+  "owned_markers": [
+    "B14_2_HEALTH_PAYLOAD_REGRESSION_UNDER_PUBLIC_EXPOSURE"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel_under_aggregate_selftest": "OK_B14_2_HEALTH_UNDER_PUBLIC_EXPOSURE",
+      "root": "positive/positive"
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B14_2_HEALTH_UNDER_PUBLIC_EXPOSURE",
+  "tree_files": [
+    {
+      "path": "negative/negative_body_deviates_from_canonical/observations.json",
+      "sha256": "7430459143a16575b44c8f289b6aad0758dd95e9deabac046bd61a28c2684af9",
+      "size_bytes": 213
+    },
+    {
+      "path": "positive/positive/observations.json",
+      "sha256": "2e6547a71d60d06563a96f295b0da76d78467e2d2ae9142e67f89bc6fbf003db",
+      "size_bytes": 164
+    }
+  ],
+  "validator": "validate_b14_2_health_payload_preserved_under_public_exposure",
+  "validator_sentinel_pass": "OK_B14_2_HEALTH_UNDER_PUBLIC_EXPOSURE"
+}
