@@ -13,6 +13,21 @@ Compare two transcription paths on the same audio file:
 
 Job state, audio artifacts, transcripts, and provider payloads are persisted and inspectable through the API.
 
+## System map
+
+| # | Block | Components | Flow / role |
+|---|---|---|---|
+| 1 | **Entry point & API** | Next.js, FastAPI, HTTP | upload → select path → job ID → status/result |
+| 2 | **Async execution** | Celery, Redis | API → broker → worker |
+| 3 | **Audio enhancement** | Python DSP, presets | raw audio → optional enhancement → processed audio |
+| 4 | **ASR layer** | provider adapter, Fake, AssemblyAI | audio → provider → transcript |
+| 5 | **Persistence** | PostgreSQL, MinIO/S3 | job state → Postgres; artifacts → object storage |
+| 6 | **Observability** | JSON logs, Prometheus, OpenTelemetry, Grafana | logs + metrics + traces → dashboard/alerts |
+| 7 | **Deployment** | Docker, Docker Compose | containerized services → single-VPS stack |
+| 8 | **Testing & CI** | pytest, Ruff, mypy, GitHub Actions, Buildx | lint + types + tests + smoke + build |
+
+**End-to-end:** Client → FastAPI → Redis → Celery worker → enhancement → ASR → PostgreSQL/MinIO → API → Client
+
 ## Status
 
 Phase 8 / Cut C is complete. The MVP backend vertical slice — `transcribe-only` and `enhance-and-transcribe` — runs end-to-end against the **fake provider** with a single-VPS Docker Compose deployment path, JSON structured logs, Prometheus metrics, OpenTelemetry traces, one provisioned Grafana dashboard, three basic alerts, and a passing CI on GitHub Actions.
