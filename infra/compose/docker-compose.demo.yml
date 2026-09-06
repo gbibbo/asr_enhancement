@@ -23,6 +23,17 @@ x-demo-env: &demo-env
   ENHANCER_VERSION: ${ENHANCER_VERSION:-bypass}
   ADMIN_STATS_USERNAME: ${ADMIN_STATS_USERNAME:-admin}
   ADMIN_STATS_PASSWORD: ${ADMIN_STATS_PASSWORD:-}
+  # B14.0/B14.2 recruiter HTTPBasic gate. Sole authority for public /demo/*
+  # access. Credentials use empty defaults so the compose file never holds real
+  # values; supply RECRUITER_USERNAME / RECRUITER_PASSWORD via host .env.demo
+  # only. With either unset the gate stays fail-closed (401 for every request),
+  # which is the correct posture for a misconfigured host.
+  RECRUITER_USERNAME: ${RECRUITER_USERNAME:-}
+  RECRUITER_PASSWORD: ${RECRUITER_PASSWORD:-}
+  # B14.1 public-exposure flag. Default false (loopback-only). Set true on the
+  # host only once the Tailscale Funnel tunnel is provisioned. This flag does
+  # NOT relax the recruiter gate; the gate is the sole authority regardless.
+  PUBLIC_DEMO_EXPOSURE: ${PUBLIC_DEMO_EXPOSURE:-false}
   DEMO_ASSEMBLYAI_DAILY_SOFT_CAP_USD: ${DEMO_ASSEMBLYAI_DAILY_SOFT_CAP_USD:-5.0}
   DEMO_ASSEMBLYAI_WARNING_CAP_USD: ${DEMO_ASSEMBLYAI_WARNING_CAP_USD:-35.0}
   DEMO_ASSEMBLYAI_HARD_CAP_USD: ${DEMO_ASSEMBLYAI_HARD_CAP_USD:-45.0}
@@ -64,11 +75,15 @@ services:
     ports:
       - "8001:8000"
     volumes: *demo-volumes
+    # /demo/health is behind the recruiter HTTPBasic gate (B14.0/B14.2), so the
+    # container liveness probe authenticates with the recruiter credentials from
+    # the container environment. No secret literal is written here; the values
+    # come from RECRUITER_USERNAME / RECRUITER_PASSWORD in the host .env.demo.
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/demo/health', timeout=2).read()\""
+          "python -c \"import os,base64,urllib.request as u; a=base64.b64encode(('%s:%s'%(os.environ.get('RECRUITER_USERNAME',''),os.environ.get('RECRUITER_PASSWORD',''))).encode()).decode(); u.urlopen(u.Request('http://localhost:8000/demo/health', headers={'Authorization':'Basic '+a}), timeout=2).read()\""
         ]
       interval: 10s
       timeout: 5s
