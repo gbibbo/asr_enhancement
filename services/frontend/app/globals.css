@@ -148,6 +148,39 @@ audio {
   margin: 0.25rem 0;
 }
 
+.demo-byline {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  color: #3a3a42;
+}
+
+.demo-byline a {
+  color: #1a5fb4;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.demo-byline a:hover {
+  text-decoration: underline;
+}
+
+.demo-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e2e8;
+  color: #5a5a63;
+  font-size: 0.85rem;
+}
+
+.demo-footer a {
+  color: #1a5fb4;
+  text-decoration: none;
+}
+
+.demo-footer a:hover {
+  text-decoration: underline;
+}
+
 .dot {
   display: inline-block;
   width: 0.6rem;

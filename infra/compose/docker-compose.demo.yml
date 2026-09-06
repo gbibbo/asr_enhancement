@@ -73,6 +73,9 @@ x-demo-env: &demo-env
 services:
   demo-api:
     build: *demo-build
+    # Auto-start on boot and after crashes. With the Docker service enabled,
+    # the demo comes back on its own after a power cycle without any manual step.
+    restart: unless-stopped
     environment:
       <<: *demo-env
       ASSEMBLYAI_API_KEY: ${ASSEMBLYAI_API_KEY:-}
@@ -97,6 +100,7 @@ services:
 
   demo-worker:
     build: *demo-build
+    restart: unless-stopped
     environment: *demo-env
     command: python -m services.worker.app.demo_worker_main
     volumes: *demo-volumes

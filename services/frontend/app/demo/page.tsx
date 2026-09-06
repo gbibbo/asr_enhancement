@@ -541,6 +541,16 @@ export default function DemoPage() {
     <main className="demo-main">
       <header className="demo-header">
         <h1>ASR Enhancement — Public Demo</h1>
+        <p className="demo-byline">
+          by{" "}
+          <a
+            href="https://github.com/gbibbo/asr_enhancement"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Gabriel Bibbó
+          </a>
+        </p>
         <p className="demo-subtle">
           Backend:{" "}
           <span
@@ -851,6 +861,20 @@ export default function DemoPage() {
           )}
         </section>
       )}
+
+      <footer className="demo-footer">
+        <p>
+          ASR Enhancement Demo — built and deployed by{" "}
+          <a
+            href="https://github.com/gbibbo/asr_enhancement"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Gabriel Bibbó
+          </a>
+          . Running on a Raspberry Pi 5.
+        </p>
+      </footer>
     </main>
   );
 }
