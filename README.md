@@ -15,6 +15,50 @@ End-to-end platform for pre-recorded speech enhancement optimized for automatic 
 
 ![ASR Enhancement demo — desktop UI](assets/screenshots/desktop_demo.png)
 
+## Honest status — did the enhancer work?
+
+**Short answer: not yet — and this README says so up front.** The project is
+organised around a speech-enhancement stage that recovers ASR accuracy, but a
+*learned* enhancer that measurably does this is **not** deployed.
+
+- **It was the original goal.** The point was a trained model that sits in front
+  of the recogniser and *measurably* recovers accuracy on degraded speech;
+  everything else was built as the scaffolding around it.
+- **We tried to train it and it did not work out.** We took a MetricGAN+ speech
+  enhancer and evaluated/fine-tuned it on LibriSpeech utterances passed through
+  five controlled degradations, scoring the output with Whisper (WER / Word
+  Accuracy) on Surrey compute. It finished **without a deployable artifact and
+  without a reliable Word-Accuracy gain**, so nothing here claims a learned
+  improvement — the "enhanced" path uses deterministic DSP presets (`bypass`,
+  `light_clean`, `denoise`, `denoise_dereverb`), not a neural model.
+- **The infrastructure around it is real and complete** — API, async jobs,
+  provider abstraction, degradations, persistence, observability, CI, and the
+  live demo — with enhancement kept as a first-class, versioned stage ready for
+  a trained model to drop into.
+
+**What the attempt taught me** is that the problem is harder than I first framed
+it: a small pretrained enhancer optimised for signal quality does not
+automatically help a recogniser, and a handful of synthetic degradations is not
+enough coverage. Doing it seriously would look roughly like this — and it is
+essentially the class of effort behind a mature private model like **Hecttor's**:
+
+- **Data at scale and realism** — not five synthetic effects, but a large speech
+  corpus convolved with real room impulse responses and mixed with real noise
+  (e.g. DNS-Challenge / WHAM! / DEMAND) across a wide SNR range and far-field
+  conditions.
+- **A modern enhancement model trained end-to-end on GPU** — a masking or
+  generative reconstruction network (DeepFilterNet / GTCRN / diffusion-vocoder
+  family), not a small pretrained checkpoint used as-is.
+- **An ASR-aware objective** — optimise for the downstream recogniser (WER), or a
+  recognition-aligned perceptual loss, not PESQ/STOI alone, so the model improves
+  *recognition*, not just perceived quality.
+- **Honest evaluation** on held-out speakers and unseen conditions, with
+  checkpoint selection on WER.
+- **Iteration** over that loop with a real compute budget.
+
+That is why the codebase keeps a clean seam for a dedicated enhancer rather than
+pretending the gap is closed.
+
 ## Purpose
 
 Compare two transcription paths on the same audio file:
