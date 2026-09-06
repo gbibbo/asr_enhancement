@@ -5,6 +5,22 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+# DeepFilterNet3 speech-enhancement CLI (self-contained binary, no Python/torch).
+# Used by DeepFilterNetEnhancer to reconstruct degraded audio before ASR. The
+# asset is selected by build-host arch so the same Dockerfile works on the arm64
+# Raspberry Pi and on x86_64. Placed before the code COPY layers so it caches.
+ARG DEEPFILTER_VERSION=0.5.6
+RUN set -eux; \
+    arch="$(uname -m)"; \
+    case "$arch" in \
+      aarch64|arm64) triple="aarch64-unknown-linux-gnu" ;; \
+      x86_64|amd64) triple="x86_64-unknown-linux-musl" ;; \
+      *) echo "unsupported arch $arch"; exit 1 ;; \
+    esac; \
+    url="https://github.com/Rikorose/DeepFilterNet/releases/download/v${DEEPFILTER_VERSION}/deep-filter-${DEEPFILTER_VERSION}-${triple}"; \
+    python -c "import urllib.request,sys; urllib.request.urlretrieve(sys.argv[1], sys.argv[2])" "$url" /usr/local/bin/deep-filter; \
+    chmod +x /usr/local/bin/deep-filter
+
 COPY requirements.lock.arm64 ./
 COPY pyproject.toml README.md ./
 COPY libs ./libs

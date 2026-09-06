@@ -22,8 +22,13 @@ from libs.audio.degradations import (
 )
 from libs.audio.enhancement import (
     BYPASS_ENHANCER_VERSION,
+    DEEPFILTERNET_ENHANCER_VERSION,
+    HECTTOR_ENHANCER_VERSION,
     BypassEnhancer,
+    DeepFilterNetEnhancer,
     EnhancerAdapter,
+    HecttorEnhancer,
+    hecttor_is_available,
 )
 from libs.asr.demo_assemblyai_provider import DemoAssemblyAIAdapter
 from libs.asr.errors import AdapterError
@@ -109,6 +114,14 @@ def default_asr_factory(settings: DemoSettings) -> ASRFactory:
     return _factory
 
 
+_HECTTOR_UNAVAILABLE_MESSAGE = (
+    "Enhancer 'hecttor' is not enabled in this deployment. Hecttor is an "
+    "on-device SDK (no public API): install the hecttor_sdk wheel and set "
+    "HECTTOR_API_KEY (request access at hecttor.ai). DeepFilterNet is the "
+    "on-device reconstruction used meanwhile."
+)
+
+
 def default_enhancer_factory(settings: DemoSettings) -> EnhancerFactory:
     """Return a factory that maps enhancer_version to an enhancer adapter."""
     del settings
@@ -116,10 +129,22 @@ def default_enhancer_factory(settings: DemoSettings) -> EnhancerFactory:
     def _factory(enhancer_version: str) -> EnhancerAdapter:
         if enhancer_version == BYPASS_ENHANCER_VERSION:
             return BypassEnhancer()
+        if enhancer_version == DEEPFILTERNET_ENHANCER_VERSION:
+            return DeepFilterNetEnhancer()
+        if enhancer_version == HECTTOR_ENHANCER_VERSION or enhancer_version.startswith(
+            f"{HECTTOR_ENHANCER_VERSION}_"
+        ):
+            if not hecttor_is_available():
+                raise EnhancerNotSupportedError(_HECTTOR_UNAVAILABLE_MESSAGE)
+            model = None
+            if enhancer_version.startswith(f"{HECTTOR_ENHANCER_VERSION}_"):
+                model = enhancer_version[len(HECTTOR_ENHANCER_VERSION) + 1 :]
+            return HecttorEnhancer(model=model)
         if enhancer_version == "metricgan_plus_pretrained":
             raise EnhancerNotSupportedError(_METRICGAN_GATED_MESSAGE)
         raise EnhancerNotSupportedError(
-            f"Unsupported enhancer {enhancer_version!r}. Use 'bypass'."
+            f"Unsupported enhancer {enhancer_version!r}. "
+            "Use 'bypass', 'deepfilternet3', or 'hecttor'."
         )
 
     return _factory

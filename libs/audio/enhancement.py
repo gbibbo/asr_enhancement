@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+import os
+import shutil
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -25,6 +28,15 @@ from scipy.signal import butter, sosfilt
 
 BYPASS_ENHANCER_VERSION: str = "bypass"
 METRICGAN_PLUS_ENHANCER_VERSION: str = "metricgan_plus_pretrained"
+# DeepFilterNet3 real-time speech enhancement (denoise + dereverb), run via the
+# self-contained `deep-filter` binary (no Python/torch). Reconstructs the
+# degraded audio before ASR — the honest, on-device stand-in for a hosted
+# enhancer while Hecttor SDK access is pending.
+DEEPFILTERNET_ENHANCER_VERSION: str = "deepfilternet3"
+# Hecttor AI (Saima) enhancer. On-device SDK, no public REST API: activation
+# needs the private `hecttor_sdk` wheel and a HECTTOR_API_KEY, both obtained from
+# hecttor.ai. The adapter below is wired so activation is trivial once granted.
+HECTTOR_ENHANCER_VERSION: str = "hecttor"
 
 
 class EnhancerAdapter(abc.ABC):
@@ -234,3 +246,183 @@ class MetricGANPlusEnhancer(EnhancerAdapter):
             "MetricGAN+ implementation is owned by task T4.1 in the training branch. "
             "Use BypassEnhancer until T4.1 is merged into demo-rp5-v1."
         )
+
+
+# ---------------------------------------------------------------------------
+# DeepFilterNet3 enhancer (on-device, real reconstruction)
+# ---------------------------------------------------------------------------
+
+DEEP_FILTER_BINARY_ENV = "DEEP_FILTER_BIN"
+_DEEP_FILTER_TIMEOUT_SECONDS = 120
+
+
+def resolve_deep_filter_binary() -> Optional[str]:
+    """Return the path to the `deep-filter` binary, or None if not installed.
+
+    Honors the DEEP_FILTER_BIN environment override, then falls back to a
+    `deep-filter` executable on PATH.
+    """
+    override = os.environ.get(DEEP_FILTER_BINARY_ENV)
+    if override:
+        candidate = Path(override)
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+        return None
+    found = shutil.which("deep-filter")
+    return found
+
+
+class DeepFilterNetEnhancer(EnhancerAdapter):
+    """DeepFilterNet3 speech enhancer via the self-contained `deep-filter` CLI.
+
+    Runs denoise + dereverb on the input WAV and returns the reconstructed WAV.
+    On any failure (binary missing, non-zero exit, no output) it returns the raw
+    input unchanged with ``enhancement_fallback=True`` so the job still
+    completes honestly rather than aborting.
+    """
+
+    @property
+    def enhancer_version(self) -> str:
+        return DEEPFILTERNET_ENHANCER_VERSION
+
+    def enhance(self, audio_path: Path, output_dir: Path, job_id: str) -> EnhancementResult:
+        binary = resolve_deep_filter_binary()
+        if binary is None:
+            return EnhancementResult(
+                output_path=audio_path,
+                preset_applied=DEEPFILTERNET_ENHANCER_VERSION,
+                enhanced=False,
+                enhancement_fallback=True,
+                diagnostic={"fallback_reason": "deep-filter binary not found"},
+            )
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        work_dir = output_dir / "deepfilternet"
+        if work_dir.exists():
+            shutil.rmtree(work_dir, ignore_errors=True)
+        work_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            completed = subprocess.run(
+                [binary, "--out-dir", str(work_dir), str(audio_path)],
+                capture_output=True,
+                timeout=_DEEP_FILTER_TIMEOUT_SECONDS,
+            )
+            if completed.returncode != 0:
+                stderr = completed.stderr.decode("utf-8", "replace").strip()[-200:]
+                raise RuntimeError(f"deep-filter exit {completed.returncode}: {stderr}")
+            produced = sorted(work_dir.glob("*.wav"))
+            if not produced:
+                raise RuntimeError("deep-filter produced no output file")
+            final_path = output_dir / "enhanced_deepfilternet3.wav"
+            shutil.move(str(produced[0]), str(final_path))
+            if not _validate_output(final_path):
+                raise RuntimeError("Enhanced output validation failed")
+            return EnhancementResult(
+                output_path=final_path,
+                preset_applied=DEEPFILTERNET_ENHANCER_VERSION,
+                enhanced=True,
+                enhancement_fallback=False,
+                diagnostic={"backend": "deepfilternet3"},
+            )
+        except Exception as exc:  # noqa: BLE001 - honest fallback, never abort the job
+            return EnhancementResult(
+                output_path=audio_path,
+                preset_applied=DEEPFILTERNET_ENHANCER_VERSION,
+                enhanced=False,
+                enhancement_fallback=True,
+                diagnostic={"fallback_reason": str(exc)[:240]},
+            )
+
+
+# ---------------------------------------------------------------------------
+# Hecttor AI enhancer (on-device SDK; wired, activated when access is granted)
+# ---------------------------------------------------------------------------
+
+HECTTOR_API_KEY_ENV = "HECTTOR_API_KEY"
+HECTTOR_MODEL_ENV = "HECTTOR_MODEL"
+DEFAULT_HECTTOR_MODEL = "crest-2.0"
+
+
+def hecttor_is_available() -> bool:
+    """True only if the private hecttor_sdk is importable AND an API key is set.
+
+    Both are obtained from Hecttor/Saima AI (hecttor.ai). Until then the demo
+    uses DeepFilterNet as the on-device reconstruction stand-in.
+    """
+    if not os.environ.get(HECTTOR_API_KEY_ENV):
+        return False
+    try:
+        import hecttor_sdk  # type: ignore  # noqa: F401
+    except Exception:
+        return False
+    return True
+
+
+class HecttorEnhancer(EnhancerAdapter):
+    """Hecttor AI speech-reconstruction enhancer.
+
+    Hecttor is an on-device SDK (no public REST API). Activation requires the
+    private ``hecttor_sdk`` wheel (platform-specific) and a ``HECTTOR_API_KEY``,
+    both from hecttor.ai. This adapter is wired end-to-end; the single call site
+    marked below must be reconciled with the real ``hecttor_sdk`` method names
+    once evaluation access is granted (models: crest-1.0/2.0, mist-1.0,
+    coda-1.0/coda-vi-1.0). Until then the factory does not hand this adapter out.
+    """
+
+    def __init__(self, model: Optional[str] = None) -> None:
+        self._model = model or os.environ.get(HECTTOR_MODEL_ENV, DEFAULT_HECTTOR_MODEL)
+
+    @property
+    def enhancer_version(self) -> str:
+        return f"{HECTTOR_ENHANCER_VERSION}_{self._model}"
+
+    def enhance(self, audio_path: Path, output_dir: Path, job_id: str) -> EnhancementResult:
+        api_key = os.environ.get(HECTTOR_API_KEY_ENV)
+        try:
+            import hecttor_sdk  # type: ignore
+        except Exception as exc:  # noqa: BLE001
+            return EnhancementResult(
+                output_path=audio_path,
+                preset_applied=self.enhancer_version,
+                enhanced=False,
+                enhancement_fallback=True,
+                diagnostic={"fallback_reason": f"hecttor_sdk not installed: {exc}"[:240]},
+            )
+        if not api_key:
+            return EnhancementResult(
+                output_path=audio_path,
+                preset_applied=self.enhancer_version,
+                enhanced=False,
+                enhancement_fallback=True,
+                diagnostic={"fallback_reason": "HECTTOR_API_KEY not set"},
+            )
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        final_path = output_dir / "enhanced_hecttor.wav"
+        try:
+            samples, sr = sf.read(audio_path, dtype="float32", always_2d=False)
+            # === Hecttor SDK call site (reconcile with hecttor_sdk docs on access) ===
+            # The Hermes SDK processes PCM audio on-device; the exact constructor
+            # and method names are confirmed against the wheel Saima provides.
+            enhancer = hecttor_sdk.Enhancer(api_key=api_key, model=self._model)  # type: ignore[attr-defined]
+            enhanced = enhancer.process(samples, sample_rate=sr)  # type: ignore[attr-defined]
+            # ========================================================================
+            sf.write(final_path, np.asarray(enhanced), sr, subtype="PCM_16")
+            if not _validate_output(final_path):
+                raise RuntimeError("Enhanced output validation failed")
+            return EnhancementResult(
+                output_path=final_path,
+                preset_applied=self.enhancer_version,
+                enhanced=True,
+                enhancement_fallback=False,
+                diagnostic={"backend": "hecttor", "model": self._model},
+            )
+        except Exception as exc:  # noqa: BLE001 - honest fallback, never abort the job
+            return EnhancementResult(
+                output_path=audio_path,
+                preset_applied=self.enhancer_version,
+                enhanced=False,
+                enhancement_fallback=True,
+                diagnostic={"fallback_reason": str(exc)[:240]},
+            )
