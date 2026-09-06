@@ -2,6 +2,8 @@
 
 By **Gabriel Bibbó** · [github.com/gbibbo/asr_enhancement](https://github.com/gbibbo/asr_enhancement)
 
+> **🔴 Live demo:** **https://asr-rp5.tail072b8f.ts.net/demo/** — sign in with username `recruiter` and password `asr-demo-2026`.
+
 A full-stack demo that shows how audio degradation hurts automatic speech
 recognition (ASR) and how a speech-enhancement stage sits in front of the
 recogniser to recover accuracy. It runs as a **public, mobile-first web demo on
@@ -26,15 +28,19 @@ hiss) and an **ASR provider**, and the demo shows, side by side:
 Curated examples return instantly from a versioned cache; uploads go through an
 asynchronous job queue and are transcribed on-device.
 
-## Live demo
+## ▶️ Live demo — try it now
 
-The demo is **live on a Raspberry Pi 5** behind an HTTPS Tailscale Funnel tunnel
-and a recruiter **HTTP Basic gate** (single sign-in covers the whole UI). Because
-it runs on personal hardware and a home connection, treat it as **best-effort,
-not always-on**.
+**https://asr-rp5.tail072b8f.ts.net/demo/**
 
-The URL and recruiter credentials are shared alongside this project (CV /
-LinkedIn / on request) rather than committed to the repository.
+| | |
+|---|---|
+| **Username** | `recruiter` |
+| **Password** | `asr-demo-2026` |
+
+Open the link, enter the username and password above when the browser asks, and
+the demo loads. It runs **live on a Raspberry Pi 5** behind an HTTPS tunnel with
+a single sign-in that covers the whole UI. Because it runs on personal hardware
+and a home connection, treat it as **best-effort, not always-on**.
 
 <!-- Screenshots -->
 Mobile layout: ![mobile demo](assets/screenshots/b11_2_mobile.png)
