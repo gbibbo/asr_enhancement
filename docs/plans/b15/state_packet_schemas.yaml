@@ -1,0 +1,255 @@
+schema_version: "1.0.0-b15-draft"
+schema_owner: state_packet_schemas
+authoring_status: DRAFT_NOT_APPROVED_FOR_EXECUTION
+preceded_by_phase: B14.1
+b14_1_accepted_phase_gate_report_commit: f2a64d5619e34db99802595c0ce4ea9ae2e2d5f1
+b14_1_accepted_tracker_closure_commit: 360bc2bd8a3d7d42a1886d82cccd3f77b5de7d84
+b15_plan_authoring_input_accepted_report_commit: 63fefd061ee56873c51fb72f4baab333aa86740c
+applies_to_plans:
+  - orchestrator_plan: docs/plans/b15/orchestrator_plan.md
+  - agent_plan: docs/plans/b15/agent_plan.md
+
+drift_handling:
+  if_orchestrator_or_agent_disagrees_with_schema:
+    marker: PLAN_CONFLICT
+    stop: true
+    resolve_via: CHANGE_SCOPE
+  if_agent_marker_missing_from_orchestrator_registry: {marker: PLAN_CONFLICT, stop: true}
+  if_orchestrator_marker_missing_from_agent_registry: {marker: PLAN_CONFLICT, stop: true}
+  if_recovery_packet_missing_for_marker: {marker: RECOVERY_PACKET_GAP, stop: true}
+  if_approval_packet_missing_wrapper: {marker: APPROVAL_PACKET_MALFORMED, stop: true}
+  if_human_action_request_missing_wrapper: {marker: HUMAN_ACTION_REQUEST_MALFORMED, stop: true}
+
+schema_constraints:
+  schema_must_not_contain:
+    - implementation_commands
+    - validator_script_paths_as_runtime_actions
+    - approval_decisions
+    - phase_gate_predicates_as_authority
+    - tracker_runtime_state_values
+    - recruiter_credential_values
+    - admin_credential_values
+    - tailscale_auth_key_values
+    - cloudflare_token_values
+    - public_URL_literals
+    - stable_hostname_literals
+  cross_document_invariants:
+    - every_agent_marker_exists_in_orchestrator_marker_registry
+    - every_orchestrator_marker_exists_in_agent_marker_registry
+    - every_marker_has_agent_recovery_packet
+    - every_orchestrator_hard_stop_marker_has_recovery_packet
+    - approval_packet_fields_match_orchestrator_section_2
+    - every_b15_har_id_has_har_record_and_recovery_packet
+    - public_exposure_smoke_claim_record_must_cite_stable_named_exposure_or_explicit_blocker
+    - every_multi_network_smoke_result_record_must_cite_an_operator_evidence_reference
+
+# ---- inherited shapes (semantics identical to docs/plans/b14_1/state_packet_schemas.yaml) ----
+
+state_packet:
+  description: shape of runtime state snapshot, not ownership of runtime values
+  fields: [repo_root, branch, head_commit, working_tree_status, current_phase, current_task, last_completed_task, active_markers, latest_planning_report_path, latest_execution_report_path, latest_phase_gate_report_path, latest_approval_packet, expected_next_task, requested_task_matches_tracker]
+  required_fields: [repo_root, branch, head_commit, working_tree_status, current_phase, current_task, last_completed_task, active_markers, expected_next_task, requested_task_matches_tracker]
+  enum_values:
+    requested_task_matches_tracker: [true, false]
+
+planning_report:
+  section_order: [STATE SNAPSHOT, TRACKER-DERIVED NEXT TASK, TASK SCOPE, PLANNED COMMITTED FILES, LOCAL-ONLY EVIDENCE, COMMANDS TO RUN, VALIDATION PLAN, EXPECTED POST-EXECUTION STATE, RISKS_OR_BLOCKERS, STOP CONDITION]
+  required_fields: [state_snapshot, tracker_derived_next_task, task_scope, planned_committed_files, local_only_evidence, commands_to_run, validation_plan, expected_post_execution_state, risks_or_blockers, stop_condition]
+
+execution_report:
+  section_order: [STATE BEFORE, TASK EXECUTED, FILES CHANGED AND COMMITTED, LOCAL-ONLY EVIDENCE REMOVED, VALIDATION RESULTS, COMMIT AND PUSH, STATE AFTER, STOP CONDITION]
+  required_fields: [state_before, task_executed, files_changed_and_committed, local_only_evidence_removed, validation_results, commit_and_push, state_after, stop_condition]
+  command_result_shape: [command, exit_code, sentinel_observed]
+  artifact_check_shape: [path, exists, size_bytes, sha256]
+
+phase_gate_report:
+  section_order: [STATE SNAPSHOT, PHASE, GATE PREDICATES, VALIDATION RESULTS, CLAIM STATUS, FUTURE CONSTRAINTS, NEXT EXPECTED PHASE, BLOCKERS]
+  required_fields: [state_snapshot, phase, gate_predicates, validation_results, claim_status, future_constraints, next_expected_phase, blockers]
+
+approval_packet:
+  wrapper:
+    name: ORCHESTRATOR_DECISION
+    only_top_level_key_allowed: true
+  fields:
+    scope: {type: enum, required: true, enum_values: [task, phase, scope_change, plan_authoring]}
+    task_id: {type: string_or_null, required: true}
+    phase: {type: string_or_null, required: true}
+    decision: {type: enum, required: true, enum_values: [APPROVE_PLAN, REVISE_PLAN, STOP_SCOPE_CONFLICT, CLOSE_TASK, CLOSE_TASK_WITH_OBSERVED_REGRESSIONS, FIX_BEFORE_CLOSE, PHASE_APPROVE, PHASE_REJECT, CHANGE_SCOPE, REQUEST_PLAN_AUTHORING, APPROVE_FOR_EXECUTION]}
+    accepted_report_commit: {type: string_or_null, required: true}
+    next_expected_task: {type: string_or_null, required: true}
+    required_fix: {type: string_or_null, required: true}
+    rationale: {type: string, required: true}
+  required_fields: [scope, task_id, phase, decision, accepted_report_commit, next_expected_task, required_fix, rationale]
+
+supplemental_evidence_report:
+  section_order: [STATE SNAPSHOT, QUESTION, READ_ONLY_COMMANDS_RUN, EVIDENCE_ROWS, LIMITS, STOP CONDITION]
+  required_fields: [state_snapshot, question, read_only_commands_run, evidence_rows, limits, stop_condition]
+
+human_action_request:
+  fields: [request_id, marker, missing_inputs, why_human_only, allowed_values_or_schema, blocks, created_by_task, next_state_until_result, forbidden_agent_action, result_expected_at]
+  required_fields: [request_id, marker, missing_inputs, why_human_only, allowed_values_or_schema, blocks, created_by_task, next_state_until_result, forbidden_agent_action, result_expected_at]
+
+human_action_result:
+  fields: [request_id, supplied_values, waiver_if_any, evidence_reference, accepted_by_orchestrator_decision, next_state]
+  required_fields: [request_id, supplied_values, evidence_reference, accepted_by_orchestrator_decision, next_state]
+
+path_lock_record:
+  fields: [lock_id, type, detection_command, include_predicate, exclude_predicate, allowed_symbols_or_components, validator_command, max_changed_files, unauthorized_marker]
+  required_fields: [lock_id, type, detection_command, include_predicate, exclude_predicate, allowed_symbols_or_components, validator_command, max_changed_files, unauthorized_marker]
+
+blocking_marker_recovery_record:
+  fields: [packet_id, marker, diagnosis_command, allowed_files_to_inspect, allowed_files_to_modify, forbidden_files, retry_limit, next_state_on_recovered, next_state_on_retry_exhausted, human_escalation_allowed, human_escalation_packet_if_allowed]
+  required_fields: [packet_id, marker, diagnosis_command, allowed_files_to_inspect, allowed_files_to_modify, retry_limit, next_state_on_recovered, next_state_on_retry_exhausted]
+
+tracker_task_record:
+  fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task, observed_regression_markers]
+  required_fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task]
+  enum_values:
+    status: [PENDING, PLANNED, IN_PROGRESS, PASS, PASS_WITH_OBSERVED_REGRESSION, FAIL, HALTED, SKIPPED_BY_FUTURE_SCOPE, BLOCKED_BY_HUMAN_ACTION]
+  optional_fields_notes:
+    observed_regression_markers: >-
+      list[string]; non-empty list of regression-class marker ids when status is
+      PASS_WITH_OBSERVED_REGRESSION, absent or empty otherwise. Regression-class
+      markers in scope at B15-05: B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE,
+      B15_QUOTA_STATE_MISREPRESENTED, B15_UPLOAD_LIMIT_REGRESSION,
+      B15_MOBILE_LAYOUT_REGRESSION, B15_CACHED_EXAMPLE_REGRESSION. Fabrication-class
+      markers (B15_SMOKE_RESULT_FABRICATED, B15_MULTI_NETWORK_COVERAGE_GAP) are NOT
+      admissible here; they remain pure FIX_BEFORE_CLOSE.
+
+artifact_record:
+  fields: [artifact_id, path, produced_by_task, exists, size_bytes, sha256, validator]
+  required_fields: [artifact_id, path, produced_by_task, exists, size_bytes, sha256, validator]
+
+orchestrator_approval_record:
+  fields: [approval_id, approval_packet, recorded_at_commit, accepted_report_commit, next_expected_task]
+  required_fields: [approval_id, approval_packet, recorded_at_commit, accepted_report_commit, next_expected_task]
+
+future_constraint_preservation_record:
+  fields: [constraint_id, source_section, current_scope_impact, must_preserve_in_current_plan, forbidden_current_plan_regression, validator_or_review_check, future_phase_owner, out_of_scope_but_preserved]
+  required_fields: [constraint_id, source_section, current_scope_impact, must_preserve_in_current_plan, forbidden_current_plan_regression, validator_or_review_check, future_phase_owner, out_of_scope_but_preserved]
+
+phase_approval_record:
+  fields: [phase, status, decision, accepted_phase_gate_report_commit, accepted_tracker_closure_commit, approval_packet_path, phase_gate_report_path, next_phase, next_phase_status]
+  required_fields: [phase, status, decision, accepted_phase_gate_report_commit, accepted_tracker_closure_commit, approval_packet_path, phase_gate_report_path, next_phase, next_phase_status]
+  enum_values:
+    status: [APPROVED, REJECTED]
+    decision: [PHASE_APPROVE, PHASE_REJECT, CHANGE_SCOPE]
+  notes:
+    - a B15 phase_approval_record may be recorded through the full-success branch or the explicit-blocker branch
+    - an explicit-blocker-branch B15 phase_approval_record is not a public-exposure success claim
+
+# ---- B15-specific records ----
+
+multi_network_smoke_coverage_record:
+  description: declarative B15-01 deliverable enumerating the four network vantage points and the nine coverage items, each with a planned status; runtime outcomes are owned by multi_network_smoke_result_record
+  fields: [coverage_id, vantage_points, coverage_items, planned_status_per_item, blocker_if_unsupplied, validator, marker]
+  required_fields: [coverage_id, vantage_points, coverage_items, planned_status_per_item, blocker_if_unsupplied, validator, marker]
+  enum_values:
+    vantage_points: [windows_local, mobile_cellular, other_wifi, vpn_or_external_tester]
+    coverage_items: [five_curated_examples, five_degradations, whisper_provider, assemblyai_provider, upload_without_manual_ground_truth, upload_with_manual_ground_truth, upload_limit_enforced, provider_quota_state, mobile_layout]
+    planned_status_per_item: [PENDING_OPERATOR_EVIDENCE, COVERED, BLOCKED_PENDING_HUMAN_ACTION, EXPLICIT_NA_PROVIDER_DISABLED]
+  rules:
+    - all four vantage_points enumerated values must be present
+    - all nine coverage_items enumerated values must be present
+    - planned_status_per_item EXPLICIT_NA_PROVIDER_DISABLED is legal only for the assemblyai_provider coverage item
+
+multi_network_smoke_result_record:
+  description: declarative per-vantage-point B15-05 deliverable capturing the smoke outcome for the nine coverage items; one record per vantage point; runtime URLs and secrets are never recorded as literals
+  fields: [result_id, vantage_point, coverage_item_outcomes, recruiter_gate_observed_status, quota_state_observed, upload_limit_observed, mobile_layout_observed, cached_example_observed, evidence_reference, har_reference, validator, marker]
+  required_fields: [result_id, vantage_point, coverage_item_outcomes, recruiter_gate_observed_status, quota_state_observed, upload_limit_observed, mobile_layout_observed, cached_example_observed, evidence_reference, har_reference, validator, marker]
+  enum_values:
+    vantage_point: [windows_local, mobile_cellular, other_wifi, vpn_or_external_tester]
+    recruiter_gate_observed_status: [authenticated_access_only, unauthenticated_access_observed]
+    quota_state_observed: [AssemblyAI available, AssemblyAI daily quota reached, AssemblyAI quota exhausted, AssemblyAI disabled]
+    upload_limit_observed: [enforced, not_enforced]
+    mobile_layout_observed: [no_horizontal_scroll, horizontal_scroll_observed, not_applicable]
+    cached_example_observed: [all_curated_examples_resolved, curated_example_failed]
+  rules:
+    - evidence_reference must be a non-null operator-supplied reference recorded via a human_action_result
+    - har_reference must cite HAR-B15-MULTI-NETWORK-SMOKE-001
+    - recruiter_gate_observed_status unauthenticated_access_observed sets marker B15_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_SMOKE
+    - upload_limit_observed not_enforced sets marker B15_UPLOAD_LIMIT_REGRESSION
+    - mobile_layout_observed horizontal_scroll_observed sets marker B15_MOBILE_LAYOUT_REGRESSION
+    - mobile_layout_observed not_applicable is legal only when vantage_point is one of {windows_local, other_wifi, vpn_or_external_tester}; on vantage_point mobile_cellular it sets marker B15_MOBILE_LAYOUT_REGRESSION
+    - cached_example_observed curated_example_failed sets marker B15_CACHED_EXAMPLE_REGRESSION
+    - a result record authored without a non-null evidence_reference sets marker B15_SMOKE_RESULT_FABRICATED
+  forbidden_values:
+    no_literal_public_url: true
+    no_literal_stable_hostname: true
+    no_tunnel_secret: true
+
+public_exposure_bringup_record:
+  description: declarative B15-04 deliverable recording that the operator-side public-exposure bring-up evidence has been supplied by reference; the agent records only references and boolean flags
+  fields: [bringup_id, public_exposure_flag, stable_hostname_supplied_by_reference, tailscale_authkey_supplied_by_reference, tunnel_run_as_service_restart_policy_string, har_references, evidence_reference, validator, marker]
+  required_fields: [bringup_id, public_exposure_flag, stable_hostname_supplied_by_reference, tailscale_authkey_supplied_by_reference, tunnel_run_as_service_restart_policy_string, har_references, evidence_reference, validator, marker]
+  enum_values:
+    public_exposure_flag: [PUBLIC_DEMO_EXPOSURE_false, PUBLIC_DEMO_EXPOSURE_true]
+    stable_hostname_supplied_by_reference: [true, false]
+    tailscale_authkey_supplied_by_reference: [true, false]
+  rules:
+    - har_references must cite HAR-B14_1-STABLE-HOSTNAME-001 and HAR-B14_1-FUNNEL-CAPABILITY-001
+    - if stable_hostname_supplied_by_reference is false or tailscale_authkey_supplied_by_reference is false then the owning B15-04 task status is BLOCKED_BY_HUMAN_ACTION and marker HUMAN_ACTION_REQUIRED is set
+    - no literal hostname, public URL, auth-key, or token is recorded in this record
+
+public_exposure_smoke_claim_record:
+  description: declarative B15-06 deliverable capturing the B15 success-claim shape; a success claim is legal only when stable named exposure is supplied by reference and every coverage item passed, or an explicit blocker is recorded
+  fields: [claim_id, claim_status, stable_named_exposure_supplied_by_reference, all_coverage_items_passed, explicit_blocker_id, blocker_recovery_packet, validator, marker]
+  required_fields: [claim_id, claim_status, stable_named_exposure_supplied_by_reference, all_coverage_items_passed, explicit_blocker_id, blocker_recovery_packet, validator, marker]
+  enum_values:
+    claim_status: [SUCCESS_WITH_STABLE_NAMED_EXPOSURE, BLOCKED_PENDING_HUMAN_ACTION, BLOCKED_PENDING_INFRA, FAILED_PENDING_PHASE_RETURN]
+  rules:
+    - if claim_status is SUCCESS_WITH_STABLE_NAMED_EXPOSURE then stable_named_exposure_supplied_by_reference must be true and all_coverage_items_passed must be true and explicit_blocker_id must be null
+    - if claim_status starts with BLOCKED then explicit_blocker_id must be non-null and blocker_recovery_packet must exist
+    - if claim_status is FAILED_PENDING_PHASE_RETURN then a b15_decision_rule_routing_record routing value other than PROCEED_TO_B_HANDOFF must be recorded
+  forbidden_values:
+    success_claim_keyed_on_ephemeral_url_alone: forbidden
+
+b15_decision_rule_routing_record:
+  description: declarative B15-06 deliverable encoding the legacy demo_platform_plan section 37 Task B15.1 decision rules as a deterministic routing outcome
+  fields: [routing_id, routing, triggering_condition, return_phase_if_any, validator, marker]
+  required_fields: [routing_id, routing, triggering_condition, return_phase_if_any, validator, marker]
+  enum_values:
+    routing: [PROCEED_TO_B_HANDOFF, RETURN_TO_B11, RETURN_TO_B14, RETURN_TO_B10, RETURN_TO_B8, BLOCKED_PENDING_HUMAN_ACTION]
+  rules:
+    - routing RETURN_TO_B11 fires when a mobile_cellular or mobile_layout outcome reports failure
+    - routing RETURN_TO_B14 fires when the public tunnel fails to expose the surface from any vantage point
+    - routing RETURN_TO_B10 fires when a provider quota state is misrepresented
+    - routing RETURN_TO_B8 fires when a cached curated example fails to resolve
+    - routing PROCEED_TO_B_HANDOFF fires only when no failure routing fires and every success condition passed
+    - routing BLOCKED_PENDING_HUMAN_ACTION fires when operator smoke evidence is absent
+
+b15_closure_report:
+  description: compact B15 closure report consumed at the B15-07 phase gate; summarizes the phase outcome, the claim status, and the carried-HAR posture
+  section_order: [STATE SNAPSHOT, PHASE OUTCOME, FINAL-VERIFICATION SENTINELS, CLAIM STATUS, DECISION-RULE ROUTING, CARRIED HAR POSTURE, FUTURE CONSTRAINTS, BLOCKERS]
+  required_fields: [state_snapshot, phase_outcome, final_verification_sentinels, claim_status, decision_rule_routing, carried_har_posture, future_constraints, blockers]
+  enum_values:
+    phase_outcome: [B15_FULL_SUCCESS, B15_EXPLICIT_BLOCKER, B15_FAILED_PENDING_PHASE_RETURN]
+
+b15_human_action_packet:
+  description: B15-03 deliverable; a collection of human_action_request records carrying the two B14.1 HARs and the new B15 HAR
+  fields: [packet_id, human_action_requests, carried_from_b14_1, new_in_b15, validator, marker]
+  required_fields: [packet_id, human_action_requests, carried_from_b14_1, new_in_b15, validator, marker]
+  rules:
+    - carried_from_b14_1 must list HAR-B14_1-STABLE-HOSTNAME-001 and HAR-B14_1-FUNNEL-CAPABILITY-001
+    - new_in_b15 must list HAR-B15-MULTI-NETWORK-SMOKE-001
+    - each entry in human_action_requests must match the human_action_request shape
+
+b15_phase_gate_report:
+  description: alias of phase_gate_report for B15-07; section_order and required_fields are identical to phase_gate_report
+  same_as: phase_gate_report
+
+context_window_hygiene_record:
+  description: declarative record of when the orchestrator should prefer a new Claude window for context-window hygiene
+  fields: [hygiene_id, trigger_kind, trigger_value, recommended_action]
+  required_fields: [hygiene_id, trigger_kind, trigger_value, recommended_action]
+  enum_values:
+    trigger_kind: [task_count_within_phase, phase_boundary]
+    recommended_action: [prefer_new_claude_window]
+
+har_carry_record:
+  description: declarative record of a human-action request carried forward from B14.1 into B15 without being resolved by the B14.1 phase approval
+  fields: [har_id, carried_from_phase, status_entering_b15, residual_blocker, blocks_b15_task, resolved_by_b14_1_approval, required_human_evidence_shape]
+  required_fields: [har_id, carried_from_phase, status_entering_b15, blocks_b15_task, resolved_by_b14_1_approval, required_human_evidence_shape]
+  enum_values:
+    resolved_by_b14_1_approval: [false]
+    status_entering_b15: [pre_declared_unresolved, partially_resolved_at_B14_1-04_threshold]

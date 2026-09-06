@@ -1,0 +1,2 @@
+Forbidden Authorization Basic header value:
+  Authorization: Basic dXNlcjpwYXNzd29yZA==

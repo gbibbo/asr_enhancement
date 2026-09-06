@@ -1,0 +1,53 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_smoke_result_evidence",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_null_evidence_reference",
+      "expected_marker": "B15_SMOKE_RESULT_FABRICATED",
+      "observed_sentinel": "B15_SMOKE_RESULT_FABRICATED",
+      "root": "negative/negative_null_evidence_reference",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "96411a7d53ac61ad4c409df7396583c738ddfe45b07bf7ca0db7d8b36e5a2262",
+          "size_bytes": 3634
+        }
+      ]
+    },
+    {
+      "case_name": "negative_wrong_har_reference",
+      "expected_marker": "B15_SMOKE_RESULT_FABRICATED",
+      "observed_sentinel": "B15_SMOKE_RESULT_FABRICATED",
+      "root": "negative/negative_wrong_har_reference",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "70bdbe155d93c355b918e5e97d63e635f438a023cf896cc370f3004ae047ba69",
+          "size_bytes": 3651
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_SMOKE_RESULT_FABRICATED"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_SMOKE_RESULT_EVIDENCE_TRACED",
+      "observed_sentinel": "OK_B15_SMOKE_RESULT_EVIDENCE_TRACED",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "567235ba6ac54bae556df27f88b2812a522e1455d9b2a828881efbeb1766191f",
+          "size_bytes": 3665
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_SMOKE_RESULT_EVIDENCE",
+  "validator": "validate_b15_smoke_result_evidence",
+  "validator_sentinel_pass": "OK_B15_SMOKE_RESULT_EVIDENCE_TRACED"
+}

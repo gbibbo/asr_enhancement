@@ -1,0 +1,11 @@
+{
+  "case_name": "negative_router_runtime_sha256_drift",
+  "head_router_runtime_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "head_types_router_shape_sha256": "b893f8f84f6d5b81fa406da5c3272cab116d8098445f4f14673bb9474195225c",
+  "health_probe": {
+    "auth_body_b64": "eyJzdGF0dXMiOiJvayJ9",
+    "auth_status": 200,
+    "unauth_status": 401,
+    "unauth_www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+  }
+}

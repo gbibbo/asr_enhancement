@@ -1,0 +1,12 @@
+{
+  "authorization_header": "Basic <ephemeral>",
+  "expected_classification": "B14_1_APPLICATION_LAYER_GATE_BYPASS_DETECTED",
+  "expected_validator_outcome": "FAIL",
+  "label": "negative_auth_demo_health_body_degraded",
+  "method": "GET",
+  "observed_body_bytes": "{\"status\":\"degraded\"}",
+  "observed_status": 200,
+  "observed_www_authenticate": null,
+  "route": "/demo/health",
+  "violated_rule": "required_authenticated_health_payload must be {\"status\":\"ok\"}"
+}

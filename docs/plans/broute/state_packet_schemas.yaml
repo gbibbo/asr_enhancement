@@ -1,0 +1,149 @@
+schema_version: "1.0.0"
+schema_owner: state_packet_schemas
+applies_to_plans:
+  - orchestrator_plan: orchestrator_plan.md
+  - agent_plan: agent_plan.md
+
+drift_handling:
+  if_orchestrator_or_agent_disagrees_with_schema:
+    marker: PLAN_CONFLICT
+    stop: true
+    resolve_via: CHANGE_SCOPE
+  if_agent_marker_missing_from_orchestrator_registry:
+    marker: PLAN_CONFLICT
+    stop: true
+  if_orchestrator_marker_missing_from_agent_registry:
+    marker: PLAN_CONFLICT
+    stop: true
+  if_recovery_packet_missing_for_marker:
+    marker: RECOVERY_PACKET_GAP
+    stop: true
+  if_approval_packet_missing_wrapper:
+    marker: APPROVAL_PACKET_MALFORMED
+    stop: true
+
+schema_constraints:
+  schema_must_not_contain:
+    - implementation_commands
+    - validator_script_paths_as_runtime_actions
+    - approval_decisions
+    - phase_gate_predicates_as_authority
+    - tracker_runtime_state_values
+  cross_document_invariants:
+    - every_agent_marker_exists_in_orchestrator_marker_registry
+    - every_orchestrator_marker_exists_in_agent_marker_registry
+    - every_marker_has_agent_recovery_packet
+    - every_orchestrator_hard_stop_marker_has_recovery_packet
+    - approval_packet_fields_match_orchestrator_section_2
+
+prebootstrap_inventory_report:
+  fields: [report_id, generated_at_utc, source_of_truth, repo_root, branch, tracker_present, current_phase, current_task, blockers, evidence_rows]
+  required_fields: [report_id, generated_at_utc, source_of_truth, repo_root, branch, tracker_present, evidence_rows]
+  falseability_fields: [evidence_type, reference, negative_case_disproof, disproof_outcome]
+
+state_packet:
+  description: shape of runtime state snapshot, not ownership of runtime values
+  fields: [repo_root, branch, head_commit, working_tree_status, current_phase, current_task, last_completed_task, active_markers, latest_planning_report_path, latest_execution_report_path, latest_phase_gate_report_path, latest_approval_packet, expected_next_task, requested_task_matches_tracker]
+  required_fields: [repo_root, branch, head_commit, working_tree_status, current_phase, current_task, last_completed_task, active_markers, expected_next_task, requested_task_matches_tracker]
+  enum_values:
+    requested_task_matches_tracker: [true, false]
+
+planning_report:
+  section_order: [STATE SNAPSHOT, TRACKER-DERIVED NEXT TASK, TASK SCOPE, PRECONDITIONS, PLANNED FILE CHANGES, PATH LOCKS, COMMANDS TO RUN, VALIDATION PLAN, EXPECTED TRACKER UPDATE, STOP CONDITION, RISKS_OR_BLOCKERS]
+  required_fields: [state_snapshot, tracker_derived_next_task, task_scope, preconditions, planned_file_changes, path_locks, commands_to_run, validation_plan, expected_tracker_update, stop_condition, risks_or_blockers]
+  falseability_fields: [evidence_type, reference, negative_case_disproof, disproof_outcome]
+
+execution_report:
+  section_order: [STATE BEFORE, TASK EXECUTED, FILES CHANGED, PATH LOCK RESULTS, COMMANDS RUN, VALIDATION RESULTS, ARTIFACTS CREATED, TRACKER UPDATE, COMMIT AND PUSH, STATE AFTER, GATE STATUS]
+  required_fields: [state_before, task_executed, files_changed, path_lock_results, commands_run, validation_results, artifacts_created, tracker_update, commit_and_push, state_after, gate_status]
+  falseability_fields: [evidence_type, reference, negative_case_disproof, disproof_outcome]
+  command_result_shape: [command, exit_code, sentinel_observed]
+  artifact_check_shape: [path, exists, size_bytes, sha256]
+
+phase_gate_report:
+  section_order: [STATE SNAPSHOT, PHASE, GATE PREDICATES, VALIDATION RESULTS, CLAIM STATUS, FUTURE CONSTRAINTS, NEXT EXPECTED PHASE, BLOCKERS]
+  required_fields: [state_snapshot, phase, gate_predicates, validation_results, claim_status, future_constraints, next_expected_phase, blockers]
+  falseability_fields: [evidence_type, reference, negative_case_disproof, disproof_outcome]
+
+approval_packet:
+  wrapper:
+    name: ORCHESTRATOR_DECISION
+    only_top_level_key_allowed: true
+  fields:
+    scope: {type: enum, required: true, enum_values: [task, phase, scope_change]}
+    task_id: {type: string_or_null, required: true}
+    phase: {type: string_or_null, required: true}
+    decision: {type: enum, required: true, enum_values: [APPROVE_PLAN, REVISE_PLAN, STOP_SCOPE_CONFLICT, CLOSE_TASK, FIX_BEFORE_CLOSE, PHASE_APPROVE, PHASE_REJECT, CHANGE_SCOPE]}
+    accepted_report_commit: {type: string_or_null, required: true}
+    next_expected_task: {type: string_or_null, required: true}
+    required_fix: {type: string_or_null, required: true}
+    rationale: {type: string, required: true}
+  required_fields: [scope, task_id, phase, decision, accepted_report_commit, next_expected_task, required_fix, rationale]
+
+supplemental_evidence_report:
+  section_order: [STATE SNAPSHOT, QUESTION, READ_ONLY_COMMANDS_RUN, EVIDENCE_ROWS, LIMITS, STOP CONDITION]
+  required_fields: [state_snapshot, question, read_only_commands_run, evidence_rows, limits, stop_condition]
+  falseability_fields: [evidence_type, reference, negative_case_disproof, disproof_outcome]
+
+human_action_request:
+  fields: [request_id, marker, missing_inputs, why_human_only, allowed_values_or_schema, blocks, created_by_task, next_state_until_result, forbidden_agent_action, result_expected_at]
+  required_fields: [request_id, marker, missing_inputs, why_human_only, allowed_values_or_schema, blocks, created_by_task, next_state_until_result, forbidden_agent_action, result_expected_at]
+
+human_action_result:
+  fields: [request_id, supplied_values, waiver_if_any, evidence_reference, accepted_by_orchestrator_decision, next_state]
+  required_fields: [request_id, supplied_values, evidence_reference, accepted_by_orchestrator_decision, next_state]
+
+path_lock_record:
+  fields: [lock_id, type, detection_command, include_predicate, exclude_predicate, allowed_symbols_or_components, validator_command, max_changed_files, unauthorized_marker]
+  required_fields: [lock_id, type, detection_command, include_predicate, exclude_predicate, allowed_symbols_or_components, validator_command, max_changed_files, unauthorized_marker]
+
+security_invariant_record:
+  fields: [invariant_id, source_preplan_section, protected_surface, forbidden_regression, validator, marker]
+  required_fields: [invariant_id, source_preplan_section, protected_surface, forbidden_regression, validator, marker]
+
+blocking_marker_recovery_record:
+  fields: [packet_id, marker, diagnosis_command, allowed_files_to_inspect, allowed_files_to_modify, forbidden_files, retry_limit, next_state_on_recovered, next_state_on_retry_exhausted, human_escalation_allowed, human_escalation_packet_if_allowed]
+  required_fields: [packet_id, marker, diagnosis_command, allowed_files_to_inspect, allowed_files_to_modify, retry_limit, next_state_on_recovered, next_state_on_retry_exhausted]
+
+tracker_task_record:
+  fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task]
+  required_fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task]
+  enum_values:
+    status: [PENDING, PLANNED, IN_PROGRESS, PASS, FAIL, HALTED, SKIPPED_BY_FUTURE_SCOPE]
+
+artifact_record:
+  fields: [artifact_id, path, produced_by_task, exists, size_bytes, sha256, validator]
+  required_fields: [artifact_id, path, produced_by_task, exists, size_bytes, sha256, validator]
+
+orchestrator_approval_record:
+  fields: [approval_id, approval_packet, recorded_at_commit, accepted_report_commit, next_expected_task]
+  required_fields: [approval_id, approval_packet, recorded_at_commit, accepted_report_commit, next_expected_task]
+
+future_constraint_preservation_record:
+  fields: [constraint_id, source_preplan_section, current_scope_impact, must_preserve_in_current_plan, forbidden_current_plan_regression, validator_or_review_check, future_phase_owner, out_of_scope_but_preserved]
+  required_fields: [constraint_id, source_preplan_section, current_scope_impact, must_preserve_in_current_plan, forbidden_current_plan_regression, validator_or_review_check, future_phase_owner, out_of_scope_but_preserved]
+
+mature_mechanism_inventory_record:
+  fields: [mechanism_id, mature_source_file, mature_source_section, mature_behavior_summary, applies_to_current_preplan_scope, if_false_legitimate_scope_reason, generated_plan_target_file, generated_plan_target_section, generated_plan_equivalent_behavior, equivalence_direction, concrete_counterexample_attempted, counterexample_result, required_patch_if_WEAKER]
+  required_fields: [mechanism_id, mature_source_file, mature_source_section, mature_behavior_summary, applies_to_current_preplan_scope, generated_plan_target_file, generated_plan_target_section, generated_plan_equivalent_behavior, equivalence_direction, concrete_counterexample_attempted, counterexample_result, required_patch_if_WEAKER]
+  enum_values:
+    equivalence_direction: [WEAKER, EQUAL, STRONGER, NOT_APPLICABLE_LEGITIMATE_SCOPE_DIFFERENCE]
+    counterexample_result: [gap_found, exhausted_no_gap, out_of_scope_legitimate]
+
+operational_stress_pack_record:
+  fields: [no_summary_only_audits, validate_plan_compiles_contract_present, action_deliverable_validator_bijection_complete, path_lock_granularity_pass, future_constraint_preservation_pass, adversarial_trajectory_replay_pass, last_patch_regression_attack_pass_if_applicable, canonical_final_cleanliness_pass, patch_application_discipline_pass, handoff_address_pass, trend_monotonicity_pass]
+  required_fields: [no_summary_only_audits, validate_plan_compiles_contract_present, action_deliverable_validator_bijection_complete, path_lock_granularity_pass, future_constraint_preservation_pass, adversarial_trajectory_replay_pass, last_patch_regression_attack_pass_if_applicable, canonical_final_cleanliness_pass, patch_application_discipline_pass, handoff_address_pass, trend_monotonicity_pass]
+  enum_values:
+    status_per_key: [PASS, FAIL, not_applicable]
+
+patch_application_discipline_record:
+  fields: [patch_id, instances_modified_count, acceptance_check_per_instance, rejected_options_if_multi_option_patch, new_entities_introduced, recursive_registration_check]
+  required_fields: [patch_id, instances_modified_count, acceptance_check_per_instance]
+
+handoff_address_record:
+  fields: [handoff_item, response_type, patch_id, affected_file, affected_section, acceptance_check, counterexample, explicit_NA_reason]
+  required_fields: [handoff_item, response_type]
+
+trend_monotonicity_record:
+  fields: [previous_axes_weaker_count, current_axes_weaker_count, classification, monotonicity]
+  required_fields: [previous_axes_weaker_count, current_axes_weaker_count, classification, monotonicity]

@@ -1,0 +1,26 @@
+ORCHESTRATOR_DECISION:
+  scope: plan_authoring_approval
+  task_id: null
+  phase: B14.0
+  decision: APPROVE_FOR_EXECUTION
+  accepted_report_commit: 8a049d00bdfec5b97c416f3135644ecd78f14bd8
+  next_expected_task: B14_0-00
+  required_fix: null
+  rationale: The B14.0 plan package (docs/plans/b14_0/orchestrator_plan.md, docs/plans/b14_0/agent_plan.md, docs/plans/b14_0/state_packet_schemas.yaml) was authored under APPROVE_PLAN_AUTHORING, audited under APPROVE_FOR_EXTERNAL_REVIEW, and the M1..M6 targeted revisions were applied and pushed at commit 8a049d0. All consistency checks pass (21/21 markers, 21/21 recovery packets, 7 new B14.0 validators each paired with a fixture generator, FC-B14-1-FUNNEL, FC-B15-MULTI-NETWORK, FC-HANDOFF-DATAMOVE1, FC-BROUTE-FROZEN preserved as future constraints, HAR-B14_0-RECRUITER-CREDS-001 pre-declared, adversarial stress-replay table covers eight scenarios). The plan package is approved for execution. No B14.0 implementation task starts until a separate APPROVE_PLAN decision for B14_0-00 is recorded.
+plan_files_approved:
+  - docs/plans/b14_0/orchestrator_plan.md
+  - docs/plans/b14_0/agent_plan.md
+  - docs/plans/b14_0/state_packet_schemas.yaml
+tracker_advancement:
+  current_phase: B14.0
+  current_task: B14_0-00
+  last_completed_phase: B-route
+  last_completed_task: BR-08
+  markers: []
+  expected_next_task: B14_0-00
+har_carried_forward:
+  - id: HAR-B14_0-RECRUITER-CREDS-001
+    status: pre_declared_unresolved
+    blocks: B14_0-02 closure
+    does_not_block: B14_0-00, B14_0-01
+implementation_task_started: false

@@ -1,0 +1,323 @@
+{
+  "task": "B8.1",
+  "host": "1270ff15df90",
+  "generated_at": "2026-05-03T21:20:53.720651+00:00",
+  "db_path": "/home/gbibbo/asr_enhancement_runtime/db/demo.db",
+  "artifacts_root": "/home/gbibbo/asr_enhancement_runtime/artifacts/examples",
+  "versions": {
+    "degradation_version": "degradation_v1",
+    "metrics_version": "1.0",
+    "default_enhancer_version": "1.0"
+  },
+  "total_rows": 30,
+  "outcomes": {
+    "ok": 30,
+    "stale_version": 0,
+    "key_mismatch": 0,
+    "missing_artifact": 0,
+    "sha256_mismatch": 0,
+    "bad_payload": 0
+  },
+  "rows": [
+    {
+      "cache_key": "ex001|broadband_hiss|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex001",
+      "degradation_id": "broadband_hiss",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex001|cafe_background|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex001",
+      "degradation_id": "cafe_background",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex001|clean|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex001",
+      "degradation_id": "clean",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex001|far_field_room|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex001",
+      "degradation_id": "far_field_room",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex001|muffled|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex001",
+      "degradation_id": "muffled",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex001|phone_call|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex001",
+      "degradation_id": "phone_call",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex003|broadband_hiss|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex003",
+      "degradation_id": "broadband_hiss",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex003|cafe_background|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex003",
+      "degradation_id": "cafe_background",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex003|clean|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex003",
+      "degradation_id": "clean",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex003|far_field_room|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex003",
+      "degradation_id": "far_field_room",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex003|muffled|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex003",
+      "degradation_id": "muffled",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex003|phone_call|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex003",
+      "degradation_id": "phone_call",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex004|broadband_hiss|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex004",
+      "degradation_id": "broadband_hiss",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex004|cafe_background|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex004",
+      "degradation_id": "cafe_background",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex004|clean|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex004",
+      "degradation_id": "clean",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex004|far_field_room|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex004",
+      "degradation_id": "far_field_room",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex004|muffled|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex004",
+      "degradation_id": "muffled",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex004|phone_call|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex004",
+      "degradation_id": "phone_call",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex007|broadband_hiss|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex007",
+      "degradation_id": "broadband_hiss",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex007|cafe_background|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex007",
+      "degradation_id": "cafe_background",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex007|clean|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex007",
+      "degradation_id": "clean",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex007|far_field_room|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex007",
+      "degradation_id": "far_field_room",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex007|muffled|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex007",
+      "degradation_id": "muffled",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex007|phone_call|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex007",
+      "degradation_id": "phone_call",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex010|broadband_hiss|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex010",
+      "degradation_id": "broadband_hiss",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex010|cafe_background|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex010",
+      "degradation_id": "cafe_background",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex010|clean|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex010",
+      "degradation_id": "clean",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex010|far_field_room|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex010",
+      "degradation_id": "far_field_room",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex010|muffled|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex010",
+      "degradation_id": "muffled",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    },
+    {
+      "cache_key": "ex010|phone_call|degradation_v1|whisper|tiny.en|bypass|1.0",
+      "example_id": "ex010",
+      "degradation_id": "phone_call",
+      "asr_provider": "whisper",
+      "asr_model_version": "tiny.en",
+      "enhancer_version": "bypass",
+      "outcome": "ok",
+      "detail": null
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# GTCRN speech-enhancement model (ONNX, ~350 KB). Run on-device via onnxruntime
+# by GtcrnOnnxEnhancer to reconstruct degraded audio before ASR. Pure ONNX, so it
+# runs on the Raspberry Pi's 16 KB memory pages (unlike the jemalloc-linked
+# DeepFilterNet binary). Placed before the code COPY layers so it caches.
+RUN set -eux; \
+    mkdir -p /app/models; \
+    url="https://raw.githubusercontent.com/Xiaobin-Rong/gtcrn/main/stream/onnx_models/gtcrn.onnx"; \
+    python -c "import urllib.request,sys; urllib.request.urlretrieve(sys.argv[1], sys.argv[2])" "$url" /app/models/gtcrn.onnx
+
+COPY requirements.lock.arm64 ./
+COPY pyproject.toml README.md ./
+COPY libs ./libs
+COPY services ./services
+COPY tests ./tests
+
+RUN pip install --no-cache-dir -r requirements.lock.arm64

@@ -1,0 +1,203 @@
+schema_version: "1.0.0-b14_1-draft"
+schema_owner: state_packet_schemas
+authoring_status: DRAFT_NOT_APPROVED_FOR_EXECUTION
+preceded_by_phase: B14.0
+b14_0_accepted_phase_gate_report_commit: 7e9ce1f7067f938d2b58a7a4e8615101b0012c58
+b14_0_accepted_tracker_closure_commit: 7730a4f53744eeb99d118f6f5b283c2f1c35dfc8
+b14_0_phase_approval_commit: 0bdaea89c665dd5cabd7904556dbf536ef409f9f
+applies_to_plans:
+  - orchestrator_plan: docs/plans/b14_1/orchestrator_plan.md
+  - agent_plan: docs/plans/b14_1/agent_plan.md
+
+drift_handling:
+  if_orchestrator_or_agent_disagrees_with_schema:
+    marker: PLAN_CONFLICT
+    stop: true
+    resolve_via: CHANGE_SCOPE
+  if_agent_marker_missing_from_orchestrator_registry: {marker: PLAN_CONFLICT, stop: true}
+  if_orchestrator_marker_missing_from_agent_registry: {marker: PLAN_CONFLICT, stop: true}
+  if_recovery_packet_missing_for_marker: {marker: RECOVERY_PACKET_GAP, stop: true}
+  if_approval_packet_missing_wrapper: {marker: APPROVAL_PACKET_MALFORMED, stop: true}
+  if_human_action_request_missing_wrapper: {marker: HUMAN_ACTION_REQUEST_MALFORMED, stop: true}
+
+schema_constraints:
+  schema_must_not_contain:
+    - implementation_commands
+    - validator_script_paths_as_runtime_actions
+    - approval_decisions
+    - phase_gate_predicates_as_authority
+    - tracker_runtime_state_values
+    - recruiter_credential_values
+    - admin_credential_values
+    - tailscale_auth_key_values
+    - cloudflare_token_values
+    - public_URL_literals
+    - stable_hostname_literals
+  cross_document_invariants:
+    - every_agent_marker_exists_in_orchestrator_marker_registry
+    - every_orchestrator_marker_exists_in_agent_marker_registry
+    - every_marker_has_agent_recovery_packet
+    - every_orchestrator_hard_stop_marker_has_recovery_packet
+    - approval_packet_fields_match_orchestrator_section_2
+    - every_b14_1_har_id_has_har_record_and_recovery_packet
+    - public_exposure_claim_record_must_cite_stable_named_exposure_or_explicit_blocker
+
+# ---- inherited shapes (semantics identical to docs/plans/b14_0/state_packet_schemas.yaml) ----
+
+state_packet:
+  description: shape of runtime state snapshot, not ownership of runtime values
+  fields: [repo_root, branch, head_commit, working_tree_status, current_phase, current_task, last_completed_task, active_markers, latest_planning_report_path, latest_execution_report_path, latest_phase_gate_report_path, latest_approval_packet, expected_next_task, requested_task_matches_tracker]
+  required_fields: [repo_root, branch, head_commit, working_tree_status, current_phase, current_task, last_completed_task, active_markers, expected_next_task, requested_task_matches_tracker]
+  enum_values:
+    requested_task_matches_tracker: [true, false]
+
+planning_report:
+  section_order: [STATE SNAPSHOT, TRACKER-DERIVED NEXT TASK, TASK SCOPE, PLANNED COMMITTED FILES, LOCAL-ONLY EVIDENCE, COMMANDS TO RUN, VALIDATION PLAN, EXPECTED POST-EXECUTION STATE, RISKS_OR_BLOCKERS, STOP CONDITION]
+  required_fields: [state_snapshot, tracker_derived_next_task, task_scope, planned_committed_files, local_only_evidence, commands_to_run, validation_plan, expected_post_execution_state, risks_or_blockers, stop_condition]
+
+execution_report:
+  section_order: [STATE BEFORE, TASK EXECUTED, FILES CHANGED AND COMMITTED, LOCAL-ONLY EVIDENCE REMOVED, VALIDATION RESULTS, COMMIT AND PUSH, STATE AFTER, STOP CONDITION]
+  required_fields: [state_before, task_executed, files_changed_and_committed, local_only_evidence_removed, validation_results, commit_and_push, state_after, stop_condition]
+  command_result_shape: [command, exit_code, sentinel_observed]
+  artifact_check_shape: [path, exists, size_bytes, sha256]
+
+phase_gate_report:
+  section_order: [STATE SNAPSHOT, PHASE, GATE PREDICATES, VALIDATION RESULTS, CLAIM STATUS, FUTURE CONSTRAINTS, NEXT EXPECTED PHASE, BLOCKERS]
+  required_fields: [state_snapshot, phase, gate_predicates, validation_results, claim_status, future_constraints, next_expected_phase, blockers]
+
+approval_packet:
+  wrapper:
+    name: ORCHESTRATOR_DECISION
+    only_top_level_key_allowed: true
+  fields:
+    scope: {type: enum, required: true, enum_values: [task, phase, scope_change, plan_authoring]}
+    task_id: {type: string_or_null, required: true}
+    phase: {type: string_or_null, required: true}
+    decision: {type: enum, required: true, enum_values: [APPROVE_PLAN, REVISE_PLAN, STOP_SCOPE_CONFLICT, CLOSE_TASK, FIX_BEFORE_CLOSE, PHASE_APPROVE, PHASE_REJECT, CHANGE_SCOPE, REQUEST_PLAN_AUTHORING, APPROVE_FOR_EXECUTION]}
+    accepted_report_commit: {type: string_or_null, required: true}
+    next_expected_task: {type: string_or_null, required: true}
+    required_fix: {type: string_or_null, required: true}
+    rationale: {type: string, required: true}
+  required_fields: [scope, task_id, phase, decision, accepted_report_commit, next_expected_task, required_fix, rationale]
+
+supplemental_evidence_report:
+  section_order: [STATE SNAPSHOT, QUESTION, READ_ONLY_COMMANDS_RUN, EVIDENCE_ROWS, LIMITS, STOP CONDITION]
+  required_fields: [state_snapshot, question, read_only_commands_run, evidence_rows, limits, stop_condition]
+
+human_action_request:
+  fields: [request_id, marker, missing_inputs, why_human_only, allowed_values_or_schema, blocks, created_by_task, next_state_until_result, forbidden_agent_action, result_expected_at]
+  required_fields: [request_id, marker, missing_inputs, why_human_only, allowed_values_or_schema, blocks, created_by_task, next_state_until_result, forbidden_agent_action, result_expected_at]
+
+human_action_result:
+  fields: [request_id, supplied_values, waiver_if_any, evidence_reference, accepted_by_orchestrator_decision, next_state]
+  required_fields: [request_id, supplied_values, evidence_reference, accepted_by_orchestrator_decision, next_state]
+
+path_lock_record:
+  fields: [lock_id, type, detection_command, include_predicate, exclude_predicate, allowed_symbols_or_components, validator_command, max_changed_files, unauthorized_marker]
+  required_fields: [lock_id, type, detection_command, include_predicate, exclude_predicate, allowed_symbols_or_components, validator_command, max_changed_files, unauthorized_marker]
+
+security_invariant_record:
+  fields: [invariant_id, source_section, protected_surface, forbidden_regression, validator, marker]
+  required_fields: [invariant_id, source_section, protected_surface, forbidden_regression, validator, marker]
+
+blocking_marker_recovery_record:
+  fields: [packet_id, marker, diagnosis_command, allowed_files_to_inspect, allowed_files_to_modify, forbidden_files, retry_limit, next_state_on_recovered, next_state_on_retry_exhausted, human_escalation_allowed, human_escalation_packet_if_allowed]
+  required_fields: [packet_id, marker, diagnosis_command, allowed_files_to_inspect, allowed_files_to_modify, retry_limit, next_state_on_recovered, next_state_on_retry_exhausted]
+
+tracker_task_record:
+  fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task]
+  required_fields: [task_id, status, commit, files_changed, commands_run, key_outputs, marker, next_task]
+  enum_values:
+    status: [PENDING, PLANNED, IN_PROGRESS, PASS, FAIL, HALTED, SKIPPED_BY_FUTURE_SCOPE, BLOCKED_BY_HUMAN_ACTION]
+
+artifact_record:
+  fields: [artifact_id, path, produced_by_task, exists, size_bytes, sha256, validator]
+  required_fields: [artifact_id, path, produced_by_task, exists, size_bytes, sha256, validator]
+
+orchestrator_approval_record:
+  fields: [approval_id, approval_packet, recorded_at_commit, accepted_report_commit, next_expected_task]
+  required_fields: [approval_id, approval_packet, recorded_at_commit, accepted_report_commit, next_expected_task]
+
+future_constraint_preservation_record:
+  fields: [constraint_id, source_section, current_scope_impact, must_preserve_in_current_plan, forbidden_current_plan_regression, validator_or_review_check, future_phase_owner, out_of_scope_but_preserved]
+  required_fields: [constraint_id, source_section, current_scope_impact, must_preserve_in_current_plan, forbidden_current_plan_regression, validator_or_review_check, future_phase_owner, out_of_scope_but_preserved]
+
+phase_approval_record:
+  fields: [phase, status, decision, accepted_phase_gate_report_commit, accepted_tracker_closure_commit, approval_packet_path, phase_gate_report_path, next_phase, next_phase_status]
+  required_fields: [phase, status, decision, accepted_phase_gate_report_commit, accepted_tracker_closure_commit, approval_packet_path, phase_gate_report_path, next_phase, next_phase_status]
+  enum_values:
+    status: [APPROVED, REJECTED]
+    decision: [PHASE_APPROVE, PHASE_REJECT, CHANGE_SCOPE]
+
+# ---- B14.1-specific records ----
+
+public_exposure_artifact_record:
+  description: declarative record of a single public-exposure artifact produced or modified by a B14.1 task; runtime values are owned by the tracker
+  fields: [artifact_id, artifact_kind, repo_path_or_host_only, owned_by_task, contains_secret_material, host_only_when_secret, validator, marker]
+  required_fields: [artifact_id, artifact_kind, repo_path_or_host_only, owned_by_task, contains_secret_material, host_only_when_secret, validator, marker]
+  enum_values:
+    artifact_kind: [tunnel_config_template, exposure_state_record, hostname_reference_record, application_layer_gate_invariant_record, public_exposure_health_record]
+    repo_path_or_host_only: [repo_path, host_only]
+    contains_secret_material: [true, false]
+    host_only_when_secret: [true, not_applicable]
+
+application_layer_gate_invariant_record:
+  description: declarative invariant pinning that the recruiter HTTPBasic application-layer gate (B14.0) remains the sole authority for public access, regardless of network trust
+  fields: [invariant_id, protected_route_glob, required_status_when_unauthenticated, required_www_authenticate_value, required_authenticated_health_payload, forbidden_bypass_paths, validator, marker]
+  required_fields: [invariant_id, protected_route_glob, required_status_when_unauthenticated, required_www_authenticate_value, required_authenticated_health_payload, forbidden_bypass_paths, validator, marker]
+  enum_values:
+    required_status_when_unauthenticated: [401]
+  fixed_values:
+    required_www_authenticate_value: 'Basic realm="asr-demo-recruiter"'
+    required_authenticated_health_payload: '{"status":"ok"}'
+
+exposure_state_record:
+  description: declarative record capturing the deterministic public-exposure state; the actual hostname is recorded only by reference (host env variable name or HAR id)
+  fields: [exposure_state_id, exposure_mode, public_exposure_flag, stable_hostname_source_reference, stable_hostname_supplied_by_reference, blocker_if_unsupplied, validator, marker]
+  required_fields: [exposure_state_id, exposure_mode, public_exposure_flag, stable_hostname_source_reference, stable_hostname_supplied_by_reference, blocker_if_unsupplied, validator, marker]
+  enum_values:
+    exposure_mode: [loopback_only, application_gated_stable_hostname]
+    public_exposure_flag: [PUBLIC_DEMO_EXPOSURE_false, PUBLIC_DEMO_EXPOSURE_true]
+    stable_hostname_supplied_by_reference: [true, false]
+  forbidden_values:
+    exposure_mode_must_not_be: ephemeral_only
+
+openapi_docs_visibility_record:
+  description: declarative invariant pinning OpenAPI and interactive docs to off-by-default in public mode
+  fields: [visibility_id, public_exposure_flag, openapi_route_state, docs_route_state, redoc_route_state, narrow_admin_only_exception_path, validator, marker]
+  required_fields: [visibility_id, public_exposure_flag, openapi_route_state, docs_route_state, redoc_route_state, narrow_admin_only_exception_path, validator, marker]
+  enum_values:
+    public_exposure_flag: [PUBLIC_DEMO_EXPOSURE_false, PUBLIC_DEMO_EXPOSURE_true]
+    openapi_route_state: [unmounted, mounted_unprotected, mounted_admin_only]
+    docs_route_state: [unmounted, mounted_unprotected, mounted_admin_only]
+    redoc_route_state: [unmounted, mounted_unprotected, mounted_admin_only]
+  rules:
+    - if_public_exposure_flag_is_PUBLIC_DEMO_EXPOSURE_true_then_openapi_route_state_must_not_be_mounted_unprotected
+    - if_public_exposure_flag_is_PUBLIC_DEMO_EXPOSURE_true_then_docs_route_state_must_not_be_mounted_unprotected
+    - if_public_exposure_flag_is_PUBLIC_DEMO_EXPOSURE_true_then_redoc_route_state_must_not_be_mounted_unprotected
+
+local_bypass_justification_record:
+  description: declarative record justifying any local/dev bypass allowed when PUBLIC_DEMO_EXPOSURE=false; a bypass is legal only if explicitly justified by tests
+  fields: [bypass_id, applies_when_flag_is, bypass_surface, justification_test_id, justification_test_path, must_be_disabled_when_flag_is, validator, marker]
+  required_fields: [bypass_id, applies_when_flag_is, bypass_surface, justification_test_id, justification_test_path, must_be_disabled_when_flag_is, validator, marker]
+  enum_values:
+    applies_when_flag_is: [PUBLIC_DEMO_EXPOSURE_false]
+    must_be_disabled_when_flag_is: [PUBLIC_DEMO_EXPOSURE_true]
+
+public_exposure_claim_record:
+  description: declarative record capturing the success claim shape for B14.1; a success claim is only legal when stable named exposure is supplied or an explicit blocker is recorded
+  fields: [claim_id, claim_status, stable_named_exposure_supplied_by_reference, explicit_blocker_id, blocker_recovery_packet, validator, marker]
+  required_fields: [claim_id, claim_status, stable_named_exposure_supplied_by_reference, explicit_blocker_id, blocker_recovery_packet, validator, marker]
+  enum_values:
+    claim_status: [SUCCESS_WITH_STABLE_NAMED_EXPOSURE, BLOCKED_PENDING_HUMAN_ACTION, BLOCKED_PENDING_INFRA]
+  rules:
+    - if_claim_status_is_SUCCESS_WITH_STABLE_NAMED_EXPOSURE_then_stable_named_exposure_supplied_by_reference_must_be_true_and_explicit_blocker_id_must_be_null
+    - if_claim_status_starts_with_BLOCKED_then_explicit_blocker_id_must_be_non_null_and_blocker_recovery_packet_must_exist
+
+context_window_hygiene_record:
+  description: declarative record of when the orchestrator should prefer a new Claude window for context-window hygiene
+  fields: [hygiene_id, trigger_kind, trigger_value, recommended_action]
+  required_fields: [hygiene_id, trigger_kind, trigger_value, recommended_action]
+  enum_values:
+    trigger_kind: [task_count_within_phase, phase_boundary]
+    recommended_action: [prefer_new_claude_window]

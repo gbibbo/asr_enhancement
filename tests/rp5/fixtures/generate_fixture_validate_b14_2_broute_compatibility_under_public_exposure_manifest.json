@@ -1,0 +1,41 @@
+{
+  "aggregate_selftest_sentinel": "OK_B14_2_BROUTE_COMPATIBILITY_UNDER_PUBLIC_EXPOSURE",
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b14_2_broute_compatibility_under_public_exposure",
+  "frozen_anchor_commit": "7730a4f53744eeb99d118f6f5b283c2f1c35dfc8",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_router_runtime_sha256_drift",
+      "expected_sentinel_when_treated_as_positive_only_input": "B14_2_BROUTE_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+      "observed_sentinel": "B14_2_BROUTE_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+      "root": "negative/negative_router_runtime_sha256_drift"
+    }
+  ],
+  "owned_markers": [
+    "B14_2_BROUTE_REGRESSION_UNDER_PUBLIC_EXPOSURE"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel_under_aggregate_selftest": "OK_B14_2_BROUTE_COMPATIBILITY_UNDER_PUBLIC_EXPOSURE",
+      "root": "positive/positive"
+    }
+  ],
+  "router_fields_shape_anchor_sha256": "b893f8f84f6d5b81fa406da5c3272cab116d8098445f4f14673bb9474195225c",
+  "router_runtime_anchor_sha256": "dced4f982168e8b729726edd12bea4981e31000b7049f67de6d785a3faa3ddfc",
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B14_2_BROUTE_COMPATIBILITY_UNDER_PUBLIC_EXPOSURE",
+  "tree_files": [
+    {
+      "path": "negative/negative_router_runtime_sha256_drift/observations.json",
+      "sha256": "cfbf5d647a00bca90768676d1bb507450eea62d7461a4e8cb21654225b643342",
+      "size_bytes": 449
+    },
+    {
+      "path": "positive/positive/observations.json",
+      "sha256": "0fc007aded7acc53bd35e8dde78dd682b1a6eafe2bfe700e82c6731966b30f89",
+      "size_bytes": 421
+    }
+  ],
+  "validator": "validate_b14_2_broute_compatibility_under_public_exposure",
+  "validator_sentinel_pass": "OK_B14_2_BROUTE_COMPATIBILITY_UNDER_PUBLIC_EXPOSURE"
+}

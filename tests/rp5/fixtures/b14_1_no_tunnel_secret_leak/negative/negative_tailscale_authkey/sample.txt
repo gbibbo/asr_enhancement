@@ -1,0 +1,2 @@
+Forbidden Tailscale auth-key literal:
+  TAILSCALE_AUTHKEY=tskey-AbCdEf1234567890XyZ

@@ -1,0 +1,66 @@
+branch: feature/demo-runtime-rp5-v1
+integration_branch: demo-rp5-v1
+parallel_training_branch: feature/training-datamove1-v1
+current_track: B
+current_phase: B14
+current_task: "B14.1"
+last_completed_task: "B13.1"
+blocked: false
+blocker: null
+rp5_status: verified_2026-05-04
+public_url_status: unknown
+training_handoff_status: training_branch_pushed
+tasks:
+  "S0.1": done
+  "S0.2": done
+  "S0.3": done
+  "S0.4": done
+  "S0.5": done
+  "R0.1": done
+  "R0.2": done
+  "R1.1": done
+  "R1.2": done
+  "R1.3": done
+  "R2.1": done
+  "R2.2": done
+  "R2.3": done
+  "R2.5.1": done
+  "R2.5.2": done
+  "R2b.1": done
+  "R2b.2": done
+  "R3.1": done
+  "R4.1": done
+  "B0.1": done
+  "B0.2": done
+  "B1.1": done
+  "B2.1": done
+  "B2.2": done
+  "B2.5": done
+  "B3.1": done
+  "B3.2": done
+  "B4.1": done
+  "B4.2": done
+  "B4.3": done
+  "B5.1": done
+  "B5.2": done
+  "B5.3": done
+  "B6.1": done
+  "B6.2": done
+  "B7.1": done
+  "B6.5.1": done
+  "B6.5.2": done
+  "B8.1": done
+  "B9.1": done
+  "B9.2": done
+  "B9.3": done
+  "B9.4": done
+  "B10.1": done
+  "B10.2": done
+  "B11.1a": done
+  "B11.1b": done
+  "B11.1c": done
+  "B11.2": done
+  "B11.5": done
+  "B12.1": done
+  "B12.2": done
+  "B13.1": done

@@ -1,0 +1,53 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b15_upload_limit_enforced",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_upload_limit_not_enforced",
+      "expected_marker": "B15_UPLOAD_LIMIT_REGRESSION",
+      "observed_sentinel": "B15_UPLOAD_LIMIT_REGRESSION",
+      "root": "negative/negative_upload_limit_not_enforced",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "c0e5d966adf6ffcd0ad23563463b8606a8a643834e015ad92babd8b329a1fdc7",
+          "size_bytes": 3669
+        }
+      ]
+    },
+    {
+      "case_name": "negative_illegal_upload_value",
+      "expected_marker": "B15_UPLOAD_LIMIT_REGRESSION",
+      "observed_sentinel": "B15_UPLOAD_LIMIT_REGRESSION",
+      "root": "negative/negative_illegal_upload_value",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "989f7d3eda74c0171067c23201de0ff93185a77a35ad4d0fa585fa9f200df78d",
+          "size_bytes": 3675
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B15_UPLOAD_LIMIT_REGRESSION"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B15_UPLOAD_LIMIT_ENFORCED",
+      "observed_sentinel": "OK_B15_UPLOAD_LIMIT_ENFORCED",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "smoke_results.md",
+          "sha256": "fde5cacecf610c9d2f148e673506ac8e28c2c611c032dfb2d4ed6fd8519a6928",
+          "size_bytes": 3665
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B15_UPLOAD_LIMIT_ENFORCED",
+  "validator": "validate_b15_upload_limit_enforced",
+  "validator_sentinel_pass": "OK_B15_UPLOAD_LIMIT_ENFORCED"
+}

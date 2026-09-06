@@ -1,0 +1,9 @@
+ORCHESTRATOR_DECISION:
+  scope: task
+  task_id: BR-05
+  phase: B-route
+  decision: CLOSE_TASK
+  accepted_report_commit: ab44760098adada4873d9f8803ad1b5186c8202a
+  next_expected_task: BR-06
+  required_fix: null
+  rationale: BR-05 execution and the post-execution smoke privacy-scan scope adjustment are accepted. The live smoke passed on the scope-approved localhost port 8002, fixture generation passed, path-lock closure passed, service cleanup succeeded, and the committed privacy-scan refinement is consistent with existing repo invariants because /demo/examples intentionally exposes curated ground_truth by design.

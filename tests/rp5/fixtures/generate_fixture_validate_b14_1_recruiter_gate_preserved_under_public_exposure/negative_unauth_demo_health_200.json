@@ -1,0 +1,12 @@
+{
+  "authorization_header": null,
+  "expected_classification": "B14_1_RECRUITER_GATE_REGRESSION_UNDER_PUBLIC_EXPOSURE",
+  "expected_validator_outcome": "FAIL",
+  "kind": "unauth_demo",
+  "label": "negative_unauth_demo_health_200",
+  "method": "GET",
+  "observed_status": 200,
+  "observed_www_authenticate": null,
+  "route": "/demo/health",
+  "violated_rule": "unauthenticated /demo/* must return 401 with canonical realm"
+}

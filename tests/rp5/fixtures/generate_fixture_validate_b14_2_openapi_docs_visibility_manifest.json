@@ -1,0 +1,38 @@
+{
+  "aggregate_selftest_sentinel": "OK_B14_2_OPENAPI_DOCS_OFF",
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b14_2_openapi_docs_visibility",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_openapi_mounted_unprotected",
+      "expected_sentinel_when_treated_as_positive_only_input": "B14_2_OPENAPI_OR_DOCS_LEAK_DETECTED",
+      "observed_sentinel": "B14_2_OPENAPI_OR_DOCS_LEAK_DETECTED",
+      "root": "negative/negative_openapi_mounted_unprotected"
+    }
+  ],
+  "owned_markers": [
+    "B14_2_OPENAPI_OR_DOCS_LEAK_DETECTED"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel_under_aggregate_selftest": "OK_B14_2_OPENAPI_DOCS_OFF",
+      "root": "positive/positive"
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B14_2_OPENAPI_DOCS",
+  "tree_files": [
+    {
+      "path": "negative/negative_openapi_mounted_unprotected/observations.json",
+      "sha256": "1bbfd0d9ef2840c721825b227aaa531e7b27908e8d7eac1f692b871e66da2b44",
+      "size_bytes": 577
+    },
+    {
+      "path": "positive/positive/observations.json",
+      "sha256": "c0c56fe1fb6f29bd647331f870836e8156fcabd6a0a81c6e7f12e9c1700945dd",
+      "size_bytes": 549
+    }
+  ],
+  "validator": "validate_b14_2_openapi_docs_visibility",
+  "validator_sentinel_pass": "OK_B14_2_OPENAPI_DOCS_OFF"
+}

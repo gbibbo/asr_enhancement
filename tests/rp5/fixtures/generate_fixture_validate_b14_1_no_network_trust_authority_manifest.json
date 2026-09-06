@@ -1,0 +1,48 @@
+{
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "expected_classification": "B14_1_NETWORK_TRUST_AUTHORITY_DETECTED",
+      "expected_validator_outcome": "FAIL",
+      "kind": "runtime_response",
+      "path": "generate_fixture_validate_b14_1_no_network_trust_authority/negative_unauth_xff_returned_200.json",
+      "sha256": "b3384dceca3fc7b62f1cec00b8996caff03001df89245900cedabb63b6428a26",
+      "size_bytes": 419
+    },
+    {
+      "expected_classification": "B14_1_NETWORK_TRUST_AUTHORITY_DETECTED",
+      "expected_validator_outcome": "FAIL",
+      "kind": "runtime_response",
+      "path": "generate_fixture_validate_b14_1_no_network_trust_authority/negative_unauth_tailscale_id_returned_200.json",
+      "sha256": "e33aec350f00d67960eab3b1d191d7ca0f8a692ba3a598c7d608b96fabf934f4",
+      "size_bytes": 451
+    },
+    {
+      "expected_classification": "B14_1_NETWORK_TRUST_AUTHORITY_DETECTED",
+      "expected_validator_outcome": "FAIL",
+      "kind": "source_snippet",
+      "path": "generate_fixture_validate_b14_1_no_network_trust_authority/negative_source_trust_by_xff.json",
+      "sha256": "7297726fcb7456b07ad30f24587d511816d357ff7b06ed9dfbf21f0141909d09",
+      "size_bytes": 373
+    }
+  ],
+  "owned_marker": "B14_1_NETWORK_TRUST_AUTHORITY_DETECTED",
+  "positive": [
+    {
+      "expected_validator_outcome": "PASS",
+      "kind": "runtime_response",
+      "path": "generate_fixture_validate_b14_1_no_network_trust_authority/positive_unauth_xff_10_0_0_1_still_401.json",
+      "sha256": "ae8a49a25c516390544a4d5d8067ca3f0fbcda216cd66c8af1e2c95693e84349",
+      "size_bytes": 308
+    },
+    {
+      "expected_validator_outcome": "PASS",
+      "kind": "source_snippet",
+      "path": "generate_fixture_validate_b14_1_no_network_trust_authority/positive_source_no_forbidden_tokens.json",
+      "sha256": "ef0748d02e5260df3baaecf9f29393ceac5faca5345f2bc724797f26ba61f1bf",
+      "size_bytes": 316
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B14_1_NO_NETWORK_TRUST",
+  "validator": "validate_b14_1_no_network_trust_authority"
+}

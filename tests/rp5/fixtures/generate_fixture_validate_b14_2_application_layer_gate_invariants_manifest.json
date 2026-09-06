@@ -1,0 +1,49 @@
+{
+  "aggregate_selftest_sentinel": "OK_B14_2_APPLICATION_LAYER_GATE",
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b14_2_application_layer_gate_invariants",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_unprotected_demo_jobs_result",
+      "expected_sentinel_when_treated_as_positive_only_input": "B14_2_APPLICATION_LAYER_GATE_BYPASS_DETECTED",
+      "observed_sentinel": "B14_2_APPLICATION_LAYER_GATE_BYPASS_DETECTED",
+      "root": "negative/negative_unprotected_demo_jobs_result"
+    },
+    {
+      "case_name": "negative_unprotected_demo_upload",
+      "expected_sentinel_when_treated_as_positive_only_input": "B14_2_APPLICATION_LAYER_GATE_BYPASS_DETECTED",
+      "observed_sentinel": "B14_2_APPLICATION_LAYER_GATE_BYPASS_DETECTED",
+      "root": "negative/negative_unprotected_demo_upload"
+    }
+  ],
+  "owned_markers": [
+    "B14_2_APPLICATION_LAYER_GATE_BYPASS_DETECTED"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel_under_aggregate_selftest": "OK_B14_2_APPLICATION_LAYER_GATE",
+      "root": "positive/positive"
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B14_2_APPLICATION_LAYER_GATE",
+  "tree_files": [
+    {
+      "path": "negative/negative_unprotected_demo_jobs_result/observations.json",
+      "sha256": "054e339021f0f5811811873e76d57567c621db89107f00fbce4017f627500225",
+      "size_bytes": 3760
+    },
+    {
+      "path": "negative/negative_unprotected_demo_upload/observations.json",
+      "sha256": "f0170f83df20311748074f12c6960b191924e7400c6840833e9f94e1b3f19828",
+      "size_bytes": 3755
+    },
+    {
+      "path": "positive/positive/observations.json",
+      "sha256": "9497050bd8383a809447426b721e4418639f5d8f91d0df6218841b958323b26d",
+      "size_bytes": 3765
+    }
+  ],
+  "validator": "validate_b14_2_application_layer_gate_invariants",
+  "validator_sentinel_pass": "OK_B14_2_APPLICATION_LAYER_GATE"
+}

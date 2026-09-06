@@ -1,0 +1,367 @@
+{
+  "case_name": "positive",
+  "observations": [
+    {
+      "method": "GET",
+      "path": "/demo/health",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "CF-Connecting-IP"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/examples",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "CF-Connecting-IP"
+    },
+    {
+      "method": "POST",
+      "path": "/demo/upload",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "CF-Connecting-IP"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/jobs/b14_2_fixture_job/result",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "CF-Connecting-IP"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/health",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Login"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/examples",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Login"
+    },
+    {
+      "method": "POST",
+      "path": "/demo/upload",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Login"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/jobs/b14_2_fixture_job/result",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Login"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/health",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Name"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/examples",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Name"
+    },
+    {
+      "method": "POST",
+      "path": "/demo/upload",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Name"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/jobs/b14_2_fixture_job/result",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Name"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/health",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Profile-Pic"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/examples",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Profile-Pic"
+    },
+    {
+      "method": "POST",
+      "path": "/demo/upload",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Profile-Pic"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/jobs/b14_2_fixture_job/result",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "Tailscale-User-Profile-Pic"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/health",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-For"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/examples",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-For"
+    },
+    {
+      "method": "POST",
+      "path": "/demo/upload",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-For"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/jobs/b14_2_fixture_job/result",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-For"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/health",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-Host"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/examples",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-Host"
+    },
+    {
+      "method": "POST",
+      "path": "/demo/upload",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-Host"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/jobs/b14_2_fixture_job/result",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-Host"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/health",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-Proto"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/examples",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-Proto"
+    },
+    {
+      "method": "POST",
+      "path": "/demo/upload",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-Proto"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/jobs/b14_2_fixture_job/result",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Forwarded-Proto"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/health",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Real-IP"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/examples",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Real-IP"
+    },
+    {
+      "method": "POST",
+      "path": "/demo/upload",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Real-IP"
+    },
+    {
+      "method": "GET",
+      "path": "/demo/jobs/b14_2_fixture_job/result",
+      "response": {
+        "body_len": 0,
+        "error": null,
+        "status": 401,
+        "www_authenticate": "Basic realm=\"asr-demo-recruiter\""
+      },
+      "surrogate_header_name": "X-Real-IP"
+    }
+  ],
+  "surrogate_headers_exercised": [
+    "CF-Connecting-IP",
+    "Tailscale-User-Login",
+    "Tailscale-User-Name",
+    "Tailscale-User-Profile-Pic",
+    "X-Forwarded-For",
+    "X-Forwarded-Host",
+    "X-Forwarded-Proto",
+    "X-Real-IP"
+  ]
+}

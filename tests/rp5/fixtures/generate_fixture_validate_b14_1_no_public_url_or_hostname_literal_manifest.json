@@ -1,0 +1,79 @@
+{
+  "fixtures_root": "tests/rp5/fixtures/generate_fixture_validate_b14_1_no_public_url_or_hostname_literal",
+  "kind": "positive_and_negative",
+  "negative": [
+    {
+      "case_name": "negative_tailscale_funnel_url",
+      "expected_marker": "B14_1_PUBLIC_URL_LITERAL_COMMITTED",
+      "observed_sentinel": "B14_1_PUBLIC_URL_LITERAL_COMMITTED",
+      "root": "negative/negative_tailscale_funnel_url",
+      "tree_files": [
+        {
+          "path": "sample.txt",
+          "sha256": "9cad9c2facca555d3086493d8cc2b298224e6f3be2cc1e523649849e3ea2478c",
+          "size_bytes": 107
+        }
+      ]
+    },
+    {
+      "case_name": "negative_cloudflare_tunnel_url",
+      "expected_marker": "B14_1_PUBLIC_URL_LITERAL_COMMITTED",
+      "observed_sentinel": "B14_1_PUBLIC_URL_LITERAL_COMMITTED",
+      "root": "negative/negative_cloudflare_tunnel_url",
+      "tree_files": [
+        {
+          "path": "sample.txt",
+          "sha256": "db3785fca5b8fc44e7968f7fada2677d6887567a8499cdc7f03656eca8bbcc8a",
+          "size_bytes": 119
+        }
+      ]
+    },
+    {
+      "case_name": "negative_tailscale_funnel_hostname",
+      "expected_marker": "B14_1_STABLE_HOSTNAME_LITERAL_COMMITTED",
+      "observed_sentinel": "B14_1_STABLE_HOSTNAME_LITERAL_COMMITTED",
+      "root": "negative/negative_tailscale_funnel_hostname",
+      "tree_files": [
+        {
+          "path": "sample.txt",
+          "sha256": "11263fa601c2965d949b6652dd3e1005ada7c25d8b5d6662c852a6bc7c6a29ae",
+          "size_bytes": 52
+        }
+      ]
+    },
+    {
+      "case_name": "negative_cloudflare_cfargotunnel_hostname",
+      "expected_marker": "B14_1_STABLE_HOSTNAME_LITERAL_COMMITTED",
+      "observed_sentinel": "B14_1_STABLE_HOSTNAME_LITERAL_COMMITTED",
+      "root": "negative/negative_cloudflare_cfargotunnel_hostname",
+      "tree_files": [
+        {
+          "path": "sample.txt",
+          "sha256": "133bac5ec3fa8303a355bf0053c075b5924e91a7fbb9b65bcd6d4f65684dedf4",
+          "size_bytes": 62
+        }
+      ]
+    }
+  ],
+  "owned_markers": [
+    "B14_1_PUBLIC_URL_LITERAL_COMMITTED",
+    "B14_1_STABLE_HOSTNAME_LITERAL_COMMITTED"
+  ],
+  "positive": [
+    {
+      "case_name": "positive",
+      "expected_sentinel": "OK_B14_1_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL",
+      "observed_sentinel": "OK_B14_1_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL",
+      "root": "positive",
+      "tree_files": [
+        {
+          "path": "sample.txt",
+          "sha256": "c0e32c0dfd54b55da9a3085fcdc3798ae08c6872d45601c5a8f950cabbf32cfb",
+          "size_bytes": 179
+        }
+      ]
+    }
+  ],
+  "sentinel_pass": "OK_FIXTURE_VALIDATE_B14_1_NO_PUBLIC_URL_OR_HOSTNAME_LITERAL",
+  "validator": "validate_b14_1_no_public_url_or_hostname_literal"
+}

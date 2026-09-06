@@ -1,0 +1,14 @@
+ORCHESTRATOR_DECISION:
+  scope: phase
+  task_id: null
+  phase: B14.0
+  decision: PHASE_APPROVE
+  accepted_report_commit: 7e9ce1f7067f938d2b58a7a4e8615101b0012c58
+  next_expected_task: B14.1_PENDING_ORCHESTRATOR_INSTRUCTION
+  required_fix: null
+  rationale: B14.0 phase gate is approved. B14_0-00 through B14_0-08 are PASS, B14_0-08 produced B14_0_PHASE_GATE_PASS in reports/rp5/b14_0_phase_gate.md, all nine final-verification sentinels (OK_PLAN_COMPILES, OK_B14_0_RECRUITER_AUTH_CONTRACT, OK_B14_0_AUTH_SEPARATION, OK_B14_0_HEALTH_UNDER_AUTH, OK_B14_0_FRONTEND_AUTH, OK_B14_0_MANUAL_SMOKE_WITH_AUTH, OK_B14_0_NO_CRED_LEAK, OK_B14_0_BROUTE_COMPATIBILITY, OK_FUTURE_CONSTRAINTS) and OK_CHANGED_FILES_PATH_LOCKED were observed, the five future_constraint_preservation_record entries (FC-B14-0-PUBLIC-GATE, FC-B14-1-FUNNEL, FC-B15-MULTI-NETWORK, FC-HANDOFF-DATAMOVE1, FC-BROUTE-FROZEN) are preserved, the frozen B-route fingerprints (libs/asr/router_runtime.py sha256 dced4f982168e8b729726edd12bea4981e31000b7049f67de6d785a3faa3ddfc, services/frontend/app/demo/types.ts RouterFields sha256 b893f8f84f6d5b81fa406da5c3272cab116d8098445f4f14673bb9474195225c) remain unchanged, HAR-B14_0-RECRUITER-CREDS-001 is resolved by reference at ca4730b, markers are empty, the tracker is at PHASE_GATE_DECISION, the B14_0-08 task closure is recorded at commit 7730a4f53744eeb99d118f6f5b283c2f1c35dfc8, and no post-B14.0 work has started. BR-01..BR-08 statuses remain PASS unchanged. B14.1 remains pending external orchestrator instruction and is not started by this approval.
+phase_gate_report_accepted: reports/rp5/b14_0_phase_gate.md
+task_closure_accepted: reports/rp5/b14_0_phase_gate.md
+phase_status: APPROVED
+next_phase: B14.1
+next_phase_status: PENDING_ORCHESTRATOR_INSTRUCTION

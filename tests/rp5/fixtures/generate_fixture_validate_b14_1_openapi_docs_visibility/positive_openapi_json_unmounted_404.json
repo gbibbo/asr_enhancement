@@ -1,0 +1,10 @@
+{
+  "expected_route_state": "unmounted",
+  "expected_validator_outcome": "PASS",
+  "label": "positive_openapi_json_unmounted_404",
+  "method": "GET",
+  "observed_body_snippet": "",
+  "observed_status": 404,
+  "observed_www_authenticate": null,
+  "route": "/openapi.json"
+}
