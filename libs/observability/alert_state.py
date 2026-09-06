@@ -23,6 +23,9 @@ from libs.demo.persistence import get_admin_state_value, set_admin_state
 _DISK_ALERT_KEY = "last_alert_disk_usage_high_at"
 _DISK_CLEARED_KEY = "last_alert_disk_usage_cleared_at"
 
+# Key used in admin_state table for the AssemblyAI usage-rate alert.
+_AAI_USAGE_ALERT_KEY = "last_alert_assemblyai_usage_high_at"
+
 
 def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -84,6 +87,45 @@ def mark_disk_alert_cleared(db_path: Path, *, now: Optional[datetime] = None) ->
     """Record that disk usage has dropped back below threshold."""
     effective_now = now or _now_utc()
     set_admin_state(db_path, _DISK_CLEARED_KEY, effective_now.isoformat())
+
+
+# ---------------------------------------------------------------------------
+# AssemblyAI usage-rate alert state (admin_state table, cooldown-gated)
+# ---------------------------------------------------------------------------
+
+
+def should_fire_assemblyai_usage(
+    *,
+    usage_count: int,
+    threshold: int,
+    cooldown_hours: float,
+    db_path: Path,
+    now: Optional[datetime] = None,
+) -> bool:
+    """Return True if an AssemblyAI usage-rate alert should fire now.
+
+    Fires when usage_count > threshold AND (no prior alert row exists OR the
+    cooldown has elapsed since the last alert).
+    """
+    effective_now = now or _now_utc()
+    if usage_count <= threshold:
+        return False
+
+    last_str = get_admin_state_value(db_path, _AAI_USAGE_ALERT_KEY)
+    if last_str is None:
+        return True
+
+    last_dt = _parse_iso(last_str)
+    if last_dt is None:
+        return True
+
+    return (effective_now - last_dt) >= timedelta(hours=cooldown_hours)
+
+
+def mark_assemblyai_usage_alert_sent(db_path: Path, *, now: Optional[datetime] = None) -> None:
+    """Record that an AssemblyAI usage-rate alert was sent at now (or utcnow)."""
+    effective_now = now or _now_utc()
+    set_admin_state(db_path, _AAI_USAGE_ALERT_KEY, effective_now.isoformat())
 
 
 # ---------------------------------------------------------------------------

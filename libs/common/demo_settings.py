@@ -81,6 +81,12 @@ class DemoSettings(BaseSettings):
     demo_alert_health_cooldown_minutes: float = 30.0
     demo_alert_health_url: str = "http://localhost:8001/demo/health"
     demo_alert_health_state_file: Optional[Path] = None  # defaults via fill_derived_paths
+    # AssemblyAI usage-rate email alert: fire when more than
+    # demo_alert_assemblyai_usage_threshold AssemblyAI uses occur within the
+    # rolling window, at most once per cooldown.
+    demo_alert_assemblyai_usage_threshold: int = 5
+    demo_alert_assemblyai_usage_window_hours: float = 24.0
+    demo_alert_assemblyai_usage_cooldown_hours: float = 6.0
 
     @model_validator(mode="after")
     def fill_derived_paths(self) -> "DemoSettings":

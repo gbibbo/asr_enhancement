@@ -1,14 +1,19 @@
-# Reference cron entries for B12.2 alerts. Install manually via crontab -e. Do NOT install into /etc/cron.d.
+# Reference cron entries for the demo alerts. Install manually via crontab -e. Do NOT install into /etc/cron.d.
+#
+# `--env-file .env.demo` is passed so the one-off Compose containers get the SMTP
+# credentials, recipient, thresholds and caps from the host .env.demo (Compose
+# reads `.env` by default, not `.env.demo`). Without it the alerts run in dry-run.
 #
 # Health check runs every 5 minutes. The DEMO_ALERT_HEALTH_URL override is required when
 # running inside a one-off Compose container: localhost:8001 resolves to the container
 # itself, not the host port mapping. The Compose-network DNS name demo-api:8000 reaches
 # the long-running demo-api service started by docker compose up -d demo-api demo-worker.
 #
-# Disk check runs every 15 minutes. No URL override needed.
+# Disk check and the AssemblyAI usage-rate check run every 15 minutes.
 #
-# Both scripts bind-mount scripts/ read-only because Dockerfile.demo does not COPY it.
-# Both exit 0 on all paths so cron does not flood MAILTO=.
+# All scripts bind-mount scripts/ read-only because Dockerfile.demo does not COPY it.
+# All scripts exit 0 on all paths so cron does not flood MAILTO=.
 
-*/5  * * * * gbibbo cd /home/gbibbo/code/asr_enhancement && /usr/bin/docker compose -f infra/compose/docker-compose.demo.yml run --rm --no-deps -e DEMO_ALERT_HEALTH_URL=http://demo-api:8000/demo/health -v /home/gbibbo/code/asr_enhancement/scripts:/app/scripts:ro demo-api python -m scripts.demo.alert_health >> /home/gbibbo/asr_enhancement_runtime/logs/alerts.cron.log 2>&1
-*/15 * * * * gbibbo cd /home/gbibbo/code/asr_enhancement && /usr/bin/docker compose -f infra/compose/docker-compose.demo.yml run --rm --no-deps -v /home/gbibbo/code/asr_enhancement/scripts:/app/scripts:ro demo-api python -m scripts.demo.alert_disk   >> /home/gbibbo/asr_enhancement_runtime/logs/alerts.cron.log 2>&1
+*/5  * * * * gbibbo cd /home/gbibbo/code/asr_enhancement && /usr/bin/docker compose --env-file .env.demo -f infra/compose/docker-compose.demo.yml run --rm --no-deps -e DEMO_ALERT_HEALTH_URL=http://demo-api:8000/demo/health -v /home/gbibbo/code/asr_enhancement/scripts:/app/scripts:ro demo-api python -m scripts.demo.alert_health            >> /home/gbibbo/asr_enhancement_runtime/logs/alerts.cron.log 2>&1
+*/15 * * * * gbibbo cd /home/gbibbo/code/asr_enhancement && /usr/bin/docker compose --env-file .env.demo -f infra/compose/docker-compose.demo.yml run --rm --no-deps -v /home/gbibbo/code/asr_enhancement/scripts:/app/scripts:ro demo-api python -m scripts.demo.alert_disk               >> /home/gbibbo/asr_enhancement_runtime/logs/alerts.cron.log 2>&1
+*/15 * * * * gbibbo cd /home/gbibbo/code/asr_enhancement && /usr/bin/docker compose --env-file .env.demo -f infra/compose/docker-compose.demo.yml run --rm --no-deps -v /home/gbibbo/code/asr_enhancement/scripts:/app/scripts:ro demo-api python -m scripts.demo.alert_assemblyai_usage   >> /home/gbibbo/asr_enhancement_runtime/logs/alerts.cron.log 2>&1

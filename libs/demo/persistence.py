@@ -740,3 +740,40 @@ def count_effective_session_assemblyai_uses(
         return int(row[0])
     finally:
         conn.close()
+
+
+def count_assemblyai_uses_since(db_path: Path, since_iso: str) -> int:
+    """Count AssemblyAI uses across ALL sessions since ``since_iso``.
+
+    Global variant of ``count_effective_session_assemblyai_uses`` (no session
+    filter) used by the usage-rate email alert. Counts ledger rows in
+    (started, completed) plus pending jobs (queued, running) that do not yet
+    have a ledger row, so an in-flight upload is not missed or double-counted.
+    """
+    conn = _open(db_path)
+    try:
+        row = conn.execute(
+            """
+            SELECT
+              (SELECT COUNT(*) FROM usage_ledger
+                 WHERE provider = 'assemblyai'
+                   AND status IN ('started', 'completed')
+                   AND created_at >= ?)
+              +
+              (SELECT COUNT(*) FROM jobs
+                 WHERE provider = 'assemblyai'
+                   AND status IN ('queued', 'running')
+                   AND created_at >= ?
+                   AND job_id NOT IN (
+                     SELECT job_id FROM usage_ledger
+                       WHERE provider = 'assemblyai'
+                         AND status IN ('started', 'completed')
+                         AND created_at >= ?
+                         AND job_id IS NOT NULL
+                   ))
+            """,
+            (since_iso, since_iso, since_iso),
+        ).fetchone()
+        return int(row[0])
+    finally:
+        conn.close()

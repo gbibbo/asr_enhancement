@@ -37,6 +37,11 @@ _BODY_ALLOWLIST: frozenset[str] = frozenset({
     "consecutive_failures",
     "last_status_kind",
     "last_check_at_utc",
+    # AssemblyAI usage-rate alert (count-based, no PII).
+    "provider",
+    "assemblyai_usage_count",
+    "assemblyai_usage_threshold",
+    "window_hours",
 })
 
 # Required SMTP/email fields that must all be non-empty for real sends.
