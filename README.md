@@ -4,6 +4,20 @@ End-to-end platform for pre-recorded speech enhancement optimized for automatic 
 
 **Project case study:** https://gbibbo.github.io/work/asr-enhancement/
 
+> ## ▶️ Live demo — try it now
+>
+> **https://asr-rp5.tail072b8f.ts.net/demo/**
+>
+> When the browser asks, sign in with:
+>
+> - **Username:** `recruiter`
+> - **Password:** `asr-demo-2026`
+>
+> A mobile-first web demo running live on a Raspberry Pi 5 (curated examples,
+> your own uploads, transcription and playback) behind an HTTPS tunnel and a
+> single recruiter sign-in. It runs on personal hardware, so treat it as
+> best-effort, not always-on.
+
 ## Purpose
 
 Compare two transcription paths on the same audio file:
