@@ -23,10 +23,12 @@ from libs.audio.degradations import (
 from libs.audio.enhancement import (
     BYPASS_ENHANCER_VERSION,
     DEEPFILTERNET_ENHANCER_VERSION,
+    GTCRN_ENHANCER_VERSION,
     HECTTOR_ENHANCER_VERSION,
     BypassEnhancer,
     DeepFilterNetEnhancer,
     EnhancerAdapter,
+    GtcrnOnnxEnhancer,
     HecttorEnhancer,
     hecttor_is_available,
 )
@@ -129,6 +131,8 @@ def default_enhancer_factory(settings: DemoSettings) -> EnhancerFactory:
     def _factory(enhancer_version: str) -> EnhancerAdapter:
         if enhancer_version == BYPASS_ENHANCER_VERSION:
             return BypassEnhancer()
+        if enhancer_version == GTCRN_ENHANCER_VERSION:
+            return GtcrnOnnxEnhancer()
         if enhancer_version == DEEPFILTERNET_ENHANCER_VERSION:
             return DeepFilterNetEnhancer()
         if enhancer_version == HECTTOR_ENHANCER_VERSION or enhancer_version.startswith(
@@ -144,7 +148,7 @@ def default_enhancer_factory(settings: DemoSettings) -> EnhancerFactory:
             raise EnhancerNotSupportedError(_METRICGAN_GATED_MESSAGE)
         raise EnhancerNotSupportedError(
             f"Unsupported enhancer {enhancer_version!r}. "
-            "Use 'bypass', 'deepfilternet3', or 'hecttor'."
+            "Use 'bypass', 'gtcrn', 'deepfilternet3', or 'hecttor'."
         )
 
     return _factory

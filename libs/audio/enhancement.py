@@ -336,6 +336,137 @@ class DeepFilterNetEnhancer(EnhancerAdapter):
 
 
 # ---------------------------------------------------------------------------
+# GTCRN enhancer (on-device ONNX, real reconstruction — works on 16 KB pages)
+# ---------------------------------------------------------------------------
+
+GTCRN_ONNX_PATH_ENV = "GTCRN_ONNX_PATH"
+DEFAULT_GTCRN_ONNX_PATH = "/app/models/gtcrn.onnx"
+GTCRN_ENHANCER_VERSION: str = "gtcrn"
+_GTCRN_SR = 16000
+_GTCRN_NFFT = 512
+_GTCRN_HOP = 256
+
+
+class GtcrnOnnxEnhancer(EnhancerAdapter):
+    """GTCRN speech enhancer via onnxruntime (ultra-light, on-device).
+
+    Streaming ONNX model: one STFT frame at a time with three recurrent caches
+    (init to zeros). STFT/ISTFT match the reference: n_fft=512, hop=256, window
+    hann(512)**0.5, center padding. Runs on the Raspberry Pi's 16 KB pages with
+    no PyTorch and no jemalloc (unlike the DeepFilterNet binary). Honest fallback
+    to the raw input on any failure so the job never aborts.
+    """
+
+    _session: Any = None
+
+    @property
+    def enhancer_version(self) -> str:
+        return GTCRN_ENHANCER_VERSION
+
+    def _get_session(self, model_path: str) -> Any:
+        if GtcrnOnnxEnhancer._session is None:
+            import onnxruntime as ort
+
+            opts = ort.SessionOptions()
+            opts.intra_op_num_threads = 1
+            opts.inter_op_num_threads = 1
+            GtcrnOnnxEnhancer._session = ort.InferenceSession(
+                model_path, sess_options=opts, providers=["CPUExecutionProvider"]
+            )
+        return GtcrnOnnxEnhancer._session
+
+    def enhance(self, audio_path: Path, output_dir: Path, job_id: str) -> EnhancementResult:
+        model_path = os.environ.get(GTCRN_ONNX_PATH_ENV, DEFAULT_GTCRN_ONNX_PATH)
+        try:
+            if not Path(model_path).is_file():
+                raise RuntimeError(f"gtcrn model not found at {model_path}")
+            session = self._get_session(model_path)
+
+            audio, sr = sf.read(audio_path, dtype="float32", always_2d=False)
+            if audio.ndim > 1:
+                audio = audio.mean(axis=1)
+            audio = np.ascontiguousarray(audio, dtype=np.float32)
+            if sr != _GTCRN_SR:
+                from math import gcd
+
+                from scipy.signal import resample_poly
+
+                g = gcd(int(sr), _GTCRN_SR)
+                audio = resample_poly(audio, _GTCRN_SR // g, int(sr) // g).astype(np.float32)
+
+            enhanced = self._run(session, audio)
+
+            output_dir.mkdir(parents=True, exist_ok=True)
+            final_path = output_dir / "enhanced_gtcrn.wav"
+            sf.write(final_path, enhanced, _GTCRN_SR, subtype="PCM_16")
+            if not _validate_output(final_path):
+                raise RuntimeError("Enhanced output validation failed")
+            return EnhancementResult(
+                output_path=final_path,
+                preset_applied=GTCRN_ENHANCER_VERSION,
+                enhanced=True,
+                enhancement_fallback=False,
+                diagnostic={"backend": "gtcrn"},
+            )
+        except Exception as exc:  # noqa: BLE001 - honest fallback, never abort the job
+            return EnhancementResult(
+                output_path=audio_path,
+                preset_applied=GTCRN_ENHANCER_VERSION,
+                enhanced=False,
+                enhancement_fallback=True,
+                diagnostic={"fallback_reason": str(exc)[:240]},
+            )
+
+    @staticmethod
+    def _run(session: Any, audio: np.ndarray) -> np.ndarray:
+        n_fft, hop = _GTCRN_NFFT, _GTCRN_HOP
+        pad = n_fft // 2
+        from scipy.signal.windows import hann
+
+        window = (hann(n_fft, sym=False) ** 0.5).astype(np.float64)
+
+        x = np.pad(audio.astype(np.float64), (pad, pad), mode="reflect")
+        if len(x) < n_fft:
+            x = np.pad(x, (0, n_fft - len(x)), mode="constant")
+        num_frames = 1 + (len(x) - n_fft) // hop
+
+        conv_cache = np.zeros((2, 1, 16, 16, 33), dtype=np.float32)
+        tra_cache = np.zeros((2, 3, 1, 1, 16), dtype=np.float32)
+        inter_cache = np.zeros((2, 1, 33, 16), dtype=np.float32)
+
+        out = np.zeros(len(x), dtype=np.float64)
+        wsum = np.zeros(len(x), dtype=np.float64)
+        w2 = window ** 2
+
+        for i in range(num_frames):
+            start = i * hop
+            seg = x[start : start + n_fft] * window
+            spec = np.fft.rfft(seg).astype(np.complex64)
+            mix = np.empty((1, n_fft // 2 + 1, 1, 2), dtype=np.float32)
+            mix[0, :, 0, 0] = spec.real
+            mix[0, :, 0, 1] = spec.imag
+            enh, conv_cache, tra_cache, inter_cache = session.run(
+                None,
+                {
+                    "mix": mix,
+                    "conv_cache": conv_cache,
+                    "tra_cache": tra_cache,
+                    "inter_cache": inter_cache,
+                },
+            )
+            enh_spec = enh[0, :, 0, 0] + 1j * enh[0, :, 0, 1]
+            frame = np.fft.irfft(enh_spec, n=n_fft) * window
+            out[start : start + n_fft] += frame
+            wsum[start : start + n_fft] += w2
+
+        nz = wsum > 1e-8
+        out[nz] /= wsum[nz]
+        out = out[pad : len(out) - pad] if pad > 0 else out
+        out = out[: len(audio)]
+        return np.clip(out, -1.0, 1.0).astype(np.float32)
+
+
+# ---------------------------------------------------------------------------
 # Hecttor AI enhancer (on-device SDK; wired, activated when access is granted)
 # ---------------------------------------------------------------------------
 
