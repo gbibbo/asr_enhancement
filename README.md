@@ -2,8 +2,6 @@
 
 End-to-end platform for pre-recorded speech enhancement optimized for automatic speech recognition (ASR).
 
-**Project case study:** https://gbibbo.github.io/work/asr-enhancement/
-
 > ## ▶️ Live demo — try it now
 >
 > **https://asr-rp5.tail072b8f.ts.net/demo/**
@@ -12,6 +10,8 @@ End-to-end platform for pre-recorded speech enhancement optimized for automatic 
 >
 > - **Username:** `recruiter`
 > - **Password:** `asr-demo-2026`
+
+**Project case study:** https://gbibbo.github.io/work/asr-enhancement/
 
 ## Purpose
 
