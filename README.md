@@ -13,6 +13,8 @@ End-to-end platform for pre-recorded speech enhancement optimized for automatic 
 
 **Project case study:** https://gbibbo.github.io/work/asr-enhancement/
 
+![ASR Enhancement demo — desktop UI](assets/screenshots/desktop_demo.png)
+
 ## Purpose
 
 Compare two transcription paths on the same audio file:
