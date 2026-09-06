@@ -21,6 +21,11 @@ x-demo-env: &demo-env
   DEMO_UPLOAD_LIMIT_BYTES: ${DEMO_UPLOAD_LIMIT_BYTES:-5242880}
   DEMO_UPLOAD_MAX_DURATION_SECONDS: ${DEMO_UPLOAD_MAX_DURATION_SECONDS:-30}
   ENHANCER_VERSION: ${ENHANCER_VERSION:-bypass}
+  # AssemblyAI key (optional cloud ASR). Empty default so no secret is committed;
+  # supply via host .env.demo. Shared here so BOTH demo-api (provider status) and
+  # demo-worker (the actual transcription) see it — otherwise uploads that select
+  # AssemblyAI fail in the worker even though status reports "available".
+  ASSEMBLYAI_API_KEY: ${ASSEMBLYAI_API_KEY:-}
   ADMIN_STATS_USERNAME: ${ADMIN_STATS_USERNAME:-admin}
   ADMIN_STATS_PASSWORD: ${ADMIN_STATS_PASSWORD:-}
   # B14.0/B14.2 recruiter HTTPBasic gate. Sole authority for public /demo/*
@@ -76,9 +81,7 @@ services:
     # Auto-start on boot and after crashes. With the Docker service enabled,
     # the demo comes back on its own after a power cycle without any manual step.
     restart: unless-stopped
-    environment:
-      <<: *demo-env
-      ASSEMBLYAI_API_KEY: ${ASSEMBLYAI_API_KEY:-}
+    environment: *demo-env
     command: uvicorn services.api.app.demo_main:app --host 0.0.0.0 --port 8000
     ports:
       - "8001:8000"
