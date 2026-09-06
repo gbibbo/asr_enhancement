@@ -1,8 +1,6 @@
 # ASR Enhancement Platform
 
-End-to-end system that puts a speech-enhancement stage in front of automatic
-speech recognition (ASR). Whether that enhancement actually improves ASR is
-answered honestly in [Honest status](#honest-status--did-the-enhancer-work) below.
+End-to-end platform for pre-recorded speech enhancement in front of automatic speech recognition (ASR).
 
 > ## ▶️ Live demo — try it now
 >
