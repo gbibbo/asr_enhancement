@@ -43,6 +43,8 @@ a single sign-in that covers the whole UI. Because it runs on personal hardware
 and a home connection, treat it as **best-effort, not always-on**.
 
 <!-- Screenshots -->
+![desktop demo](assets/screenshots/desktop_demo.png)
+
 Mobile layout: ![mobile demo](assets/screenshots/b11_2_mobile.png)
 
 ## Two run modes
