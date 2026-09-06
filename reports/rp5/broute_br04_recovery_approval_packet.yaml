@@ -1,9 +1,0 @@
-ORCHESTRATOR_DECISION:
-  scope: recovery_closure
-  task_id: BR-04
-  phase: B-route
-  decision: CLOSE_RECOVERY
-  accepted_report_commit: 0712dcdefb54ed16c5cd840ffeb07f0f8b6705ca
-  next_expected_task: BR-04
-  required_fix: null
-  rationale: BR-04 Phase A recovery is accepted. The path-lock validator now classifies demo frontend files as PL-BR-FRONTEND while preserving services/api/app/demo_main.py as PL-BR-API-DEMO. OK_PLAN_COMPILES and OK_CHANGED_FILES_PATH_LOCKED passed, the recovery commit was pushed, and BR-04 implementation was not started.

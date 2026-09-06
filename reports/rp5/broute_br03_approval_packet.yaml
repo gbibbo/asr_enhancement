@@ -1,9 +1,0 @@
-ORCHESTRATOR_DECISION:
-  scope: task
-  task_id: BR-03
-  phase: B-route
-  decision: CLOSE_TASK
-  accepted_report_commit: e866a6826b946c7e3810ad6e720386fab07f9432
-  next_expected_task: BR-04
-  required_fix: null
-  rationale: BR-03 execution report is accepted. Required sentinels passed, legacy cache tests passed, committed files stayed within approved path locks, no environment mutation occurred, commit was pushed, and working tree ended clean.

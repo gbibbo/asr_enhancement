@@ -39,8 +39,8 @@ if _missing:
     )
 
 # Imports deferred past the skip so they don't execute during a skipped collection.
-from libs.asr.assemblyai_provider import AssemblyAIAdapter  # noqa: E402
-from libs.asr.schema import ASRResult  # noqa: E402
+from libs.asr_adapter.assemblyai import AssemblyAIAdapter  # noqa: E402
+from libs.asr_adapter.schema import ASRResult  # noqa: E402
 
 _POLL_INTERVAL_S = 5.0
 _MAX_WAIT_S = 300.0  # 5-minute hard ceiling; real 1-s audio typically < 30 s

@@ -1,9 +1,0 @@
-ORCHESTRATOR_DECISION:
-  scope: task
-  task_id: BR-02
-  phase: B-route
-  decision: CLOSE_TASK
-  accepted_report_commit: b75322b04b39b0a01b8a4816baca7bfec9762b65
-  next_expected_task: BR-03
-  required_fix: null
-  rationale: BR-02 Phase B execution and supplemental evidence are accepted. Required sentinels passed, tests passed, committed files stayed within approved path locks, no tests were deleted or renamed, the unplanned pip install did not modify repository dependency/config files, commit was pushed, and working tree ended clean.

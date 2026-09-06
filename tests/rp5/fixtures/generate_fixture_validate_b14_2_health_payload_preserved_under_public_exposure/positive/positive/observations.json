@@ -1,9 +1,0 @@
-{
-  "authenticated_demo_health": {
-    "body_b64": "eyJzdGF0dXMiOiJvayJ9",
-    "body_len": 15,
-    "error": null,
-    "status": 200
-  },
-  "case_name": "positive"
-}

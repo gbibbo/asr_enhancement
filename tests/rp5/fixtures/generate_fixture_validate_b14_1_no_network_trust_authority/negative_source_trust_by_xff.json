@@ -1,8 +1,0 @@
-{
-  "expected_classification": "B14_1_NETWORK_TRUST_AUTHORITY_DETECTED",
-  "expected_validator_outcome": "FAIL",
-  "kind": "source_snippet",
-  "label": "negative_source_trust_by_xff",
-  "synthetic_source": "if request.headers.get('X-Forwarded-For') == '127.0.0.1':\n    return Response(status_code=200)\n",
-  "violated_rule": "authority decision keyed on X-Forwarded-For"
-}

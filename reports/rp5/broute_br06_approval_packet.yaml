@@ -1,9 +1,0 @@
-ORCHESTRATOR_DECISION:
-  scope: task
-  task_id: BR-06
-  phase: B-route
-  decision: CLOSE_TASK
-  accepted_report_commit: 1fd0e0d311dc7435b41132f91d9fc1315a2b7567
-  next_expected_task: BR-07
-  required_fix: null
-  rationale: BR-06 execution is accepted. Required sentinels passed (OK_BROUTE_ROUTER_STUB_SMOKE 18/18 checks, OK_FIXTURE_VALIDATE_BROUTE_E2E_ROUTER_STUB_SMOKE, OK_CHANGED_FILES_PATH_LOCKED), the commit contains only the three approved files (PL-BR-SCRIPTS x2, PL-BR-REPORTS x1), path-lock validation passed, tracker was not mutated during execution, commit was pushed, and working tree ended clean.

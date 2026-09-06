@@ -1,9 +1,0 @@
-ORCHESTRATOR_DECISION:
-  scope: task
-  task_id: BR-01
-  phase: B-route
-  decision: CLOSE_TASK
-  accepted_report_commit: 9112713c26e127ac207ac9c61eea34a38576a742
-  next_expected_task: BR-02
-  required_fix: null
-  rationale: BR-01 execution report is accepted. Required sentinels passed, committed file set stayed within approved path locks, commit was pushed, and working tree ended clean.

@@ -1,6 +1,5 @@
 # Secrets
 .env
-.env.demo
 
 # Python
 __pycache__/
@@ -47,23 +46,3 @@ htmlcov/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-runs/
-artifacts/
-checkpoints/
-data/
-.cache/
-*.wav
-*.mp3
-*.flac
-*.ogg
-*.m4a
-*.pt
-*.pth
-*.ckpt
-*.onnx
-*.safetensors
-*.engine
-*.plan
-*.sqlite
-*.sqlite3
-*.db

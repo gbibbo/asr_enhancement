@@ -1,2 +1,0 @@
-Forbidden Cloudflare tunnel token literal:
-  CLOUDFLARE_TUNNEL_TOKEN=eyJAbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGh

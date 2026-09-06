@@ -17,7 +17,8 @@ from opentelemetry import propagate
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from sqlalchemy import text
 
-from libs.audio.enhancement import UnknownPresetError, resolve_preset
+from libs.audio_pipeline.errors import UnknownPresetError
+from libs.audio_pipeline.presets import resolve_preset
 from libs.common.db import make_engine, make_session_factory
 from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import Settings, get_settings

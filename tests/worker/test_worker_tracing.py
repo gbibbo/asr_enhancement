@@ -12,7 +12,7 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from opentelemetry.trace import StatusCode
 
-from libs.asr.schema import ASRResult
+from libs.asr_adapter.schema import ASRResult
 from libs.common.models import JobStatus
 from libs.common.settings import get_settings
 from libs.observability.tracing import _reset_tracing_for_tests

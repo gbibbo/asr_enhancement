@@ -12,8 +12,8 @@ from typing import Optional
 from opentelemetry import propagate, trace
 from opentelemetry.trace import StatusCode
 
-from libs.asr.factory import make_asr_adapter
-from libs.audio.enhancement import apply_preset
+from libs.asr_adapter.factory import make_asr_adapter
+from libs.audio_pipeline.pipeline import apply_preset
 from libs.common.db import make_engine, make_session_factory
 from libs.common.models import Job, JobMode, JobStatus
 from libs.common.settings import get_settings

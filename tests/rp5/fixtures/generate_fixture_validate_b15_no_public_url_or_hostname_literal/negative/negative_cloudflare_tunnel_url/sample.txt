@@ -1,2 +1,0 @@
-Public URL literal pointing at a Cloudflare Tunnel host:
-  https://synthetic-placeholder.trycloudflare.com/demo/health

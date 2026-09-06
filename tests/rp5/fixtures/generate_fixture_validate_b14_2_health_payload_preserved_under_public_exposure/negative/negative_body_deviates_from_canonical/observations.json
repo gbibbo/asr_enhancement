@@ -1,9 +1,0 @@
-{
-  "authenticated_demo_health": {
-    "body_b64": "eyJzdGF0dXMiOiJvayIsImV4dHJhIjoibGVhayJ9",
-    "body_len": 30,
-    "error": null,
-    "status": 200
-  },
-  "case_name": "negative_body_deviates_from_canonical"
-}

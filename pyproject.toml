@@ -37,9 +37,6 @@ lint = [
     "ruff==0.6.9",
     "mypy==1.11.2",
 ]
-demo = [
-    "faster-whisper>=1.0",
-]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

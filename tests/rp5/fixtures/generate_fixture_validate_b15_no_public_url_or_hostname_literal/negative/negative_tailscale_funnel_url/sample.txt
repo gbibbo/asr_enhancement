@@ -1,2 +1,0 @@
-Public URL literal pointing at a Tailscale Funnel host:
-  https://synthetic-placeholder.ts.net/demo/health

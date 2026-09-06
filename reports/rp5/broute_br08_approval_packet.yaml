@@ -1,9 +1,0 @@
-ORCHESTRATOR_DECISION:
-  scope: task
-  task_id: BR-08
-  phase: B-route
-  decision: CLOSE_TASK
-  accepted_report_commit: 4a4f8e4b20ff3ff5f19647e7ec1f723f6492df25
-  next_expected_task: PHASE_GATE_DECISION
-  required_fix: null
-  rationale: BR-08 execution is accepted. All nine final-verification canonical commands produced their required OK sentinels (OK_PLAN_COMPILES, OK_BROUTE_SCHEMA_CONTRACT, OK_BROUTE_CACHE_KEY_CONTRACT, OK_BROUTE_HEALTH_PUBLIC_PAYLOAD, OK_PUBLIC_SECURITY_INVARIANTS, OK_FRONTEND_BACKEND_CONTRACT, OK_BROUTE_MANUAL_SMOKE, OK_BROUTE_ROUTER_STUB_SMOKE, OK_FUTURE_CONSTRAINTS); B_ROUTE_PHASE_GATE_PASS recorded in reports/rp5/broute_phase_gate.md; OK_CHANGED_FILES_PATH_LOCKED observed post-commit against --diff HEAD~1..HEAD; only reports/rp5/broute_phase_gate.md was committed; tracker was not mutated during execution; commit was pushed; working tree ended clean. PHASE_APPROVE for B-route remains the orchestrator's next decision and was not invoked by BR-08.

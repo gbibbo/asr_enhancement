@@ -1,6 +1,0 @@
-{
-  "expected_validator_outcome": "PASS",
-  "kind": "source_snippet",
-  "label": "positive_source_no_forbidden_tokens",
-  "synthetic_source": "async def recruiter_auth_dependency(request: Request) -> None:\n    expected = _read_env_credentials()\n    if expected is None:\n        raise RecruiterAuthChallenge()\n"
-}

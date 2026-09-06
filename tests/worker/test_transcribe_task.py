@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from libs.asr.errors import AdapterTranscriptionError
-from libs.asr.schema import ASRResult
+from libs.asr_adapter.errors import AdapterTranscriptionError
+from libs.asr_adapter.schema import ASRResult
 from libs.common.models import JobStatus
 from libs.common.settings import get_settings
 from libs.common.storage import ObjectNotFoundError, ObjectUploadError

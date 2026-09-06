@@ -1,5 +1,0 @@
-Loopback only — these patterns are allowed:
-  http://127.0.0.1:8001/demo/health
-  https://127.0.0.1/demo/health
-  https://[::1]/demo/health
-No public hostnames, no public URLs, no tunnel secrets.

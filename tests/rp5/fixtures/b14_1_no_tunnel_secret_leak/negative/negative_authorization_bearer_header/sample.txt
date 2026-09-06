@@ -1,2 +1,0 @@
-Forbidden Authorization Bearer header value:
-  Authorization: Bearer abcdef0123456789ABCDEF
