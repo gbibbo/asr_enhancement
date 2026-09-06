@@ -1,6 +1,8 @@
 # ASR Enhancement Platform
 
-End-to-end platform for pre-recorded speech enhancement optimized for automatic speech recognition (ASR).
+End-to-end system that puts a speech-enhancement stage in front of automatic
+speech recognition (ASR). Whether that enhancement actually improves ASR is
+answered honestly in [Honest status](#honest-status--did-the-enhancer-work) below.
 
 > ## ▶️ Live demo — try it now
 >
@@ -52,7 +54,7 @@ pretending the gap is closed.
 Compare two transcription paths on the same audio file:
 
 - Raw transcription — upload and transcribe without modification.
-- Enhanced transcription — apply a speech enhancement preset before transcribing.
+- "Enhanced" transcription — apply a speech-enhancement preset (deterministic DSP) before transcribing.
 
 Job state, audio artifacts, transcripts, and provider payloads are persisted and inspectable through the API.
 
