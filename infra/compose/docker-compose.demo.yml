@@ -34,6 +34,11 @@ x-demo-env: &demo-env
   # host only once the Tailscale Funnel tunnel is provisioned. This flag does
   # NOT relax the recruiter gate; the gate is the sole authority regardless.
   PUBLIC_DEMO_EXPOSURE: ${PUBLIC_DEMO_EXPOSURE:-false}
+  # Pre-built Next.js static export served by the demo API behind the recruiter
+  # gate (single-origin UI). Point at a directory inside the runtime root (which
+  # is bind-mounted at the same path), e.g.
+  # ${DEMO_RUNTIME_ROOT}/frontend. Empty => no UI served.
+  DEMO_FRONTEND_DIR: ${DEMO_FRONTEND_DIR:-}
   DEMO_ASSEMBLYAI_DAILY_SOFT_CAP_USD: ${DEMO_ASSEMBLYAI_DAILY_SOFT_CAP_USD:-5.0}
   DEMO_ASSEMBLYAI_WARNING_CAP_USD: ${DEMO_ASSEMBLYAI_WARNING_CAP_USD:-35.0}
   DEMO_ASSEMBLYAI_HARD_CAP_USD: ${DEMO_ASSEMBLYAI_HARD_CAP_USD:-45.0}

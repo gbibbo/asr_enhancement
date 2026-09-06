@@ -466,3 +466,56 @@ async def admin_stats(
         cache_miss_count=int(getattr(request.app.state, "cache_miss_count", 0)),
         error_buffer_handler=getattr(request.app.state, "error_buffer", None),
     )
+
+
+# --- Static frontend (must stay the LAST route so specific API routes win) ---
+# Serves the pre-built Next.js static export (`out/`) as a single-origin SPA
+# behind the recruiter HTTPBasic gate. Inert unless DEMO_FRONTEND_DIR points at
+# an existing directory: when unset, any unmatched GET returns 404 exactly as
+# before, so unit tests and platform mode are unaffected. The recruiter gate is
+# enforced manually here (not as a route dependency) so it applies only when the
+# UI is actually being served.
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str, request: Request):
+    from pathlib import Path as _Path
+
+    settings: DemoSettings = request.app.state.settings
+    frontend_dir = settings.demo_frontend_dir
+    if frontend_dir is None:
+        raise HTTPException(status_code=404, detail="Not Found")
+    root = _Path(frontend_dir).resolve()
+    if not root.is_dir():
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    # UI is configured: this is a public surface, so enforce the recruiter gate.
+    await recruiter_auth_dependency(request)
+
+    rel = full_path.strip("/")
+    if rel == "":
+        candidate = root / "index.html"
+    else:
+        candidate = root / rel
+        if candidate.is_dir():
+            candidate = candidate / "index.html"
+        elif not candidate.exists():
+            html_sibling = root / f"{rel}.html"
+            html_index = root / rel / "index.html"
+            if html_sibling.is_file():
+                candidate = html_sibling
+            elif html_index.is_file():
+                candidate = html_index
+
+    # Path-traversal guard: the resolved file must stay under the export root.
+    try:
+        resolved = candidate.resolve()
+        resolved.relative_to(root)
+    except (ValueError, OSError):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    if resolved.is_file():
+        return FileResponse(resolved)
+
+    not_found = root / "404.html"
+    if not_found.is_file():
+        return FileResponse(not_found, status_code=404)
+    raise HTTPException(status_code=404, detail="Not Found")

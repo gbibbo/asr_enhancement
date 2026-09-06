@@ -163,7 +163,7 @@ export default function DemoPage() {
 
   const refreshProviderState = useCallback(async () => {
     try {
-      const res = await fetch("/api/demo/providers/assemblyai/status", {
+      const res = await fetch("/demo/providers/assemblyai/status", {
         cache: "no-store",
       });
       if (!res.ok) {
@@ -188,7 +188,7 @@ export default function DemoPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/demo/health", { cache: "no-store" });
+        const res = await fetch("/demo/health", { cache: "no-store" });
         if (cancelled) return;
         if (!res.ok) {
           setHealthOk(false);
@@ -212,7 +212,7 @@ export default function DemoPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/demo/examples", { cache: "no-store" });
+        const res = await fetch("/demo/examples", { cache: "no-store" });
         if (cancelled) return;
         if (!res.ok) {
           setExamplesError(`Backend returned ${res.status} for /demo/examples.`);
@@ -276,7 +276,7 @@ export default function DemoPage() {
       setCachedResult(null);
       setCachedMissDetail(null);
       try {
-        const res = await fetch("/api/demo/run-cached", {
+        const res = await fetch("/demo/run-cached", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
@@ -382,7 +382,7 @@ export default function DemoPage() {
         if (uploadProvider === "assemblyai") {
           headers["X-Demo-Session-Id"] = getOrCreateDemoSessionId();
         }
-        const res = await fetch("/api/demo/upload", {
+        const res = await fetch("/demo/upload", {
           method: "POST",
           body: fd,
           headers,
@@ -427,7 +427,7 @@ export default function DemoPage() {
 
     async function fetchTerminalResult(id: string): Promise<void> {
       try {
-        const res = await fetch(`/api/demo/jobs/${id}/result`, {
+        const res = await fetch(`/demo/jobs/${id}/result`, {
           signal: controller.signal,
           cache: "no-store",
         });
@@ -460,7 +460,7 @@ export default function DemoPage() {
     async function tick(): Promise<void> {
       attempts += 1;
       try {
-        const res = await fetch(`/api/demo/jobs/${jobId}`, {
+        const res = await fetch(`/demo/jobs/${jobId}`, {
           signal: controller.signal,
           cache: "no-store",
         });
@@ -655,7 +655,7 @@ export default function DemoPage() {
                 <audio
                   controls
                   preload="metadata"
-                  src={`/api/demo/examples/${encodeURIComponent(
+                  src={`/demo/examples/${encodeURIComponent(
                     selectedExample.example_id,
                   )}/audio/clean`}
                 />
@@ -678,7 +678,7 @@ export default function DemoPage() {
                 <audio
                   controls
                   preload="metadata"
-                  src={`/api/demo/examples/${encodeURIComponent(
+                  src={`/demo/examples/${encodeURIComponent(
                     selectedExample.example_id,
                   )}/audio/degraded/${encodeURIComponent(selectedDegradationCached)}`}
                 />

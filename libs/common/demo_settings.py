@@ -21,6 +21,12 @@ class DemoSettings(BaseSettings):
     demo_cache_dir: Optional[Path] = None
     demo_artifacts_dir: Optional[Path] = None
     demo_logs_dir: Optional[Path] = None
+    # Directory holding the pre-built static frontend export (Next.js `out/`).
+    # When set and present, the demo API serves the UI from here behind the
+    # recruiter gate. When unset (default), no UI is served and unknown GET
+    # paths return 404 exactly as before — so tests and platform mode are
+    # unaffected.
+    demo_frontend_dir: Optional[Path] = None
 
     demo_worker_concurrency: int = 1
     demo_queue_max: int = 10

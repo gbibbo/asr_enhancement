@@ -1,5 +1,5 @@
 // Public API contracts consumed by the /demo page. Mirrors what the backend
-// exposes through the same-origin Next.js proxy at /api/demo/*. Keep this file
+// calls the FastAPI backend directly at same-origin /demo/*. Keep this file
 // limited to the public projection — do not add types for any internal-only
 // backend field (per-browser hashes, ledger rows, monetary fields, etc.).
 
