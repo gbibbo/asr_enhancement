@@ -5,10 +5,13 @@ By **Gabriel Bibbó** · [github.com/gbibbo/asr_enhancement](https://github.com/
 > **🔴 Live demo:** **https://asr-rp5.tail072b8f.ts.net/demo/** — sign in with username `recruiter` and password `asr-demo-2026`.
 
 A full-stack demo that shows how audio degradation hurts automatic speech
-recognition (ASR) and how a speech-enhancement stage sits in front of the
-recogniser to recover accuracy. It runs as a **public, mobile-first web demo on
-a Raspberry Pi 5**, and the same codebase also ships a heavier **cloud platform
-mode**.
+recognition (ASR) and how a speech-enhancement stage is *designed* to sit in
+front of the recogniser to recover accuracy. That enhancement stage was the
+project's original goal; training a model to fill it did not succeed, so the
+live demo runs an honest baseline instead of a learned enhancer — see
+[Enhancer status (honest)](#enhancer-status-honest). It runs as a **public,
+mobile-first web demo on a Raspberry Pi 5**, and the same codebase also ships a
+heavier **cloud platform mode**.
 
 ![Raspberry Pi 5 running the demo](assets/rp5_deployment_photo.jpg)
 
@@ -65,13 +68,59 @@ Grafana, or an OpenTelemetry collector. Platform mode is preserved under the
 
 ## Enhancer status (honest)
 
-The enhancement stage is currently a **bypass baseline** (`ENHANCER_VERSION=1.0`,
-label `bypass`): the pipeline, versioning, cache contract, and UI treat the
-enhancer as a first-class stage, but **no learned enhancement model is deployed
-yet**. The parallel training branch has not produced a deployable artifact, so
-the demo does not claim any learned accuracy improvement. The architecture keeps
-a clean seam (`libs/audio/enhancement.py`) for a MetricGAN+ or similar model to
-drop in later. See [`docs/model_card.md`](docs/model_card.md).
+**This is a disclaimer, and it matters:** the repository is organised around a
+speech-enhancement stage that recovers ASR accuracy, but that enhancer does not
+actually work in practice yet. Here is the honest version.
+
+**The enhancement stage was the original goal.** The whole point was a learned
+model that sits in front of the recogniser and *measurably* recovers accuracy on
+degraded speech. Everything else here — the Raspberry Pi runtime, the versioned
+cache, the provider abstraction, the degradation bank, the frontend — was built
+as the scaffolding around that model.
+
+**We tried to train it and it did not work out.** On a separate training branch
+we took a MetricGAN+ speech enhancer and evaluated/fine-tuned it on LibriSpeech
+utterances passed through the five degradation families, scoring the output with
+Whisper (WER / Word Accuracy) on Surrey compute. The training branch finished
+**without a deployable artifact and without a reliable Word-Accuracy gain**, so —
+rather than ship a model that doesn't help — the live demo runs an **honest
+bypass baseline** (`ENHANCER_VERSION=bypass`): the "enhanced" transcript is
+labelled as a baseline, not as a learned improvement, and no accuracy claim is
+made.
+
+**So the demo was not completed to its original intent — but the full
+infrastructure around it is.** The pipeline, versioning, cache contract, and UI
+treat enhancement as a first-class, versioned stage, and a trained model can be
+dropped into the clean seam at `libs/audio/enhancement.py` and activated by
+flipping `ENHANCER_VERSION`. The code already wires off-the-shelf on-device
+stand-ins (DeepFilterNet3, GTCRN) and an adapter for Hecttor's private enhancer;
+none is active by default, and none closes the ASR-accuracy gap that was the real
+goal.
+
+**What this taught me** is that the problem is harder than I first framed it: a
+small pretrained enhancer optimised for signal quality does not automatically
+help a recogniser, and a handful of synthetic degradations is not enough
+coverage. Doing it seriously would look roughly like this (a minimal sketch —
+and essentially the class of effort behind a mature private model like
+**Hecttor's**):
+
+- **Data at scale and realism** — not five synthetic effects, but a large speech
+  corpus convolved with real room impulse responses and mixed with real noise
+  (e.g. DNS-Challenge / WHAM! / DEMAND) across a wide SNR range and far-field
+  conditions.
+- **A modern enhancement model trained end-to-end on GPU** — a masking or
+  generative reconstruction network (DeepFilterNet / GTCRN / diffusion-vocoder
+  family), not a small pretrained checkpoint used as-is.
+- **An ASR-aware objective** — optimise for the downstream recogniser (WER), or a
+  recognition-aligned perceptual loss, not PESQ/STOI alone, so the model improves
+  *recognition* and not just perceived quality.
+- **Honest evaluation** on held-out speakers and unseen conditions, with
+  checkpoint selection on WER and no leakage from the demo examples.
+- **Iteration** over that loop with a real compute budget.
+
+That is why this repo keeps an adapter ready for a dedicated model rather than
+pretending the gap is closed. See [`docs/model_card.md`](docs/model_card.md) for
+the model-level version of this.
 
 ## Architecture (demo mode)
 
