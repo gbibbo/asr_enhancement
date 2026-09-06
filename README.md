@@ -1,194 +1,162 @@
-# ASR Enhancement Platform
+# ASR Enhancement — Speech Enhancement for Robust Transcription
 
-End-to-end platform for pre-recorded speech enhancement optimized for automatic speech recognition (ASR).
+By **Gabriel Bibbó** · [github.com/gbibbo/asr_enhancement](https://github.com/gbibbo/asr_enhancement)
 
-## Purpose
+A full-stack demo that shows how audio degradation hurts automatic speech
+recognition (ASR) and how a speech-enhancement stage sits in front of the
+recogniser to recover accuracy. It runs as a **public, mobile-first web demo on
+a Raspberry Pi 5**, and the same codebase also ships a heavier **cloud platform
+mode**.
 
-Compare two transcription paths on the same audio file:
+![Raspberry Pi 5 running the demo](assets/rp5_deployment_photo.jpg)
 
-- Raw transcription — upload and transcribe without modification.
-- Enhanced transcription — apply a speech enhancement preset before transcribing.
+## What it does
 
-Job state, audio artifacts, transcripts, and provider payloads are persisted and inspectable through the API.
+Pick a curated speech clip (or upload your own, up to 30 s), choose a
+**degradation** (far-field room, café background, phone call, muffled, broadband
+hiss) and an **ASR provider**, and the demo shows, side by side:
 
-## Status
+- the **clean** and **degraded** audio (playable in the browser),
+- the **raw transcript** of the degraded audio,
+- the **enhanced transcript** (or an honest baseline — see *Enhancer status*),
+- **Word Accuracy / WER** against ground truth when it is available,
+- pipeline details: provider, model version, enhancer version, cache status,
+  job id, and latency.
 
-Phase 8 / Cut C is complete. The MVP backend vertical slice — `transcribe-only` and `enhance-and-transcribe` — runs end-to-end against the **fake provider** with a single-VPS Docker Compose deployment path, JSON structured logs, Prometheus metrics, OpenTelemetry traces, one provisioned Grafana dashboard, three basic alerts, and a passing CI on GitHub Actions.
+Curated examples return instantly from a versioned cache; uploads go through an
+asynchronous job queue and are transcribed on-device.
 
-The MVP is **pre-recorded only** and **not production-hardened**. The demo Next.js frontend exists under [`services/frontend/`](services/frontend/) but is **not yet integrated into [`infra/compose/docker-compose.yml`](infra/compose/docker-compose.yml)** — the deployment runbook is backend-only for now (deferred to a later demo task per [`services/frontend/README.md`](services/frontend/README.md)).
+## Live demo
 
-For the full implementation plan see [`plan.md`](plan.md). For per-task execution history see [`docs/claude_task_progress.md`](docs/claude_task_progress.md) and [`docs/claude_task_progress.yaml`](docs/claude_task_progress.yaml).
+The demo is **live on a Raspberry Pi 5** behind an HTTPS Tailscale Funnel tunnel
+and a recruiter **HTTP Basic gate** (single sign-in covers the whole UI). Because
+it runs on personal hardware and a home connection, treat it as **best-effort,
+not always-on**.
 
-**Migration note:** this repository is being migrated from a completed MLOps platform MVP into a public ASR enhancement demo with Raspberry Pi deployment. The original platform MVP is preserved under the `platform-mvp-v0` tag. Public demo mode is under active development on the `demo-rp5-v1` integration branch and feature branches.
+The URL and recruiter credentials are shared alongside this project (CV /
+LinkedIn / on request) rather than committed to the repository.
 
-## MVP capabilities
+<!-- Screenshots -->
+Mobile layout: ![mobile demo](assets/screenshots/b11_2_mobile.png)
 
-- FastAPI service exposing `GET /health`, `GET /ready`, `POST /v1/transcribe`, `POST /v1/enhance-and-transcribe`, `GET /v1/jobs/{job_id}`, `GET /v1/jobs/{job_id}/result`, and `GET /metrics`.
-- Celery worker for asynchronous job processing.
-- PostgreSQL job state, Redis broker, MinIO (S3-compatible) object storage.
-- ASR providers: **fake provider** by default (deterministic, no secrets) and **AssemblyAI** pre-recorded adapter behind opt-in gating (see "AssemblyAI (opt-in, gated)" below).
-- Enhancement presets: `bypass`, `light_clean`, `denoise`, `denoise_dereverb` (deterministic DSP, no neural models).
-- Observability: JSON structured logs, Prometheus metrics endpoint, OpenTelemetry traces, one provisioned Grafana dashboard, three basic alerts (API error rate, queue backlog, worker heartbeat missing).
-- CI on GitHub Actions: ruff lint, mypy type check, unit and integration tests with the fake adapter, in-stack Cut A smoke, frontend lint/type/build, backend Docker image build — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+## Two run modes
 
-## Architecture overview
+| | Public demo mode | Cloud platform mode |
+|---|---|---|
+| Host | Raspberry Pi 5, Docker | any VPS / cloud, Docker Compose |
+| State | SQLite | PostgreSQL |
+| Storage | local filesystem | MinIO (S3-compatible) |
+| Queue | in-process worker (concurrency 1) | Celery + Redis |
+| ASR | faster-whisper `tiny.en` (local) + optional AssemblyAI | fake provider + optional AssemblyAI |
+| Observability | JSON logs, `/admin/stats`, email alerts | Prometheus, Grafana, OpenTelemetry |
+| Exposure | Tailscale Funnel + recruiter gate | reverse proxy |
 
-The backend Compose stack is defined in [`infra/compose/docker-compose.yml`](infra/compose/docker-compose.yml):
+Public demo mode does **not** require Postgres, Redis, MinIO, Prometheus,
+Grafana, or an OpenTelemetry collector. Platform mode is preserved under the
+`platform-mvp-v0` tag and its `/v1/*` API is intact.
 
-| Service          | Role                                              | Host port   |
-|------------------|---------------------------------------------------|-------------|
-| `api`            | FastAPI HTTP entrypoint                           | 8000        |
-| `worker`         | Celery worker (metrics endpoint)                  | 9091        |
-| `postgres`       | Job state (Postgres 16)                           | not exposed |
-| `redis`          | Celery broker                                     | not exposed |
-| `minio`          | S3-compatible object storage                      | 9000        |
-| `otel-collector` | OpenTelemetry collector                           | 4318        |
-| `prometheus`     | Metrics scrape and alerts                         | 9090        |
-| `grafana`        | One provisioned operational dashboard             | 3000        |
+## Enhancer status (honest)
 
-Postgres (5432) and Redis (6379) are intentionally not exposed to the host — they are reachable only from inside the Compose network.
+The enhancement stage is currently a **bypass baseline** (`ENHANCER_VERSION=1.0`,
+label `bypass`): the pipeline, versioning, cache contract, and UI treat the
+enhancer as a first-class stage, but **no learned enhancement model is deployed
+yet**. The parallel training branch has not produced a deployable artifact, so
+the demo does not claim any learned accuracy improvement. The architecture keeps
+a clean seam (`libs/audio/enhancement.py`) for a MetricGAN+ or similar model to
+drop in later. See [`docs/model_card.md`](docs/model_card.md).
 
-The demo Next.js frontend at [`services/frontend/`](services/frontend/) is **not** part of the Compose stack; backend-only deployment is the only documented path for now.
+## Architecture (demo mode)
 
-## Quick start (fake provider, local Docker Compose)
+```text
+Browser ──HTTPS──> Tailscale Funnel ──> 127.0.0.1:8001 ──> FastAPI (demo-api)
+                                         │  recruiter HTTP Basic gate on every route
+                                         │  serves the static Next.js UI + the /demo API
+                                         └─> SQLite (jobs, cache, usage) + filesystem artifacts
+                                              demo-worker (concurrency 1) processes uploads
+                                              faster-whisper tiny.en (local ASR)
+```
 
-This is the no-secrets local recipe against the fake provider. It mirrors [`docs/smoke_tests.md`](docs/smoke_tests.md). For the full single-VPS deployment runbook (env vars, secrets handling, reverse proxy, backups), see [`docs/deployment.md`](docs/deployment.md).
+The Next.js frontend is built as a **static export** and served by FastAPI on a
+single origin, so one recruiter sign-in covers the UI, its assets, and the API,
+and the browser talks to the backend directly (no separate Node server).
+
+## Privacy
+
+- Uploaded audio is processed for the session and cleaned up on a schedule; it is
+  not kept long-term.
+- Optional **manual ground truth** for uploads is used only to compute Word
+  Accuracy **in your browser** — it never leaves the page, is never sent to the
+  backend, logged, stored, or used for training.
+- Non-English audio triggers a warning before processing (the demo targets
+  English speech).
+
+Details: [`docs/privacy.md`](docs/privacy.md).
+
+## Cost controls (AssemblyAI, optional)
+
+AssemblyAI is an **optional** cloud provider and is **disabled by default** (no
+API key configured in the public demo). When enabled it is cost-controlled:
+per-audio-duration cost estimate, a usage ledger in SQLite, a daily soft cap,
+warning cap, and hard cap, per-session limits, and explicit UI states
+(available / daily quota reached / quota exhausted / disabled). The demo never
+silently falls back from AssemblyAI to Whisper.
+
+## Run the demo locally
+
+Requires Docker and (to rebuild the UI) Node ≥ 18.
 
 ```bash
-git clone git@github.com:gbibbo/asr_enhancement.git
+git clone https://github.com/gbibbo/asr_enhancement.git
 cd asr_enhancement
-cp .env.example .env
+cp .env.demo.example .env.demo   # then set RECRUITER_USERNAME / RECRUITER_PASSWORD
 ```
 
-The default `ASR_PROVIDER=fake` requires no credentials. The bundled local MinIO credentials `minioadmin` / `minioadmin` are the local-only Compose default and **must be changed** for any internet-reachable deployment.
+Build the static UI and stage it where the demo API serves it:
 
 ```bash
-docker compose -f infra/compose/docker-compose.yml up -d --build
+cd services/frontend && npm ci && npm run build && cd ../..
+mkdir -p "$HOME/asr_enhancement_runtime/frontend"
+cp -r services/frontend/out/. "$HOME/asr_enhancement_runtime/frontend/"
 ```
 
-One-time setup — Alembic migrations and MinIO bucket. Both must be performed once after the stack is up:
+Bring up the stack:
 
 ```bash
-docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api alembic upgrade head
+docker compose -f infra/compose/docker-compose.demo.yml --env-file .env.demo up -d --build
 ```
 
-```bash
-docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api python -c '
-import os
-from minio import Minio
-c = Minio(
-    os.environ["MINIO_ENDPOINT"],
-    access_key=os.environ["MINIO_ACCESS_KEY"],
-    secret_key=os.environ["MINIO_SECRET_KEY"],
-    secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
-)
-b = os.environ["MINIO_BUCKET"]
-if not c.bucket_exists(b):
-    c.make_bucket(b)
-print("bucket ready:", b)
-'
-```
+Open `http://localhost:8001/` (it redirects to `/demo/`). You will be prompted
+for the recruiter credentials you set in `.env.demo`. For public exposure and
+the recruiter-gate re-smoke, see
+[`docs/setup/rp5_public_exposure.md`](docs/setup/rp5_public_exposure.md).
 
-Wait for readiness:
+Cloud platform mode (fake provider, no secrets) is documented separately in
+[`docs/deployment.md`](docs/deployment.md).
 
-```bash
-until curl -fsS http://localhost:8000/ready >/dev/null; do sleep 2; done
-until docker compose -f infra/compose/docker-compose.yml exec -T worker \
-        celery -A services.worker.app.celery_app:celery_app inspect ping -t 2 >/dev/null 2>&1; do
-  sleep 2
-done
-```
+## Tech stack
 
-Run the smoke tests against the fake provider:
-
-```bash
-docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api \
-  pytest -q tests/smoke/test_cut_a_smoke.py
-```
-
-```bash
-docker compose -f infra/compose/docker-compose.yml run --rm --no-deps api \
-  pytest -v tests/api/test_enhance_and_transcribe.py
-```
-
-Each command must exit 0 with a passing pytest run. The Cut A smoke imports the FastAPI app in-process via `ASGITransport`, which is why it runs inside a one-shot `api` container that joins the Compose network.
-
-For the full local recipe (artifact layout, log fields, job-state inspection through the API) see [`docs/smoke_tests.md`](docs/smoke_tests.md). For the single-VPS deployment runbook see [`docs/deployment.md`](docs/deployment.md).
-
-## AssemblyAI (opt-in, gated)
-
-Live AssemblyAI transcription is **not required** for the MVP. CI never runs it. The live test runs only when **both** of these environment variables are set at the shell:
-
-- `RUN_LIVE_ASSEMBLYAI_TEST=1`
-- `ASSEMBLYAI_API_KEY=<your-key>`
-
-If either is missing, the live test self-skips at collection time without contacting the provider. Real key values must never be committed to the repository or printed in logs, screenshots, or status reports. The exact run commands live in [`docs/smoke_tests.md`](docs/smoke_tests.md).
-
-## CI status
-
-GitHub Actions runs three jobs on every push and pull request to `master` — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
-
-- **`backend`** — installs the package with dev/lint extras, runs `ruff` lint and `mypy` type checks, applies Alembic migrations, runs unit and integration tests against the fake adapter (excluding the smoke directory), starts a Celery worker in the background, and runs `pytest -q tests/smoke/test_cut_a_smoke.py` as the explicit smoke gate.
-- **`frontend`** — runs `npm run lint`, `npm run typecheck`, and `npm run build` against [`services/frontend/`](services/frontend/).
-- **`docker-image`** — builds the backend Docker image via Buildx (no push).
-
-CI sets `ASR_PROVIDER=fake` and never requires AssemblyAI credentials.
-
-## Persistent data and artifacts
-
-- Job state lives in Postgres (Docker named volume `asr_postgres_data`).
-- Audio and transcript artifacts live in MinIO (Docker named volume `asr_minio_data`) under deterministic, job-scoped object keys: `raw_audio/{job_id}/input.{ext}`, `enhanced_audio/{job_id}/output.wav`, `transcripts/{job_id}/transcript.json`, `provider_payloads/{job_id}/provider_response.json`.
-- For long-term storage and backup guidance (Postgres dump and MinIO volume archive), see the **Object storage and backups** section of [`docs/deployment.md`](docs/deployment.md).
-
-## Known limitations
-
-- The demo Next.js frontend is **not** integrated into [`infra/compose/docker-compose.yml`](infra/compose/docker-compose.yml). Frontend deployment is deferred to a later demo task; the deployment runbook is backend-only for now and there is no host-side `npm` production-run recipe in this repository.
-- The bundled local MinIO credentials (`minioadmin` / `minioadmin` in [`.env.example`](.env.example)) are for the local development walkthrough only. They must be changed before any internet-reachable deployment.
-- Live AssemblyAI calls cost money, are gated by `RUN_LIVE_ASSEMBLYAI_TEST=1` and `ASSEMBLYAI_API_KEY`, are not part of the post-deploy smoke, and are never run in CI.
-- The Cut A smoke test imports the FastAPI app in-process via `ASGITransport` inside a one-shot `api` container — it must be run on the Compose network, not from the host.
-
-## Out of scope (post-MVP)
-
-The MVP does not include any of the following. They are deferred to post-MVP work and are not implemented in this repository:
-
-- live streaming and WebSocket transcription
-- batch submission API and hyperparameter sweeps
-- experiment tracking, preset promotion, and preset ranking workflows
-- heavy neural enhancement models
-- Kubernetes and managed-cloud orchestration
-- enterprise auth, multi-tenant features, and admin console
-- advanced quality dashboards (WER, CER, experiment comparison, business analytics)
-- production hardening (high availability, automated backups, advanced rate-limiting beyond the basic per-minute limit, secrets management beyond a `.env` file)
-
-See [`plan.md`](plan.md) §3 and §16 for the full post-MVP roadmap.
+FastAPI · faster-whisper (CTranslate2) · SQLite · Next.js 14 (static export) ·
+Docker Compose · Tailscale Funnel · Raspberry Pi 5. Platform mode adds Celery,
+Redis, PostgreSQL, MinIO, Prometheus, Grafana, and OpenTelemetry.
 
 ## Repository layout
 
 ```text
 asr_enhancement/
-  CLAUDE.md
-  plan.md
-  README.md
-  alembic/                   # database migrations
-  alembic.ini
-  pyproject.toml
-  .env.example
-  docs/
-    smoke_tests.md
-    deployment.md
-    claude_task_progress.md
-    claude_task_progress.yaml
+  libs/            # shared: ASR adapters, audio pipeline, metrics, degradations, versions, demo, observability
   services/
-    api/                     # FastAPI service
-    worker/                  # Celery worker
-    frontend/                # Next.js demo (not in Compose)
-  libs/                      # shared modules: settings, ASR adapter, audio pipeline, observability, common
-  infra/
-    compose/                 # docker-compose.yml + Dockerfile.backend + prometheus.yml
-    grafana/
-    otel/
-    prometheus/
-  tests/                     # unit, integration, smoke
-  .github/
-    workflows/ci.yml
+    api/           # FastAPI (platform /v1 + demo /demo, recruiter gate, static UI serving)
+    worker/        # Celery worker (platform) + demo worker
+    frontend/      # Next.js UI (static export)
+  infra/compose/   # docker-compose.yml (platform) + docker-compose.demo.yml (demo)
+  docs/            # plans, progress, setup runbooks, model card, privacy
+  tests/           # unit, integration, demo, smoke
 ```
+
+## Status
+
+Public demo mode is **live** on the Raspberry Pi 5: curated examples, uploads,
+transcription, playback, the recruiter gate, and mobile layout all work
+end-to-end over the public URL. Remaining work is documentation polish and the
+formal multi-network re-smoke record. Platform mode (MVP) is preserved under the
+`platform-mvp-v0` tag.
