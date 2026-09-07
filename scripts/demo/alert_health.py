@@ -10,6 +10,13 @@ Environment variables are read via DemoSettings (reads .env.demo when present).
 The URL string from DEMO_ALERT_HEALTH_URL is NEVER logged — only the constant
 label "demo_health_local" appears in log output.
 
+/demo/health sits behind the recruiter HTTPBasic gate, so the probe sends
+Basic credentials from RECRUITER_USERNAME / RECRUITER_PASSWORD when both are
+set (same env the API container already receives from .env.demo). Without
+them the probe would get a permanent 401 and report a healthy demo as down.
+Credentials are read only to build the Authorization header and are NEVER
+logged nor included in the alert body.
+
 Host-side vs. Compose-cron execution:
 - Host/manual dry-run: DEMO_ALERT_HEALTH_URL default is http://localhost:8001/demo/health
 - Compose-cron: override to http://demo-api:8000/demo/health (Compose network DNS)
@@ -18,7 +25,9 @@ Host-side vs. Compose-cron execution:
 
 from __future__ import annotations
 
+import base64
 import logging
+import os
 import sys
 import urllib.error
 import urllib.request
@@ -32,6 +41,27 @@ _HTTP_TIMEOUT_SECONDS = 5.0
 # Constant label used in logs and alert body (URL string is never logged).
 _ENDPOINT_LABEL = "demo_health_local"
 
+# Env names of the recruiter gate credentials, mirroring
+# services/api/app/recruiter_auth.py. Read directly from the environment so the
+# values never enter DemoSettings or any log/alert payload.
+_RECRUITER_USERNAME_ENV = "RECRUITER_USERNAME"
+_RECRUITER_PASSWORD_ENV = "RECRUITER_PASSWORD"
+
+
+def _build_probe_request(url: str) -> urllib.request.Request:
+    """Build the probe request, adding recruiter Basic auth when configured.
+
+    The url and the credentials are used only to construct the request; neither
+    is ever logged.
+    """
+    request = urllib.request.Request(url)
+    username = os.environ.get(_RECRUITER_USERNAME_ENV, "")
+    password = os.environ.get(_RECRUITER_PASSWORD_ENV, "")
+    if username and password:
+        token = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
+        request.add_header("Authorization", f"Basic {token}")
+    return request
+
 
 def _classify_urlopen(url: str) -> tuple[bool, str]:
     """Attempt GET on url; return (success, status_kind).
@@ -41,7 +71,8 @@ def _classify_urlopen(url: str) -> tuple[bool, str]:
     The url argument is only used for the actual request; it is NEVER logged.
     """
     try:
-        with urllib.request.urlopen(url, timeout=_HTTP_TIMEOUT_SECONDS) as resp:
+        request = _build_probe_request(url)
+        with urllib.request.urlopen(request, timeout=_HTTP_TIMEOUT_SECONDS) as resp:
             code = resp.status
     except urllib.error.HTTPError as exc:
         code = exc.code

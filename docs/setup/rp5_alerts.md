@@ -91,6 +91,17 @@ name `demo-api:8000` reaches the long-running `demo-api` service that was
 started by `docker compose up -d demo-api demo-worker`. The reference cron
 entries in `infra/cron/asr-demo-alerts.cron` already apply this override.
 
+**Recruiter gate:**
+
+`/demo/health` is behind the recruiter HTTPBasic gate, so an unauthenticated
+probe gets a permanent `401` and reports a healthy demo as down. The script
+sends Basic credentials from `RECRUITER_USERNAME` / `RECRUITER_PASSWORD`
+whenever both are set — the same `.env.demo` values the API container already
+receives, so the Compose cron entries need no extra configuration. The
+credentials are used only to build the `Authorization` header and never appear
+in logs or in the alert body. If they are unset the probe goes out
+unauthenticated and a gated endpoint reports `http_4xx`.
+
 **Public / Cloudflare URL** (future, after B14.1):
 
 Once the Cloudflare Tunnel is configured, the health script can be repointed
@@ -192,6 +203,17 @@ approval with real SMTP credentials in `.env.demo`.
 - Confirm `DEMO_ALERT_HEALTH_URL=http://demo-api:8000/demo/health` in the cron
   entry (not `localhost:8001` which does not resolve inside a container).
 - Ensure `demo-api` is running: `docker compose -f infra/compose/docker-compose.demo.yml ps`.
+
+**`last_status_kind: http_4xx` while the demo is actually up:**
+
+- The probe is being rejected by the recruiter gate. Confirm
+  `RECRUITER_USERNAME` and `RECRUITER_PASSWORD` are set in `.env.demo` and that
+  the cron entry passes `--env-file .env.demo`, so the one-off container
+  inherits them.
+- Verify by hand from inside the container: an authenticated
+  `GET /demo/health` must return `200 {"status":"ok"}`.
+- The failure streak clears on the next successful run; no manual state edit is
+  needed.
 
 **State file conflicts:**
 

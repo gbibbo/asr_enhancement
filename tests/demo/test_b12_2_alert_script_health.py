@@ -217,3 +217,93 @@ def test_endpoint_label_in_log_not_url(tmp_path, caplog):
     all_msgs = " ".join(r.getMessage() for r in caplog.records)
     assert _TEST_URL not in all_msgs
     assert "secret-internal-host" not in all_msgs
+
+
+# --- Recruiter-gated /demo/health probe -------------------------------------
+# /demo/health is behind the recruiter HTTPBasic gate, so an unauthenticated
+# probe gets a permanent 401 and reports a healthy demo as down.
+
+_TEST_RECRUITER_USER = "probe-user"
+_TEST_RECRUITER_PASSWORD = "probe-password-value"
+
+
+def _set_recruiter_env(monkeypatch):
+    monkeypatch.setenv("RECRUITER_USERNAME", _TEST_RECRUITER_USER)
+    monkeypatch.setenv("RECRUITER_PASSWORD", _TEST_RECRUITER_PASSWORD)
+
+
+def _capture_request(captured: list):
+    def _urlopen(request, timeout=None):
+        captured.append(request)
+        return _MockHTTPResponse(200)
+
+    return _urlopen
+
+
+def test_probe_sends_recruiter_basic_auth_when_configured(tmp_path, monkeypatch):
+    import base64
+
+    _set_recruiter_env(monkeypatch)
+    settings = _make_settings(tmp_path)
+    captured: list = []
+    with patch("libs.common.demo_settings.DemoSettings", return_value=settings):
+        with patch("urllib.request.urlopen", new=_capture_request(captured)):
+            from scripts.demo.alert_health import main
+            main()
+
+    assert len(captured) == 1
+    header = captured[0].get_header("Authorization")
+    assert header is not None and header.startswith("Basic ")
+    decoded = base64.b64decode(header.split(" ", 1)[1]).decode("utf-8")
+    assert decoded == f"{_TEST_RECRUITER_USER}:{_TEST_RECRUITER_PASSWORD}"
+
+
+def test_probe_omits_auth_header_when_credentials_absent(tmp_path, monkeypatch):
+    monkeypatch.delenv("RECRUITER_USERNAME", raising=False)
+    monkeypatch.delenv("RECRUITER_PASSWORD", raising=False)
+    settings = _make_settings(tmp_path)
+    captured: list = []
+    with patch("libs.common.demo_settings.DemoSettings", return_value=settings):
+        with patch("urllib.request.urlopen", new=_capture_request(captured)):
+            from scripts.demo.alert_health import main
+            main()
+
+    assert len(captured) == 1
+    assert captured[0].get_header("Authorization") is None
+
+
+def test_gated_endpoint_is_not_reported_down(tmp_path, monkeypatch):
+    """A 401-gated but healthy endpoint must not accumulate failures."""
+    _set_recruiter_env(monkeypatch)
+    settings = _make_settings(tmp_path)
+
+    def _gated_urlopen(request, timeout=None):
+        if request.get_header("Authorization") is None:
+            raise urllib.error.HTTPError(_TEST_URL, 401, "Unauthorized", {}, None)
+        return _MockHTTPResponse(200)
+
+    with patch("libs.common.demo_settings.DemoSettings", return_value=settings):
+        with patch("urllib.request.urlopen", new=_gated_urlopen):
+            from scripts.demo.alert_health import main
+            main()
+
+    data = json.loads(settings.demo_alert_health_state_file.read_text(encoding="utf-8"))
+    assert data["consecutive_failures"] == 0
+
+
+def test_recruiter_credentials_never_logged(tmp_path, monkeypatch, caplog):
+    _set_recruiter_env(monkeypatch)
+    settings = _make_settings(tmp_path)
+    with patch("libs.common.demo_settings.DemoSettings", return_value=settings):
+        with caplog.at_level(logging.DEBUG, logger="demo-alerts"):
+            for _ in range(3):
+                with patch(
+                    "urllib.request.urlopen",
+                    side_effect=urllib.error.URLError("refused"),
+                ):
+                    from scripts.demo.alert_health import main
+                    main()
+
+    all_msgs = " ".join(r.getMessage() for r in caplog.records)
+    assert _TEST_RECRUITER_PASSWORD not in all_msgs
+    assert _TEST_RECRUITER_USER not in all_msgs
